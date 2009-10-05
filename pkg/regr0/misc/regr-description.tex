@@ -1,0 +1,432 @@
+\documentclass{article}
+\usepackage{a4,parskip}
+\usepackage{graphicx}
+\providecommand{\T}{\texttt}
+\providecommand{\ul}{\textbf}
+\providecommand{\Tit}[1]{\textbf{#1}\hspace{1em}}
+\providecommand{\Hneed}[1]{\penalty-8000\hskip#1 plus10pt\penalty-8000\hskip-#1}
+
+\begin{document}
+\title{The R-Function \T{regr} for an Augmented Regression Analysis\\
+Draft}
+\author{Werner A. Stahel, ETH Zurich}
+\maketitle
+
+\begin{abstract}
+The R function \T{regr} is a wrapper function that allows for fitting
+several different types of regression models by a unified call, and
+provides more informative numerical and graphical output than the 
+traditional \T{summary} and \T{plot} methods.
+\end{abstract}
+
+\section{Introduction}
+
+Regression models are fitted in the statistical programming environment R 
+by diverse functions, depending on the particular type of model.
+Outputs obtained by calling the function \T{summary} on the object produced
+by the fitting function look often quite similar. Graphical output for
+residual analysis is obtained by calling \T{plot}, but the result is not
+always informative. 
+
+The function \T{regr} allows for fitting various regression models
+with the same statement, provides a more informative numerical output
+and enhanced plots for residual analysis. 
+
+\T{regr} proceeds by 
+checking arguments, then calling the suitable usual fitting method,
+collecting useful statistics from the resulting object and a call of 
+\T{summary} on it and adding a few to generate an object of class
+\T{regr}. 
+%%- The printing method for these objects shows the results that are usually 
+%%- of interest.
+%%- The plotting method produces a much more complete set of residual plots
+%%- than the plotting methods for the usual fitting objects do.
+
+
+In particular, the following models can be fitted by \T{regr}:
+\begin{itemize}
+\item 
+  ordinary linear models, using Least Squares or robust estimation,
+  by calling \T{lm} or \T{rlm},
+\item
+  generalized linear models, by calling \T{glm},
+\item
+  multinomial response models, by calling \T{multinom} of package
+  \T{nnet},
+\item
+  ordered response models, by calling \T{polr} of package
+  \T{MARS},
+\item
+  multivariate ordinary linear models, by calling \T{lm}
+\end{itemize}
+
+\section{Numerical Output}
+The useful numerical output of fitting functions is usually obtained by
+calling \T{summary} on the object produced by the fitting method.
+This results, for most functions, in a table showing the estimated
+regression coefficients, their standard errors, the value of a test
+statistic (t or z or deviance) and, for the 
+ordinary linear model, a p value for the tests that the coefficients are
+zero. It is followed by an overall summary, usually including a test for
+the hypothesis that all coefficients are zero, and a standard deviation of
+the error and coefficient of determination, if applicable.
+
+If there are factors (qualitative explanatory variables) in the model, 
+the coefficients are not always interpreted adequately, and the 
+respective standard errors, t and p values are (almost) useless and often
+misinterpreted. 
+On the other hand, the information whether a factor has a significant
+effect is not available from the summary but has to be obtained by calling 
+\T{drop1} on the fit object. 
+(The function \T{anova}, which seems to be suited according to its
+name, usually does not answer this question.)
+
+This situation cannot be called user friendly.
+The function \T{regr} is meant to provide the results that are needed
+without having the user call different functions and select the 
+output that is safe to be interpreted.
+
+\subsection{Standard output for continuous explanatory variables.}
+Here is a result of printing a \T{regr} object.
+\begin{verbatim}
+Call:
+regr(formula = log10(tremor) ~ location + log10(distance) + log10(charge), 
+    data = d.blast)
+Fitting function  lm
+
+Terms:
+                  coef stcoef signif  R2.x df p.value
+(Intercept)      2.964  0.000   13.6    NA  1       0
+location            NA     NA   10.5 0.052  7       0
+log10(distance) -1.518 -0.788  -12.0 0.277  1       0
+log10(charge)    0.636  0.410    8.2 0.053  1       0
+
+Coefficients for factors:
+$location
+    loc1     loc2     loc3     loc4     loc5     loc6     loc7     loc8 
+ 0.00000  0.15306  0.13169 -0.16185 -0.03211  0.07161 -0.00889  0.00372 
+
+St.dev.error:  0.143   on 352 degrees of freedom
+Multiple R^2:  0.795   Adjusted R-squared: 0.79 
+F-statistic:    152   on 9 and 352 d.f.,  p.value:    0 
+\end{verbatim}
+
+The ``Terms:'' table characterizes the effects of the individual terms in the
+model. For continuous explanatory variables (the last 2 lines in the
+example) it shows:
+\begin{description}
+\item[\T{coef},] the estimated value of the coefficient;
+\item[\T{stcoef},] the estimated standardized coefficient,
+  defined as \T{coef} times the standard deviation of the explanatory
+  variable, divided by the standard deviation of the response if
+  the response is continuous. This allows for a comparison of the 
+  importance of explanatory variables that have different variances.
+\item[\T{signif},] a significance measure that is $>1$ for estimated
+  coefficients differing significantly from 0, see below for its
+  definition;
+\item[\T{R2.x},] the coefficient of determination for regressing 
+  the explanatory variable in question on the other terms in the model.
+  This is one of the wellknown collinearity diagnostics.
+\item[\T{df},] degrees of freedom, always 1 for such variables;
+\item[\T{p.value},] the p value for testing if the coefficient could be
+  zero. 
+\end{description}
+
+\subsection{Significance.}
+The usual \T{summary} output of fitting functions includes the 
+t values of the coefficients as a column in the coefficients table. 
+They are simply the ratios of the two preceding columns. 
+Nevertheless, they provide a kind of strength of the significance of the
+coefficients. The p value may also serve a such a measure, but it is less 
+intuitive as it turns tiny for important variables, making comparisons
+somewhat more difficult than t values. 
+The significance of t values depends on the degrees of freedom, but
+informed users will know that critical values are around 2, and they will
+therefore informally compare t values to 2. In order to allow for 
+clear assessments, the new significance measure is defined as
+\[
+  \T{signif} = \T{t value}\;/\;q_{df}
+\]
+where $q_{df}$ is the critical value of the t distribution and depends on the
+degrees of freedom. The definition is applicable for continuous explanatory
+variables as well as for binary factors.
+
+For other models ...
+
+\subsection{Confidence Intervals.}
+The standard errors provided by the usual \T{summary} tables allow for
+calculating confidence intervals for continuous explanatory variables,
+by the formula $\T{coef} \;\pm\; q_{df}\cdot\T{std.error}$.
+The formula based on \T{signif} is
+\[
+  \T{coef}\cdot\;(1\pm\;1/\T{signif}\;)
+\]
+Numerically, this is slightly more complicated, but there is an additional
+interpretation of \T{signif} in terms of the confidence interval:
+If the confidence interval were scaled to half width 1, then 
+the estimate is \T{signif} units away from zero.
+
+\subsection{Factors.}
+For factors (\T{location} in the example), there are several coefficients
+to be estimated. Their values depend on the scheme for generating the 
+dummy variables characterizing the factor, which is determined 
+by the \T{contrasts} option (or argument) in use.
+Whereas the usual option %\Hneed{40mm}
+\T{contrasts=\penalty-100%
+"contr.treatment"} gives coefficients
+with a clear interpretation (difference of level $k$ to level 1 for $k>1$),
+other contrasts may be mixed up with them or be very difficult to
+interpret.
+In the \T{regr} output, the estimated coefficients for all levels of the
+factor -- independently of the coding except for an additive constant --
+are shown after the Terms table, but tests are not provided. 
+
+Note that for factors with only two levels, the problem does not arise,
+since the single 
+coefficient can be interpreted in the straightforward manner as 
+for continuous explanatory variables. \T{regr} therefore treats binary
+factors in the same way as continuous explanatory variables.
+
+The test performed for factors with more than two levels and shown in the
+Terms table by the \T{p.value} entry is the F test for the whole factor 
+(hypothesis: all coefficients are 0) obtained by calling \T{drop1}.
+The significance measure is defined as 
+\[
+  \T{signif} = \sqrt{\T{F value}\;/\;q_{df1,df2}}
+\]
+where $q_{df1,df2}$ is the critical value of the F distribution.
+It reduces to the former one for binary factors.
+
+The collinearity measure \T{R2.x} for factors is a formal generalization of 
+\T{R2.x} for terms with one degree of freedom, determined by applying
+the relationship with the ``variance inflation factor'',
+\T{R2.x}$=1/(1-\mbox{vif})$ to the generalized vif. 
+[More explanation planned.]
+
+\subsection{Model summary.}
+The last paragraph of the output gives the summary statistics.
+For ordinary linear models, the estimated standard deviation or the error
+term is given first. (It is labelled ``Standard error of residual'' in the 
+\T{lm} output, which should be considered a misnomer.)
+The \T{Multiple R\^{}2} is given next, together with its ``adjusted''
+version, followed by the overall F test for the model.
+
+For generalized linear models, the deviance test for the model is given.
+If applicable, a test for overdispersion based on residual deviance is also
+added. 
+
+
+
+\section{Residual Analysis}
+%\subsection{Basic plot methods.}
+The residual plots that are produced by plotting an \T{lm} or \T{glm}
+object are: 
+\begin{itemize}
+\item 
+The Tukey-Anscombe plot showing residuals against fitted values,
+which is certainly the most important single diagnostic tool for assessing
+model assumptions;
+\item
+The normal quantile-quantile plot, which makes sense only for ordinary
+linear models and in some cases for generalized linear models. 
+It is not essential since skewness and outliers can also be seen in the
+Tukey-Anscombe plot if they are relevant;
+\item
+The Scale plot, which shows square-root transformed absolute values of
+residuals against 
+fitted values and helps to spot unequal variances (if these depend on the
+expected value of the response).
+\item
+The leverage plot, displaying residuals against leverage values.
+This plot is useful to detect influential observations.
+\end{itemize}
+
+\subsection{What \T{plot.regr} does.}
+The plotting method for \T{regr} objects has many addtional features, to be
+described in more detail in the following subsections.
+First of all, residuals are plotted against explanatory variables.
+This can also be achieved by calling \T{termplot} for other fit objects,  
+but experience shows that this is often neglected by average users.
+Second, the plots are augmented by a smooth fitted to them (which is also
+available in the classical R functions), and simulated smooths are added in
+order to assess an informal ``significance'' of curvature in the smooth of
+the data. In addition, a reference line is given, which helps finding
+an appropriate modification of the model if significant curvature is
+found. 
+Finally, plotting methods are defined for models for which no useful 
+methods are available in the basic R packages.
+
+The number of plots produced by calling \T{plot} on a \T{regr} object may
+be elevated. The argument \T{plotselect} allows for requiring or deselecting
+any of them. 
+
+The plotting pages are marked in the right lower corner by the date and a
+project title and step label, if available from \T{options}. 
+(This \T{stamp} can be suppressed by setting \T{options(stamp=FALSE)}.) 
+
+The plots can be generated by executing the examples on
+\T{help('plot.regr')}. 
+A single plot is shown here for easy reference in the following
+descriptions. 
+
+\begin{figure}[htb]
+\centerline{\includegraphics[width=1\textwidth]{p-plotregr-ta}}
+\caption{A Tukey-Anscombe plot.}
+\end{figure}
+
+\subsection{Extreme Residuals.}
+If there are one or a few outliers in any plot, the structure of the
+majority of the data becomes more difficult to grasp. 
+Therefore, the \T{plot} method first flags outliers in the residuals.
+If there are any, the range of the vertical axis is split into an
+``ordinary plotting range'', where the non-outliers are shown as usual, and
+an ``outlier margin'', where the outliers are shown on a highly nonlinear
+scale that maps the range from the limit of the ordinary range to infinity 
+to this margin.
+
+In order to ease identification, a suitable number of most extreme
+residuals are labeled with their \T{row.names} by default.
+
+\subsection{Smooths.}
+Fitting a smooth (blue dashed line in the Figure) 
+to a residual scatterplot helps to spot a potential
+nonlinearity of the relationship between the response and the variable
+shown in the plot -- the fitted values or a single explanatory variable.
+The smooth used by default is \T{loess} with a span depending on the number
+of observations ($= 3n^{-0.3}$ for ordinary regression, and twice this
+number for generalized linear regression; do not ask why).
+Such a smooth is more essential for generalized linear models than for 
+ordinary ones, since artefacts of the residuals may make it impossible to 
+see curved relationships from a display of the residuals.
+
+It is difficult to decide if a smooth line is curved ``significantly'',
+such that searching for a better model is more than overfitting the data.
+In order to help judging the ``natural curvature'', 19 sets of data are
+generated by drawing random response values according to the fitted model.
+The smooths obtained for these sets are also shown (in light blue in the
+Figure -- I hope that this can be seen in all versions of this document).
+If the smooth determined from the data is clearly the most extreme in some
+aspect, one may conclude that the model does not fit adequately.
+The number 19 is chosen to correspond to a ``significance level'' of 5\%.
+Up to now, such simulated datasets are only generated for ordinary linear
+regression. 
+
+\subsection{Augmented Tukey-Anscombe Plot.}
+The plot of residuals against fitted values is the most important
+diagnostic tool to assesss the validity of model assumptions.
+It allows for detecting deviations from linearity, homoscedasticity,
+symmetry and normal distribution of the random deviations.
+
+If there is curvature, one remedy may be to transform the response
+variable. This can help only if the relation between fitted and
+response values is monotone -- otherwise, quadratic terms are the
+most straightforward modification of the model.
+The distinction is easy to see if the response is plotted on the vertical
+axis instead of the residuals.
+This display can also be requested from \T{plot.regr}.
+
+In order to avoid the necessity to either call \T{plot} again or to 
+ask for the plot of response against fitted values routinely,
+a \ul{reference line} (red dot-dashed line in the Figure)
+is shown in the Tukey-Anscombe plot.
+It connects points with equal response values. Since the response can be
+determined by adding the two coordinates of the plot -- 
+fitted plus residual -- lines of equal response values have slope -1.
+The reference line shown is such a line, the one going through the center
+of the points in the plot.
+If the smooth never gets steeper than the reference line, then the
+suggested relation between fitted and response values is monotone, and a
+transformation of the response may remove the non-linearity.
+
+One might argue that a plot of the response on the fit is more
+straightforwardly interpreted than the Tukey-Anscombe plot with the
+reference line. We think that the Tukey-Anscombe plot can show the
+deviations from model assumptions more clearly and should therefore be
+preferred, and that the reference line, after a short learning period, will
+be easy enough to work with and helps avoiding an additional display. 
+Of course, some users may disagree.
+
+\subsection{Scale Plot.}
+The absolute values of the residuals are plotted against the fitted values
+in order to see more clearly than in the Tukey-Anscombe plot if the scatter
+of residuals depend on the expected values.
+The plot shown when plotting \T{lm} objects uses square roots of absolute
+residuals instead of the absolute values themselves because they are more
+symmetrically distributed. This appears as a technical argument to me and
+it may confuse unexperienced users. While no square roots are therefore
+used for plotting, they are used to calculate the smooth that is added to
+the plot.
+
+\subsection{Leverage Plot.}
+Influential observations can be spotted in the scatterplot of residuals
+against leverage values (diagonal elements of the projection matrix).
+The well-know diagnostic called Cook's distance is a simple function of
+these two quantities, and level curves are drawn in the plot.
+
+\subsection{Sequence Plot.}
+Residuals are plotted against the sequence number in the dataset in order
+to show any correlation that may be related to this sequence.
+
+\subsection{Residuals against explanatory variables.}
+Plotting residuals against explanatory variables serves to detect
+nonlinearities of the relation between the response and the variable in
+question. 
+For ordinary regression and some other models, they can show dependencies
+of the scale of errors on the explanatory variables.
+
+The plots are enhanced by smooths as discussed for the Tukey-Anscombe
+plot. 
+Also, a reference line is added that helps to decide whether a
+transformation of the explanatory variable may help to remove any
+non-linearity shown by the smooth.
+Again, the reference line intends to connect points of equal response
+values. Note, however, that they do not really align on a straight line
+because of the contributions of the other terms in the model to the fit.
+Therefore, the reference line connects points of equal sums of 
+``component effect'' $\widehat\beta_j x^{(j)}$ and residuals.
+
+Alternatively, these sums may be used as the vertical axis instead of the
+residuals for plotting. This display is usually called the 
+``partial residual plot'' and can be obtained from \T{plot.regr}, too. 
+It is related to the plots shown by default in the same way as the
+response versus fitted plot is to the Tukey-Anscombe plot.
+
+\subsection{Residuals for an ordinal and binary response.}
+Ordinal regression models are best specified by introducing the idea of a 
+``latent response variable'' $Z$, which is continuous and follows a linear
+relationship with the explanatory variables. 
+The response $Y$ is considered to be a classification of $Z$ into $k$
+classes of possibly unequal width. The most well-known model specifies a 
+logistic distribution for the error term in the linear model for $Z$.
+Then, the coefficients and the threshold or class limits are estimated by
+maximum likelihood. This is implemented in the function \T{polr} 
+(proportional odds linear regression) of the \T{MASS} package, 
+which is the function invoked for ordinal regression.
+
+Resdiuals for this model may be defined by considering the conditional
+distribution of the latent variable $Z$, given the observation $Y$ and the
+explanatory variables. This is a logistic distribution with parameters
+given by the model, restricted to the class of $Z$ given by the observed
+$Y$. Residuals are defined as the median of this distribution, and 
+it may help to characterize the uncertainty about the latent residuals by 
+the quartiles of the conditional distribution.
+The plots show the interquartile range by a vertical line and the median,
+by a horizontal tick on them.
+
+Note that this definition may not have appeared in the literature yet.
+
+\subsection{Residual plots for multivariate regression.}
+For multivariate regression, the plots corresponding to each target
+variable should be examined. 
+They are arranged such that the same type of plot for the different
+response variables are grouped together, and a matrix of plots is produced
+for residuals against explanatory variables.
+In addition, the qq-plot of Mahalanobis norms of residuals is shown as well
+as the scatterplot matrix of residuals.
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,0 +1,148 @@
+\name{plresx}
+\alias{plresx}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{ Plot Residuals Against Explanatory Variables }
+\description{
+  Diagnostic plots for fitted regression models:
+  Residuals are plotted against explanatory variables,
+  including smooth for actual residuals and simulated ones,
+  as well as a reference reference line for constant values of the
+  response variable.  
+}
+\usage{
+plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
+  glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
+  vars = NULL, sequence = FALSE, se = FALSE,
+  addcomp = FALSE, rug = FALSE, jitter = NULL,
+  smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
+  smooth.sim = 19, nxsmooth = 51,
+  lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
+  colors = options("colors.ra")[[1]], pch = NULL, col = NULL,
+  xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
+  ylim = TRUE, ylimfac = 3, ylimext = 0.1,
+  cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
+  condprobrange=c(0.05,0.8),
+  ask = NULL, multnrows = 0, multncols = 0, ...)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{x}{fitted regression object, result of calling \code{link{regr}}}
+  \item{data}{data set. defaults to the data set used when calling \code{regr}}
+  \item{resid}{residuals. If not \code{NULL}, these will be used instead
+  of \code{residuals(x)}}
+  \item{partial.resid}{if TRUE (default),
+    residuals for observations will be displayed}
+  \item{glm.restype}{type of residuals to be plotted in case of a glm
+    model. In addition to those allowed in \code{residuals()} for
+    \code{glm} objects, type \code{cond.quant} is possible for
+    (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
+    an explanation.}
+  \item{weights}{weights to be used for smoothing as well as
+    plotting of observations without label}
+  \item{lab}{character string labels to be used for displaying observed
+    residuals}
+  \item{cex.lab}{character expansion for labels}
+  \item{vars}{variables against which the residuals shall be plotted.
+    Defaults to the variables contained in the formula of \code{object}.
+    \code{vars} can be a formula (of which all variables on the right
+    hand side will be used) or a character vector of variable names.
+    All variables must be contained in \code{data}}
+  \item{sequence}{if TRUE, the residuals are also plotted against their
+    sequence number}
+  \item{se}{if TRUE, standard errors of the fit are plotted}
+  \item{addcomp}{if TRUE, the component effect is added to the residuals
+  as is common for a "partial residual plot"}
+  \item{rug}{if TRUE, the "rug" is displayed. It consists of tick marks
+    for the observed values.}
+  \item{jitter}{amount of jitter to be added for displaying factors}
+  \item{smooth}{if TRUE, a smooth line will be fitted to each plot.
+  By default, \code{\link{loess}} is used. Alternatively, another smoothing
+  function can be given as argument \code{smooth}}
+ \item{smooth.par}{parameter driving the smooth: argument \code{span}
+   if \code{loess} is used, which defaults to
+   \code{3*nobs^log10(1/2)*(1+glm)}, where \code{glm==1} for glm models}
+  \item{smooth.iter}{iterations used in the smoothing algorithm}
+  \item{smooth.sim}{number of simulated smooth lines to be drawn}
+  \item{nxsmooth}{number of x values for which the smooth is calculated}
+  \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
+    \describe{
+      \item{[1] }{observations (only \code{colors[1]} matters);}
+      \item{[2] }{horizontal reference line;}
+      \item{[3] }{smooth;}
+      \item{[4] }{simulated smooths;}
+      \item{[5] }{reference lines related to component effect;}
+      \item{[6] }{for confidence bands of component effects;}
+      \item{[7] }{(rnadom) observations in the case of
+	\code{glm.restype="cond.quant"};}
+      \item{[8] }{bars showing conditional quantiles for
+	\code{glm.restype="cond.quant"};}
+      }
+%%-     [1]         observations (only \code{colors[1]} matters),\cr
+%%-     [2]         horizontal reference line ,\cr
+%%-     [3]         smooth,\cr
+%%-     [4]         simulated smooths,\cr
+%%-     [5]         reference lines,\cr
+%%-     [6]         confidence bands of terms.\cr
+  }
+  \item{pch}{plotting character to use for unlabeled points}
+  \item{col}{color(s) to use for points}
+  \item{xlabs}{labels of x variables to be used instead of those
+    given by \code{vars}}
+  \item{ylabs}{label for residuals}
+  \item{main}{main title}
+  \item{cex.title}{character expansion for main title}
+  \item{ylim}{if TRUE, the range of the y axis will be restricted by
+    calling \code{\link{robrange}}}
+  \item{ylimfac}{argument passed to \code{robrange} if selected}
+  \item{ylimext}{argument passed to \code{plcoord}}
+  \item{cex}{character expansion}
+  \item{wsymbols}{if TRUE, weights are used as symbol size}
+  \item{symbol.size}{maximal symbol size, relative to \code{0.02*par("pin")[1]}}
+  \item{condprobrange}{if conditional probabilities are shown by bars:
+    show only those that are contained in \code{condprobrange}
+    (vector of length 2)}
+  \item{ask}{as in \code{\link{par}}}
+  \item{multnrows, multncols}{number of rows and columns for multiple
+    frames in case of multivatiate residuals}
+  \item{\ldots}{further arguments passed to \code{plot}}
+}
+\details{
+  The plots have several unusual features:
+  \itemize{
+    \item
+    Showing outliers in the plot margins and marking them with their
+    labels (if \code{markprop>0}).
+    \item
+    A reference line is shown. It follows a "contour" of an approximately
+    constant value of the response variable -- more precisely,
+    it shows the "component effect" with opposite sign.
+    It helps decide if a curvature shown by the smooth can be removed
+    by transforming the explanatory variable forming the horizontal
+    axis. The component effect is defined as the curve of fitted values
+    obtained by varying the explanatory variable, keeping all the other
+    variables at their "central value" (the mean of continuous variables
+    and the mode of factors).
+}
+}
+\value{
+  The names of the variables against which the residuals are plotted are
+  returned invisibly
+}
+\references{There will be a website}
+\author{Werner A. Stahel, ETH Zurich}
+\note{This function is still under construction
+}
+\seealso{\code{\link{plot.regr}}, \code{\link{termplot}}}
+\examples{
+  r.savings <- regr(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
+  plot(r.savings)
+
+  data(d.blast)
+  r.blast <-
+       regr(log10(tremor)~location+log10(distance)+log10(charge),
+            data=d.blast)
+  plresx(r.blast, xplot=~.+no) }
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{hplot}
+\keyword{regression}% __ONLY ONE__ keyword per line

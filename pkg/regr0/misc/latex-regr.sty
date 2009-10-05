@@ -1,0 +1,117 @@
+%%- \usepackage{/u/stahel/R/Pkgs/regr0/misc/latex-regr}
+%%- \begin{document}
+%%- \Packagedescription
+\newcommand{\tableofcontentsSec}{\section *{\contentsname \@mkboth
+{\MakeUppercase \contentsname }{\MakeUppercase \contentsname
+}}\pdfbookmark {Contents}{contents} \@starttoc {toc}\fi}
+
+
+\newcommand{\Packagedescription}{
+\HeaderA{regr-package}{Tools for Building Regression Models}{regr.Rdash.package}
+\keyword{package}{regr-package}
+\begin{Description}\relax
+This package helps to perform efficient model building for regression
+models. It also contains some useful utility functions.
+\end{Description}
+\begin{Details}\relax
+\Tabular{ll}{
+Package: & regr\\
+Type: & Package\\
+Version: & 1.0\\
+Date: & 2008-08-20\\
+License: & GPL\\
+LazyLoad: & yes\\
+}
+The function \code{regr} is a wrapper function for fitting regression
+models of many types by calling well-known R functions:
+\Itemize{
+\item
+Ordinary linear regression,
+\item
+logistic, Poisson, other generalized linear models, also for
+\item
+ordinal or nominal response variable.
+}
+
+The output of the function is somewhat different from the output of the
+base R functions \code{lm}, \code{glm}, \code{polr} etc. -- it should
+be more informative for the task of model building.
+
+The next most important function is the \code{plot} method for results
+of \code{regr}, which gives more complete regression diagnostic plots
+than the specific plot methods of the mentioned incorporated R functions.
+
+An important part of residual analysis which is often neglected is
+plotting residuals versus explanatory variables, often called term
+plots. This is part of \code{plot.regr}, but can also be called
+independently by calling \code{plresx}.
+
+If a \code{regr} result is printed, the output is more informative than
+the classical tables.
+
+The package contains the methods for the usual extractor functions, like
+\code{residuals}, \code{predict}, ..., as well as for \code{drop1},
+\code{add1}, ...
+
+The package contains a number of additional functions that should be
+useful for efficient data analysis. They include
+\Itemize{
+\item
+\code{plresx} to plot residuals against explanatory variables,
+\item
+\code{plres2x} to produce a plot showing interactions between two
+continuous regressors,
+\item
+\code{plmatrix}, a version of \code{pairs} that displays any rectangular
+scatterplot matrix and can also be used to produce the full usual
+quadratic scatterplot matrix for many variables in appropriate junks
+with panels that are still large enough to be useful.
+\item
+\code{lassoselect} to do model selection.
+}
+
+The package also includes some additional utility functions, like
+\Itemize{
+\item
+\code{logst} for log transformation of variables with zeros,
+\item
+\code{showd} for printing a "representative" part of a dataset.
+}
+
+For documenting the steps of the data analysis, there are several
+documenting functions:
+\Itemize{
+\item
+\code{tit} and \code{doc} add attributes to data and results, which
+should allow for tracing the history of these objects (not yet
+thoroughly implemented).
+
+\item
+\code{stamp} adds tracking information to plots, consisting of a project
+title, a step label, and the date when the plot is produced.
+}
+
+Some default options are added to \code{options} to reflect user
+preferences for output, see the help entry for
+\code{\LinkA{stamp}{stamp}}.
+\end{Details}
+\begin{Author}\relax
+Werner A. Stahel, ETH Zurich, \texttt{stahel@stat.math.ethz.ch}
+\end{Author}
+\begin{References}\relax
+There will be a website on \texttt{http://stat.ethz.ch/~stahel/regression}
+\end{References}
+\begin{SeeAlso}\relax
+\code{library(car)}
+\end{SeeAlso}
+\begin{Examples}
+\begin{ExampleCode}
+  r.savings <- regr(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)\\
+  plot(r.savings)
+\end{ExampleCode}
+\end{Examples}
+\pagebreak
+\tableofcontentsSec
+\pagebreak
+}
+

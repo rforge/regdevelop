@@ -1,0 +1,52 @@
+\name{residuals.survreg}
+\Rdversion{1.1}
+\alias{residuals.survreg}
+%- Also NEED an '\alias' for EACH other topic documented here.
+\title{Residuals of a regression for survival data
+}
+\description{
+  Calculates residuals for uncensored observations and
+  quartiles and random numbers according to the
+  conditional distribution of residuals for censored observations.
+  See Details for an explanation.
+}
+\usage{
+residuals.survreg(object, type = "response", ...)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{object}{an object inheriting from Survreg  
+}
+  \item{type}{
+}
+  \item{\dots}{unused
+}
+}
+\details{
+For censored observations, the conditional distribution of the survival
+time, given the censoring, is used to calculate quantiles ...
+}
+\value{
+%%  ~Describe the value returned
+%%  If it is a LIST, use
+%%  \item{comp1 }{Description of 'comp1'}
+%%  \item{comp2 }{Description of 'comp2'}
+%% ...
+}
+\references{See http://stat.ethz.ch/~stahel/regression
+}
+\author{Werner A. Stahel, ETH Zurich
+}
+\note{
+%%  ~~further notes~~
+}
+
+\seealso{\code{\link{condquant}, \code{\link{plot.regr}}}
+%% ~~objects to See Also as \code{\link{help}}, ~~~
+}
+\examples{
+}
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
+\keyword{regression}
+%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

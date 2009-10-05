@@ -1,0 +1,23 @@
+verify R2.x. coded as 1/(1-vif), possibly should be 1/(1-vif^2)
+
+smooth in residuals.condquant is not right
+
+predict.mlm mit se.fit=T oder interval=...
+
+doc bookkeeping: braucht  seldata, dropdata
+
+drop1.multinom, add1  noetig? doku.
+
+regr: method for lassoselect object
+doc und tit uebernehmen
+
+print, plot sollten doc und tit benuetzen
+
+c.env$verbose
+
+doku: plTA.polr, fitted..polr
+predict.regr, residuals.polr
+
+lassoselect: factors -> terms benuetzen
+
+drop1.mlm: ldata  und  lna  vielleicht nicht mehr noetig

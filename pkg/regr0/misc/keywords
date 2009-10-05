@@ -1,0 +1,28 @@
+GROUPED Keywords
+----------------
+Graphics
+	aplot		&	Add to Existing Plot / internal plot
+	dplot		&	Computations Related to Plotting
+	hplot		&	High-Level Plots
+Basics
+	datasets	&	Datasets available by data(.)	[!= S]
+	manip		&	Data Manipulation
+	attribute	&	Data Attributes
+	    & NA	&	Missing Values			[!= S]
+	package		&	Package Summaries
+
+	utilities	&	Utilities
+	misc		&	Miscellaneous
+	documentation	&	Documentation
+Statistics
+	datagen		&	Functions for generating data sets
+	univar		&	simple univariate statistics  [!= S]
+	models		&	Statistical Models
+	    & regression&	Regression
+	    & &nonlinear&	Non-linear Regression (only?)
+	robust		&	Robust/Resistant Techniques
+	multivariate	&	Multivariate Techniques
+	ts		&	Time Series
+	survival	&	Survival Analysis
+	smooth		&	Curve (and Surface) Smoothing
+	     & loess	&	Loess Objects

@@ -1,0 +1,2 @@
+### This exports everything but  ".foobar" :
+exportPattern("^[^\\.]")
