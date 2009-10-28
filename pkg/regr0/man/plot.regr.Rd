@@ -122,6 +122,8 @@
   resmatrix = 1, qqmult = 3).
      Modify this vector to change the selection and the sequence in
      which the plots appear.
+     Alternatively, provide a named vector defining all plot that should
+     be shown, like \code{plotselect = c(ta = 2, hat = 1)}.
 
      The names of \code{plotselect} refer to:
      \describe{
@@ -139,7 +141,7 @@
 	 quantiles.}
      }
 
-     In the Tukey-Anscombe plot, reference line indicates a "contour"
+     In the Tukey-Anscombe plot, the reference line indicates a "contour"
      line with constant values of the response variable,
      \eqn{Y=\widehat y+r=} constant. It has slope \code{-1}.
      It is useful to judge whether any curvature shown by the smooth
@@ -172,7 +174,5 @@ none
     data=d.fossiles)
   plot(r.foss, plotselect=c(ta=3, resmatrix=1, qqmult=1),xplot=FALSE)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{hplot}
-\keyword{regression}% __ONLY ONE__ keyword per line
+\keyword{regression}

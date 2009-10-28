@@ -1993,6 +1993,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
                smooth.par# 2
   if (length(smooth.iter)==0||is.na(smooth.iter))
     smooth.iter <- if (lfgauss) 3 else 0
+## simulated residuals
   lnsims <- smooth.sim
   if (!lfgauss) lnsims <- 0
   if (length(lnsims)==0) lnsims <- 0

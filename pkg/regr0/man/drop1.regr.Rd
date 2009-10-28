@@ -22,15 +22,16 @@
   \item{scope}{a formula giving the terms to be considered for dropping
     or adding.
     Defaults to the terms in the \code{object}s formula for \code{drop1}
-    and to all first order interactions between these for \code{add1}}
+    and to all first order interactions between these and squared terms
+    in the continuous variables for \code{add1}}
   \item{scale}{an estimate of the error variance if applicable. Will be
     recalculated from the fit if ==0 or NULL}
-  \item{test}{see \code{\lind{droq1}}}
+  \item{test}{see \code{\lind{drop1}}}
   \item{k}{the penalty constant in AIC / Cp}
   \item{sorted}{if TRUE, the result is sorted according to the AIC or,
     if absent, the p value}
   \item{add}{converts \code{drop1.regr} into an add1 method}
-  \item{\dots}{further argiuments passed to the model specific methods}
+  \item{\dots}{further arguments passed to the model specific methods}
 }
 \value{
   A data.frame of class '"anova"' summarizing the differences in fit
