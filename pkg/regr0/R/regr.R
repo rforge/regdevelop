@@ -1,8 +1,4 @@
 #  regr.R  Functions that are useful for regression, W. Stahel,
-##  April 2008
-##  source("/u/stahel/R/regr/regr.R")
-##  d.blast <- read.table(blast.dat",header=T)
-##  d.blast$location <- factor(d.blast$location)
 ## ==========================================================================
 regr <- function(formula, data, tit=NULL, method="lm", family=NA,
   init.reg="f.ltsreg", subset=NULL, weights=NULL, na.action=nainf.exclude,
@@ -774,9 +770,7 @@ drop1.regr <-
             else "Chisq"
   }
   if (length(scope)==0) {
-    scope <- if (add) attr(terms(update.formula(object, ~(.)^2-.)), 
-                            "term.labels") else
-        drop.scope(object)
+    scope <- if (add) terms2order(object) else drop.scope(object)
   } else 
     if (!is.character(scope)) 
             scope <- attr(terms(update.formula(object, scope)), 
@@ -800,6 +794,25 @@ drop1.regr <-
     if (length(lsrt)) dr1 <- dr1[order(dr1[, lsrt[1]]), ]
   }
   dr1
+}
+## ==========================================================================
+terms2order <- function(object, squared = TRUE)
+{
+  ## Purpose:
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 15 Oct 2009, 16:01
+  ltsq <- ""
+  if (squared) {
+    lvrs <- all.vars(formula(object)[-2])
+    lvrt <- object$vartype[lvrs]
+    lvrs <- lvrs[!is.na(lvrt)&lvrt=='c']
+    ltsq <- if (length(lvrs))
+        paste(paste(paste("I(", lvrs,"^2)",sep=""), collapse="+"),'+')
+  }
+    lfad <- paste("~",ltsq,"(.)^2-.")
+    attr(terms(update.formula(object, lfad)), "term.labels")
 }
 ## ==========================================================================
 add1.regr <-
