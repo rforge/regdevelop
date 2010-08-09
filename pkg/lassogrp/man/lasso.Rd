@@ -1,35 +1,31 @@
 \name{lasso}
+\title{Fit a (Generalized Linear) Model with Lasso}
 \Rdversion{1.1}
 \alias{lasso}
 \alias{lasso.default}
 \alias{lasso.formula}
 \alias{lasso.lassogrp}
-%- Also NEED an '\alias' for EACH other topic documented here.
-\title{
-Fit a Model with Lasso
-}
 \description{
 Functions that fit a model by (Group-) lasso, including adaptive version
 }
 \usage{
-lasso(x, ...)
+lasso(x, \dots)
 
-## S3 method for class 'formula':
 \method{lasso}{formula}(x, data, subset, weights, na.action,
   model = "gaussian", offset, nonpen = ~1, lambda = NULL, lstep = 21,
   adaptive = FALSE, cv.function = cv.lasso,
-  contrasts = NULL, save.x = TRUE, control = lassoControl(), ...)
+  contrasts = NULL, save.x = TRUE, control = lassoControl(), \dots)
 
-## S3 method for class 'lassogrp':
 \method{lasso}{lassogrp}(x, lambda = NULL, lstep = 21, cv = NULL,
-  adaptcoef = NULL, adaptlambda = NULL, ...)
+  cv.function = cv.lasso, save.x = TRUE,
+  adaptcoef = NULL, adaptlambda = NULL, \dots)
 
-## Default S3 method:
 \method{lasso}{default}(x, y, index, subset, model = "gaussian",
-  lambda = NULL, lstep = 21, adaptive = FALSE, cv.function = cv.lasso,
-  save.x = TRUE, ...)
+     lambda = NULL, lstep = 21,
+% not yet supported __FIXME__  adaptive = FALSE,
+% not yet supported            cv.function = cv.lasso,
+     save.x = TRUE, \dots)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{for \code{formula} method: model formula for the
     penalized terms\cr
@@ -59,7 +55,7 @@ lasso(x, ...)
         response vector. May be useful in logistic and Poisson regression.
   }
   \item{nonpen}{formula defining the model terms that must not be included in
-    the lasso penalty term 
+    the lasso penalty term
   }
   \item{lambda}{vector of scaling factors of the lasso penalty term
   }
@@ -67,7 +63,7 @@ lasso(x, ...)
     not provided
   }
   \item{cv.function}{function used for cross validation}
-  \item{cv}{results of cross validation, if available. 
+  \item{cv}{results of cross validation, if available.
   }
   \item{adaptive}{logical: should the adaptive lasso be used?
     If TRUE, the lasso will be called twice, first in the regular mode,
@@ -85,7 +81,7 @@ lasso(x, ...)
     in which case the coefficients corresponding to the
     \code{abs(adaptlambda)}th lambda of \code{object}.
     If \code{adaptlambda} is null, it will be selected by cross
-    validation. 
+    validation.
   }
   \item{contrasts}{an optional list. See the 'contrasts.arg' of
     'model.matrix.default'.}
@@ -111,14 +107,14 @@ lasso(x, ...)
   included in the L1 penalization term.
   There is an element in \code{index} for each carrier (column of the
   model.matrix). Carriers \code{j} with positive \code{index[j]} are
-  included in the penalization. 
+  included in the penalization.
   Elements sharing the same \code{index[j]} value are a group in the
   sense of the group lasso, that is, their coefficients will be
-  included in the L1 term as \code{sqrt(sum(coef^2))}. 
+  included in the L1 term as \code{sqrt(sum(coef^2))}.
 
   When using \code{grplasso.formula}, the grouping of the variables is
   derived from the type of the variables: The dummy variables of a
-  factor will be automatically treated as a group. 
+  factor will be automatically treated as a group.
 
   The lasso optimization process starts using the largest value of
   \code{lambda} as penalty parameter \eqn{\lambda}. Once
@@ -126,8 +122,8 @@ lasso(x, ...)
   parameter with starting values defined as the (fitted) coefficient
   vector based on the previous component of \code{lambda}.
 }
-\value{A 'lassogrp' object is returned, for which \code{coef},
-  \code{print}, \code{plot} and \code{predict} methods exist.
+\value{A \code{"lassogrp"} object is returned, for which \code{\link{coef}},
+  \code{print}, \code{plot} and \code{\link{predict}} methods exist.
   \item{coefficients}{coefficients with respect to the \emph{original} input
     variables (even if \code{standardize = TRUE} is used for fitting).}
   \item{norms.pen}{single terms of the L1 penalty term}
@@ -137,19 +133,23 @@ lasso(x, ...)
   \item{linear.predictors}{linear predictors}
   \item{lambda}{vector of lambda values where coefficients were calculated.}
   \item{index}{grouping index vector.}
-  \item{...}{and further components, see \code{names(...)}}
+  \item{\dots}{and further components, apply \code{\link{names}(.)} or
+    \code{\link{str}(.)} to the object.}
 }
-\references{Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
-  \emph{The Group Lasso for Logistic Regression}, Journal of the Royal
-  Statistical Society, 70 (1), 53 - 71, see also
-    \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}} 
+\references{
+  Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
+  \emph{The Group Lasso for Logistic Regression},
+  Journal of the Royal Statistical Society, \bold{70} (1), 53--71;
+  \cr see also
+  \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}
+}
 \author{Lukas Meier and Werner Stahel, \email{stahel@stat.math.ethz.ch}}
 
 \examples{
 ## Lasso for asphalt example
 data(asphalt)
-rr <- lasso(log10(RUT)~log10(VISC)+ASPH+BASE+FINES+VOIDS+RUN,
-  data=asphalt)
+rr <- lasso(log10(RUT) ~ log10(VISC) + ASPH+BASE+FINES+VOIDS+RUN,
+            data = asphalt)
 rr
 names(rr)
 
@@ -160,7 +160,7 @@ data(splice)
 contr <- rep(list("contr.sum"), ncol(splice) - 1)
 names(contr) <- names(splice)[-1]
 
-## Fit a logistic model 
+## Fit a logistic model
 fit.splice <-
   lasso(y ~ ., data = splice, model = 'binomial', lambda = 20,
   contrasts = contr)

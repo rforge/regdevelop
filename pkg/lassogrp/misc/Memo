@@ -1,9 +1,9 @@
 index: use number <=0 to indicate non-penalized carriers
   names: names of carriers
-lasso.terms: 
-  1   penalized, 
-  -1  non-penalized, 
-  0  not included, 
+lasso.terms:
+  1   penalized,
+  -1  non-penalized,
+  0  not included,
   NA unused
   names: names of terms in model
   first element is always '(Intercept)'. If NA, intercept is not in the
@@ -13,3 +13,7 @@ lasso.terms:
 problems:
 
 -- check if centering is needed in lambdamax --> bug?
+
+-------------
+
+Document data sets ( --> ../data/ ) --- why does 'R CMD check' not show that?

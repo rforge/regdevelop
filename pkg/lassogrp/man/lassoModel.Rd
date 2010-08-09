@@ -1,10 +1,13 @@
 \name{lassoModel}
+\title{Lasso Model Generation}
 \alias{lassoModel}
 \alias{LogReg}
 \alias{LinReg}
 \alias{PoissReg}
-\title{Lasso Models}
-\description{Generates models to be used for the (group) lasso algorithm.}
+\description{
+  Generate models to be used for the (group) lasso algorithm,
+  \code{\link{lasso}()}.
+}
 \usage{
 lassoModel(invlink, link, nloglik, ngradient, nhessian, check,
            name = "user-specified", comment = "user-specified")
@@ -13,14 +16,14 @@ LinReg()
 PoissReg()
 }
 \arguments{
-  \item{invlink}{a function with arguments \code{eta}
+  \item{invlink}{a function with argument \code{eta}
     implementing the inverse link function.}
-  \item{link}{a function with arguments \code{mu}
+  \item{link}{a function with argument \code{mu}
     implementing the link function.}
   \item{nloglik}{a function with arguments \code{y}, \code{mu} and
     \code{weights} implementing the \emph{negative} log-likelihood function.}
   \item{ngradient}{a function with arguments \code{x}, \code{y},
-    \code{mu} and \code{weights} 
+    \code{mu} and \code{weights}
     implementing the \emph{negative} gradient of the log-likelihood function.}
   \item{nhessian}{a function with arguments \code{x}, \code{mu} and
     \code{weights} implementing the \emph{negative} hessian of the
@@ -31,7 +34,7 @@ PoissReg()
   \item{comment}{a character comment}
 }
 \value{
-  An object of class \code{lassoModel}.
+  An object of class \code{\linkS4class{lassoModel}}.
 }
 \examples{
     LogReg()

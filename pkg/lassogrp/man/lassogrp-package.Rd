@@ -37,14 +37,16 @@ It is in development.
   Werner A. Stahel, ETH Zurich, \email{stahel@stat.math.ethz.ch},
   based on code of Lukas Meier
 }
-\references{Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008), \emph{The
-    Group Lasso for Logistic Regression}, Journal of the Royal
-  Statistical Society, 70 (1), 53 - 71, see also
-    \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}
+\references{
+  Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
+  \emph{The Group Lasso for Logistic Regression},
+  Journal of the Royal Statistical Society, \bold{70} (1), 53--71;
+  \cr see also
+  \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}
 }
-\keyword{ package }
 \seealso{\code{library(lars)}}
 \examples{
 data(splice)
 fit.splice <- lasso(y ~ ., data = splice, model = 'binomial')
 }
+\keyword{ package }

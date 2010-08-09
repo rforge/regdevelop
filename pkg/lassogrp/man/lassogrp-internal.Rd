@@ -1,10 +1,15 @@
 \name{lassogrp-internal}
-\title{Internal objects}
+\title{Internal Functions of 'lassogrp' Package}
+\alias{get.blocks}
 \alias{varBlockStand}
 \alias{varBlockScale}
-\alias{lassogrp}
 \alias{lassogrp.formula}
 \alias{lassogrp.default}
-\description{Internal lassogrp objects.}
-\details{These are not to be called by the user.}
+\description{
+  Internal lassogrp objects, typically \code{\link{function}}s
+}
+\details{
+  These are not to be called by the user, and hence need not be
+  understood.
+}
 \keyword{internal}

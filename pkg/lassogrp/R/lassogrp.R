@@ -1,14 +1,15 @@
 lasso <- function(x,...)  UseMethod("lasso")
-  
+
 lasso.default <-
   function(x, y, index, subset, model='gaussian', lambda=NULL, lstep = 21,
-           adaptive = FALSE, cv.function = cv.lasso,
+## not yet supported __FIXME__  adaptive = FALSE,
+## not yet supported            cv.function = cv.lasso,
            save.x = TRUE, ...)
 {
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 29 Nov 2007, 08:22
-  fit <- lassogrp.default(x, y, index, subset=subset, model=model, 
-                          lambda=lambda, save.x = save.x, ...)
+  fit <- lassogrp.default(x, y, index, subset=subset, model=model,
+                          lambda=lambda, lstep=lstep, save.x = save.x, ...)
   fit$innercall <- fit$call
   fit$call <- match.call() ## Overwrite lassogrp.default
   fit
@@ -16,7 +17,7 @@ lasso.default <-
 ## ==================================================================
 lasso.formula <-
   function(x, data, subset, weights, na.action, model='gaussian',
-           offset, nonpen = ~ 1, lambda=NULL, lstep = 21, adaptive = FALSE, 
+           offset, nonpen = ~ 1, lambda=NULL, lstep = 21, adaptive = FALSE,
            cv.function = cv.lasso, contrasts = NULL, save.x = TRUE,
            control = lassoControl(), ...)
 {
@@ -25,26 +26,31 @@ lasso.formula <-
   ## same as lassogrp.formula
   m <- match.call(expand.dots = FALSE)
   ## Remove not-needed stuff to create the model-frame
-  m$nonpen <- m$lambda <- m$model <- m$adaptive <- m$cv.function <- 
+  m$nonpen <- m$lambda <- m$model <- m$adaptive <- m$cv.function <-
     m$coef.init <- m$penscale <- m$standardize <- m$contrasts <- m$control <-
     m$... <- NULL
   l <- lassogrpModelmatrix(m, x, nonpen, data, weights, subset, na.action,
                      contrasts, env = parent.frame())
 ##-   if(is.null(coef.init))  coef.init <- rep(0, ncol(l$x))
 
+  ## subset: has been done in lassogrpModelmatrix, do not use it again below:
+
   fit <- lasso.default(x = l$x, y = l$y, index = l$index, weights = l$w,
-                       model = model, lambda = lambda, adaptive = adaptive,
-                       cv.function = cv.function, offset = l$off,
-##-                           penscale = penscale, 
+                       model = model, lambda = lambda,
+## not yet supported __FIXME__  adaptive = adaptive,
+## not yet supported            cv.function = cv.function,
+                       offset = l$off,
+##-                           penscale = penscale,
 ##-                           standardize = standardize, center=center,
                        save.x = save.x, control = control, ...)
-  ## subsetting has been done in lassogrpModelmatrix, do not use it in call again
+
   if (adaptive) {
-    if (control@trace>0)
+    if (control@trace > 0)
       cat('\n*** calling lasso.lassogrp to adapt to results of first call\n\n')
-    fit <- lasso.lassogrp(fit, cv.function = cv.function, save.x = FALSE,
+    fit <- lasso.lassogrp(fit, lambda=lambda, lstep=lstep,
+                          cv.function = cv.function, save.x = FALSE,
                           control = control)
-##- bookkeeping
+    ## bookkeeping
     if (save.x) fit$x <- l$x
   }
   fit$terms <- l$Terms
@@ -58,10 +64,11 @@ lasso.formula <-
 }
 
 ## ==================================================================
-lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL, 
-                  adaptcoef = NULL, adaptlambda = NULL, ...)
-{ # adaptive lasso
-  if (length(x$x)==0|length(x$y)==0) {
+lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
+			   cv.function = cv.lasso, save.x = TRUE,
+			   adaptcoef = NULL, adaptlambda = NULL, ...)
+{ ## adaptive lasso
+  if (length(x$x)==0 || length(x$y)==0) {
     m <- match.call(expand.dots = FALSE)
     m$lambda <- m$coef.init <- m$penscale <- m$model <-
       m$standardize <- m$contrasts <- m$control <- m$... <- NULL
@@ -79,25 +86,27 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
   if (length(lcf)==0) {
     if (length(adaptlambda)>1)
       warning('length(adaptlambda >1. I only use first element')
-    if (length(adaptlambda)==0) {
-      lcv <- if (is.null(cv)) cv.lasso(x, se=FALSE) else cv
+    else if (length(adaptlambda) == 0) { ## use CV
+      lcv <- if (is.null(cv)) cv.function(x, se=FALSE) else cv
       adaptlambda <- x$lambda[which.min(lcv$rmse)]
     }
-    else if (adaptlambda<0) {
+    else if (adaptlambda < 0) {
       adaptlambda <- x$lambda[-adaptlambda]
     }
     lil <- which(abs(adaptlambda-x$lambda)<=0.01*x$lambda)
-    if (length(lil)==0) 
+    if (length(lil)==0)
       stop('lambda not suitable. not yet programmed') # call lassogrp
     lcf <- x$coef[,lil]
   } else # if (length(lcf)==1)
     if (length(lcf)!=ncol(lx)) stop('wrong number of coefficients in  adaptcoef')
-  if (length(names(lcf))==0) 
+  if (length(names(lcf))==0) {
     if (length(lcf)>1)
-      stop('coefficients must have names') else {
-        lcf <- x$coefficients[,lcf]
-        names(lcf) <- dimnames(x$coefficients)[[1]]
-      }
+      stop('coefficients must have names')
+    else {
+      lcf <- x$coefficients[,lcf]
+      names(lcf) <- dimnames(x$coefficients)[[1]]
+    }
+  }
   ## drop variables with coef==0
   ltdrop <- aggregate(lcf==0, list(lindex), all)
   lt <- ltdrop[!ltdrop[,2],1]
@@ -112,7 +121,7 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
   lsc <- lcf <- lcf[lv]
   ## same scale within groups
   lgrp <- table(lindex)>1
-  if (any(lgrp)) { 
+  if (any(lgrp)) {
     lgrp <- as.numeric(names(lgrp)[lgrp])
     for (li in lgrp) {
       lig <- which(lindex==li)
@@ -125,12 +134,13 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
     stop(paste("coefficients", names(lsc)[is.na(lj)]," not in model matrix"))
 ## --- change scales
   lx[,lj] <- sweep(lx[,lj,drop=FALSE],2,lsc,"*")
-##-   attr(lindex, 'grpnames') <- 
+##-   attr(lindex, 'grpnames') <-
 ##-     grpnames  ## contains names even for eliminated groups
   rslt <- lassogrp.default(lx,ly, index=lindex, model=x$model,
+                           lambda=lambda, lstep=lstep, save.x=save.x,
                            standardize=FALSE, ...)
 ## adjust scales
-  rslt$coefficients[lj,] <- sweep(rslt$coefficients[lj,],1,lsc,"/")
+  rslt$coefficients[lj,] <- sweep(rslt$coefficients[lj, ,drop=FALSE],1,lsc,"/")
   rslt$adaptcoef <- lcf
   lt <- rslt$lasso.terms[!is.na(rslt$lasso.terms)]
   ltrm[names(lt)] <- lt
@@ -144,11 +154,11 @@ lassogrp <- function(x, ...)
 
 lassogrp.formula <-
   function(x, data, subset, weights = NULL, na.action,
-           model='gaussian', nonpen = ~ 1, 
+           model='gaussian', nonpen = ~ 1,
            lambda = NULL, lfac = 2^seq(-1,-10),
-##         coef.init=NULL, 
+##         coef.init=NULL,
 ##         penscale = sqrt, center=NA, standardize = TRUE,
-           contrasts = NULL, 
+           contrasts = NULL,
 ##         control = lassoControl(),
            ...)
 {
@@ -164,22 +174,22 @@ lassogrp.formula <-
     m$standardize <- m$contrasts <- m$control <- m$... <- NULL
   l <- lassogrpModelmatrix(m, x, nonpen, data, weights, subset, na.action,
                      contrasts, parent.frame())
-  
+
   fit <- lassogrp.default(x = l$x, y = l$y, index = l$index, weights = l$w,
                           model = model, offset = l$off, lambda = lambda,
 ##-                           coef.init = coef.init,
-##-                           penscale = penscale, 
+##-                           penscale = penscale,
 ##-                           standardize = standardize, center=center,
-                          grpnames = attr(l$index,'grpnames'), 
+                          grpnames = attr(l$index,'grpnames'),
 ##-                           control = control,
                           ...)
   ## subsetting has been done in lassogrpModelmatrix, do not use it in call again
-  
+
   fit$terms <- l$Terms
   fit$contrasts <- attr(l$x, "contrasts")
   fit$xlevels <- .getXlevels(l$Terms, l$mf)
   fit$na.action <- attr(l$mf, "na.action")
-  fit$call <- match.call() ## Overwrite lassogrp.default 
+  fit$call <- match.call() ## Overwrite lassogrp.default
   structure(fit, class = "lassogrp")
 }
 ## ===================================================================
@@ -187,7 +197,7 @@ lassogrp.default <-
   function(x, y, index, subset, weights = rep(1, length(y)), model='gaussian',
            offset = rep(0, length(y)), lambda = NULL, lstep = 21,
            coef.init = rep(0, ncol(x)), penscale = sqrt,
-           center=NULL, standardize = TRUE, 
+           center=NULL, standardize = TRUE,
            save.x = NULL, save.y = NULL, control = lassoControl(), ...)
 {
   ## Purpose: Function to fit a solution (path) of a group lasso problem
@@ -207,7 +217,7 @@ lassogrp.default <-
   ## lambda: vector of penalty parameters. Optimization starts with the
   ##         first component. See details below.
   ## coef.init: initial vector of parameter estimates corresponding to the
-  ##            first component in the vector "lambda". 
+  ##            first component in the vector "lambda".
   ## penscale: rescaling function to adjust the value of the penalty
   ##           parameter to the degrees of freedom of the parameter group.
   ##           See the reference below.
@@ -232,7 +242,7 @@ lassogrp.default <-
   }
 
   if(is.null(standardize)) standardize <- TRUE # the default
-  
+
   ## Check the design matrix
   if(!is.matrix(x))
     stop("x has to be a matrix")
@@ -245,10 +255,10 @@ lassogrp.default <-
     stop("y has to be of type 'numeric'")
 
   nobs <- length(y)
-  
+
   if(NROW(x) != nobs)
     stop("x and y have not correct dimensions")
-  
+
   if(!model@check(y))
     stop("y has wrong format")
 
@@ -258,7 +268,7 @@ lassogrp.default <-
 
   if(any(weights < 0))
     stop("Negative weights not allowed")
-  
+
   if(length(offset) != nobs)
     stop("length(offset) not equal length(y)")
 
@@ -268,12 +278,13 @@ lassogrp.default <-
 
   if(!is.numeric(index))
     stop("argument  'index'  has to be of type 'numeric'!")
-  if(length(index)!=NCOL(x))
+  if(length(index) != NCOL(x))
     stop("length(index) not equal ncol(x)!")
-
-  if(all(index<=0))
+  if(any(iina <- is.na(index)))## recode 'NA' into '0' {back-compatibility}
+    index[iina] <- 0L #
+  if(all(index <= 0))
     stop("None of the predictors are penalized.")
-  
+
   check <- validObject(control) ## will stop the program if error occurs
 
   ## subset
@@ -282,15 +293,15 @@ lassogrp.default <-
       if(length(subset)!=nobs)
         stop("length of logical vector  subset  not equal length(y)")
     } else {
-      if (!(all(range(c(subset,1,nobs))==c(1,nobs))|
+      if (!(all(range(c(subset,1,nobs))==c(1,nobs)) ||
             all(range(c(-subset,1,nobs))==c(1,nobs))))
         stop("argument  'subset'  not suitable")
     }
-    x <- cbind(x)[subset,]
+    x <- cbind(x)[subset, ,drop=FALSE]
     y <- y[subset]
     weights <- weights[subset]
     offset <- offset[subset]
-  }        
+  }
 
   ## lambda
   if (length(lambda)) lambda <- lambda[!is.na(lambda)]
@@ -318,76 +329,81 @@ lassogrp.default <-
   max.iter     <- control@max.iter
   lower        <- control@lower
   upper        <- control@upper
-  if (is.null(save.x)) save.x       <- control@save.x 
+  if (is.null(save.x)) save.x       <- control@save.x
   if (is.null(save.y)) save.y       <- control@save.y
   tol          <- control@tol
   trace        <- control@trace
   beta         <- control@beta
   sigma        <- control@sigma
-  
+
   nrlambda <- length(lambda)
   ncolx    <- ncol(x)
   nrowx    <- nrow(x)
 
-  if(nrlambda > 1 & update.hess == "always"){
+  if(nrlambda > 1 && update.hess == "always"){
     warning("More than one lambda value and update.hess = \"always\". You may want to use update.hess = \"lambda\"")
   }
 
   ## For the linear model, the Hessian is constant and has hence to be
   ## computed only *once*
-  
+
   if(model@name == "Linear Regression Model"){
     if(update.hess != "lambda"){
       update.hess <- "lambda"
       if(trace >= 1)
         cat("Setting update.hess = 'lambda'\n")
     }
-    if(update.every <= length(lambda)){
-      update.every <- length(lambda) + 1
+    if(update.every <= nrlambda){
+      update.every <- nrlambda + 1
       if(trace >= 1)
         cat("Setting update.every = length(lambda) + 1\n")
     }
   }
-  
+
   ## keep original x if wanted
   x.old <- if(save.x) x else NULL
 
   ## Which are the non-penalized parameters?
-  any.notpen    <- any(index<=0)
+  any.notpen    <- any(index<=0, na.rm=TRUE)
   inotpen.which <- which(index<=0)
   nrnotpen      <- length(inotpen.which)
   interc.which  <- which(apply(x==1,2,all))
-  notpenintonly <- nrnotpen==1 && length(interc.which)>0
-  if (is.null(center)) center <- length(interc.which)>0
-  if (notpenintonly&!center)
+  has.interc <- length(interc.which) > 0
+  notpenintonly <- nrnotpen==1 && has.interc
+  if (is.null(center)) center <- has.interc
+  if (notpenintonly && !center)
     warning('Are you sure you want uncentered carriers with model with intercept?')
-  if (center&!notpenintonly)
+  if (center && !notpenintonly)
     warning('penalization not adjusted to non-penalized carriers')
-  
+
   ## Index vector of the penalized parameter groups
   if(any.notpen) {
     ipen <- index[-inotpen.which]
     ipen.which <- split((1:ncolx)[-inotpen.which], ipen)
   } else {
-    if (length(interc.which)) 
-    warning("All groups are penalized, including the intercept.")
+    if(has.interc)
+      warning("All groups are penalized, including the intercept.")
     ipen <- index
     ipen.which <- split((1:ncolx), ipen)
   }
 
   nrpen      <- length(ipen.which)
   dict.pen   <- sort(unique(ipen))
-  
+
   ## Table of degrees of freedom
   ipen.tab   <- table(ipen)[as.character(dict.pen)]
-  
+
   ## Center
   if (center) {
-    ctr <- apply(x[,-interc.which],2,mean)
-    x[,-interc.which] <- sweep(x[,-interc.which],2,ctr)
+    if(has.interc) {
+      ctr <- colMeans(x. <- x[,-interc.which, drop = FALSE])
+      x[,-interc.which] <- sweep(x., 2, ctr)
+    } else {
+      x[] <- sweep(x, 2, colMeans(x))
+    }
   }
   ## Standardize the design matrix -> blockwise orthonormalization
-  if(standardize){
+  if(standardize) {
     ##warning("...Using standardized design matrix.\n")
     stand        <- varBlockStand(x, ipen.which, inotpen.which)
     x            <- stand$x
@@ -395,16 +411,16 @@ lassogrp.default <-
     scale.notpen <- stand$scale.notpen
   }
   ## From now on x is the *normalized* design matrix!
-  
+
   ## Extract the columns into lists, works faster for large matrices
   if(any.notpen){
     x.notpen <- list(); length(x.notpen) <- nrnotpen
-    for(i in 1:length(inotpen.which))
+    for(i in seq_along(inotpen.which))
       x.notpen[[i]] <- x[,inotpen.which[[i]], drop = FALSE]
   }
-  
+
   x.pen <- list(); length(x.pen) <- length(nrpen)
-  for(i in 1:length(ipen.which))
+  for(i in seq_along(ipen.which))
     x.pen[[i]] <- x[,ipen.which[[i]], drop = FALSE]
 
   ## Extract the needed functions
@@ -421,9 +437,9 @@ lassogrp.default <-
 
 ##-   lambdanm <- format(lambda)
 ##-   if (any(duplicated(lambdanm))) lambdanm <- as.character(lambda)
-  lambdanm <- paste('l',1:length(lambda),sep='.')
+  lambdanm <- paste('l',1:nrlambda,sep='.')
   names(lambda) <- lambdanm
-  
+
   norms.pen    <- c(sqrt(rowsum(coef.pen^2, group = ipen)))
 
   norms.pen.m  <- matrix(0, nrow = nrpen, ncol = nrlambda,
@@ -439,7 +455,7 @@ lassogrp.default <-
                       dimnames = list(rownames(x), lambdanm))
 
   converged <- rep(TRUE, nrlambda)
-  
+
   ## *Initial* vector of linear predictors (eta) and transformed to the
   ## scale of the response (mu)
   eta <- offset + c(x %*% coef)
@@ -461,26 +477,26 @@ lassogrp.default <-
     ## function (uses parameter estimates based on the last penalty parameter
     ## value)
 
-    if(update.hess == "lambda" & pos %% update.every == 0 | pos == 1){
+    if(update.hess == "lambda" && (pos %% update.every == 0 || pos == 1)) {
       ## Non-penalized groups
       if(any.notpen){
         for(j in 1:nrnotpen){ ## changed
-          Xj <- x.notpen[[j]] 
+          Xj <- x.notpen[[j]]
           nH.notpen[j] <- min(max(nhessian(Xj, mu, weights, ...), lower), upper)
         }
       }
       ## Penalized groups
       for(j in 1:nrpen){
         ind <- ipen.which[[j]]
-        Xj  <- x.pen[[j]] 
+        Xj  <- x.pen[[j]]
         diagH <- numeric(length(ind))
-        for(i in 1:length(ind)){
+        for(i in seq_along(ind)){
           diagH[i] <- nhessian(Xj[, i, drop = FALSE], mu, weights, ...)
         }
         nH.pen[j] <- min(max(diagH, lower), upper)
       }
     }
-    
+
     ## Start the optimization process
     fn.val <- nloglik(y, eta, weights, ...) +
       l * sum(penscale(ipen.tab) * norms.pen)
@@ -491,20 +507,19 @@ lassogrp.default <-
 
     counter    <- 1 ## Count the sub-loops
     iter.count <- 0 ## Count the loops through *all* groups
-    
+
     ## Stop the following while loop if the convergence criterion is fulfilled
     ## but only if we have gone through all the coordinates
-    
+
     ##while(d.fn > tol | d.par > sqrt(tol) | !do.all){
-    while(d.fn > tol | d.par > sqrt(tol) | !do.all){
+    while(d.fn > tol || d.par > sqrt(tol) || !do.all){
       ## Escape loop if maximal iteration reached
       if(iter.count >= max.iter){
         converged[pos] <- FALSE
-        warning(paste("Maximal number of iterations reached for lambda[", pos,
-                      "]", sep = ""))
+        warning("Maximal number of iterations reached for lambda[", pos, "]")
         break
       }
-      
+
       ## Save the parameter vector and the function value of the previous step
       fn.val.old <- fn.val
       coef.old   <- coef
@@ -513,7 +528,7 @@ lassogrp.default <-
 
       ## Go through all groups if counter == 0 or if we have exceeded the
       ## number of inner loops (inner.loops)
-      if(counter == 0 | counter > inner.loops){
+      if(counter == 0 || counter > inner.loops){
         do.all <- TRUE
         guessed.active <- 1:nrpen
         counter <- 1
@@ -521,33 +536,33 @@ lassogrp.default <-
           cat("...Running through all groups\n")
       }else{## Go through the groups which were identified at the previous step
         guessed.active <- which(norms.pen != 0)
-        if(length(guessed.active) == 0){ 
+        if(length(guessed.active) == 0){
           guessed.active <- 1:nrpen
           do.all <- TRUE
           if(trace >= 2)
             cat("...Running through all groups\n")
         }else{
           do.all <- FALSE
-          if(counter == 1 & trace >= 2)
+          if(counter == 1 && trace >= 2)
             cat("...Starting inner loop\n")
           counter <- counter + 1
         }
       }
       if(do.all)
         iter.count <- iter.count + 1
-      
+
       ## These are used for the line search, start at initial value 1
       ## They are currently here for security reasons
       start.notpen <- rep(1, nrnotpen)
       start.pen    <- rep(1, nrpen)
-      
+
       if(any.notpen){
         ## Optimize the *non-penalized* parameters
         for(j in 1:nrnotpen){
           ind <- inotpen.which[j]
           Xj  <- x.notpen[[j]]
-        
-          ## Gradient of the negative log-likelihood function 
+
+          ## Gradient of the negative log-likelihood function
           ngrad <- c(ngradient(Xj, y, mu, weights, ...))
 
           ## Update the Hessian if necessary
@@ -563,13 +578,13 @@ lassogrp.default <-
           ## coefficient estimate
 
           d <- zapsmall(c(coef[ind], d))[2]
-          
+
           ## If d != 0, we have to do a line search
           if(d != 0){
-            scale <- min(start.notpen[j] / beta, 1) ##1 
+            scale <- min(start.notpen[j] / beta, 1) ##1
             coef.test      <- coef
             coef.test[ind] <- coef[ind] + scale * d
-            
+
             Xjd <- Xj * d
             eta.test     <- eta + Xjd * scale
 
@@ -580,7 +595,7 @@ lassogrp.default <-
               fn.val.test  <- nloglik(y, eta.test, weights, ...)
 
               qh <- zapsmall(c(qh, fn.val0))[1]
-            
+
               ## Armijo line search. Stop if scale gets too small (10^-30).
               while(fn.val.test - fn.val0 > sigma * scale * qh & scale > 10^-30){
                 ##cat("Doing line search (nonpen)\n")
@@ -591,7 +606,7 @@ lassogrp.default <-
               }
             } ## end if(line.search)
             if(scale <= 10^-30){ ## Do nothing in that case
-              ## coef.test <- coef 
+              ## coef.test <- coef
               ## eta.test  <- eta
               ## mu        <- mu
               start.notpen[j] <- 1
@@ -601,11 +616,11 @@ lassogrp.default <-
               mu   <- invlink(eta)
               start.notpen[j] <- scale
             }
-          
+
             ## Save the scaling factor for the next iteration (in order that
             ## we only have to do very few line searches)
             ## start.notpen[j] <- scale
-            
+
             ## Update the remaining information
             ## coef <- coef.test
             ## eta  <- eta.test
@@ -613,9 +628,9 @@ lassogrp.default <-
           } ## end if(abs(d) > sqrt(.Machine$double.eps))
         } ## end for(j in 1:nrnotpen)
       } ## if(any.notpen)
-      
+
       ## Optimize the *penalized* parameter groups
-      for(j in guessed.active){ 
+      for(j in guessed.active){
         ind  <- ipen.which[[j]]
         npar <- ipen.tab[j]
 
@@ -623,7 +638,7 @@ lassogrp.default <-
         cross.coef.ind <- crossprod(coef.ind)
 
         ## Design matrix of the current group
-        Xj <- x.pen[[j]] 
+        Xj <- x.pen[[j]]
 
         ## Negative gradient of the current group
         ngrad <- c(ngradient(Xj, y, mu, weights, ...))
@@ -631,17 +646,17 @@ lassogrp.default <-
         ## Update the Hessian if necessary
         if(update.hess == "always"){
           diagH <- numeric(length(ind))
-          for(i in 1:length(ind)){ ## for loop seems to be faster than sapply
+          for(i in seq_along(ind)){ ## for loop seems to be faster than sapply
             diagH[i] <- nhessian(Xj[,i,drop = FALSE], mu, weights, ...)
           }
           nH <- min(max(diagH, lower), upper)
         }else{
           nH <- nH.pen[j]
         }
-        
+
         cond       <- -ngrad + nH * coef.ind
         cond.norm2 <- crossprod(cond)
-        
+
         ## Check the condition whether the minimum is at the non-differentiable
         ## position (-coef.ind) via the condition on the subgradient.
         border <- penscale(npar) * l
@@ -652,24 +667,24 @@ lassogrp.default <-
         }else{
           d <- -coef.ind
         }
-        
+
         ## If !all(d == 0), we have to do a line search
         if(!all(d == 0)){
           scale <- min(start.pen[j] / beta, 1)
-          
+
           coef.test      <- coef
           coef.test[ind] <- coef.ind + scale * d
           Xjd            <- c(Xj %*% d)
           eta.test       <- eta + Xjd * scale
 
           if(line.search){
-            qh <- sum(ngrad * d) + 
+            qh <- sum(ngrad * d) +
               l * penscale(npar) * sqrt(crossprod(coef.ind + d)) -
                 l * penscale(npar)* sqrt(cross.coef.ind)
 
             fn.val.test    <- nloglik(y, eta.test, weights, ...)
             fn.val0        <- nloglik(y, eta, weights, ...)
-          
+
             left <- fn.val.test - fn.val0 +
               l  * penscale(npar) * sqrt(crossprod(coef.test[ind])) -
                 l  * penscale(npar) * sqrt(cross.coef.ind)
@@ -680,7 +695,7 @@ lassogrp.default <-
               coef.test[ind] <- coef.ind + scale * d
               eta.test       <- eta + Xjd * scale
               fn.val.test    <- nloglik(y, eta.test, weights, ...)
-            
+
               left <- fn.val.test - fn.val0 +
                 l  * penscale(npar) * sqrt(crossprod(coef.test[ind])) -
                   l  * penscale(npar) * sqrt(cross.coef.ind)
@@ -704,10 +719,10 @@ lassogrp.default <-
         } ## end if(!all(d == 0))
         norms.pen[j] <- sqrt(crossprod(coef[ind]))
       } ## end for(j in guessed.active)
-      
+
       fn.val <- nloglik(y, eta, weights, ...) +
         l * sum(penscale(ipen.tab) * norms.pen)
-      
+
       ## Relative difference with respect to parameter vector
       d.par <- sqrt(crossprod(coef - coef.old)) / (1 + sqrt(crossprod(coef)))
 
@@ -724,18 +739,18 @@ lassogrp.default <-
       ## If we are working on a sub-set of predictors and have converged
       ## we stop the optimization and will do a loop through all
       ## predictors in the next run. Therefore we set counter = 0.
-      
-      ##if(d.fn <= tol & d.par <= sqrt(tol)){
-      if(d.fn <= tol & d.par <= sqrt(tol)){
+
+      ##if(d.fn <= tol && d.par <= sqrt(tol)){
+      if(d.fn <= tol && d.par <= sqrt(tol)){
         counter <- 0 ## will force a run through all groups
-        if(trace >= 2 & !do.all)
+        if(trace >= 2 && !do.all)
           cat("...Subproblem (active set) solved\n")
       }
     } ## end of while(d.fn > tol | d.par > sqrt(tol) | !do.all)
 
     if(trace == 1)
       cat("Lambda:", l, " nr.var:", sum(coef != 0), "\n")
-    
+
     coef.m[,pos]            <- coef
     fn.val.v[pos]           <- fn.val
     norms.pen.m[,pos]       <- norms.pen
@@ -745,30 +760,31 @@ lassogrp.default <-
     fitted[,pos]            <- invlink(eta)
   } ## end for(pos in 1:nrlambda)
 ## ---
-  nterms <- max(abs(index)) 
+  nterms <- max(abs(index))
   terml <- c('(Intercept)', attr(index, 'term.labels'))
-  if (length(terml)<nterms+1)
+  if (length(terml) < nterms+1)
     terml <- c('(Intercept)', paste('G',1:nterms,sep='.') )
   dimnames(norms.pen.m)[[1]] <- terml[dict.pen+1]
   termt <- rep(NA,nterms+1)
   termt[dict.pen+1] <- 1
-  termt[unique(-index[inotpen.which])+1] <- -1  
+  termt[unique(-index[inotpen.which])+1] <- -1
   names(termt) <- terml
   ## Transform the coefficients back to the original scale if the design
   ## matrix was standardized
   if(standardize) {
     if(any.notpen)
-      coef.m[inotpen.which,] <- coef.m[inotpen.which,] / scale.notpen
+      coef.m[inotpen.which,] <- coef.m[inotpen.which, ,drop=FALSE] / scale.notpen
     ## For df > 1 we have to use a matrix inversion to go back to the
     ## original scale
-    for(j in 1:length(ipen.which)){
+    for(j in seq_along(ipen.which)){
       ind <- ipen.which[[j]]
       coef.m[ind,] <- solve(scale.pen[[j]], coef.m[ind,,drop = FALSE])
     }
   }
   ## correct intercept for centering
-  if(center) coef.m[interc.which,] <-
-    coef.m[interc.which,]- ctr%*%coef.m[-interc.which,]
+  if(center && has.interc)
+    coef.m[interc.which,] <-
+    coef.m[interc.which, ,drop=FALSE]- ctr %*% coef.m[-interc.which, ,drop=FALSE]
 
   if(!save.y)
     y <- NULL
@@ -781,9 +797,9 @@ lassogrp.default <-
               linear.predictors = linear.predictors,
               call         = match.call(),
               x = x.old, ## use untransformed values
-              y = y, 
+              y = y,
               index        = index,
-              lasso.terms  = termt, 
+              lasso.terms  = termt,
               weights      = weights,
               model        = model,
               offset       = offset,
@@ -857,7 +873,7 @@ print.lassogrp <- function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
 }
 
 ## ==================================================================
-predict.lassogrp <- function(object, newdata = NULL, 
+predict.lassogrp <- function(object, newdata = NULL,
                              type = c("link", "response"),
                              na.action = na.pass, ...)
 {
@@ -876,7 +892,7 @@ predict.lassogrp <- function(object, newdata = NULL,
   ## Author: Lukas Meier, Date:  7 Apr 2006, 09:04
 
   type <- match.arg(type)
-  
+
   na.act <- object$na.action
 
   ## If no new data is available, use the information in the fit object
@@ -886,39 +902,40 @@ predict.lassogrp <- function(object, newdata = NULL,
                    response = fitted(object))
     if(!is.null(na.act))
       pred <- napredict(na.act, pred)
-  }  else {
-  if (!is.null(tt <- object$terms)) { ## if we have a terms object in the fit
-    newdata <- as.data.frame(newdata)
-    Terms <- delete.response(tt)
-    m <- model.frame(Terms, newdata, na.action = na.action,
-                     xlev = object$xlevels)
-    offset <- attr(tt, "offset")
 
-    if(!is.null((cl <- attr(Terms, "dataClasses"))))
-      .checkMFClasses(cl, m)
-    x <- model.matrix(Terms, m, contrasts = object$contrasts)
-    pred <- x %*% coef(object)
-    if(!is.null(offset)){
-      offset <- eval(attr(tt, "variables")[[offset]], newdata)
-      pred <- pred + offset
+  } else {
+
+    if (!is.null(tt <- object$terms)) { ## if we have a terms object in the fit
+      newdata <- as.data.frame(newdata)
+      Terms <- delete.response(tt)
+      m <- model.frame(Terms, newdata, na.action = na.action,
+                       xlev = object$xlevels)
+      offset <- attr(tt, "offset")
+
+      if(!is.null((cl <- attr(Terms, "dataClasses"))))
+        .checkMFClasses(cl, m)
+      x <- model.matrix(Terms, m, contrasts = object$contrasts)
+      pred <- x %*% coef(object)
+      if(!is.null(offset)){
+        offset <- eval(attr(tt, "variables")[[offset]], newdata)
+        pred <- pred + offset
+      }
+    } else { ## if the object comes from lassogrp.default
+      x <- as.matrix(newdata)
+      pred <- x %*% coef(object)
+      if(any(object$offset != 0))
+        warning("Possible offset not considered!")
     }
-  } else { ## if the object comes from lassogrp.default
-    x <- as.matrix(newdata)
-    pred <- x %*% coef(object)
-    if(any(object$offset != 0))
-      warning("Possible offset not considered!")
+
+    pred <- switch(type,
+                   link = pred,
+                   response = object$model@invlink(pred)
+                   ##apply(pred, 2, object$model@invlink))
+                   )
+    if(!is.null(na.action))
+      pred <- napredict(na.action, pred)
   }
-    
-  pred <- switch(type,
-                 link = pred,
-                 response = object$model@invlink(pred))
-                 ##apply(pred, 2, object$model@invlink))
-
-  if(!is.null(na.action))
-    pred <- napredict(na.action, pred)
-
-}
-  if(dim(pred)[2] == 1) 
+  if(dim(pred)[2] == 1)
     pred <- structure(c(pred), names=row.names(pred))
 
   attr(pred, "lambda") <- object$lambda
@@ -940,21 +957,21 @@ fitted.lassogrp <- function(object, ...)
 }
 
 ## ==================================================================
-"[.lassogrp" <- function(x, i){
-  
+"[.lassogrp" <- function(x, i) {
+
   ## First get dimensions of the original object x
 
   nrlambda <- length(x$lambda)
 
   if(missing(i))
-    i <- 1:nrlambda
+      i <- seq_len(nrlambda)
 
   ## Error checking
   ## ...
 
   ## Subset the object
   fit.red <- x
-  
+
   fit.red$coefficients <- coef(x)[,i,drop = FALSE]
   if(length(fit.red$coefficients) == 0)
     stop("Not allowed to remove everything!")
@@ -986,7 +1003,7 @@ plot.lassogrp <-
   ## type: what should be on the y-axis? Coefficients (dummy
   ##       variables)?
   ## col:  a vector indicating the color of the different solution
-  ##       paths. The length should equal the number of coefficients. 
+  ##       paths. The length should equal the number of coefficients.
   ## ...:  other parameters to be passed to the plotting functions.
   ## ----------------------------------------------------------------------
   ## Author: Lukas Meier, Date:  7 Apr 2006 / Werner Stahel Aug 2009
@@ -994,7 +1011,7 @@ plot.lassogrp <-
   lambda <- x$lambda
   if(length(lambda) == 1)
     stop("Plot function not available for a single lambda")
-  
+
   type <- match.arg(type)
 
   xlim <- rev(range(sqrt(lambda)))
@@ -1005,8 +1022,8 @@ plot.lassogrp <-
   nr.npen <- sum(x$index<=0)
   dict.pen <- na.omit(ind)
   dict.pen.ord <- nr.npen + 1 : length(dict.pen)
-## ----------------------------    
-  if (type == "norms" | type == "coefficients") {
+## ----------------------------
+  if (type == "norms" || type == "coefficients") {
     if (type == "norms") {
       yy <- x$norms.pen
     ## colors and ltypes
@@ -1022,16 +1039,16 @@ plot.lassogrp <-
       index.ord[x$index<=0] <- 1:nr.npen
 
       dict.pen.sort <- sort(dict.pen)
-      for(j in 1:length(dict.pen))
+      for(j in seq_along(dict.pen))
         index.ord[x$index == dict.pen.sort[j]] <- dict.pen.ord[j]
-        
+
       col <- col[index.ord]
       lty <- lty[index.ord]
       yy <- coef(x)
     }
     if (is.null(ylim)) ylim <- range(yy[,lambda>0])
     matplot(sqrt(lambda), t(yy), type = "l", axes = FALSE,
-            xlab = "Lambda", ylab = type, col = col, lty=lty, 
+            xlab = "Lambda", ylab = type, col = col, lty=lty,
             main = main, xlim = xlim, ylim = ylim, ...)
     box()
     axis(1, at=sqrt(xlb), labels=as.character(xlb))
@@ -1042,9 +1059,9 @@ plot.lassogrp <-
     axis(4)
 #    axis(4, mgp=c(3,2,0), at = yy[, ncol(yy)], labels = rownames(yy))
     if (legend) legend(x="topleft", legend=rownames(yy), col=col, lty=lty)
-## ----------------------------    
+## ----------------------------
   } else if(type=='criteria') {
-    
+
     if (is.null(main)) main <- "log-likelihood and penalty"
     col <- if(is.null(col))  c(1,2,2,3)  else rep(col,length=4)
     lty <- if(is.null(lty))  c(1,5,6,2)  else rep(lty,length=4)
@@ -1093,7 +1110,7 @@ extract.lassogrp <-
   if (is.null(i)) {
     if (is.null(lambda))
       stop('!extract.lassogrp! Either arg.  i  or  lambda  must be given')
-    if (length(lambda)>1 || lambda<0 | lambda>max(object$lambda))
+    if (length(lambda)>1 || lambda<0 || lambda>max(object$lambda))
       stop('!extract.lassogrp! argument "lambda" not suitable')
 #    lamlam <- outer(lambda,object$lambda,'/')
     i <- which.min(abs(sqrt(lambda)-sqrt(object$lambda)))
@@ -1120,11 +1137,11 @@ extract.lassogrp <-
                na.action=lcall$na.action) # , '...'=...
   else {
     if (fitfun=='lm')
-    call(fitfun, formula=lform, data=lcall$data, 
+    call(fitfun, formula=lform, data=lcall$data,
                subset=lcall$subset, weights=lcall$weights)
              #  ,na.action=lcall$na.action) # , '...'=...
-    else 
-    call(fitfun, formula=lform, data=lcall$data, 
+    else
+    call(fitfun, formula=lform, data=lcall$data,
                family=c('gaussian','binomial','poisson')[lmod],
                subset=lcall$subset, weights=lcall$weights,
                na.action=lcall$na.action) # , '...'=...
@@ -1150,7 +1167,7 @@ extract.lassogrp <-
     lr$fitfun <- 'lassogrp'
     lallcoef <- try(dummy.coef(lr), silent=TRUE)
     if (is.list(lallcoef)) lr$allcoef <- lallcoef
-    
+
     result <- c(result,lr)
   }
   result <- if (length(result)==1) result[[1]] else result
@@ -1163,11 +1180,11 @@ print.lassofit <-
     residuals=FALSE, doc = options("doc")[[1]], ...)
 {
   ## Author: Werner Stahel, Date: 24 Aug 2009, 12:27
-  if (length(doc)==0) doc <- 0
-  if (doc>=1) if (length(tit(x)))
-    cat("\n",tit(x),"\n")
-  if (doc>=2) if (length(descr(x)))
-    cat(paste(descr(x),"\n"),"\n")
+  if(length(doc)==0) doc <- 0
+  if(doc >= 1) {
+    if (length(tit(x))) cat("\n",tit(x),"\n")
+    if (doc >= 2 && length(descr(x))) cat(paste(descr(x),"\n"),"\n")
+  }
 ##-   if (length(dummycoef)==0)
 ##-     dummycoef <- c(options("show.dummy.coef")[[1]],TRUE)[1]
   cat("\nCall:\n")
@@ -1181,12 +1198,12 @@ print.lassofit <-
     cat("\nResiduals:\n")
     print(summary(x$residuals))
   }
-#  invisible(x)
+  invisible(x)
 }
 
 ## ===================================================================
-cv.lasso <- 
-  function (object, blocks = 10, 
+cv.lasso <-
+  function (object, blocks = 10,
             trace=FALSE, control=lassoControl(trace=0), env=globalenv(),
             plot.it = NULL, se = TRUE, ...)
   ## modified cv.lars, WSt
@@ -1201,15 +1218,13 @@ cv.lasso <-
     bl <- get.blocks (object, blocks, env=env)
     blocklist <- bl$blocklist
     mf <- bl$model.frame
-    blocksinmodel <- blocks%in%all.vars(as.formula(object$call$formula))
-  } else  {
-    if (length(blocks)==1)
-      blocklist <- split(sample(1:n), rep(1:blocks, length = n))
-    else  {
-      if (length(blocks)!=n)
-        stop('!cv.lasso! argument "blocks" not suitable')
-      blocklist <- split(sample(1:n), blocks)
-    }
+    blocksinmodel <- blocks %in% all.vars(as.formula(object$call$formula))
+  } else if (length(blocks)==1) {
+    blocklist <- split(sample(1:n), rep(1:blocks, length = n))
+  } else if (length(blocks)!=n) {
+    stop('!cv.lasso! argument "blocks" not suitable')
+  } else {
+    blocklist <- split(sample(1:n), blocks)
   }
   ## crossvalidate
   K <- length(blocklist)
@@ -1222,8 +1237,8 @@ cv.lasso <-
                        offset=object$offset, lambda=object$lambda,
                        penscale=object$penscale, center=object$innercall$center,
                        standardize=object$innercall$standardize,
-                       save.x=FALSE, save.y=FALSE, control=control, 
-                       model=object$model, adaptive=FALSE, cv.function=NULL,  
+                       save.x=FALSE, save.y=FALSE, control=control,
+                       model=object$model, adaptive=FALSE, cv.function=NULL,
                        ...)
 ##-     fit <- update(object, subset=-omit, model=FALSE,
 ##-                   lambda=object$lambda, adaptive=FALSE, cv.function=NULL,
@@ -1237,11 +1252,11 @@ cv.lasso <-
       fit$terms <- NULL
     }
     pred <- rbind(predict(fit, xnew))
-    if (blocksinmodel) {
-      pred <- sweep(pred, 2, apply(pred, 2, mean) - mean(y[omit]))
-      blockrmse[i,] <- apply(y[omit] - pred, 2, sd)
-    } else
-      blockrmse[i,] <- sqrt(apply((y[omit] - pred)^2, 2, mean))
+    blockrmse[i,] <-
+      if (blocksinmodel) {
+        pred <- sweep(pred, 2, apply(pred, 2, mean) - mean(y[omit]))
+        apply(y[omit] - pred, 2, sd)
+      } else sqrt(apply((y[omit] - pred)^2, 2, mean))
     fitted[omit,] <- pred
     if (trace)  cat("\n CV Fold", i, "\n\n")
   }
@@ -1262,7 +1277,7 @@ lassogrpModelmatrix <-
   function(m, formula, nonpen = ~1, data, weights, subset, na.action,
            contrasts, env)
 {
-  ## Purpose:  Generates the model matrix and adds information about 
+  ## Purpose:  Generates the model matrix and adds information about
   ## variables to be penalized or non-penalized by the L1 term in the
   ## lasso fitting.
   ## ----------------------------------------------------------------------
@@ -1295,7 +1310,7 @@ lassogrpModelmatrix <-
         environment(f) <- env.formula
         if(!is.gEnv(env.nonpen) && !identical(env.formula, env.nonpen))
           warning("'formula' and 'nonpen' have different environments. I use environment of 'formula'")
-        
+
         environment(f) <- environment(formula)
       } else if (!is.gEnv(env.nonpen)){ ## if env. of 'nonpen' is not global
                  ## (but env. of 'formula' is), use env. of 'nonpen'
@@ -1307,7 +1322,7 @@ lassogrpModelmatrix <-
   }
 
   m$drop.unused.levels <- TRUE
-  
+
   ## Create model-frame
   m[[1]] <- as.name("model.frame")
 
@@ -1321,19 +1336,19 @@ lassogrpModelmatrix <-
   w <- model.weights(mf)
   off <- model.offset(mf)
 
-  if (!is.null(w) && any(w < 0)) 
+  if (!is.null(w) && any(w < 0))
     stop("Negative weights not allowed")
 
   if(!is.numeric(off))
     off <- rep(0, length(y))
   if(!length(w))
     w <- rep(1, length(y))
-  
+
   ## Handle the non-penalized coefficients
   if(any.nonpen){
     tmp <- terms(nonpen, data = data)
     co <- contrasts[attr(tmp, "term.labels")]
-    
+
     if(length(co))
       used.co <- co[!unlist(lapply(co, is.null))]
     else
@@ -1365,7 +1380,7 @@ get.blocks <- function(object, blocks, env=globalenv())
   if (is.null(m$formula))
     stop('!get.blocks! call of "object" does not contain a formula')
   m$formula <- update(as.formula(m$formula), paste('~.+',blocks))
-  m$nonpen <- m$lambda <- m$model <- m$adaptive <- m$cv.function <- 
+  m$nonpen <- m$lambda <- m$model <- m$adaptive <- m$cv.function <-
     m$coef.init <- m$penscale <- m$standardize <- m$contrasts <- m$control <-
     m$trace <- m$... <- NULL
   m[[1]] <- as.name("model.frame")
@@ -1389,14 +1404,14 @@ varBlockScale <- function(x, ipen.which, inotpen.which, coef = NULL)
   ## Author: Lukas Meier, Date:  4 Aug 2006, 08:50
 
   jcoef <- length(coef)>0
-  if (jcoef&length(coef)!=ncol(x))
+  if (jcoef && length(coef) != ncol(x))
     stop('length(coef) not equal ncol(x)!')
   n <- nrow(x)
   x.ort <- x
   scale.pen <- vector(mode = 'list', length = length(ipen.which))
   scale.notpen <- NULL
-  
-  if(length(inotpen.which) > 0 & !jcoef){
+
+  if(length(inotpen.which) > 0 && !jcoef) {
     scale.notpen <- sqrt(apply(x[,inotpen.which]^2, 2, mean))
     x.ort[,inotpen.which] <- scale(x[,inotpen.which], FALSE, scale.notpen)
   }
@@ -1406,7 +1421,7 @@ varBlockScale <- function(x, ipen.which, inotpen.which, coef = NULL)
 ##-     scale.notpen <- sc
 
   ##!!! penalty for groups
-  for(j in 1:length(ipen.which)){
+  for(j in seq_along(ipen.which)){
     ind <- ipen.which[[j]]
     decomp <- qr(x[,ind])
     if(decomp$rank < length(ind)) ## Warn if block has not full rank
@@ -1426,19 +1441,19 @@ varBlockStand <- function(x, ipen.which, inotpen.which)
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Lukas Meier, Date:  4 Aug 2006, 08:50
-  
+
   n <- nrow(x)
   x.ort <- x
   scale.pen <- vector(mode='list', length = length(ipen.which))
   scale.notpen <- NULL
-  
+
   if(length(inotpen.which) > 0){
     one <- rep(1, n)
     scale.notpen <- sqrt(drop(one %*% (x[,inotpen.which]^2)) / n)
     x.ort[,inotpen.which] <- scale(x[,inotpen.which], FALSE, scale.notpen)
   }
-    
-  for(j in 1:length(ipen.which)){
+
+  for(j in seq_along(ipen.which)){
     ind <- ipen.which[[j]]
     decomp <- qr(x[,ind])
     if(decomp$rank < length(ind)) ## Warn if block has not full rank
@@ -1468,7 +1483,7 @@ lambdamax.formula <-
 
   call <- match.call()
   m <- match.call(expand.dots = FALSE)
-  
+
   ## Remove not-needed stuff to create the model-frame
   m$nonpen <- m$lambda <- m$coef.init <- m$penscale <- m$model <-
     m$standardize <- m$contrasts <- m$... <- NULL
@@ -1478,7 +1493,7 @@ lambdamax.formula <-
 
   if(missing(coef.init))
     coef.init <- rep(0, ncol(l$x))
-  
+
   lambdamax.default(l$x, y = l$y, index = l$index, weights = l$w,
                     offset = l$off, coef.init = coef.init,
                     penscale = penscale,
@@ -1518,22 +1533,22 @@ lambdamax.default <-
 
   any.notpen <- any(index<=0)
   coef.npen <- coef.init[index<=0] ## unpenalized parameters
-  
+
   inotpen.which <- which(index<=0)
-  
+
   ## Index vector of the penalized parameter groups
   ipen <- index[index>0]
-  
+
   ## Table of degrees of freedom
   dict.pen <- sort(unique(ipen))
-  ipen.tab <- table(ipen)[as.character(dict.pen)] 
+  ipen.tab <- table(ipen)[as.character(dict.pen)]
 
   ## Indices of parameter groups
   ipen.which <- split((1:ncol(x))[index>0], ipen)
 
   if(standardize){
-    stand        <- varBlockStand(x, ipen.which, inotpen.which)
-    x            <- stand$x
+    stand <- varBlockStand(x, ipen.which, inotpen.which)
+    x     <- stand$x
   }
 
   x.npen <- x[,inotpen.which, drop = FALSE]
@@ -1543,20 +1558,20 @@ lambdamax.default <-
     model@nloglik(y, offset + x.npen %*% par, weights, ...)
 
   if(any.notpen){
-    par0 <- do.call(nlminb, args = c(list(start = coef.npen,
-                              objective = helper), nlminb.opt))$par
-    mu0  <- model@invlink(offset + x.npen %*% par0)
-  }else{
+    par0 <- do.call(nlminb, c(list(start = coef.npen,
+				   objective = helper), nlminb.opt))$par
+    mu0 <- model@invlink(offset + x.npen %*% par0)
+  } else {
     mu0 <- model@invlink(offset)
   }
-  
+
   ngrad0 <- model@ngradient(x, y, mu0, weights, ...)[index>0]
-  
+
   ##gradnorms <- numeric(length(dict.pen))
 
   gradnorms <- c(sqrt(rowsum(ngrad0^2, group = ipen))) / penscale(ipen.tab)
-                                                       
-  ##for(j in 1:length(dict.pen)){
+
+  ##for(j in seq_along(dict.pen)){
   ##  gradnorms[j] <- sqrt(crossprod(ngrad0[which(index == dict.pen[j])])) /
   ##    penscale(sum(index == dict.pen[j], na.rm = TRUE))
   ##}
@@ -1595,24 +1610,24 @@ setClass("lassoControl",
            beta         = 0.5,
            sigma        = 0.1,
            trace        = 0),
-           
+
          validity = function(object){
-           if(ceiling(object@update.every) != floor(object@update.every) |
+           if(ceiling(object@update.every) != floor(object@update.every) ||
               object@update.every <= 0)
              return("update.every has to be a natural number")
 
-           if(ceiling(object@inner.loops) != floor(object@inner.loops) |
+           if(ceiling(object@inner.loops) != floor(object@inner.loops) ||
               object@inner.loops < 0)
              return("inner.loops has to be a natural number or 0")
 
-           if(ceiling(object@max.iter) != floor(object@max.iter) |
+           if(ceiling(object@max.iter) != floor(object@max.iter) ||
               object@max.iter <= 0)
              return("inner.loops has to be a natural number or greater than 0")
 
-           if(object@beta <= 0 | object@beta >= 1)
+           if(object@beta <= 0 || object@beta >= 1)
              return("beta has to be in (0, 1)")
-           
-           if(object@sigma <= 0 | object@sigma >= 1)
+
+           if(object@sigma <= 0 || object@sigma >= 1)
              return("sigma has to be in (0, 1)")
 
            if(object@tol <= 0)
@@ -1632,7 +1647,7 @@ lassoControl <- function(save.x = FALSE, save.y = TRUE,
                          line.search = TRUE, max.iter = 500,
                          tol = 5 * 10^-8, lower = 10^-2, upper = Inf,
                          beta = 0.5, sigma = 0.1, trace = 0){
-  
+
   ## Purpose: Options for the Group Lasso Algorithm
   ## ----------------------------------------------------------------------
   ## Arguments:
@@ -1649,7 +1664,7 @@ lassoControl <- function(save.x = FALSE, save.y = TRUE,
   ##              predictors)
   ## tol: convergence tolerance; the smaller the more precise, see
   ##      details below.
-               
+
   ## lower: lower bound for the diagonal approximation of the
   ##        corresponding block submatrix of the Hessian of the negative
   ##        log-likelihood function.
@@ -1666,7 +1681,7 @@ lassoControl <- function(save.x = FALSE, save.y = TRUE,
   ## ----------------------------------------------------------------------
   ## Author: Lukas Meier, Date:  1 Jun 2006, 10:02
 
-  
+
   update.hess <- match.arg(update.hess)
 
   RET <- new("lassoControl",
@@ -1688,8 +1703,8 @@ lassoControl <- function(save.x = FALSE, save.y = TRUE,
 ## ===========================================================================
 setClass("lassoModel", representation = representation(
     invlink          = "function",
-    link             = "function",                     
-    nloglik          = "function",                   
+    link             = "function",
+    nloglik          = "function",
     ngradient        = "function",
     nhessian         = "function",
     check            = "function",
@@ -1714,7 +1729,7 @@ lassoModel <- function(invlink, link, nloglik, ngradient, nhessian,
   ##          function.
   ## nloglik: a function with arguments "y", "mu" and "weights"
   ##          implementing the negative log-likelihood function.
-  ## ngradient: a function with arguments "x", "y", "mu" and "weights" 
+  ## ngradient: a function with arguments "x", "y", "mu" and "weights"
   ##            implementing the negative gradient of the log-likelihood
   ##            function.
   ## nhessian: a function with arguments "x", "mu" and "weights"
@@ -1739,7 +1754,7 @@ lassoModel <- function(invlink, link, nloglik, ngradient, nhessian,
 ## ===========================================================================
 ## family.R
 ## ===========================================================================
-## Logistic Regression 
+## Logistic Regression
 LogReg <- function(){
   lassoModel(invlink   = function(eta) 1 / (1 + exp(-eta)),
              link      = function(mu) log(mu / (1 - mu)),

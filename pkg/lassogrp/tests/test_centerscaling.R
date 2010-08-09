@@ -5,23 +5,26 @@ set.seed(7198)
 n <- 100
 p <- 10
 
-x <- matrix(runif(n * p, min = -2.5, max = 2.5), nrow = n, ncol = p)
-y <- 4 * sin(x[,1]) + x[,2]^2 + rnorm(n)
+rX <- function(n,p) runif(n * p, min = -2.5, max = 2.5)
 
-x.new <- matrix(runif(n * p, min = -2.5, max = 2.5), nrow = n, ncol = p)
+x <- matrix(rX(n,p), nrow = n, ncol = p)
+fx <- 4 * sin(x[,1]) + x[,2]^2
+y <- fx + rnorm(n)
+
+x.new <- matrix(rX(n,p), nrow = n, ncol = p)
 
 shift <- 10
 scale <- 10
 
 ## Use Lasso shift, i.e. group-size = 1
-fit <- lasso(cbind(1,x), y, index = c(NA, 1:10),
-             lambda = c(50, 10), center = TRUE, standardize = TRUE, 
+fit <- lasso(cbind(1,x), y, index = c(NA, 1:p),
+             lambda = c(50, 10), center = TRUE, standardize = TRUE,
              model = LinReg(), control = lassoControl(trace = 0))
 
 ## Rescale
 x.resc <- shift + scale * x
 fit.resc <- lasso(cbind(1,x.resc), y, index = c(NA, 1:10),
-                  lambda = c(50, 10), center = TRUE, standardize = TRUE, 
+                  lambda = c(50, 10), center = TRUE, standardize = TRUE,
                   model = LinReg(), control = lassoControl(trace = 0))
 
 ## Compare estimators, without intercept
@@ -36,7 +39,7 @@ int.resc  <- mean(y) - apply(coef(fit.resc)[-1,] * mu.x.resc, 2, sum)
 
 stopifnot(all.equal(int, coef(fit)[1,], tol = 10^-7))
 stopifnot(all.equal(int.resc, coef(fit.resc)[1,], tol = 10^-7))
-          
+
 ## Compare predictions
 stopifnot(all.equal(predict(fit, newdata = cbind(1,x.new)),
                     predict(fit.resc,
@@ -64,7 +67,8 @@ lambda.max <- lambdamax(x.use, y, index, model = LinReg())
 lambda     <- lambda.max * c(1, 0.1)
 
 fit2 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
-                 center = TRUE)
+              center = TRUE)
+##--> two warnings -- FIXME ??
 
 ## center = TRUE & *no* intercept
 x.use <- cbind(x)
@@ -87,7 +91,7 @@ lambda     <- lambda.max * c(1, 0.1)
 fit4 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
                  center = FALSE)
 
-## Check whether fit3 and fit4 are the same
+## Check whether fit3 and fit4 are the same --- FIXME (MM)
 stopifnot(all.equal(coef(fit3), coef(fit4)))
 
 
@@ -100,5 +104,5 @@ lambda.max <- lambdamax(x.use, y, index, model = LinReg(),
 lambda     <- lambda.max * c(1, 0.1)
 
 fit5 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
-                 center = FALSE)
-
+              center = FALSE)
+## -> warning (which is ok)
