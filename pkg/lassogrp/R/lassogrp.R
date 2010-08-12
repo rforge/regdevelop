@@ -939,21 +939,29 @@ predict.lassogrp <- function(object, newdata = NULL,
         offset <- eval(attr(tt, "variables")[[offset]], newdata)
         pred <- pred + offset
       }
-
-      pred <- switch(type,
-                     link = pred,
-                     response = object$model@invlink(pred)
-                     ##apply(pred, 2, object$model@invlink))
-                     )
-      if(!is.null(na.action))
-        pred <- napredict(na.action, pred)
+    } else { ## if the object comes from lassogrp.default
+      ## Hmm: this should probably never happen ??
+      message("Hmm, empty 'terms' and 'formula' -- using  newdata %*% coef(.) ")
+      x <- as.matrix(newdata)
+      pred <- x %*% coef(object)
+      if(any(object$offset != 0))
+        warning("Possible offset not considered!")
     }
-    if(dim(pred)[2] == 1)
-      pred <- structure(c(pred), names=row.names(pred))
 
-    attr(pred, "lambda") <- object$lambda
-    pred
+    pred <- switch(type,
+                   link = pred,
+                   response = object$model@invlink(pred)
+                   ##apply(pred, 2, object$model@invlink))
+                   )
+    if(!is.null(na.action))
+      pred <- napredict(na.action, pred)
   }
+  if(dim(pred)[2] == 1)
+    pred <- structure(c(pred), names=row.names(pred))
+  
+  attr(pred, "lambda") <- object$lambda
+  pred
+}
 
 ## ==================================================================
 fitted.lassogrp <- function(object, ...)
@@ -1861,21 +1869,20 @@ tit <- function(x) attr(x,"tit")
   x
 }
 ## ---
-stamp <- 
-  function(sure=TRUE, outer.margin = NULL,
-           project=options("project")[[1]], step=options("step")[[1]], 
-           stamp=options("stamp")[[1]], ...)
+stamp <- function(sure=TRUE, outer.margin = NULL,
+                  project=options("project")[[1]], step=options("step")[[1]], 
+                  stamp=options("stamp")[[1]], ...)
 {
-## Purpose:   plot date and project information
-## -------------------------------------------------------------------------
-## Arguments:
-##   sure     if F, the function only plots its thing if  options("stamp")[[1]]>0
-##   outer    if T, the date is written in the outer margin
-##   project  project title
-##   step     title of step of data analysis
-##   ...      arguments to  mtext , e.g., line=3
-## -------------------------------------------------------------------------
-## Author: Werner Stahel, Date: 13 Aug 96, 09:00
+  ## Purpose:   plot date and project information
+  ## -------------------------------------------------------------------------
+  ## Arguments:
+  ##   sure     if F, the function only plots its thing if  options("stamp")[[1]]>0
+  ##   outer    if T, the date is written in the outer margin
+  ##   project  project title
+  ##   step     title of step of data analysis
+  ##   ...      arguments to  mtext , e.g., line=3
+  ## -------------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 13 Aug 96, 09:00
   if (length(stamp)==0) {
     warning(":stamp: setting options(stamp=1)")
     options(stamp=1)
@@ -1885,12 +1892,12 @@ stamp <-
   t.txt <- date()
   t.txt <- paste(substring(t.txt,5,10),",",substring(t.txt,22,23),"/",
                  substring(t.txt,13,16),sep="")
-    if (length(project)>0) t.txt <- paste(t.txt,project,sep=" | ")
-    if (length(step)>0) t.txt <- paste(t.txt,step,sep=" | ")
-  if( sure | stamp==2 | ( stamp==1 & (
-##     last figure on page
-     { t.tfg <- par("mfg") ; all(t.tfg[1:2]==t.tfg[3:4]) }
-       || (is.logical(outer.margin)&&outer.margin) ))  ) 
-       mtext(t.txt, 4, cex = 0.6, adj = 0, outer = outer.margin, ...) 
+  if (length(project)>0) t.txt <- paste(t.txt,project,sep=" | ")
+  if (length(step)>0) t.txt <- paste(t.txt,step,sep=" | ")
+  if (sure || stamp==2 || ( stamp==1 && (
+                              ##     last figure on page
+                              { t.tfg <- par("mfg") ; all(t.tfg[1:2]==t.tfg[3:4]) }
+                              || isTRUE(outer.margin) ))  ) 
+    mtext(t.txt, 4, cex = 0.6, adj = 0, outer = outer.margin, ...) 
   invisible(t.txt)
 }
