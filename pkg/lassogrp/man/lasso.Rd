@@ -72,7 +72,7 @@ lasso(x, \dots)
   }
   \item{adaptcoef}{inverse weights for the coefficients, used for the adaptive
     lasso. By default, they are obtained as the coefficients
-    of the result of an earlier call (\code{object\$coefficients}
+    of the result of an earlier call (\code{object\$coefficients},
     (for \code{lassogrp} method), or such a first call is invoked
     (for \code{formula} method).
   }
