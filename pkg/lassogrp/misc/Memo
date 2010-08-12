@@ -1,14 +1,18 @@
-index: use number <=0 to indicate non-penalized carriers
+index: corresponds to assign of  model.matrix
+  use number <=0 to indicate non-penalized carriers
   names: names of carriers
-lasso.terms:
-  1   penalized,
-  -1  non-penalized,
-  0  not included,
+  attr(,'term.labels'): 
+index == i  corresponds to  lasso.terms[i+1] and attr(index,'term.labels')[i]
+lasso.terms: 
+  1   penalized, 
+  -1  non-penalized, 
+  0  not included, 
   NA unused
   names: names of terms in model
   first element is always '(Intercept)'. If NA, intercept is not in the
   model
-  index == i  corresponds to  lasso.terms[i+1] and attr(index,'term.labels')[i]
+
+formula: formula of call, unused terms dropped. 
 
 problems:
 
@@ -16,4 +20,9 @@ problems:
 
 -------------
 
+criteria
+  linreg: weighted sum of squares
+          cv: unweighted!
+
 Document data sets ( --> ../data/ ) --- why does 'R CMD check' not show that?
+

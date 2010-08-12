@@ -1,3 +1,94 @@
+## =========================================================
+extract.lassogrp <-
+  function(object, i=NULL, lambda=NULL, data=NULL, fitfun='lm', ...)
+{
+  ## Purpose:
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## does not make sense yet for more than one i
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 21 Aug 2009, 08:55
+  lform <- object$formula
+  if (is.null(lform))
+    stop("extract.lassogrp needs an object with $formula")
+  if (is.null(i)) {
+    if (is.null(lambda))
+      stop('!extract.lassogrp! Either arg.  i  or  lambda  must be given')
+    if (length(lambda)>1 || lambda<0 | lambda>max(object$lambda))
+      stop('!extract.lassogrp! argument "lambda" not suitable')
+#    lamlam <- outer(lambda,object$lambda,'/')
+    i <- which.min(abs(sqrt(lambda)-sqrt(object$lambda)))
+##-       unique(apply( lamlam>0.99&lamlam<1.01, 1, which))
+##-     if (is.null(i))
+##-       stop('!extract.lassogrp!  lambda  not equal to any lambdas in lassogrp object')
+  }
+  ni <- length(i)
+  if (ni!=1) {
+    warning(':extract.lassogrp: not programmed for extracting more than 1 model')
+    i <- i[1]
+  }
+  lpen <- object$norms.pen[,i]
+  ltrms <- c(object$lasso.terms[object$lasso.terms<0],names(lpen[lpen>0]))
+  lform <- update(eval(lform), paste('~',paste(ltrms, collapse=' + ')))
+  result <- NULL
+  lmod <- object$model
+  if (!is.null(lmod)) {
+    if (is.character(lmod))
+      lmod <- pmatch(lmod,c('gaussian','binomial','poisson'))
+    else 
+      lmod <- pmatch(substring(lmod@name,1,3),c('Linear','Logistic','Poisson'))
+  }
+  lmeth <- c("lm","binomial","glm")[lmod]
+  lcall <- object$call
+  ldt <- if (is.null(data)) eval(lcall$data) else data
+  if (is.null(ldt))
+    stop ("!extract.lassogrp! I do not find the data. Specify the 'data' argument")
+  BR()
+  call <- if (fitfun=='regr')
+    call(fitfun, formula=lform, data=as.name("ldt"), method = lmeth,
+               family=c('gaussian','binomial','poisson')[lmod],
+               subset=lcall$subset, weights=lcall$weights,
+               na.action=lcall$na.action) # , '...'=...
+  else {
+    if (fitfun=='lm')
+    call(fitfun, formula=lform, data=ldt, 
+               subset=lcall$subset, weights=lcall$weights,
+               na.action=lcall$na.action) # , '...'=...
+    else 
+    call(fitfun, formula=lform, data=as.name("ldt"), 
+               family=c('gaussian','binomial','poisson')[lmod],
+               subset=lcall$subset, weights=lcall$weights,
+               na.action=lcall$na.action) # , '...'=...
+  }
+  lreg <- eval(call, parent.frame())
+  lreg <- eval(call)
+  for (li in seq_along(i)) { ## for loop not in use!
+    lr <- lreg
+    lk <- i[li]
+    lcoef <- lr$coefficients <- object$coefficients[,lk]
+    lr$fitted.values <- object$fitted[,lk]
+    lrsd <- lr$residuals <- object$y - lr$fitted.values
+    lr$df.residual <- lreg$df.residual - sum(lcoef==0)
+    ## only good for raw residuals
+    lcl <- lreg$call
+    lcl[1] <- paste(fitfun,'lassogrp',sep='.')
+    attr(lcl,'comment') <- 'call not R usable'
+    lr$call <- lcl
+    lrss <- sum(lrsd^2, na.rm=TRUE)
+    lr$sigma <- sqrt(lrss/lr$df.residual)
+    lr$r.squared <- 1-lrss/sum(object$y^2,na.rm=TRUE)
+    lr$stres <- lr$testcoef <- lr$adj.r.squared <- lr$fstatistic <-
+      lr$covariance <- lr$correlation <- NULL
+    lr$fitfun <- 'lassogrp'
+    lallcoef <- try(dummy.coef(lr), silent=TRUE)
+    if (is.list(lallcoef)) lr$allcoef <- lallcoef
+    
+    result <- c(result,lr)
+  }
+  result <- if (length(result)==1) result[[1]] else result
+  class(result) <- c('lassofit', class(lreg))
+  result
+}
 ## =======================================================================
 cv.block <-
   function(model, blocks, comp = 'nloglik', data=NULL,

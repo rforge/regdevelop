@@ -3,6 +3,7 @@ load('../data/splice.rda')
 
 library(grplasso)
 ##- example(grplasso)
+load("../data/splice.rda")
 data(splice)
 ##- contr <- rep(list("contr.sum"), ncol(splice) - 1)
 ##  names(contr) <- names(splice)[-1]
@@ -40,3 +41,11 @@ t.pr <- predict(t.r)
 
 t.rr <- extract.lassogrp(t.r,8)
 t.rr
+
+dd <- d.blast
+dim(dd)
+t.rr <- lasso(log10(tremor)~location*log10(distance)+log10(charge), data=dd)
+t.ra <- lasso(t.rr, adaptlambda=25.7)
+t.pr <- predict(t.ra, newdata=dd[1:10,])
+t.rg <- extract.lassogrp(t.rr,11, fitfun='regr')
+predict(t.rg,newdata=dd[1:10,])

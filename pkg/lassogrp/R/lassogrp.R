@@ -44,6 +44,7 @@ lasso.formula <-
 ##-                           standardize = standardize, center=center,
                        save.x = save.x, control = control, ...)
 
+  fit$terms <- l$Terms
   if (adaptive) {
     if (control@trace > 0)
       cat('\n*** calling lasso.lassogrp to adapt to results of first call\n\n')
@@ -52,12 +53,13 @@ lasso.formula <-
                           control = control)
     ## bookkeeping
     if (save.x) fit$x <- l$x
-  }
   fit$terms <- l$Terms
+  }
   ## !!! Terms and x do not match index and coefs if adaptive==T
   fit$contrasts <- attr(l$x, "contrasts")
   fit$xlevels <- .getXlevels(l$Terms, l$mf)
   fit$na.action <- attr(l$mf, "na.action")
+  fit$formula <- x
   fit$innercall <- fit$call
   fit$call <- match.call() ## Overwrite lassogrp.default
   structure(fit, class = "lassogrp")
@@ -82,13 +84,14 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
     lindex <- x$index
   }
 ## coefficients to adapt to
+  lcall <- match.call(expand.dots=TRUE)
   lcf <- adaptcoef
   if (length(lcf)==0) {
     if (length(adaptlambda)>1)
       warning('length(adaptlambda >1. I only use first element')
     else if (length(adaptlambda) == 0) { ## use CV
       lcv <- if (is.null(cv)) cv.function(x, se=FALSE) else cv
-      adaptlambda <- x$lambda[which.min(lcv$rmse)]
+      adaptlambda <- x$lambda[which.min(lcv$mse)]
     }
     else if (adaptlambda < 0) {
       adaptlambda <- x$lambda[-adaptlambda]
@@ -109,15 +112,17 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
   }
   ## drop variables with coef==0
   ltdrop <- aggregate(lcf==0, list(lindex), all)
-  lt <- ltdrop[!ltdrop[,2],1]
-  lv <- which(lindex%in%lt)
+  ltdr <- ltdrop[ltdrop[,2],1]
+  lv <- which(!lindex%in%ltdr)
   ltrm <- x$lasso.terms
-  ltrm[ltdrop[ltdrop[,2],1]+1] <- 0
-  lindex <- lindex[lv]
-
+  if (length(ltdr)) {
+    ltrm[ltdr+1] <- 0
+    lindex <- structure(lindex[lv], term.labels=attr(lindex, 'term.labels'))
+    # do not drop term.labels!
+  }
   if (all(lindex<=0))
     stop('no nonzero coefficients available to adapt to')
-  lx <- lx[,lv,drop=FALSE]
+  lxx <- lx <- lx[,lv,drop=FALSE]
   lsc <- lcf <- lcf[lv]
   ## same scale within groups
   lgrp <- table(lindex)>1
@@ -136,16 +141,23 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21, cv=NULL,
   lx[,lj] <- sweep(lx[,lj,drop=FALSE],2,lsc,"*")
 ##-   attr(lindex, 'grpnames') <-
 ##-     grpnames  ## contains names even for eliminated groups
-  rslt <- lassogrp.default(lx,ly, index=lindex, model=x$model,
+  if (is.null(weights)) weights <- x$weights
+  fit <- lassogrp.default(lx,ly, index=lindex, model=x$model,
                            lambda=lambda, lstep=lstep, save.x=save.x,
-                           standardize=FALSE, ...)
+                           standardize=FALSE, weights=weights, ...)
 ## adjust scales
-  rslt$coefficients[lj,] <- sweep(rslt$coefficients[lj, ,drop=FALSE],1,lsc,"/")
-  rslt$adaptcoef <- lcf
-  lt <- rslt$lasso.terms[!is.na(rslt$lasso.terms)]
+  fit$coefficients[lj,] <- sweep(fit$coefficients[lj, ,drop=FALSE],1,lsc,"*")
+  if (save.x) fit$x <- lxx
+  fit$adaptcoef <- lcf
+## terms
+  lt <- fit$lasso.terms[!is.na(fit$lasso.terms)]
   ltrm[names(lt)] <- lt
-  rslt$lasso.terms <- ltrm
-  rslt
+  fit$lasso.terms <- ltrm
+## formula (without dropped terms)
+  ltr <- setdiff(names(ltrm)[(!is.na(ltrm))&ltrm!=0],"(Intercept)")
+  fit$formula <- update(x$formula, paste('~', paste(ltr, collapse="+")))
+  fit$call <- lcall
+  fit
 }
 
 ## =========================================================
@@ -280,8 +292,9 @@ lassogrp.default <-
     stop("argument  'index'  has to be of type 'numeric'!")
   if(length(index) != NCOL(x))
     stop("length(index) not equal ncol(x)!")
-  if(any(iina <- is.na(index)))## recode 'NA' into '0' {back-compatibility}
-    index[iina] <- 0L #
+  ## !!! WSt: the following statement might cause a bug
+  if(any(iina <- is.na(index))) ## recode 'NA' to '0' {back-compatibility, MM}
+    index[iina] <- 0L 
   if(all(index <= 0))
     stop("None of the predictors are penalized.")
 
@@ -762,10 +775,11 @@ lassogrp.default <-
 ## ---
   nterms <- max(abs(index))
   terml <- c('(Intercept)', attr(index, 'term.labels'))
-  if (length(terml) < nterms+1)
-    terml <- c('(Intercept)', paste('G',1:nterms,sep='.') )
+  nterms <- max(abs(index)+1,length(terml)) 
+  if (length(terml)<nterms)
+    terml <- c('(Intercept)', paste('G',1:(nterms-1),sep='.') )
   dimnames(norms.pen.m)[[1]] <- terml[dict.pen+1]
-  termt <- rep(NA,nterms+1)
+  termt <- rep(NA,nterms)
   termt[dict.pen+1] <- 1
   termt[unique(-index[inotpen.which])+1] <- -1
   names(termt) <- terml
@@ -841,17 +855,17 @@ print.lassogrp <- function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
 #    cat('  ',format(x$adaptcoef), '\n')
     print(x$adaptcoef)
   }
-  cat("\n* Predictor groups      :",
+  cat("\n* Predictors: groups     :",
       length(unique(na.omit(x$index))), "\n")
   llt <- x$lasso.terms
   lltn <- names(llt)
-  cat("* Penalized predictors  :\n")
+  cat("* Penalized:\n")
     print(lltn[(!is.na(llt))&llt>0], quote=FALSE)
-  cat("  not penalized:\n")
+  cat("  Not penalized:\n")
     print(lltn[(!is.na(llt))&llt<0], quote=FALSE)
   ldr <- (!is.na(llt))&llt==0
   if (any(ldr)) {
-    cat("  not included:\n")
+    cat("  Not included:\n")
     print(lltn[ldr], quote=FALSE)
   }
   if (coefficients) {
@@ -859,15 +873,16 @@ print.lassogrp <- function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
     lsel <- ncol(lcf)>5
     ljlam <- if (lsel) round(seq(1,ncol(lcf),length=5)) else 1:ncol(lcf)
     cat("\n* Coefficients", if(lsel) "for selected lambdas",
-        "(*: p = penalized) :\n")
+        "(*N* = not penalized) :\n")
     lind <- x$index
-    lord <- order(lind)
+    lord <- c(which(lind==0), which(lind<0)[order(lind[lind<0])],
+              which(lind>0)[order(lind[lind>0])])
     lcf <- lcf[lord, ljlam, drop=FALSE]
     lind <- lind[lord]
     dimnames(lcf)[[1]] <-
 ##-       paste(c('not pen',lnm)[lind+1], dimnames(lcf)[[1]], sep=": ")
-      paste(ifelse(lind<=0,'   ','  p'), dimnames(lcf)[[1]], sep=" ")
-    print(rbind('  * lambda'=x$lambda[ljlam], lcf))
+      paste(ifelse(lind<=0,'*N* ','    '), dimnames(lcf)[[1]], sep=" ")
+    print(rbind(lambda=x$lambda[ljlam], lcf))
   }
   invisible(x)
 }
@@ -902,10 +917,10 @@ predict.lassogrp <- function(object, newdata = NULL,
                    response = fitted(object))
     if(!is.null(na.act))
       pred <- napredict(na.act, pred)
-
   } else {
-
-    if (!is.null(tt <- object$terms)) { ## if we have a terms object in the fit
+    tt <- object$terms
+    if (is.null(tt)) tt <- object$formula
+    if (!is.null(tt)) { ## if we have a terms object in the fit
       newdata <- as.data.frame(newdata)
       Terms <- delete.response(tt)
       m <- model.frame(Terms, newdata, na.action = na.action,
@@ -915,32 +930,30 @@ predict.lassogrp <- function(object, newdata = NULL,
       if(!is.null((cl <- attr(Terms, "dataClasses"))))
         .checkMFClasses(cl, m)
       x <- model.matrix(Terms, m, contrasts = object$contrasts)
+      if (ncol(x)!=nrow(coef(object))) {
+        warning('ncol(x)!=nrow(coef(object)): check!')
+        x <- x[,row.names(coef(object))]
+      }
       pred <- x %*% coef(object)
       if(!is.null(offset)){
         offset <- eval(attr(tt, "variables")[[offset]], newdata)
         pred <- pred + offset
       }
-    } else { ## if the object comes from lassogrp.default
-      x <- as.matrix(newdata)
-      pred <- x %*% coef(object)
-      if(any(object$offset != 0))
-        warning("Possible offset not considered!")
+
+      pred <- switch(type,
+                     link = pred,
+                     response = object$model@invlink(pred)
+                     ##apply(pred, 2, object$model@invlink))
+                     )
+      if(!is.null(na.action))
+        pred <- napredict(na.action, pred)
     }
+    if(dim(pred)[2] == 1)
+      pred <- structure(c(pred), names=row.names(pred))
 
-    pred <- switch(type,
-                   link = pred,
-                   response = object$model@invlink(pred)
-                   ##apply(pred, 2, object$model@invlink))
-                   )
-    if(!is.null(na.action))
-      pred <- napredict(na.action, pred)
+    attr(pred, "lambda") <- object$lambda
+    pred
   }
-  if(dim(pred)[2] == 1)
-    pred <- structure(c(pred), names=row.names(pred))
-
-  attr(pred, "lambda") <- object$lambda
-  pred
-}
 
 ## ==================================================================
 fitted.lassogrp <- function(object, ...)
@@ -1059,7 +1072,8 @@ plot.lassogrp <-
     axis(4)
 #    axis(4, mgp=c(3,2,0), at = yy[, ncol(yy)], labels = rownames(yy))
     if (legend) legend(x="topleft", legend=rownames(yy), col=col, lty=lty)
-## ----------------------------
+    stamp(sure=FALSE)
+## ----------------------------    
   } else if(type=='criteria') {
 
     if (is.null(main)) main <- "log-likelihood and penalty"
@@ -1073,28 +1087,34 @@ plot.lassogrp <-
       if (!is.list(cv)) {
         warning('argument  "cv"  not suitable')
       } else {
-        yy <- cbind(yy, cv$rmse)
-        if (se) yy <- cbind(yy, cv$rmse+outer(cv$rmse.se,c(-1,1)))
+        yy <- cbind(yy, cv$mse)
+        if (se) yy <- cbind(yy, cv$mse+outer(cv$mse.se,c(-1,1)))
       }
     }
     matplot(sqrt(lambda), yy, type = "l", axes=FALSE,
-            xlab = "Lambda", ylab = "-loglik",
+            xlab = "Lambda", ylab = "-loglik", 
             col = col[c(1,2,3,3)], lty=lty[c(1,2,3,3)],
             main = main, xlim = xlim, mar=mar, ...)
     box()
     axis(1, at=sqrt(xlb), labels=as.character(xlb))
-    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)))
+    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.3, xpd=TRUE)
+#    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.2)
+    lll <- length(lambda)
+    if (lll>8)
+      axis(3, at=sqrt(lambda[seq(5,lll,5)]), labels=rep('',lll%/%5),
+           lwd=2, tcl=-0.3)
     axis(2)
     par(usr=c(par('usr')[1:2], 0,1.05*max(l1)))
     lines(sqrt(lambda), l1, col=col[4], lty=lty[4])
     axis(4, col=col[4])
-    mtext('penalty',4,3)
+    mtext('L1 penalty',4,1.8)
+    stamp(sure=FALSE)
   } else warning(':plot.lassogrp: invalid argument "type". No plot')
 }
 
 ## =========================================================
 extract.lassogrp <-
-  function(object, i=NULL, lambda=NULL, fitfun='lm', ...)
+  function(object, i=NULL, lambda=NULL, data=NULL, fitfun='lm', ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -1118,18 +1138,32 @@ extract.lassogrp <-
 ##-     if (is.null(i))
 ##-       stop('!extract.lassogrp!  lambda  not equal to any lambdas in lassogrp object')
   }
+  ldata <- data
+  if (is.null(ldata)) ldata <- object$data
+  if (is.null(ldata)) ldata <- eval(object$call$data)
+  if (is.null(ldata)) ldata <- eval(eval(object$call$x)$call$data)
+  if (is.null(ldata)) stop('!extract.lassogrp! no data found')
   ni <- length(i)
+  if (ni!=1) {
+    warning(':extract.lassogrp: not programmed for extracting more than 1 model')
+    i <- i[1]
+  }
+  lpen <- object$norms.pen[,i]
+  ltrms <- names(lpen[lpen>0])
+  lform <- update(eval(lform), paste('~',paste(ltrms, collapse=' + ')))
   result <- NULL
-  lmod <- lcall$model
+  lmod <- object$model
   if (!is.null(lmod)) {
     if (is.character(lmod))
       lmod <- pmatch(lmod,c('gaussian','binomial','poisson'))
-    else {
-      lmod <- lmod@name
-      lmod <- pmatch(substring(lmod,1,3),c('Linear','Logistic','Poisson'))
-    }
+    else 
+      lmod <- pmatch(substring(lmod@name,1,3),c('Linear','Logistic','Poisson'))
   }
   lmeth <- c("lm","binomial","glm")[lmod]
+  if (!is.null(data)) lcall$data <- substitute(data)
+  if (is.null(lcall$data))
+    stop ("!extract.lassogrp! I do not find the data. Specify the 'data' argument")
+  if (is.null(lcall$na.action)) lcall$na.action <- as.name('nainf.exclude')
   call <- if (fitfun=='regr')
     call(fitfun, formula=lform, data=lcall$data, method = lmeth,
                family=c('gaussian','binomial','poisson')[lmod],
@@ -1147,7 +1181,7 @@ extract.lassogrp <-
                na.action=lcall$na.action) # , '...'=...
   }
   lreg <- eval(call, parent.frame())
-  for (li in seq_along(i)) {
+  for (li in seq_along(i)) { ## for loop not in use!
     lr <- lreg
     lk <- i[li]
     lcoef <- lr$coefficients <- object$coefficients[,lk]
@@ -1156,7 +1190,7 @@ extract.lassogrp <-
     lr$df.residual <- lreg$df.residual - sum(lcoef==0)
     ## only good for raw residuals
     lcl <- lreg$call
-    lcl[1] <- paste(fitfun,'lassogrp',sep='.')
+    lcl[1] <- paste('lasso',fitfun,sep='.')
     attr(lcl,'comment') <- 'call not R usable'
     lr$call <- lcl
     lrss <- sum(lrsd^2, na.rm=TRUE)
@@ -1164,7 +1198,7 @@ extract.lassogrp <-
     lr$r.squared <- 1-lrss/sum(object$y^2,na.rm=TRUE)
     lr$stres <- lr$testcoef <- lr$adj.r.squared <- lr$fstatistic <-
       lr$covariance <- lr$correlation <- NULL
-    lr$fitfun <- 'lassogrp'
+    lr$fitfun <- fitfun
     lallcoef <- try(dummy.coef(lr), silent=TRUE)
     if (is.list(lallcoef)) lr$allcoef <- lallcoef
 
@@ -1226,14 +1260,19 @@ cv.lasso <-
   } else {
     blocklist <- split(sample(1:n), blocks)
   }
+  lj <- match(names(object$index), colnames(x))
+  if (any(is.na(lj)))
+    stop (if(length(x)==0) "!cv.lasso! no x component" else
+          "!cv.lasso! length(index) not equal ncol(x).")
+  lx <- x[,lj]
   ## crossvalidate
   K <- length(blocklist)
-  blockrmse <- matrix(0, K, length(object$lambda))
+  blockmse <- matrix(0, K, length(object$lambda))
   fitted <- matrix(0, n, length(object$lambda))
   for (i in seq(K)) {
     omit <- blocklist[[i]]
     fit <-
-      lassogrp.default(x, y, object$index, subset=-omit, weights=object$weights,
+      lassogrp.default(lx, y, object$index, subset=-omit, weights=object$weights,
                        offset=object$offset, lambda=object$lambda,
                        penscale=object$penscale, center=object$innercall$center,
                        standardize=object$innercall$standardize,
@@ -1248,22 +1287,24 @@ cv.lasso <-
       xnew <- mf[omit, , drop = FALSE]
       xnew[,blocks] <- factor(mf[-omit,blocks][1])
     } else {
-      xnew <- x[omit, , drop = FALSE]
+      xnew <- lx[omit, , drop = FALSE]
       fit$terms <- NULL
     }
     pred <- rbind(predict(fit, xnew))
-    blockrmse[i,] <-
+    blockmse[i,] <- 
       if (blocksinmodel) {
         pred <- sweep(pred, 2, apply(pred, 2, mean) - mean(y[omit]))
-        apply(y[omit] - pred, 2, sd)
-      } else sqrt(apply((y[omit] - pred)^2, 2, mean))
+        apply(y[omit] - pred, 2, var)
+      }
+      else 
+        apply((y[omit] - pred)^2, 2, mean)
     fitted[omit,] <- pred
     if (trace)  cat("\n CV Fold", i, "\n\n")
   }
   ## summarize
-  rmse <- apply(blockrmse, 2, mean)
-  rmse.se <- sqrt(apply(blockrmse, 2, var)/K)
-  result <- list(rmse = rmse, rmse.se = rmse.se, rmse.blocks = blockrmse,
+  mse <- apply(blockmse, 2, mean)
+  mse.se <- sqrt(apply(blockmse, 2, var)/K)
+  result <- list(mse = mse, mse.se = mse.se, mse.blocks = blockmse,
                  fitted = fitted, lambda = object$lambda,
                  blocksinmodel = blocksinmodel)
   ## plot
@@ -1294,12 +1335,11 @@ lassogrpModelmatrix <-
 
       is.gEnv <- function(e) identical(e, .GlobalEnv)
 
-      ## Paste the two formulas together
-      f <- as.formula(paste(c(deparse(formula[[2]]), "~",
-                              deparse(formula[[3]]), "+",
-                              deparse(nonpen[[length(nonpen)]])),
-                            collapse = ""))
-
+      ## Paste the two formulas together ## !!! changed
+      nonp <- ~ . + dummy
+      nonp[[2]][[3]] <- nonpen[[length(nonpen)]]
+      fterms <- terms(formula, data=eval(m$data))
+      f <- update(fterms, nonp)
       ## Get the environment of the formulas
       env.formula <- environment(formula)
       env.nonpen <- environment(nonpen)
@@ -1425,8 +1465,9 @@ varBlockScale <- function(x, ipen.which, inotpen.which, coef = NULL)
     ind <- ipen.which[[j]]
     decomp <- qr(x[,ind])
     if(decomp$rank < length(ind)) ## Warn if block has not full rank
-      stop("Block belonging to columns ", paste(ind, collapse = ", "),
-              " has not full rank! \n")
+      stop("Block belonging to columns ",
+           paste(colnames(x)[ind], collapse = ", "),
+           " does not have full rank! \n")
     scale.pen[[j]] <- qr.R(decomp) * 1 / sqrt(n)
     x.ort[,ind] <- qr.Q(decomp) * sqrt(n)
   }
@@ -1457,8 +1498,9 @@ varBlockStand <- function(x, ipen.which, inotpen.which)
     ind <- ipen.which[[j]]
     decomp <- qr(x[,ind])
     if(decomp$rank < length(ind)) ## Warn if block has not full rank
-      stop("Block belonging to columns ", paste(ind, collapse = ", "),
-              " has not full rank! \n")
+      stop("Block belonging to columns ",
+           paste(colnames(x)[ind], collapse = ", "),
+           " does not have full rank! \n")
     scale.pen[[j]] <- qr.R(decomp) * 1 / sqrt(n)
     x.ort[,ind] <- qr.Q(decomp) * sqrt(n)
   }
@@ -1817,4 +1859,38 @@ tit <- function(x) attr(x,"tit")
 {
   attr(x, "tit") <- value
   x
+}
+## ---
+stamp <- 
+  function(sure=TRUE, outer.margin = NULL,
+           project=options("project")[[1]], step=options("step")[[1]], 
+           stamp=options("stamp")[[1]], ...)
+{
+## Purpose:   plot date and project information
+## -------------------------------------------------------------------------
+## Arguments:
+##   sure     if F, the function only plots its thing if  options("stamp")[[1]]>0
+##   outer    if T, the date is written in the outer margin
+##   project  project title
+##   step     title of step of data analysis
+##   ...      arguments to  mtext , e.g., line=3
+## -------------------------------------------------------------------------
+## Author: Werner Stahel, Date: 13 Aug 96, 09:00
+  if (length(stamp)==0) {
+    warning(":stamp: setting options(stamp=1)")
+    options(stamp=1)
+    stamp <- 1
+  }
+  if (length(outer.margin)==0) outer.margin <- par('oma')[4]>0 
+  t.txt <- date()
+  t.txt <- paste(substring(t.txt,5,10),",",substring(t.txt,22,23),"/",
+                 substring(t.txt,13,16),sep="")
+    if (length(project)>0) t.txt <- paste(t.txt,project,sep=" | ")
+    if (length(step)>0) t.txt <- paste(t.txt,step,sep=" | ")
+  if( sure | stamp==2 | ( stamp==1 & (
+##     last figure on page
+     { t.tfg <- par("mfg") ; all(t.tfg[1:2]==t.tfg[3:4]) }
+       || (is.logical(outer.margin)&&outer.margin) ))  ) 
+       mtext(t.txt, 4, cex = 0.6, adj = 0, outer = outer.margin, ...) 
+  invisible(t.txt)
 }
