@@ -1,7 +1,6 @@
 \name{lassogrp-package}
 \Rdversion{1.1}
 \alias{lassogrp-package}
-\alias{lassogrp}
 \docType{package}
 \title{Lasso Regression including group lasso and adaptive lasso
 }

@@ -5,36 +5,56 @@
 \alias{lasso.default}
 \alias{lasso.formula}
 \alias{lasso.lassogrp}
+\alias{lassoGrpFit}
 \description{
-Functions that fit a model by (Group-) lasso, including adaptive version
+  The \code{lasso()} methods fit a (generalized) linear model by the
+  (group-) lasso and include an adaptive option.  The typically
+  recommended usage is \emph{formula} method.
+
+  \code{lassoGrpFit} is the lower level fitting function typically not
+  called by the user.
 }
 \usage{
 lasso(x, \dots)
 
-\method{lasso}{formula}(x, data, subset, weights, na.action,
-  model = "gaussian", offset, nonpen = ~1, lambda = NULL, lstep = 21,
-  adaptive = FALSE, cv.function = cv.lasso,
-  contrasts = NULL, save.x = TRUE, control = lassoControl(), \dots)
+\method{lasso}{formula}(formula, data, subset, weights, na.action, offset, nonpen = ~ 1,
+      model="gaussian", lambda=NULL, lstep = 21, adaptive = FALSE,
+      cv.function = cv.lasso, penscale = sqrt,
+      cv=NULL, adaptcoef = NULL, adaptlambda = NULL,
+      contrasts = NULL, save.x = TRUE,
+      center=NA, standardize = TRUE,
+      control = lassoControl(), \dots)
 
-\method{lasso}{lassogrp}(x, lambda = NULL, lstep = 21, cv = NULL,
-  cv.function = cv.lasso, save.x = TRUE,
-  adaptcoef = NULL, adaptlambda = NULL, \dots)
+\method{lasso}{default}(x, y, index, subset, weights = rep(1, length(y)), model='gaussian',
+      lambda=NULL, lstep = 21,
+      adaptive = FALSE, cv.function = cv.lasso, cv=NULL,
+      adaptcoef = NULL, adaptlambda = NULL, penscale = sqrt,
+      center=NA, standardize = TRUE,
+      save.x = TRUE, control = lassoControl(), \dots)
 
-\method{lasso}{default}(x, y, index, subset, model = "gaussian",
-     lambda = NULL, lstep = 21,
-% not yet supported __FIXME__  adaptive = FALSE,
-% not yet supported            cv.function = cv.lasso,
-     save.x = TRUE, \dots)
+%% MM: I'd like to get rid of this completely:
+\method{lasso}{lassogrp}(x, lambda=NULL, lstep=21,
+      cv = NULL, cv.function = cv.lasso,
+      adaptcoef = NULL, adaptlambda = NULL,
+      penscale = sqrt, weights = NULL,
+      center = NA, standardize = TRUE,
+      save.x = TRUE, control = lassoControl(), \dots)
+
+lassoGrpFit(x, y, index, subset, weights = rep(1, length(y)), model="gaussian",
+           offset = rep(0, length(y)), lambda = NULL, lstep = 21,
+           coef.init = rep(0, ncol(x)), penscale = sqrt,
+           center = NA, standardize = TRUE,
+           save.x = NULL, control = lassoControl(), \dots)
 }
 \arguments{
-  \item{x}{for \code{formula} method: model formula for the
-    penalized terms\cr
-    for \code{default} method: design matrix, including column
+  \item{x}{for \code{default} method: design matrix, including column
     for intercept\cr
     for \code{lassogrp} method: a 'lassogrp' object i.e., the result of a first
     call to \code{lasso}
   }
-  \item{data}{\code{data.frame} containing the variables in the model.}
+  \item{formula}{model \code{\link{formula}} for the penalized terms,
+    (see \code{nonpen} for the non-penalized terms).}
+  \item{data}{\code{\link{data.frame}} containing the variables in the model.}
   \item{y}{response variable (for \code{default} method)
   }
   \item{index}{a vector indicating which carriers should be penalized by
@@ -54,25 +74,20 @@ lasso(x, \dots)
   \item{offset}{vector of offset values; needs to have the same length as the
         response vector. May be useful in logistic and Poisson regression.
   }
-  \item{nonpen}{formula defining the model terms that must not be included in
-    the lasso penalty term
-  }
-  \item{lambda}{vector of scaling factors of the lasso penalty term
-  }
+  \item{nonpen}{\code{\link{formula}} defining the model terms that must
+     \emph{not} be included in the lasso penalty term.}
+  \item{lambda}{vector of scaling factors of the lasso penalty term.}
   \item{lstep}{number of lambda values to be chosen if \code{lambda} is
-    not provided
-  }
-  \item{cv.function}{function used for cross validation}
-  \item{cv}{results of cross validation, if available.
-  }
+    not provided.}
+  \item{cv.function}{\code{\link{function}} used for cross validation.}
+  \item{cv}{results of cross validation, if available.}
   \item{adaptive}{logical: should the adaptive lasso be used?
     If TRUE, the lasso will be called twice, first in the regular mode,
     then adaptive to the results of the first call.
-    (For the \code{formula} method)
   }
   \item{adaptcoef}{inverse weights for the coefficients, used for the adaptive
     lasso. By default, they are obtained as the coefficients
-    of the result of an earlier call (\code{object\$coefficients},
+    of the result of an earlier call (\code{object$coefficients},
     (for \code{lassogrp} method), or such a first call is invoked
     (for \code{formula} method).
   }
@@ -83,36 +98,37 @@ lasso(x, \dots)
     If \code{adaptlambda} is null, it will be selected by cross
     validation.
   }
-  \item{contrasts}{an optional list. See the 'contrasts.arg' of
-    'model.matrix.default'.}
+  \item{contrasts}{an optional list. See the \code{contrasts.arg} of
+    \code{\link{model.matrix.default}}.}
+  \item{penscale}{rescaling function to adjust the value of the penalty
+    parameter to the degrees of freedom of the parameter group. See the
+    reference below.}
+  \item{center}{logical.  If true, the columns of the design matrix will be
+    centered (except a possible intercept column); \code{NA}, the
+    default, corresponds to \code{TRUE} iff there is an intercept.}
+  \item{standardize}{logical. I f true, the design matrix will be
+    blockwise orthonormalized such that for each block \eqn{X'X = n 1}
+    (\emph{after} possible centering).}
   \item{save.x}{logical: should the model matrix be stored in the
     return value?}
+  \item{coef.init}{numeric; initial vector of parameter estimates
+    corresponding to \code{lambda[1]}.}
   \item{control}{list of items to control the algorithm, see
     \code{\link{lassoControl}}}
-  \item{\dots}{ further arguments, passed to \code{lassogrp}:
-    \describe{
-      \item{penscale}{rescaling function to adjust the value of the penalty
-	parameter to the degrees of freedom of the parameter group. See the
-	reference below.}
-      \item{center}{logical. If true, the columns of the design matrix will be
-	centered (except a possible intercept column).}
-      \item{standardize}{logical. If true, the design matrix will be
-	blockwise orthonormalized such that for each block \eqn{X^TX = n 1}
-        (*after* possible centering).}
-    }
-  }
+%% FIXME: These are now explicit mostly
+  \item{\dots}{further arguments, potentially passed on to next methods.}
 }
 \details{
   The \code{index} defines the groups of carriers and whether they are
   included in the L1 penalization term.
   There is an element in \code{index} for each carrier (column of the
-  model.matrix). Carriers \code{j} with positive \code{index[j]} are
+  model.matrix).  Carriers \code{j} with positive \code{index[j]} are
   included in the penalization.
   Elements sharing the same \code{index[j]} value are a group in the
   sense of the group lasso, that is, their coefficients will be
   included in the L1 term as \code{sqrt(sum(coef^2))}.
 
-  When using \code{grplasso.formula}, the grouping of the variables is
+  For the formula method, the grouping of the variables is
   derived from the type of the variables: The dummy variables of a
   factor will be automatically treated as a group.
 
@@ -122,8 +138,9 @@ lasso(x, \dots)
   parameter with starting values defined as the (fitted) coefficient
   vector based on the previous component of \code{lambda}.
 }
-\value{A \code{"lassogrp"} object is returned, for which \code{\link{coef}},
+\value{\code{lasso()} returns a \code{"lassogrp"} object for which \code{\link{coef}},
   \code{print}, \code{plot} and \code{\link{predict}} methods exist.
+  It has (list) components
   \item{coefficients}{coefficients with respect to the \emph{original} input
     variables (even if \code{standardize = TRUE} is used for fitting).}
   \item{norms.pen}{single terms of the L1 penalty term}
@@ -162,23 +179,48 @@ names(contr) <- names(splice)[-1]
 
 ## Fit a logistic model
 fit.splice <-
-  lasso(y ~ ., data = splice, model = 'binomial', lambda = 20,
+  lasso(y ~ ., data = splice, model = "binomial", lambda = 20,
   contrasts = contr)
 fit.splice
 
+## a potentially large model: all two-way interactions
+fit.spl.2 <-
+  lasso(y ~ .^2, data = splice, model = "binomial", lambda = 20,
+  contrasts = contr)
+## However, it's "the same" (since lambda is the same):
+c1 <- coef(fit.splice)
+c2 <- coef(fit.spl.2)
+stopifnot(all.equal(c1, c2[rownames(c1), ,drop=FALSE]),
+          c2[ !(rownames(c2) \%in\% rownames(c1)) ,] == 0)
+
+## less to write for the same model, using update():%- we test update():
+f..spl.2 <- update(fit.splice, ~ .^2)
+\dontshow{
+stopifnot(all.equal(coef(f..spl.2), coef(fit.spl.2), tol= 1e-13),
+          all.equal(f..spl.2$nloglik, fit.spl.2$nloglik, tol=1e-13))
+%% BUG: -- FIXME
+%% f..spl.3 <- update(fit.splice, ~ .^3) %% FAILS in standardization
+%% where as
+f..spl.3 <- lasso(y ~ .^3, data = splice, model = "binomial",
+                  lambda = 20, contrasts = contr)
+%% works fine ---
+%% and BTW: note that 'x' is quite sparse and we could use Matrix (!):
+table(f..spl.3$x == 0)
+}
+
 ## Perform the Logistic Group Lasso on a random dataset
-set.seed(79)
+set.seed(100) # {a "good choice" ..}
 n <- 50  ## observations
 p <- 4   ## variables
 
 ## First variable (intercept) not penalized, two groups having 2 degrees
-## of freedom each
-
+## of freedom each :
 index <- c(0, 2, 2, 3, 3)
 
 ## Create a random design matrix, including the intercept (first column)
-x <- cbind(1, matrix(rnorm(p * n), nrow = n))
-colnames(x) <- c("Intercept", paste("X", 1:4, sep = ""))
+x <- cbind("Intercept" = 1,
+            matrix(rnorm(p * n), nrow = n,
+                   dimnames=list(NULL, paste("X", 1:4, sep = ""))))
 
 truec <- c(0, 2.1, -1.8, 0, 0)
 prob <- 1 / (1 + exp(-x \%*\% truec))
@@ -187,17 +229,31 @@ y <- rbinom(n, size = 1, prob = prob) ## binary response vector
 
 ## Use a multiplicative grid for the penalty parameter lambda, starting
 ## at the maximal lambda value
-lambda <- lambdamax(x, y = y, index = index, penscale = sqrt,
-                    model = LogReg()) * 0.5^(0:5)
+l.max <- lambdamax(x, y = y, index = index, penscale = sqrt, model = LogReg())
+l.max # 11.15947
+lambda <- l.max * 0.5^(0:5)
 
 ## Fit the solution path on the lambda grid
-fit <- lasso(x, y = y, index = index, lambda = lambda, model = 'binomial',
-                control = lassoControl(update.hess = "lambda", trace = 0))
+fit <- lasso(x, y = y, index = index, lambda = lambda, model = "binomial",
+                control = lassoControl(trace = 1))
 
 ## Plot coefficient paths
 plot(fit)
+\dontshow{
+## "Regression" tests:
+## dput(signif(c(coef(fit)),10)) :
+cf. <- c(0.4054648, 0, 0, 0, 0, 0.3575546402, 0.6880608904, -0.605162944,
+         0, 0, 0.3827993211, 1.243212641, -1.062931674, 0, 0, 0.42779904,
+         1.708452263, -1.422856567, 0, 0, 0.4679224617, 2.05388169, -1.679078972,
+         0, 0, 0.4945326668, 2.284701515, -1.840105889, -0.001988485573,
+         0.01995161045)
+stopifnot(fit$converged,
+	  identical(which(coef(fit) == 0), c(2:5, 9:10, 14:15, 19:20, 24:25)),
+	  all.equal(c(coef(fit)), cf.),
+	  all.equal(fit$nloglik,
+                    c(33.65058335, 25.13498717, 21.87913274,
+                      20.56391179, 20.08389348, 19.91999198)))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+}
 \keyword{models}
 \keyword{regression}

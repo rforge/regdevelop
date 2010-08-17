@@ -3,7 +3,7 @@
 \docType{data}
 \title{Asphalt Rutting Data}
 \description{
-  Measurment series on the rutting of asphalt in function of some of
+  Measurement series on the rutting of asphalt in function of some of
   its material properties.
 }
 \usage{data(asphalt)}

@@ -1,12 +1,11 @@
 library(lassogrp)
 
+rX <- function(n,p) runif(n * p, min = -2.5, max = 2.5)
+
 set.seed(7198)
 
 n <- 100
 p <- 10
-
-rX <- function(n,p) runif(n * p, min = -2.5, max = 2.5)
-
 x <- matrix(rX(n,p), nrow = n, ncol = p)
 fx <- 4 * sin(x[,1]) + x[,2]^2
 y <- fx + rnorm(n)
@@ -31,14 +30,14 @@ fit.resc <- lasso(cbind(1,x.resc), y, index = c(NA, 1:10),
 stopifnot(all.equal(coef(fit)[-1,], coef(fit.resc)[-1,] * scale))
 
 ## Check intercepts
-mu.x <- apply(x, 2, mean)
-int  <- mean(y) - apply(coef(fit)[-1,] * mu.x, 2, sum)
+mu.x <- colMeans(x)
+int  <- mean(y) - colSums(coef(fit)[-1,] * mu.x)
 
-mu.x.resc <- apply(x.resc, 2, mean)
-int.resc  <- mean(y) - apply(coef(fit.resc)[-1,] * mu.x.resc, 2, sum)
+mu.x.resc <- colMeans(x.resc)
+int.resc  <- mean(y) - colSums(coef(fit.resc)[-1,] * mu.x.resc)
 
-stopifnot(all.equal(int, coef(fit)[1,], tol = 10^-7))
-stopifnot(all.equal(int.resc, coef(fit.resc)[1,], tol = 10^-7))
+stopifnot(all.equal(int, coef(fit)[1,], tol = 1e-7))
+stopifnot(all.equal(int.resc, coef(fit.resc)[1,], tol = 1e-7))
 
 ## Compare predictions
 stopifnot(all.equal(predict(fit, newdata = cbind(1,x.new)),
@@ -52,57 +51,41 @@ stopifnot(all.equal(predict(fit, newdata = cbind(1,x.new)),
 x.use <- cbind(1, x)
 index <- c(0:10)
 
-lambda.max <- lambdamax(x.use, y, index, model = LinReg())
-lambda     <- lambda.max * c(1, 0.1)
-
-fit1 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
+lambda1 <- c(1, 0.1) * lambdamax(x.use, y, index, model = LinReg())
+fit1 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda1,
               center = TRUE)
+fit1
 
 ## center = TRUE & penalized intercept
-
 x.use <- cbind(1, x)
-index <- c(99, 1:10)
-
-lambda.max <- lambdamax(x.use, y, index, model = LinReg())
-lambda     <- lambda.max * c(1, 0.1)
-
-fit2 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
+index <- c(99, 1:10) # "99" !
+lambda2 <- c(1, 0.1) * lambdamax(x.use, y, index, model = LinReg())
+fit2 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda2,
               center = TRUE)
 ##--> two warnings -- FIXME ??
 
-## center = TRUE & *no* intercept
-x.use <- cbind(x)
-index <- c(1:10)
-
-lambda.max <- lambdamax(x.use, y, index, model = LinReg())
-lambda     <- lambda.max * c(1, 0.1)
-
-fit3 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
-                 center = TRUE)
+## center = TRUE & *no* intercept -- gives a warning
+index <- 1:10
+(lambda3 <- c(1, 0.1) * lambdamax(x, y, index, model = LinReg()))
+fit3 <- lasso(x, y, index, model = LinReg(), lambda = lambda3,
+              center = TRUE)
 
 ## center = FALSE & *no* intercept
-x.use <- cbind(x)
-index <- c(1:10)
+fit4 <- lasso(x, y, index, model = LinReg(), lambda = lambda3,
+              center = FALSE)
 
-lambda.max <- lambdamax(x.use, y, index, model = LinReg(),
-                        center = FALSE)
-lambda     <- lambda.max * c(1, 0.1)
-
-fit4 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
-                 center = FALSE)
-
-## Check whether fit3 and fit4 are the same --- FIXME (MM)
-stopifnot(all.equal(coef(fit3), coef(fit4)))
+## NOTE:  fit3 and fit4 are NO LONGER the same
+##     {with Lukas' grplasso, they were, as he had
+##		if(!has.interc) center <- FALSE  }
+## stopifnot(all.equal(coef(fit3), coef(fit4)))
 
 
-## center = FALSE & standardize = TRUE
+## center = FALSE & standardize = TRUE -- + intercept
 x.use <- cbind(1,x)
 index <- c(0:10)
-
-lambda.max <- lambdamax(x.use, y, index, model = LinReg(),
-                        center = FALSE)
-lambda     <- lambda.max * c(1, 0.1)
-
-fit5 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda,
+lambda5 <- c(1, 0.1) * lambdamax(x.use, y, index, model = LinReg())
+fit5 <- lasso(x.use, y, index, model = LinReg(), lambda = lambda5,
               center = FALSE)
 ## -> warning (which is ok)
+## should be close  to 'fit1' as 'x' is typically quite similar to centered x
+fit5

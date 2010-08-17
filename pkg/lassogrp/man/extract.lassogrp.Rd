@@ -8,23 +8,24 @@
   Extract several regression results fits from a lasso fit (table).
 }
 \usage{
-extract.lassogrp(object, i = NULL, lambda = NULL, fitfun = "lm", ...)
+extract.lassogrp(object, i = NULL, lambda = NULL, data=NULL, fitfun = "lm", ...)
 
 \S3method{[}{lassogrp}(x, i)
-% MM: I find it bugous (R) that this gives a warning:
-% ## i.e.,
-% x[i]
+%] << for emacs
 }
 \arguments{
   \item{object, x}{an object of class \code{"lassogrp"}.}
   \item{i}{a single index for \code{extract.lassogrp}, or a vector of
     indices for the simple subset operator '\code{[i]}'}
-  \item{lambda}{alternatively to specifying \code{i}, a lambda value may
-    be specified. }
+  \item{lambda}{alternatively to specifying \code{i}, a single (numeric)
+    lambda value may be specified.}
+  \item{data}{the data originally used which must still be available.
+    (The latter restriction will possibly be relaxed in the future.).
+    By default it is found in the environment.}
   \item{fitfun}{fitting function that determines the structure of the
-    return value.  Note that the coefficients and ...
-    will be taken from \code{object}.}
-  \item{\dots}{additional arguments passed to ...}
+    return value.  Note that coefficients and more will be taken from
+    \code{object}.}
+  \item{\dots}{additional arguments passed to \code{fitfun}.}
 }
 \details{
   \code{extract.lassogrp} generates an object of a regression class
@@ -44,7 +45,17 @@ extract.lassogrp(object, i = NULL, lambda = NULL, fitfun = "lm", ...)
 data(asphalt)
 rr <- lasso(log10(RUT) ~ log10(VISC) + ASPH+BASE+FINES+VOIDS+RUN,
             data=asphalt)
+## Extract results for three lambda's:
 rr[c(1,10,15)]
 extract.lassogrp(rr, lambda=2.5)
+
+## The above relies on finding the original data;
+## it does not work otherwise
+d.a <- asphalt
+rm(asphalt)
+try(extract.lassogrp(rr, lambda=2.5)) # -> error: cannot find 'asphalt'
+%% MM thinks this is a design bug! (FIXME!)
+## it works if you can specify the data :
+extract.lassogrp(rr, lambda=2.5, data=d.a)
 }
 \keyword{utilities}

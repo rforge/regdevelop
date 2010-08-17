@@ -14,8 +14,6 @@
   \describe{
   \item{\code{save.x}}{a logical indicating whether the design matrix
     should be saved.}
-  \item{\code{save.y}}{a logical indicating whether the response should
-    be saved.}
   \item{\code{update.hess}}{should the hessian be updated in each
     iteration ("always")? update.hess = "lambda" will update
     the Hessian once for each component of the penalty

@@ -6,7 +6,7 @@
   convergence criteria and output management for the Group Lasso algorithm.
 }
 \usage{
-lassoControl(save.x = FALSE, save.y = TRUE,
+lassoControl(save.x = FALSE,
              update.hess = c("lambda", "always"), update.every = 3,
              inner.loops = 10, line.search = TRUE, max.iter = 500,
              tol = 5 * 10^-8, lower = 10^-2, upper = Inf, beta = 0.5,
@@ -14,7 +14,6 @@ lassoControl(save.x = FALSE, save.y = TRUE,
 }
 \arguments{
   \item{save.x}{a logical indicating whether the design matrix should be saved.}
-  \item{save.y}{a logical indicating whether the response should be saved.}
   \item{update.hess}{should the hessian be updated in each
     iteration ("always")? update.hess = "lambda" will update
     the Hessian once for each component of the penalty
@@ -42,13 +41,13 @@ lassoControl(save.x = FALSE, save.y = TRUE,
   \item{trace}{integer. \code{0} omits any output, \code{1} prints the
     current lambda value, \code{2} prints the improvement in the
     objective function after each sweep through all the parameter groups
-    and additional information.} 
+    and additional information.}
 }
 \details{For the convergence criteria see chapter 8.2.3.2 of Gill et
   al. (1981).}
 \references{Philip E. Gill, Walter Murray and Margaret H. Wright (1981)
   \emph{Practical Optimization}, Academic Press.
-  
+
   Dimitri P. Bertsekas (2003) \emph{Nonlinear Programming}, Athena Scientific.}
 \value{
   An object of class \code{lassoControl}.

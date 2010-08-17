@@ -5,8 +5,8 @@
 \alias{LinReg}
 \alias{PoissReg}
 \description{
-  Generate models to be used for the (group) lasso algorithm,
-  \code{\link{lasso}()}.
+  Generate generalized linear model objects to be used for the (group)
+  lasso algorithm, \code{\link{lasso}()}.
 }
 \usage{
 lassoModel(invlink, link, nloglik, ngradient, nhessian, check,
@@ -37,6 +37,10 @@ PoissReg()
   An object of class \code{\linkS4class{lassoModel}}.
 }
 \examples{
-    LogReg()
+LogReg()  # Logistic
+PoissReg()# Poisson regression
+
+str(LogReg())
 }
-\keyword{misc}
+\keyword{regression}
+\keyword{models}

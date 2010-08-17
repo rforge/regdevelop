@@ -3,8 +3,8 @@
 \alias{get.blocks}
 \alias{varBlockStand}
 \alias{varBlockScale}
-\alias{lassogrp.formula}
-\alias{lassogrp.default}
+% \alias{lassogrp.formula}
+% \alias{lassogrp.default}
 \description{
   Internal lassogrp objects, typically \code{\link{function}}s
 }

@@ -1,29 +1,34 @@
-\name{predict.lassogrp}
-\Rdversion{1.1}
+\name{methods-lassogrp}
+\title{Prediction and Other Methods for 'lassogrp' Objects}
 \alias{predict.lassogrp}
 \alias{fitted.lassogrp}
-
-\title{Fitted values and Prediction for 'lassogrp' Objects}
-\description{Calculate fitted values or predictions for 'lassogrp' objects}
+\alias{formula.lassogrp}
+\description{
+  Compute fitted values or predictions for \code{"lassogrp"} objects
+  (typically resulting from \code{\link{lasso}()}), or get
+  (\dQuote{extract}) other information from such an object.
+}
 \usage{
-\method{fitted}{lassogrp}(object, ...)
+\method{fitted}{lassogrp}(object, \dots)
 
 \method{predict}{lassogrp}(object, newdata = NULL,
-  type = c("link", "response"), na.action = na.pass, ...)
+  type = c("link", "response"), na.action = na.pass, \dots)
+
+\method{formula}{lassogrp}(x, \dots)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{object}{an object of class 'lassogrp' containing a lasso fit}
+  \item{object,x}{an object of class \code{"lassogrp"}, containing a lasso fit}
   \item{newdata}{data.frame containing the new regressors for which the
-    predictions are required}
+    predictions are required.}
   \item{type}{type of prediction}
-  \item{na.action}{action for missing values, see \code{?lm}}
+  \item{na.action}{action for missing values, see \code{\link{lm}}.}
   \item{\dots}{not used (needed for compatibility)}
 }
 \details{The fitted values are equal to response predictions for the
-  observations used for fitting}
+  observations used for fitting.
+}
 \value{matrix of fitted or predicted values. Columns correspond to lambda values,
-  rows, to observations in 'newdata'}
+  rows, to observations in \code{newdata}.}
 \author{Werner Stahel, \email{stahel@stat.math.ethz.ch}}
 \examples{
 data(asphalt)

@@ -1,9 +1,9 @@
 Package: lassogrp
 Type: Package
 Title: Lasso Regression including group lasso and adaptive lasso
-Version: 1.0-1
-Date: 2010-08-06
-Author: Lukas Meier and Werner A. Stahel, ETH Zurich
+Version: 1.0-2
+Date: 2010-08-17
+Author: Lukas Meier, Werner A. Stahel and Martin Maechler, ETH Zurich
 Maintainer: Werner A. Stahel <stahel@stat.math.ethz.ch>
 Description: Lasso Regression including group lasso and adaptive lasso
 Depends: methods
