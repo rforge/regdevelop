@@ -196,16 +196,14 @@ stopifnot(all.equal(c1, c2[rownames(c1), ,drop=FALSE]),
 ## less to write for the same model, using update():%- we test update():
 f..spl.2 <- update(fit.splice, ~ .^2)
 \dontshow{
-stopifnot(all.equal(coef(f..spl.2), coef(fit.spl.2), tol= 1e-13),
-          all.equal(f..spl.2$nloglik, fit.spl.2$nloglik, tol=1e-13))
-%% BUG: -- FIXME
-%% f..spl.3 <- update(fit.splice, ~ .^3) %% FAILS in standardization
-%% where as
-f..spl.3 <- lasso(y ~ .^3, data = splice, model = "binomial",
-                  lambda = 20, contrasts = contr)
-%% works fine ---
+fm.spl.3 <- update(fit.splice, ~ .^3)# <<-- now works also when p > n
+c3 <- coef(fm.spl.3)
+stopifnot(all.equal(c1, c3[rownames(c1), ,drop=FALSE]),
+	  c3[ !(rownames(c3) \%in\% rownames(c1)) ,] == 0,
+	  all.equal(coef(f..spl.2), coef(fit.spl.2), tol= 1e-13),
+	  all.equal(f..spl.2$nloglik, fit.spl.2$nloglik, tol=1e-13))
 %% and BTW: note that 'x' is quite sparse and we could use Matrix (!):
-table(f..spl.3$x == 0)
+table(fm.spl.3$x == 0)
 }
 
 ## Perform the Logistic Group Lasso on a random dataset

@@ -2,7 +2,6 @@
 \title{Internal Functions of 'lassogrp' Package}
 \alias{get.blocks}
 \alias{varBlockStand}
-\alias{varBlockScale}
 % \alias{lassogrp.formula}
 % \alias{lassogrp.default}
 \description{

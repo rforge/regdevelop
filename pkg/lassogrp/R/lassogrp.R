@@ -1454,47 +1454,6 @@ get.blocks <- function(object, blocks, env=globalenv())
 }
 
 ## ==================================================================
-varBlockScale <- function(x, ipen.which, inotpen.which, coef = NULL)
-{
-  ## Purpose:
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Lukas Meier, Date:  4 Aug 2006, 08:50
-
-  jcoef <- length(coef)>0
-  if (jcoef && length(coef) != ncol(x))
-    stop('length(coef) not equal ncol(x)!')
-  n <- nrow(x)
-  x.ort <- x
-  scale.pen <- vector(mode = 'list', length = length(ipen.which))
-  scale.notpen <- NULL
-
-  if(length(inotpen.which) > 0 && !jcoef) {
-    x. <- x[,inotpen.which ,drop=FALSE]
-    scale.notpen <- sqrt(colMeans(x.^2))
-    x.ort[,inotpen.which] <- scale(x., FALSE, scale.notpen)
-  }
-##-     sc <- if (jcoef) coef[inotpen.which] else
-##-       1/sqrt(apply(x[,inotpen.which]^2, 2, mean))
-##-     x.ort[,inotpen.which] <- sweep(x[,inotpen.which], 2, sc, '*')
-##-     scale.notpen <- sc
-
-  ##!!! penalty for groups
-  for(j in seq_along(ipen.which)){
-    ind <- ipen.which[[j]]
-    decomp <- qr(x[,ind])
-    if(decomp$rank < length(ind)) ## Warn if block has not full rank
-      stop("Block belonging to columns ",
-           paste(colnames(x)[ind], collapse = ", "),
-           " does not have full rank! \n")
-    scale.pen[[j]] <- qr.R(decomp) * 1 / sqrt(n)
-    x.ort[,ind] <- qr.Q(decomp) * sqrt(n)
-  }
-  list(x = x.ort, scale.pen = scale.pen, scale.notpen = scale.notpen)
-}
-
-## ==================================================================
 varBlockStand <- function(x, ipen.which, inotpen.which)
 {
   ## Purpose:   standardize matrix, respecting blocks of variables
@@ -1506,23 +1465,24 @@ varBlockStand <- function(x, ipen.which, inotpen.which)
   n <- nrow(x)
   x.ort <- x
   scale.pen <- vector(mode='list', length = length(ipen.which))
-  scale.notpen <- NULL
-
   if(length(inotpen.which) > 0){
-    one <- rep(1, n)
-    scale.notpen <- sqrt(drop(one %*% (x[,inotpen.which]^2)) / n)
-    x.ort[,inotpen.which] <- scale(x[,inotpen.which], FALSE, scale.notpen)
-  }
-
+    x. <- x[,inotpen.which, drop=FALSE]
+    scale.notpen <- sqrt(colMeans(x.^2))
+    x.ort[,inotpen.which] <- scale(x., FALSE, scale.notpen)
+  } else scale.notpen <- NULL
+  cnms <- colnames(x)
+  if(is.null(cnms)) cnms <- as.character(seq_len(ncol(x)))
+  rt.n <- sqrt(n)
   for(j in seq_along(ipen.which)){
-    ind <- ipen.which[[j]]
+    p. <- length(ind <- ipen.which[[j]])
     decomp <- qr(x[,ind])
-    if(decomp$rank < length(ind)) ## Warn if block has not full rank
-      stop("Block belonging to columns ",
-           paste(colnames(x)[ind], collapse = ", "),
-           " does not have full rank! \n")
-    scale.pen[[j]] <- qr.R(decomp) * 1 / sqrt(n)
-    x.ort[,ind] <- qr.Q(decomp) * sqrt(n)
+    if(decomp$rank < min(n,p.)) ## block does not have full rank
+        stop("Block belonging to columns ",
+             paste(cnms[ind], collapse = ", "),
+             sprintf(" has qr()-rank = %d  <  min(n=%d, p'=%d)",
+                     decomp$rank, n, p.))
+    scale.pen[[j]] <- qr.R(decomp) * 1 / rt.n
+    x.ort[,ind] <- qr.Q(decomp) * rt.n
   }
   list(x = x.ort, scale.pen = scale.pen, scale.notpen = scale.notpen)
 }
@@ -1876,58 +1836,4 @@ PoissReg <- function(){
              check      = function(y) all(y >= 0) & all(y == ceiling(y)),
              name       = "Poisson Regression Model",
              comment    = "")
-}
-## ===========================================================================
-## TODO MM: move the following into  ./WS-tools.R
-## ===========================================================================
-descr <- function(x) attr(x,"descr")
-## ---
-"descr<-" <- function(x, value)
-{
-  ##-- Create descr attribute or  PREpend  new descr to existing one.
-  value <- as.character(value)
-  attr(x, "descr") <- if (length(value)==0) NULL else
-  if(value[1]=="^") value[-1] else c(value, attr(x, "descr"))
-  x
-}
-## ---
-tit <- function(x) attr(x,"tit")
-## ---
-"tit<-" <- function(x, value) ## ! argument must be 'value'. demanded by attr
-{
-  attr(x, "tit") <- value
-  x
-}
-## ---
-stamp <- function(sure=TRUE, outer.margin = NULL,
-                  project=options("project")[[1]], step=options("step")[[1]],
-                  stamp=options("stamp")[[1]], ...)
-{
-  ## Purpose:   plot date and project information
-  ## -------------------------------------------------------------------------
-  ## Arguments:
-  ##   sure     if F, the function only plots its thing if  options("stamp")[[1]]>0
-  ##   outer    if T, the date is written in the outer margin
-  ##   project  project title
-  ##   step     title of step of data analysis
-  ##   ...      arguments to  mtext , e.g., line=3
-  ## -------------------------------------------------------------------------
-  ## Author: Werner Stahel, Date: 13 Aug 96, 09:00
-  if (length(stamp)==0) {
-    warning(":stamp: setting options(stamp=1)")
-    options(stamp=1)
-    stamp <- 1
-  }
-  if (length(outer.margin)==0) outer.margin <- par('oma')[4]>0
-  t.txt <- date()
-  t.txt <- paste(substring(t.txt,5,10),",",substring(t.txt,22,23),"/",
-                 substring(t.txt,13,16),sep="")
-  if (length(project)>0) t.txt <- paste(t.txt,project,sep=" | ")
-  if (length(step)>0) t.txt <- paste(t.txt,step,sep=" | ")
-  if (sure || stamp==2 || ( stamp==1 && (
-                              ##     last figure on page
-                              { t.tfg <- par("mfg") ; all(t.tfg[1:2]==t.tfg[3:4]) }
-                              || isTRUE(outer.margin) ))  )
-    mtext(t.txt, 4, cex = 0.6, adj = 0, outer = outer.margin, ...)
-  invisible(t.txt)
 }
