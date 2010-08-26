@@ -239,7 +239,9 @@ fit <- lasso(x, y = y, index = index, lambda = lambda, model = "binomial",
 plot(fit)
 \dontshow{
 ## "Regression" tests:
-## dput(signif(c(coef(fit)),10)) :
+##
+dput(signif(c(coef(fit)),10))
+dput(signif(fit$nloglik,10))
 cf. <- c(0.4054648, 0, 0, 0, 0, 0.3575546402, 0.6880608904, -0.605162944,
          0, 0, 0.3827993211, 1.243212641, -1.062931674, 0, 0, 0.42779904,
          1.708452263, -1.422856567, 0, 0, 0.4679224617, 2.05388169, -1.679078972,
@@ -247,10 +249,10 @@ cf. <- c(0.4054648, 0, 0, 0, 0, 0.3575546402, 0.6880608904, -0.605162944,
          0.01995161045)
 stopifnot(fit$converged,
 	  identical(which(coef(fit) == 0), c(2:5, 9:10, 14:15, 19:20, 24:25)),
-	  all.equal(c(coef(fit)), cf.),
+	  all.equal(c(coef(fit)), cf., tol=1e-6),
 	  all.equal(fit$nloglik,
                     c(33.65058335, 25.13498717, 21.87913274,
-                      20.56391179, 20.08389348, 19.91999198)))
+                      20.56391179, 20.08389348, 19.91999198), tol=1e-5))
 }
 }
 \keyword{models}
