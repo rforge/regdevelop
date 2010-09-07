@@ -25,8 +25,9 @@
   smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
   smooth.sim = 19, nxsmooth = 51,
   plotselect = NULL, 
-  weights = NULL, hat.cooklim = 1:2, reslim = TRUE, ylim = TRUE,
-  ylimfac=3.0, ylimext=0.1,
+  weights = NULL, hat.cooklim = 1:2,
+  reslim = TRUE, reslimfac=3.0, reslimext=0.1, 
+  ylim = TRUE, ylimfac=3.0, ylimext=0.1,
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
   sequence = NA,
   xplot = TRUE, x.se = FALSE, x.smooth = smooth, addcomp=FALSE, ...)
@@ -88,9 +89,8 @@
     plotted in the leverage plot}
   \item{reslim}{limits for plotting residuals directly. Beyond these
     limits, points are shown in the margins with squeezes scale}
-  \item{ylim}{limits for plotting y values}
-  \item{ylimfac}{argument passed to \code{robrange} if selected}
-  \item{ylimext}{argument passed to \code{plcoord}}
+  \item{reslimfac, reslimext}{arguments passed to \code{robrange} if selected}
+  \item{ylim, ylimfac, ylimext}{same, for plotting y values}
   \item{glm.restype}{type of residuals to be used for glm model.
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{cond.quant} is possible for
@@ -166,13 +166,13 @@ none
   r.blast <-
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)
-  plot(r.blast, seq=FALSE, xplot=~.+no) 
+#  plot(r.blast, seq=FALSE, xplot=~.+no) 
 
   data(d.fossiles)
   r.foss <-
     regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
     data=d.fossiles)
-  plot(r.foss, plotselect=c(ta=3, resmatrix=1, qqmult=1),xplot=FALSE)
+#  plot(r.foss, plotselect=c(ta=3, resmatrix=1, qqmult=1),xplot=FALSE)
 }
 \keyword{hplot}
 \keyword{regression}

@@ -8,10 +8,12 @@ doc(d.blast) <-
 
 d.surveyenvir <- d.umweltumf
 names(d.surveyenvir) <- c("age","sex","education","location","townsize",
- "party","disturbance","gov","responsability","weight")
+ "party","disturbance","gov","responsibility","weight")
 levels(d.surveyenvir$sex) <- c("m","f")
 levels(d.surveyenvir$education) <- c("no.training","apprentiship","no.degree",
  "college","uni")
+levels(d.surveyenvir$location) <- c("center","urban.dense","urban.sparse",
+ "edge.dense","edge.sparse","rural","other")
 levels(d.surveyenvir$disturbance) <- c("none","slight","clear","severe")
 d.surveyenvir$disturbance <- ordered(d.surveyenvir$disturbance)
 levels(d.surveyenvir$gov) <- c("does.enough","not.enough")

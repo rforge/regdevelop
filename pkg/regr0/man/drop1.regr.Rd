@@ -24,10 +24,10 @@
     Defaults to the terms in the 'object's formula for \code{drop1}
     and to all first order interactions between these and squared terms
     in the continuous variables for \code{add1}
-    (see \code{\link{term2order}})}
+    (see \code{\link{terms2order}})}
   \item{scale}{an estimate of the error variance if applicable. Will be
     recalculated from the fit if ==0 or NULL}
-  \item{test}{see \code{\lind{drop1}}}
+  \item{test}{see \code{\link{drop1}}}
   \item{k}{the penalty constant in AIC / Cp}
   \item{sorted}{if TRUE, the result is sorted according to the AIC or,
     if absent, the p value}

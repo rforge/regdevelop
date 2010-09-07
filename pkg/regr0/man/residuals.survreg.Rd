@@ -1,6 +1,7 @@
 \name{residuals.survreg}
 \Rdversion{1.1}
 \alias{residuals.survreg}
+\alias{residuals.coxph}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Residuals of a regression for survival data
 }
@@ -11,11 +12,11 @@
   See Details for an explanation.
 }
 \usage{
-residuals.survreg(object, type = "response", ...)
+\method{residuals}{survreg}(object, type = "response", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{object}{an object inheriting from Survreg  
+  \item{object}{an object inheriting from classes Survreg or coxph
 }
   \item{type}{
 }
@@ -24,7 +25,7 @@ residuals.survreg(object, type = "response", ...)
 }
 \details{
 For censored observations, the conditional distribution of the survival
-time, given the censoring, is used to calculate quantiles ...
+time, given the censoring, is used to calculate quantiles ...\cr
 }
 \value{
 %%  ~Describe the value returned
@@ -37,11 +38,10 @@ time, given the censoring, is used to calculate quantiles ...
 }
 \author{Werner A. Stahel, ETH Zurich
 }
-\note{
-%%  ~~further notes~~
+\note{BUG: \code{residuals.coxph} is not yet implemented in this way.
 }
 
-\seealso{\code{\link{condquant}, \code{\link{plot.regr}}}
+\seealso{\code{\link{condquant}}, \code{\link{plot.regr}}
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{

@@ -11,19 +11,17 @@
   respective print and plot methods.
 }
 \usage{
-regr(formula, data, tit = NULL, method = "lm", family = NA,
-  init.reg = "f.ltsreg", subset = NULL, weights = NULL,
-  na.action = nainf.exclude, model = TRUE, calcdisp = NULL,
-  termtable = TRUE, vif = TRUE, ...)
+regr(formula, data, tit = NULL, family = NULL,
+  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL, 
+  robust = FALSE, method=NULL, init.reg = "f.ltsreg",
+  subset = NULL, weights = NULL, na.action = nainf.exclude,
+  model = TRUE, x = FALSE, termtable = TRUE, vif = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{formula}{ a symbolic description of the model to be fit. }
   \item{data}{ data frame containing the variables in the model. }
   \item{tit}{ title (becomes tit attribute of result) }
-  \item{method}{ S function to be called for fitting.
-    By default, \code{glm} is used if \code{family} is set, and
-    \code{lm} is used otherwise. }
   \item{family}{ character string describing the type of model and the
     fitting procedure. By default, \code{regr} will fit a model that is
     suitable for the response variable, if possible.\\
@@ -37,7 +35,23 @@ regr(formula, data, tit = NULL, method = "lm", family = NA,
     description of the error distribution and link
     function to be used in the model. This can be a character string
     naming a family function, a family function or the result of a call
-    to a family function.  (See 'family' for details of family functions.) }
+    to a family function.  (See 'family' for details of family
+    functions.) }
+  \item{calcdisp}{ a logical value indicating whether, for
+    \code{family=binomial} and \code{family=poisson}, dispersion
+    should be calculated \code{(TRUE)} or set to 1 \code{(FALSE)} }
+  \item{suffmean}{!!!}
+  \item{nonlinear}{if TRUE, a non-linear model is expected, to be fitted
+    by \code{nlm}
+  }
+  \item{start}{if \code{nonlin} is \code{TRUE}, starting values for
+    \code{nlm}
+  }
+  \item{robust}{if TRUE, robust fitting is used if a function is
+    available.
+    }
+  \item{method}{if suitable, a method argument that is passed to the
+  fitting procedure. ...}
   \item{init.reg}{ function used to initialize robust methods }
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can
@@ -48,11 +62,9 @@ regr(formula, data, tit = NULL, method = "lm", family = NA,
           of 'options', and is 'na.fail' if that is unset.  The
           "factory-fresh" default is 'na.omit'.  Another possible value
           is 'NULL', no action.  Value 'na.exclude' can be useful. }
-  \item{model}{ a logical value indicating whether the model frame should be
+  \item{model, x}{ logical values indicating whether the model frame or
+  the model.matrix, respectively, should be
           included as a component of the returned value. }
-  \item{calcdisp}{ a logical value indicating whether, for
-    \code{family=binomial} and \code{family=poisson}, dispersion
-    should be calculated \code{(TRUE)} or set to 1 \code{(FALSE)} }
   \item{termtable}{if \code{FALSE}, the \code{regr} type term table will
     not be generated}
   \item{vif}{ a logical value indicating whether the collinearity

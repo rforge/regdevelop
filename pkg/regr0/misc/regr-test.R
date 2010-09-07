@@ -1,8 +1,13 @@
-source("/u/stahel/R/Pkgs/regr0/R/regr.R")
-source("/u/stahel/R/Pkgs/regr0/R/drop1.R")
+#source("/u/stahel/R/Pkgs/regr0/R/regr.R")
+##source("/u/stahel/R/Pkgs/regr0/R/drop1.R")
+source('regr.R')
 options(digits=3)
 load("/u/stahel/data/regdata")
-load("/u/stahel/R/Pkgs/regr0811/data/d.blast.rda")
+load("../data/d.blast.rda")
+load("../data/d.surveyenvir.rda")
+load("../data/d.rehab.rda")
+load("../data/d.fossiles.rda")
+
 ##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
 ##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
 ##- options(digits=3)
@@ -21,7 +26,7 @@ options(verbose=1)
 plot(r.blast)
 ## Anorexia
 data(anorexia, package="MASS")
-r.anorexia <- regr(Postwt ~ Prewt + Treat + offset(Prewt),
+r.anorexia <- regr(Postwt ~ Treat + Prewt + offset(Prewt),
                    data = anorexia)
 ## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
      ## Page 9: Plant Weight Data.
@@ -32,7 +37,7 @@ d.dob <- data.frame(group = gl(2,10,20, labels=c("Ctl","Trt")),
 (r.dob <- regr(weight ~ group, data=d.dob))
 
 ## multinomial regression
-data(d.surveyenvir)
+## data(d.surveyenvir)
 t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
 
 ## ordered regression
@@ -44,6 +49,7 @@ data(d.fossiles)
 r.mregr <-
   regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
                 data=d.fossiles)
+plot(r.mregr)
 ## ------------------------------------------------
 c.ask <- F
 t.d <- data.frame(y = c(1,5,4,4,3,8,6,7),
@@ -71,7 +77,7 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng)
 t.form <- log10(ersch)~Stelle+log10(dist)+log10(ladung)
 t.r <- regr(t.form, data=t.d)
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
-             weights = 5+1:nrow(t.d)) ## !!!  !regr! weights and data have incompatible dimensions
+             weights = 5+1:nrow(t.d))
 plot(t.r,ask=c.ask)
 plresx(t.r,var=names(t.d),ask=c.ask)
 
@@ -81,11 +87,16 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
 plot(t.r,ask=c.ask)
 drop1(t.r)
 t.r <- regr(log10(ersch)~1, data=d.spreng)
-step(t.r, scope=~.+Stelle+log10(dist)+log10(ladung),trace=F)  ## !!! error
+t.r1 <- step(t.r, scope=~.+Stelle+log10(dist)+log10(ladung),trace=F)
+t.r2 <- update(t.r1, formula=.~.-log10(ladung))
+t.r3 <- update(t.r2, formula=.~.-Stelle)
+##- t.mt <- modelTable(c("t.r","t.r1"))
+t.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
+t.mt[,-2]
 ## -------------------------------------
 ## robust
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
-            method="rlm")
+            robust=T)
 ## -------------------------------------
 
 ## Baby Survival
@@ -93,7 +104,8 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
 ##- t.d <- t.d[t.d$Age<35,]
 ##- d.babysurv <- t.d
 t.d <- d.babysurv
-t.r <- regr(Survival~.,data=t.d,family=binomial)
+t.r <- regr(Survival~.,data=t.d)
+t.rglm <- glm(Survival~.,data=t.d,family=binomial)
 t.rs <- step(t.r, trace=F)  ## ???
 t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
 plot(r.babysurv,xplot=~Weight,cex=0.7,symbol.size=NULL,res.lim=c(-5,5))
@@ -110,6 +122,7 @@ plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=T, ask=c.ask)
 ##- d.babysurv.w <- t.d
 t.d <- d.babysurv.w
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
+t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 plot(t.r,cex=1.2, ask=c.ask)
 
 ## ===========================================================
@@ -128,7 +141,7 @@ t.r <- r.l <- regr(Beeintr2 ~ Alter+Geschlecht+Schule+Wohnlage+
 ##- t.d <- read.table('/u/stahel/data/transaction.dat',header=T)
 ##- d.transaction <- t.d
 t.d <- d.transaction
-t.r <- glm(Time~Type1+Type2,data=t.d,family=Gamma)
+t.rglm <- glm(Time~Type1+Type2,data=t.d,family=Gamma)
 # summary(t.r)  ## !!! avoid deviance table
 ## !!! Gamma gibt warnings: untersuchen
 t.r <- regr(Time~Type1+Type2,data=t.d,family=Gamma)
@@ -140,10 +153,12 @@ t.d <- d.umweltumf
 ##- r.rm <- multinom(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=t.d)
 # t.r <- multinom(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=t.d)
 t.r <- regr(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=t.d,
-             family="multinomial")
+             family="multinomial", na.action=na.omit) 
 t.d <- d.umweltumf
 t.d <- t.d[1:100,]
 t.r <- regr(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=t.d)
+t.rm <- multinom(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=t.d)
+t.r <- regr(Hauptv~Alter + Schule + Beeintr + Geschlecht, data=na.omit(t.d))
 
 t.r <- regr(Hauptv~Alter, data=t.d) ## ??? coeftable yields NA = drop1.multinom
 t.dr <- drop1(t.r) 
@@ -180,17 +195,17 @@ t.dr <- drop1(t.r)
 ##-   drop1(r.fr,test="Chisq")
 ## ===================================================================
 t.d <- d.reacten[300:1700,]
-r.lin <- regr(log10(q)~time,data=t.d,method="lm")
+r.lin <- regr(log10(q)~time,data=t.d, method="lm")
 t.cl <- unname(coefficients(r.lin))
 ## !!! termtable
-t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, method="nls",
+t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=T,
              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
 ##- t.r <- nls(q~theta1*exp(-theta2*time), data=t.d, 
 ##-              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
 example(nls)
 t.d <- Treated
-t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = t.d, method="nls",
-       start = list(Vm = 200, K = 0.1))  ## !!! fails May 06
+t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = t.d, nonlinear=T,
+       start = list(Vm = 200, K = 0.1))  
 plot(t.r)
 ## ===================================================================
 ##- options(step="manova")
@@ -214,13 +229,13 @@ plot(t.r)
 source("/u/stahel/data/d.foss.R")
 
 ### Multivariate Regression
-t.y <- d.foss[,c(35,36,32)]        # Zielvariablen
+t.y <- d.fossiles[,c(35,36,32)]        # Zielvariablen
 ##- r.mlm <- lm(as.matrix(t.y)~SST.Mean+Salinity+lChlorophyll+region+N, data=d.foss)
 ##- r.man <- manova(as.matrix(t.y)~SST.Mean+Salinity+lChlorophyll+region+N,
 ##-                 data=d.foss)
 ##- summary.mreg(r.mlm)
 r.mregr <- regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+region+N,
-                data=d.foss)
+                data=d.fossiles)
 r.mregr
 plot(r.mregr, mfrow=c(3,3),ask=c.ask)
 drop1.mlm(r.mregr)
@@ -229,7 +244,7 @@ drop1.mlm(r.mregr)
 # t.r <- regr(as.matrix(t.y)~1,data=d.foss) ## does not work !!!
 ## ===================================================================
 require(MASS)
-options(step) <- "polr"
+options(step="polr")
 ##- t.r <- polr(Beeintr~Alter+Geschlecht, data=d.umweltumf)
 ##- summary(t.r)
 ##- t.d <- d.umweltumf
@@ -262,3 +277,31 @@ t.d <- d.initiative <-
 r.mod1 <- regr(y~sex+polit,data=t.d,family="gaussian",method="lm")
 
 drop1(r.mod1)
+## ---------------------------------------
+require(survival)
+# d.ovarian <- ovarian
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
+    dist = "weibull")
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
+    dist = "weibull",scale=2)
+t.rss <- summary(t.rs)
+##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
+##-     data = ovarian, dist = "extreme") ## not the same
+t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian,
+            family="weibull")
+plot(t.r)
+t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
+t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
+
+bladder1 <- bladder[bladder$enum < 5, ]
+t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
+               cluster(id), bladder1) 
+t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
+
+## d.cmbscores <- t.d
+t.d <- d.cmbscores
+dim(na.omit(t.d))
+t.d$y <- Tobit(t.d$EVAPOR, 10, log=T)
+t.r <- regr(y~Temp+Time+lWindspeed, data=t.d)
+plot(t.r)
+

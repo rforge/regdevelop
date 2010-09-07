@@ -16,6 +16,7 @@
 \alias{i.mlm}
 \alias{i.mlmsum}
 \alias{i.multinomial}
+\alias{i.survreg}
 \alias{i.plotlws}
 \alias{i.plotlars}
 \alias{i.polr}
@@ -26,11 +27,12 @@
 \alias{merge1}
 \alias{nna}
 \alias{print.mregr}
-\alias{print.regr}
 \alias{summary.mreg}
 \alias{summary.regr}
 \alias{u.merge}
 \alias{vif.regr}
+\alias{IR}
+% \alias{"%nin%"}
 \description{Internal regr0 objects.}
 \details{These are not to be called by the user.}
 \keyword{internal}

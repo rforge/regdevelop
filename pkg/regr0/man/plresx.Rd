@@ -15,7 +15,7 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   vars = NULL, sequence = FALSE, se = FALSE,
   addcomp = FALSE, rug = FALSE, jitter = NULL,
   smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
-  smooth.sim = 19, nxsmooth = 51,
+  smooth.sim = 19, nxsmooth = 51, reflines = NULL,
   lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
   colors = options("colors.ra")[[1]], pch = NULL, col = NULL,
   xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
@@ -64,6 +64,8 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{smooth.iter}{iterations used in the smoothing algorithm}
   \item{smooth.sim}{number of simulated smooth lines to be drawn}
   \item{nxsmooth}{number of x values for which the smooth is calculated}
+  \item{reflines}{logical: Should reference lines be added to the plots
+    of residuals on x? Default is TRUE if available.}
   \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
     \describe{
       \item{[1] }{observations (only \code{colors[1]} matters);}
