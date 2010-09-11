@@ -2092,7 +2092,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
     if (length(lplnm)==0) {
       if (length(plotselect)==length(lplsel))
         lplnm <- names(lplsel)
-        else {
+      else {
         warning(":plot.regr: Inadequate argument plotselect")
         plotselect <- NULL }
     } else {
@@ -2100,8 +2100,8 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
         pmin(lplsel,plotselect["default"]) else 0
       lina <- is.na(match(lplnm,names(lplsel)))
       if (any(lina)) {
-        warning(paste(":plot.regr: Inadequate elements plotselect:",
-                      paste(names(plotselect)[lina]),collapse=", "))
+	warning(":plot.regr: Inadequate elements plotselect: ",
+		paste(names(plotselect)[lina], collapse=", "))
         lplnm <- lplnm[!lina] }
       lplsel[lplnm] <- plotselect[lplnm]
     }
@@ -2235,10 +2235,9 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
     if (length(lab)==0) lab <- lpch
     lpch <- NULL }
   if (length(lpch)==0)
-    lpch <- if (lcondq) ifelse(lres[,'prob']==0,15,3) else
-      ifelse(ln>200,".",3)
+    lpch <- if (lcondq) ifelse(lres[,'prob']==0, 15,3) else ifelse(ln>200,".",3)
   lrown <- row.names(lres)
-    if (length(lrown)==0) lrown <- as.character(1:ln)
+  if (length(lrown)==0) lrown <- as.character(1:ln)
   if (length(lab)>1&length(lab)!=ln) {
     warning(":plot.regr: argument  lab  has unsuitable length")
     lab <- NULL
@@ -2248,10 +2247,12 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
     llabels <- if (is.character(lab)) lab else as.numeric(lab)
     if (length(llabels)>ln) {
       if(length(lnaaction)>0 && max(lnaaction)<=length(llabels))
-        llabels <- llabels[-lnaaction] } else
-    llabels <- rep(llabels, length=ln)
+        llabels <- llabels[-lnaaction]
+    }
+    else
+      llabels <- rep(llabels, length=ln)
   }                                        # factors: as.numeric
-  if (length(markprop)==0||is.na(markprop))
+  if (length(markprop)==0 || is.na(markprop))
     markprop <- if (length(lab)>1|lcondq) 0 else ceiling(sqrt(ln)/2)/ln
   if (markprop==0) {
     llab <- rep(lpch, length=ln)
@@ -2310,9 +2311,8 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
   lftext <- paste(as.character(lform)[c(2,1,3)],collapse="")
   if (length(main)==0) main <- lftext
   if (is.logical(main)) main <- if (main) lftext else ""
-  if (is.character(main)&&substring(main,1,1)==":")
-    main <- paste(lftext,substring(main,2,30))
-  main <- as.character(main)
+  main <- if (is.character(main) && substring(main,1,1)==":")
+    paste(lftext,substring(main,2,30)) else as.character(main)
   if (length(main))  tit(main) <- tit(x)
   if (is.null(cex.title)) cex.title <- max(0.5, min(1.2,
       par("mfg")[4]*par("pin")[1]/(par("cin")[1]*nchar(main))))
@@ -2517,7 +2517,7 @@ for (liplot in 1:length(lplsel)) {
   lylim <- if (addcomp) ylim else reslim
   lylimfac <- if (addcomp) ylimfac else reslimfac
   lylimext <- if (addcomp) ylimext else reslimext
-  if (lxpl | is.na(lseq)|lseq) {
+  if (lxpl || is.na(lseq) || lseq) {
     plresx(x, resid=lres, partial.resid=TRUE, glm.restype = glm.restype,
            data=data, lab=llab, cex.lab=cex.lab,
            vars=xvars, sequence=lseq, se=x.se, addcomp = addcomp,
@@ -3666,7 +3666,7 @@ stamp <- function(sure=TRUE, outer.margin = NULL,
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date: 13 Aug 96, 09:00
   if (length(stamp)==0) {
-    warning(":stamp: setting options(stamp=1)")
+    message("stamp() setting options(stamp=1)")
     options(stamp=1)
     stamp <- 1
   }

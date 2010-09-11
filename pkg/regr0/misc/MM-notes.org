@@ -1,31 +1,36 @@
 
-* Bemerkungen von Martin Maechler
+* Bemerkungen zu Stahel's  regr0 R Package  (von Martin Maechler)
 
 ** Allgemeines, Strategisches
 
-1. NAMESPACE ist gut; jetzt sollte man aber auch überlegen,
-  gewisse Dinge *nicht* zu exportieren, nachdem sie auch nicht
-  dokumentationswürdig scheinen ("missing help");
-  S3 methods ??
+ - ../DESCRIPTION (Version): Auch wenn "nie" ein CRAN release geschieht,
+   sollte die Versionsnummer trotzdem "wachsen"
+   (auch wenn bei Bug reports wirklich packageDescription("regr0")
+   rapportiert werden soll).
 
-2. R/regr.R  *einziges* File ist nicht schön;
-  insbesondere sollten die options() settings und Aehnliches in ein
-  R/zzz.R verschoben werden.
-  Ebenso die  "drop1 / add1" Aenderungen (unbedingt!)
+ - ../NAMESPACE ist gut; jetzt sollte man aber auch überlegen,
+   gewisse Dinge *nicht* zu exportieren, nachdem sie auch nicht
+   dokumentationswürdig scheinen ("missing help");
+   S3 methods ??
+
+ - ../R/regr.R  *einziges* File ist nicht schön;
+   insbesondere sollten die options() settings und Aehnliches in ein
+   separates ../R/zzz.R verschoben werden.
+   Ebenso die  "drop1 / add1" Aenderungen (unbedingt!)
 
 
 ** Zu einzelnen Funktionen:
 
 1. last() ist schon lange in 'sfsmisc' auf CRAN.
-  Nicht so sinnvoll in regr0; dafür  'Depends: sfsmisc'  (und import ...)
+   Nicht so sinnvoll in regr0; dafür  'Depends: sfsmisc'  (und import ...)
 
 2. mframe(): Unser "sfsmisc" package enthält schon seit Jahren die Funktion
-  mult.fig().  Wieso nicht jene nehmen?
+   mult.fig().  Wieso nicht jene nehmen?
 
 3. "%nin%": natürlich nicht die einzige Version dieser Funktion;
-  die Version in 'Hmisc' (Frank Harrell) ist etwas effizienter als jene
-  hier.  Nicht klar, ob wir dies von 'Hmisc' importieren sollen.
-  (Ich würde: "Hmisc" hat Tools und Ideen, die z.T. ähnlich sind, wie jene
-  in regr0().
+   die Version in 'Hmisc' (Frank Harrell) ist etwas effizienter als jene
+   hier.  Nicht klar, ob wir dies von 'Hmisc' importieren sollen.
+   (Ich würde: "Hmisc" hat Tools und Ideen, die z.T. ähnlich sind, wie jene
+   in regr0().
 
 
