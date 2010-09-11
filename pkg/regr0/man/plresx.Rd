@@ -1,6 +1,5 @@
 \name{plresx}
 \alias{plresx}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Plot Residuals Against Explanatory Variables }
 \description{
   Diagnostic plots for fitted regression models:
@@ -17,14 +16,13 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
   smooth.sim = 19, nxsmooth = 51, reflines = NULL,
   lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
-  colors = options("colors.ra")[[1]], pch = NULL, col = NULL,
+  colors = getOption("colors.ra"), pch = NULL, col = NULL,
   xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
   ylim = TRUE, ylimfac = 3, ylimext = 0.1,
   cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
   condprobrange=c(0.05,0.8),
   ask = NULL, multnrows = 0, multncols = 0, ...)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{fitted regression object, result of calling \code{link{regr}}}
   \item{data}{data set. defaults to the data set used when calling \code{regr}}

@@ -1,6 +1,5 @@
 \name{plot.regr}
 \alias{plot.regr}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{Diagnostic Plots for Regr Objects}
 \description{
   Diagnostic plots for fitted regression models:
@@ -19,7 +18,7 @@
   oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL, 
   multnrows = 0, multncols = 0,
   lty = c(1, 2, 5, 3, 4, 6, 1, 1), lwd = c(1, 1, 2, 1, 1.5, 1, 1, 1),
-  colors = options("colors.ra")[[1]], pch = NULL, col = NULL,
+  colors = getOption("colors.ra"), pch = NULL, col = NULL,
   main = NULL, cex.title = NULL,
   wsymbols = NULL, symbol.size = NULL,
   smooth = TRUE, smooth.par = NA, smooth.iter = NA, 

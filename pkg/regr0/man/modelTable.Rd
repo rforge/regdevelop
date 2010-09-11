@@ -1,12 +1,10 @@
 \name{modelTable}
 \Rdversion{1.1}
+\title{Collect results for different regression models}
 \alias{modelTable}
 \alias{format.modelTable}
 \alias{print.modelTable}
 \alias{compareTerms}
-
-\title{Collect results for different regression models
-}
 \description{
   \code{modelTable}
   produces a table that shows which variables are contained in various
@@ -21,23 +19,23 @@
 }
 \usage{
 modelTable(models, data = NULL, seq = NULL)
+
 \method{format}{modelTable}(x, digits=3,
-  stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
+       stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
 \method{print}{modelTable}(x, tex = FALSE, ...)
-compareTerms( ... , list=NULL, seq = NULL)
+
+compareTerms(... , list=NULL, seq = NULL)
 }
 
 \arguments{
   \item{models}{a character vector containing the names of the models to
-    be collected, or a list of model fits
-  }
+    be collected, or a list of model fits. }
   \item{data}{
 %%     ~~Describe \code{data} here~~
   }
   \item{seq}{The sequence in which the terms should appear in the table.
     If incomplete, the terms mentioned in \code{seq} will be the first
-    rows in the result
-  }
+    rows in the result. }
   \item{x}{object of class \code{modelTable}}
   \item{digits}{to be used in formatting}
   \item{stars}{symbols used to indicate level of significance. They will
@@ -51,32 +49,35 @@ compareTerms( ... , list=NULL, seq = NULL)
     In \code{compareTerms}, the models for which the terms should be
     compared can be listed as in \code{c} or \code{list} etc.}
   \item{list}{A list of models.}
-  }
 }
 %% \details{
 %%   Note that \code{print.modelTable} allows you to prepare a (La-)TeX
 %%   table.
 %% }
-\value{\code{modelTable} produces a list of class 'modelTable', consisting of
+\value{
+  \code{modelTable} produces a list of class \code{"modelTable"},
+  with components
   \item{coef}{the coefficients of the models, collected in a matrix.
     The columns of the matrix correspond to the models, the rows, to the
-    terms. For terms with more than 1 degree of freedom, the matrix
-    element is NA. If possible, standardized coefficients are given.}
+    terms.  For terms with more than 1 degree of freedom, the matrix
+    element is NA.  If possible, standardized coefficients are given.}
   \item{p}{p values, in the same form}
   \item{sd.terms}{standard deviations for terms with 1 degree of
     freedom}
   \item{sigma}{estimated error standard deviations of the models}
 
   \code{format.modelTable} returns a character matrix and thereby
-  prepares for \code{print.modelTable}. If needed, the ouput of
+  prepares for \code{print.modelTable}.  If needed, the ouput of
   \code{format.modelTable} can be reordered or subsetted.
 }
 %% \references{
 %% %% ~put references to the literature/web site here ~
 %% }
-%% \seealso{print.modelTable}
+\seealso{
+  on formatting and printing of P-values, the standard \R functions
+  \code{\link{symnum}}, \code{\link{format.pval}}.
+}
 \author{Werner A. Stahel, ETH Zurich}
-
 \examples{
 data(d.blast)
 r.blast <-
@@ -85,9 +86,6 @@ r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
 r.mt <- modelTable(list(large=r.bl2,original=r.blast))
 format(r.mt)
 r.mt
-compareTerms
+%% FIXME !  compareTerms(...)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{regression}
-% \keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

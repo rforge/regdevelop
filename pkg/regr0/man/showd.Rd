@@ -1,6 +1,5 @@
 \name{showd}
 \alias{showd}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{Show a Part of a Data.frame}
 \description{
   Shows a part of the data.frame which allows for grasping the nature of
@@ -9,15 +8,14 @@
   of getting acquainted with the data.
 }
 \usage{
-showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=options("doc")[[1]])
+showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=getOption("doc"))
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{data}{a data.frame (or a matrix)}
   \item{first}{the first \code{first} rows will be shown and ...}
   \item{nrow.}{a selection of \code{nrow.} rows will be shown in
     addition. They will be selected with equal row number differences.
-  The last row is always included.}
+    The last row is always included.}
   \item{ncol.}{number of columns (variables) to be shown. The first and
     last columns will also be included. If \code{ncol.} has more than
     one element, it is used to identify the columns directly.}
@@ -29,7 +27,9 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=options("doc")[[1]])
   return invisibly the character vector containing the formatted data
 }
 \author{Werner A. Stahel, ETH Zurich}
-% \seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
+\seealso{
+  \code{\link{head}} and \code{\link{tail}}.
+}
 \examples{
 showd(iris)
 data(d.rehab)

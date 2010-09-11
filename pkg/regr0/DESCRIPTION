@@ -1,12 +1,12 @@
 Package: regr0
 Type: Package
 Title: Building regression models
-Version: 1.0
+Version: 1.0-2
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
 Depends: MASS, survival
-Suggests: nnet 
-Description:   This package helps to perform efficient model building for 
+Suggests: nnet
+Description:   This package helps to perform efficient model building for
   regression models. It also contains some useful utility functions.
 License: GPL
 LazyLoad: yes
