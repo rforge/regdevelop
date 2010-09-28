@@ -1,0 +1,58 @@
+- Running R CMD check on the package file  *.tar.gz I get from R-forge
+  *fails* : it has ./tests/ that does *NOT* work
+  I see that /u/stahel/R/...../lassogrp/ has moved tests/ to misc/
+
+  ===>  I'm working on making the tests/  valid again.
+  ===>  keep them in tests/  for now
+
+-  ?lassogrp-package   that's nice !
+
+-  lasso( * ,    model = 'binomial')
+
+      why not rather *family*  instead of 'model' ??
+
+- I would not put the \email{} in to  man/*.Rd
+
+------------------------------------------------------------------------
+
+Mit Werner,  10.Aug. 2010 :
+
+1.  lasso.default() sollte "gleich mächtig" "wie" lasso.formula()  sein
+
+2.  lasso.formula() ist *das* Benützer interface und daher,
+   sollte es "alles" können.
+
+3.  'adaptiveWeights' = c("LS", ...")  oder  p-vector
+   ===> adaptive = TRUE/FALSE  ist nicht mehr nötig
+   Bemerkung:  der Default muss  adaptiveWeights = NULL sein,
+   d.h, normales, nicht-adaptives lasso()
+
+4.  adaptive gamma :  weight = abs(beta)^(-gamma)
+
+5.  adaptiveLasso(x, y, lambda, weights)  sollte "low-level" verwendbar
+    sein.
+    Hmm, eigentlich heisst das nur, dass
+    lasso.default()  so aufrufbar sein muss.
+
+------------
+
+MM 11.Aug:
+
+3b) vielleicht doch  adaptive = TRUE/FALSE beibehalten -- wegen
+    "back-compatibility" ?
+    faktisch wäre  adaptive = TRUE  aequivalent to  adaptiveWeights = "LS"
+
+6. lassogrp() mit etlichen S3 Methoden:
+    - Dieser Set von Funktionen ist vollkommen undokumentiert
+    - Wenn es wirklich "auxiliary"-Funktionen sein sollen, dann sollen sie
+      wirklich nicht wie  S3 Generic + Methods aussehen
+
+   o Wieso muss alles in einem R file sein.
+     Das ist unuebersichtlich und auch sehr unueblich
+     (und auch nicht "schoen" die subversion-history einfach immer das eine
+      File zeigt, dass geändert wurde ...)
+
+MM -- 14.Aug:
+
+7.  'save.y' is nonsense -- we store other  length n  vectors in result.
+    ==> just  "save y always" and get rid of argument !
