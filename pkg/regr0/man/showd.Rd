@@ -23,8 +23,14 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=getOption("doc"))
     printed if available, if \code{>=1}, any \code{doc} attribute will
     be printed, too.}
 }
+\details{
+  The \code{tit} attribute of \code{data} will be printed if available and
+  \code{getOption("doc") > 0}, and any \code{doc} attribute,
+  if \code{getOption("doc") >= 2} (see \code{\link{tit}}).
+}
+
 \value{
-  return invisibly the character vector containing the formatted data
+  returns invisibly the character vector containing the formatted data
 }
 \author{Werner A. Stahel, ETH Zurich}
 \seealso{
@@ -33,7 +39,8 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=getOption("doc"))
 \examples{
 showd(iris)
 data(d.rehab)
-showd(d.rehab, ncol=7, doc=TRUE)
+options(doc=1)
+showd(d.rehab, ncol=7)
 }
 % R documentation directory.
 \keyword{utilities}

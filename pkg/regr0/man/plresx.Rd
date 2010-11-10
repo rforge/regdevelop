@@ -18,7 +18,7 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
   colors = getOption("colors.ra"), pch = NULL, col = NULL,
   xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
-  ylim = TRUE, ylimfac = 3, ylimext = 0.1,
+  ylim = TRUE, ylimfac = 3, ylimext = 0.1, yaxp = NULL, 
   cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
   condprobrange=c(0.05,0.8),
   ask = NULL, multnrows = 0, multncols = 0, ...)
@@ -95,6 +95,8 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
     calling \code{\link{robrange}}}
   \item{ylimfac}{argument passed to \code{robrange} if selected}
   \item{ylimext}{argument passed to \code{plcoord}}
+  \item{yaxp}{axis parameters used for residuals, passed to \code{plot},
+    see \code{?par}.}
   \item{cex}{character expansion}
   \item{wsymbols}{if TRUE, weights are used as symbol size}
   \item{symbol.size}{maximal symbol size, relative to \code{0.02*par("pin")[1]}}

@@ -5,6 +5,8 @@
 \alias{format.modelTable}
 \alias{print.modelTable}
 \alias{compareTerms}
+\alias{[.modelTable}
+
 \description{
   \code{modelTable}
   produces a table that shows which variables are contained in various
@@ -30,9 +32,7 @@ compareTerms(... , list=NULL, seq = NULL)
 \arguments{
   \item{models}{a character vector containing the names of the models to
     be collected, or a list of model fits. }
-  \item{data}{
-%%     ~~Describe \code{data} here~~
-  }
+  \item{data}{data on which all models are evaluated.}
   \item{seq}{The sequence in which the terms should appear in the table.
     If incomplete, the terms mentioned in \code{seq} will be the first
     rows in the result. }
@@ -78,6 +78,7 @@ compareTerms(... , list=NULL, seq = NULL)
   \code{\link{symnum}}, \code{\link{format.pval}}.
 }
 \author{Werner A. Stahel, ETH Zurich}
+
 \examples{
 data(d.blast)
 r.blast <-
@@ -86,6 +87,6 @@ r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
 r.mt <- modelTable(list(large=r.bl2,original=r.blast))
 format(r.mt)
 r.mt
-%% FIXME !  compareTerms(...)
+compareTerms(r.blast, r.bl2, seq=c("log10(distance)", "log10(charge)"))
 }
 \keyword{regression}

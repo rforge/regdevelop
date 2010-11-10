@@ -26,6 +26,7 @@
 \alias{is.R}
 \alias{merge1}
 \alias{nna}
+\alias{nafalse}
 \alias{print.mregr}
 \alias{summary.mreg}
 \alias{summary.regr}

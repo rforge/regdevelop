@@ -93,9 +93,10 @@ t.r3 <- update(t.r2, formula=.~.-Stelle)
 ##- t.mt <- modelTable(c("t.r","t.r1"))
 t.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
 t.mt[,-2]
+compareTerms(large=t.r1,reduced=t.r2,small=t.r3)
 ## -------------------------------------
 ## robust
-t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
+t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
             robust=T)
 ## -------------------------------------
 

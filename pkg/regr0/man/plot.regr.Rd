@@ -25,8 +25,8 @@
   smooth.sim = 19, nxsmooth = 51,
   plotselect = NULL, 
   weights = NULL, hat.cooklim = 1:2,
-  reslim = TRUE, reslimfac=3.0, reslimext=0.1, 
-  ylim = TRUE, ylimfac=3.0, ylimext=0.1,
+  reslim = TRUE, reslimfac=3.0, reslimext=0.1, resaxp=NULL, stresaxp=NULL,
+  ylim = TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
   sequence = NA,
   xplot = TRUE, x.se = FALSE, x.smooth = smooth, addcomp=FALSE, ...)
@@ -66,7 +66,10 @@
   \item{pch}{plotting character to use for unlabeled points}
   \item{col}{color(s) to use for points}
   \item{main}{main title to be used on each page,
-    defaults to the formula of object}
+    defaults to the formula of object. If \code{main} starts by ":",
+    this colon is dropped and the formula is appended to the remainder.
+    If \code{getOption("doc")} is $>1$, then the \code{tit} attribute of
+    \code{x} (see \code{\link{tit}}) is printed on a separate line.}
   \item{cex.title}{character size for title}
   \item{wsymbols}{if TRUE, points are displayed by a bubble whose size
     indicates the weight as given in \code{object$weights}.
@@ -88,8 +91,12 @@
     plotted in the leverage plot}
   \item{reslim}{limits for plotting residuals directly. Beyond these
     limits, points are shown in the margins with squeezes scale}
-  \item{reslimfac, reslimext}{arguments passed to \code{robrange} if selected}
-  \item{ylim, ylimfac, ylimext}{same, for plotting y values}
+  \item{reslimfac, reslimext}{arguments passed to \code{robrange} if
+    selected}
+  \item{resaxp, stresaxp}{axis parameters used for residuals and
+    standardized residuals, respectively, passed to argument \code{yaxp}
+    of \code{plot}, see \code{?par}.}
+  \item{ylim, ylimfac, ylimext, yaxp}{same, for plotting y values}
   \item{glm.restype}{type of residuals to be used for glm model.
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{cond.quant} is possible for
@@ -165,13 +172,13 @@ none
   r.blast <-
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)
-#  plot(r.blast, seq=FALSE, xplot=~.+no) 
+  plot(r.blast, seq=FALSE, xplot=~.+no) 
 
   data(d.fossiles)
   r.foss <-
     regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
     data=d.fossiles)
-#  plot(r.foss, plotselect=c(ta=3, resmatrix=1, qqmult=1),xplot=FALSE)
+  plot(r.foss, plotselect=c(ta=3, resmatrix=1, qqmult=1),xplot=FALSE)
 }
 \keyword{hplot}
 \keyword{regression}
