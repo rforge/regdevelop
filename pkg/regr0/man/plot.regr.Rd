@@ -24,8 +24,9 @@
   smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
   smooth.sim = 19, nxsmooth = 51,
   plotselect = NULL, 
-  weights = NULL, hat.cooklim = 1:2,
-  reslim = TRUE, reslimfac=3.0, reslimext=0.1, resaxp=NULL, stresaxp=NULL,
+  weights = NULL, leverage.cooklim = 1:2,
+  reslim = TRUE, reslimfac=3.0, reslimext=0.1,
+  yresaxp=NULL, resaxp=NULL, stresaxp=NULL,
   ylim = TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
   sequence = NA,
@@ -87,15 +88,15 @@
   \item{plotselect}{which plots should be shown? See Details}
   \item{weights}{if TRUE, residuals will be plotted versus
     \code{object$weights}. Alternatively, a vector of weights can be specified}
-  \item{hat.cooklim}{levels of Cook distance for which contours are
+  \item{leverage.cooklim}{levels of Cook distance for which contours are
     plotted in the leverage plot}
   \item{reslim}{limits for plotting residuals directly. Beyond these
     limits, points are shown in the margins with squeezes scale}
   \item{reslimfac, reslimext}{arguments passed to \code{robrange} if
     selected}
-  \item{resaxp, stresaxp}{axis parameters used for residuals and
-    standardized residuals, respectively, passed to argument \code{yaxp}
-    of \code{plot}, see \code{?par}.}
+  \item{yaxp, resaxp, stresaxp}{axis parameters used for y values,
+    residuals and standardized residuals, respectively, passed to
+    argument \code{yaxp} of \code{plot}, see \code{?par}.}
   \item{ylim, ylimfac, ylimext, yaxp}{same, for plotting y values}
   \item{glm.restype}{type of residuals to be used for glm model.
     In addition to those allowed in \code{residuals()} for
@@ -124,12 +125,12 @@
        \item{2}{show with smooth}
      }
   The default is
-  c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA, hat = 2,
+  c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA, leverage = 2,
   resmatrix = 1, qqmult = 3).
      Modify this vector to change the selection and the sequence in
      which the plots appear.
      Alternatively, provide a named vector defining all plot that should
-     be shown, like \code{plotselect = c(ta = 2, hat = 1)}.
+     be shown, like \code{plotselect = c(ta = 2, leverage = 1)}.
 
      The names of \code{plotselect} refer to:
      \describe{
@@ -140,7 +141,7 @@
        \item{weights}{residuals versus weights}
        \item{qq}{normal Q-Q plot, defaults to TRUE for
 	 ordinary regression, FALSE for glm and others}
-       \item{hat}{residuals versus leverage (hat diabgonal)}
+       \item{leverage}{residuals versus leverage (hat diabgonal)}
        \item{resmatrix}{scatterplot matrix of residuals for
 	 multivariate regression}
        \item{qqmult}{qq plot for Mahlanobis lengths versus sqrt of chisquare

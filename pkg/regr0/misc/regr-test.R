@@ -1,6 +1,4 @@
-#source("/u/stahel/R/Pkgs/regr0/R/regr.R")
-##source("/u/stahel/R/Pkgs/regr0/R/drop1.R")
-source('regr.R')
+source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 options(digits=3)
 load("/u/stahel/data/regdata")
 load("../data/d.blast.rda")
@@ -24,6 +22,16 @@ options(verbose=1)
 ( r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
 plot(r.blast)
+
+options(project='regr0.demo', step='blast')
+u.pslatex('p-plotregr-ta')
+  options(colors.ra =
+          c("black","gray4","blue4","blue3","darkgreen","green",
+            "burlywood4","burlywood3","burlywood4"))
+par(lwd=2)
+plot(r.blast, plotselect=c(ta=3), xplot=F, seq=F, pch=1, mf=1,
+     lwd=c(2,1.5,2,1.5,1.5,1,1,1,1))
+ps.end()
 ## Anorexia
 data(anorexia, package="MASS")
 r.anorexia <- regr(Postwt ~ Treat + Prewt + offset(Prewt),

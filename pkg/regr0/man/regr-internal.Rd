@@ -3,6 +3,7 @@
 \alias{.Options}
 \alias{BR}
 \alias{DB}
+\alias{\%nin\%}
 \alias{add1.default}
 \alias{deviance.lm}
 \alias{drop1.default}
@@ -25,12 +26,14 @@
 \alias{i.termtable}
 \alias{is.R}
 \alias{merge1}
+\alias{nafalse}
 \alias{nna}
 \alias{nafalse}
 \alias{print.mregr}
 \alias{summary.mreg}
 \alias{summary.regr}
 \alias{u.merge}
+\alias{u.true}
 \alias{vif.regr}
 \alias{IR}
 % \alias{"%nin%"}

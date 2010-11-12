@@ -8,7 +8,7 @@
   of getting acquainted with the data.
 }
 \usage{
-showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=getOption("doc"))
+showd(data, first = 3, nrow. = 4, ncol. = NULL)
 }
 \arguments{
   \item{data}{a data.frame (or a matrix)}
@@ -19,9 +19,6 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL, doc=getOption("doc"))
   \item{ncol.}{number of columns (variables) to be shown. The first and
     last columns will also be included. If \code{ncol.} has more than
     one element, it is used to identify the columns directly.}
-  \item{doc}{if TRUE or \code{>=1}, the \code{tit} attribute will be
-    printed if available, if \code{>=1}, any \code{doc} attribute will
-    be printed, too.}
 }
 \details{
   The \code{tit} attribute of \code{data} will be printed if available and

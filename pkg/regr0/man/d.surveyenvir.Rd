@@ -27,7 +27,7 @@
       \code{etwas}, \code{ziemlich}, \code{sehr}} 
     \item{\code{gov}}{Is the government active enough?
       Levels \code{does.enough}, \code{not.enough}}
-    \item{\code{responsability}}{Who has the main responsibility?
+    \item{\code{responsibility}}{Who has the main responsibility?
       Answers \code{individuals}, \code{government}, \code{both}} 
     \item{\code{weight}}{weight of the observation according to sampling
       design}
