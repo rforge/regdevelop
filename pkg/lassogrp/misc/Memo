@@ -1,3 +1,38 @@
+MMae
+------------------------------------------------------------------------
+
+- lasso( * ,    model = 'binomial')
+
+      why not rather *family*  instead of 'model' ??
+
+- I would not put the \email{} in to  man/*.Rd
+
+------------------------------------------------------------------------
+
+Mit Werner,  10.Aug. 2010 :
+
+1.  lasso.default() sollte "gleich mächtig" "wie" lasso.formula()  sein
+
+2.  lasso.formula() ist *das* Benützer interface und daher,
+   sollte es "alles" können.
+
+3.  'adaptiveWeights' = c("LS", ...")  oder  p-vector
+   ===> adaptive = TRUE/FALSE  ist nicht mehr nötig
+   Bemerkung:  der Default muss  adaptiveWeights = NULL sein,
+   d.h, normales, nicht-adaptives lasso()
+
+4.  adaptive gamma :  weight = abs(beta)^(-gamma)
+
+5.  adaptiveLasso(x, y, lambda, weights)  sollte "low-level" verwendbar
+    sein.
+    Hmm, eigentlich heisst das nur, dass
+    lasso.default()  so aufrufbar sein muss.
+
+-----------------------
+
+
+
+---------------------------------
 index: corresponds to assign of  model.matrix
   use number <=0 to indicate non-penalized carriers
   names: names of carriers

@@ -1,4 +1,3 @@
-verify R2.x. coded as 1/(1-vif), possibly should be 1/(1-vif^2)
 
 smooth in residuals.condquant is not right
 
@@ -9,7 +8,6 @@ doc bookkeeping: braucht  seldata, dropdata
 drop1.multinom, add1  noetig? doku.
 
 regr: method for lassoselect object
-doc und tit uebernehmen
 
 print, plot sollten doc und tit benuetzen
 
@@ -21,3 +19,10 @@ predict.regr, residuals.polr
 lassoselect: factors -> terms benuetzen
 
 drop1.mlm: ldata  und  lna  vielleicht nicht mehr noetig
+
+--------------------------------------------------------------
+regr-description in inst/doc
+inst/external  fuer zusaetzl. Datensaetze etc
+nachher mit
+sysfile("file", package="regr0") 
+holen

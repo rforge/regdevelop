@@ -26,11 +26,11 @@
   plotselect = NULL, 
   weights = NULL, leverage.cooklim = 1:2,
   reslim = TRUE, reslimfac=3.0, reslimext=0.1,
-  yresaxp=NULL, resaxp=NULL, stresaxp=NULL,
-  ylim = TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
+  yaxp=NULL, resaxp=NULL, stresaxp=NULL,
+  ylim = TRUE, ylimfac=3.0, ylimext=0.1, 
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
-  sequence = NA,
-  xplot = TRUE, x.se = FALSE, x.smooth = smooth, addcomp=FALSE, ...)
+  sequence = NA, xplot = TRUE, x.se = FALSE, x.smooth = smooth,
+  addcomp=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -94,7 +94,7 @@
     limits, points are shown in the margins with squeezes scale}
   \item{reslimfac, reslimext}{arguments passed to \code{robrange} if
     selected}
-  \item{yaxp, resaxp, stresaxp}{axis parameters used for y values,
+  \item{resaxp, stresaxp}{axis parameters used for 
     residuals and standardized residuals, respectively, passed to
     argument \code{yaxp} of \code{plot}, see \code{?par}.}
   \item{ylim, ylimfac, ylimext, yaxp}{same, for plotting y values}

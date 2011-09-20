@@ -43,11 +43,11 @@ regr <- function(formula, data, tit=NULL, family=NULL, # dist=NULL,
 ##  mf$drop.unused.levels <- TRUE
   lav <- eval(mf, parent.frame())
   ## response
-  if (length(formula)==2) { # nonlinear called with formula of type ~...
+  if (length(lformula)==2) { # nonlinear called with formula of type ~...
     ly <- rep(0,NROW(lav))
     lytype <- "numeric"
   } else {
-    ly <- model.frame(formula[1:2], lav)
+    ly <- model.frame(lformula[1:2], lav)
     ltrm <- attr(ly, "terms")
     lytype <- substring(attr(ltrm, "dataClasses"),1,5)
     lys <- lytype!='nmatr'
@@ -126,7 +126,7 @@ regr <- function(formula, data, tit=NULL, family=NULL, # dist=NULL,
     doc(lreg) <- ldoc
   lterms <- if (nonlinear) NULL else terms(lreg)
   if (is.null(attr(lterms, "predvars"))&&!nonlinear) { ## needed for survreg
-    lterms <- attr(lm(formula, data, method='model.frame'),'terms')
+    lterms <- attr(lm(lformula, data, method='model.frame'),'terms')
     attr(lreg$terms,'predvars') <- attr(lterms,'predvars')
   }
   lresnm <- colnames(lreg$residuals)
@@ -877,6 +877,10 @@ function (object, newdata = NULL, se.fit = FALSE, scale = object$sigma,
   if (length(type)==0)
     type <- if (inherits(object,"glm")) "link" else
   if (inherits(object, "polr")) "link" else "response"
+  ## !!!
+  if (length(object$call$robust))
+    if(eval(object$call$robust))
+      object$x <- model.matrix(formula(object), data=object$model)
 ##-   if (length(scale)==0) scale <- c(object$sigma,1)[1]
   class(object) <- class(object)[-1]
 ##-   if (missing(newdata) || length(newdata)==0) {
@@ -1769,7 +1773,6 @@ compareTerms <-
   lcl <- match.call()[-1]
   if (!is.null(names(lcl))) lcl <- lcl[names(lcl)!='seq']
   ## !!! bug: list does not work !!!
-##-   BR()
 ##-   if (length(list)) lcl <- c(as.list(lcl[names(lcl)!='list']),
 ##-                              c(lcl["list"]))
   lnmod <- length(lcl)
@@ -2063,7 +2066,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
   lfam <- x$distrname
   if (length(lfam)==0) lfam <- x$family$family
   if (is.null(lfam) || lfam=="" || is.na(lfam)) lfam <- "gaussian"
-  lfgauss <- lfam == "gaussian"
+  lfgauss <- lfam%in%c("gaussian","Gaussian")
   lglm <- inherits(x, "glm")
 ##  lpolr <- inherits(x,"polr")
   lfcount <- lfam == "binomial" | lfam == "poisson" | lfam == "multinomial" |
@@ -2300,8 +2303,9 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
       par(ask = ask, mfrow=mf, oma = loma, cex=cex, mar=mar, mgp=mgp)
   } else par(ask = ask, cex=cex, mar=mar, mgp=mgp)
   colors <- if (length(colors)==0)
-    c("black","gray","blue","cyan","red","magenta","darkgreen",
-      "green","lightgreen")  else
+          c("black","gray","blue","cyan","darkgreen","green",
+            "burlywood4","burlywood3","burlywood4")
+  else
     rep(colors,length=9)
   lftext <- paste(as.character(lform)[c(2,1,3)],collapse="")
   if (length(main)==0) main <- lftext
@@ -3147,7 +3151,7 @@ plresx <-
                 lnsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy)
     }
-    plmatrix(lres,ldata[,vars,drop=FALSE], panel=lpanel, pch=llab, range=lylim,
+    plmatrix(ldata[,vars,drop=FALSE],lres, panel=lpanel, pch=llab, range=lylim,
              reference=FALSE,
              nrows=multnrows, ncols=multncols, main=main) # clrsmooth=colors[3]
     return()
@@ -3233,11 +3237,12 @@ plresx <-
 }
 ## =======================================================================
 plmatrix <-
-function(data1, data2=NULL, data=NULL, panel=l.panel,
-         nrows=0, ncols=0, save=TRUE, robrange.=FALSE, range.=NULL,
-         pch=NULL, clr=1, reference=0, ltyref=3,
+function(x, y=NULL, data=NULL, panel=l.panel,
+         nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
+         pch=NULL, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r",
-         vnames=NULL, main='', cex=NA, cexlab=1.3, cextext=1, cex.title=1,
+         vnames=NULL, main='', cex.points=NA, cex.lab=0.9, cex.text=1.3,
+         cex.title=1,
          bty="o", oma=NULL, ...)
 {
 ## Purpose:    pairs  with different plotting characters, marks and/or colors
@@ -3246,34 +3251,54 @@ function(data1, data2=NULL, data=NULL, panel=l.panel,
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date: 23 Jul 93; minor bug-fix+comments:
   ## M.Maechler
-  l.panel <- function(x,y,indx,indy,pch=1,clr=1,...) {
-    if (is.character(pch)) text(x,y,pch,col=clr) else
-    points(x,y,pch=pch,col=clr,...)
+  l.panel <- function(x,y,indx,indy,pch=1,col=1,cex=cex.points,...) {
+    if (is.character(pch)) text(x,y,pch,col=col,cex=cex) else
+    points(x,y,pch=pch,col=col,cex=cex,...)
   }
   oldpar <- par(c("mfrow","mar","cex","oma","mgp"))
   on.exit(par(oldpar))
 ##---------------------- preparations --------------------------
 ## data
-  if (is.formula(data1))  data1 <- model.frame(data1,data)
-  if (is.data.frame(data1)) {
-    for (jj in 1:length(data1)) data1[[jj]] <- as.numeric(data1[[jj]])
-    data1 <- as.matrix(data1)
-  } else data1 <- cbind(data1)
-##  stop("!plmatrix! first argument must either be a formula or a data.frame or matrix")
-  nv1 <- dim(data1)[2]
-  lv1 <- 0
-  if (is.null(data2)) {
-    ldata <- data1
-    if (save) { nv1 <- nv1-1; lv1 <- 1 }
-    nv2 <- nv1; lv2 <- 0
-  } else { # cbind data2 to data for easier preparations
-    save <- FALSE
-    if (is.formula(data2))  data2 <- model.frame(data2,data)
-    if (is.data.frame(data2)) {
-      for (jj in 1:length(data2)) data2[[jj]] <- as.numeric(data2[[jj]])
-      data2 <- as.matrix(data2)
+  if (is.formula(x))  {
+    if (length(x)==2)
+    x <- model.frame(x,data, na.action=NULL)  else {
+      ld <- model.frame(x[c(1,3)],data, na.action=NULL)
+      ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
+      x <- ld
     }
-    ldata <- cbind(data1, as.matrix(data2))
+  }
+  if (is.data.frame(x)) {
+    for (jj in 1:length(x)) x[[jj]] <- as.numeric(x[[jj]])
+    x <- as.matrix(x)
+  } else x <- cbind(x)
+##  stop("!plmatrix! first argument must either be a formula or a data.frame or matrix")
+  nv1 <- dim(x)[2]
+  lv1 <- lv2 <- 0
+  if (is.null(y)) {
+    ldata <- x
+    if (save) { nv1 <- nv1-1; lv2 <- 1 }
+    nv2 <- nv1
+  } else { # cbind y to data for easier preparations
+    save <- FALSE
+    if (is.formula(y))  {
+      ld <- model.frame(x[c(1,3)],data, na.action=NULL)
+    if (length(x)>2)
+      ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
+    x <- ld
+  }
+    if (is.formula(y)) {
+      if (length(y)==2)
+        y <- model.frame(y,data, na.action=NULL)  else {
+          ld <- model.frame(y[c(1,3)],data, na.action=NULL)
+          ld <- cbind(ld, model.frame(y[1:2],data, na.action=NULL))
+          y <- ld
+        }
+    }
+    if (is.data.frame(y)) {
+      for (jj in 1:length(y)) y[[jj]] <- as.numeric(y[[jj]])
+      y <- as.matrix(y)
+    }
+    ldata <- cbind(x, as.matrix(y))
     nv2 <- ncol(ldata)-nv1 ; lv2 <- nv1 }
   nvv <- ncol(ldata)
   tnr <- nrow(ldata)
@@ -3321,17 +3346,18 @@ function(data1, data2=NULL, data=NULL, panel=l.panel,
   if (is.na(ncols)||ncols<1) ncols <- ceiling(nv2/((nv2-1)%/%lnm[2]+1))
   if (length(oma)!=4) oma <- 2 + c(0,0,!is.null(main)&&main!="",1)
   par(mfrow=c(nrows,ncols))
-  if (!is.na(cex)) par(cex=cex)
-  cex <- par("cex")
-  cexl <- cex*cexlab
-  cext <- cexlab*cextext
-  par(oma=oma*cexlab, mar=rep(0.2,4), mgp=cexl*c(1,0.5,0))
+##-   if (!is.na(cex)) par(cex=cex)
+##-   cex <- par("cex")
+##-   cexl <- cex*cexlab
+##-   cext <- cex*cextext
+  par(oma=oma*cex.lab, mar=rep(0.2,4), mgp=cex.lab*c(1,0.5,0))
+  if (is.na(cex.points)) cex.points <- max(0.2,min(1,1.5-0.2*log(tnr)))
 ##
   ## log
-  if (length(grep("y",log))>0) ldata[ldata[,1:nv1]<=0,1:nv1] <- NA
-  if (length(grep("x",log))>0) ldata[ldata[,lv2+1:nv2]<=0,lv2+1:nv2] <- NA
-  npgr <- ceiling(nv1/nrows)
-  npgc <- ceiling(nv2/ncols)
+  if (length(grep("x",log))>0) ldata[ldata[,1:nv1]<=0,1:nv1] <- NA
+  if (length(grep("y",log))>0) ldata[ldata[,lv2+1:nv2]<=0,lv2+1:nv2] <- NA
+  npgr <- ceiling(nv2/nrows)
+  npgc <- ceiling(nv1/ncols)
 ##----------------- plots ----------------------------
   for (ipgr in 1:npgr) {
     lr <- (ipgr-1)*nrows
@@ -3339,31 +3365,31 @@ function(data1, data2=NULL, data=NULL, panel=l.panel,
     lc <- (ipgc-1)*ncols
     if (save&&((lr+nrows)<=lc)) break
   for (jr in 1:nrows) { #-- plot row [j]
-    jd1 <- lr+jr
-    j1 <- lv1 + jd1
-    if (jd1<=nv1)  v1 <- ldata[,j1]
+    jd2 <- lr+jr
+    j2 <- lv2 + jd2
+    if (jd2<=nv2)  v2 <- ldata[,j2]
     for (jc in 1:ncols) { #-- plot column  [j2-lv2] = 1:nv2
-      jd2 <- lc+jc
-      j2 <- lv2 + jd2
-    if (jd1<=nv1 & jd2<=nv2) {
-      v2 <- ldata[,j2]
-      plot(v2,v1, type="n", xlab="", ylab="", axes=FALSE,
-           xlim <- rg[,j2], ylim <- rg[,j1],
-           xaxs=xaxs, yaxs=yaxs, log=log)
+      jd1 <- lc+jc
+      j1 <- lv1 + jd1
+    if (jd2<=nv2 & jd1<=nv1) {
+      v1 <- ldata[,j1]
+      plot(v1,v2, type="n", xlab="", ylab="", axes=FALSE,
+           xlim <- rg[,j1], ylim <- rg[,j2],
+           xaxs=xaxs, yaxs=yaxs, log=log, cex=cex.points)
       usr <- par("usr")
-      if (jr==nrows||jd1==nv1)   mtext(vnames[j2], side=1,
-                       line=0.5*cexlab, cex=cexl, at=mean(usr[1:2]))
-      if (jc==1) mtext(vnames[j1], side=2, line=0.5*cexlab, cex=cexl,
+      if (jr==nrows||jd2==nv2)   mtext(vnames[j1], side=1,
+                       line=0.5*cex.lab, cex=cex.lab, at=mean(usr[1:2]))
+      if (jc==1) mtext(vnames[j2], side=2, line=0.5*cex.lab, cex=cex.lab,
             at=mean(usr[3:4]))
       if (jr==1) axis(3,xpd=TRUE)
-      if (jc==ncols||jd2==nv2) axis(4,xpd=TRUE)
+      if (jc==ncols||jd1==nv1) axis(4,xpd=TRUE)
       box(bty=bty)
       if (any(v1!=v2,na.rm=TRUE)) { # not diagonal
-        panel(v2,v1,jd2,jd1, pch, clr, ...)
-        if (tjref) abline(h=lref[j2],v=lref[j1],lty=ltyref)
+        panel(v1,v2,jd1,jd2, pch, col, ...)
+        if (tjref) abline(h=lref[j1],v=lref[j2],lty=ltyref)
       }
       else { uu <- par("usr") # diagonal: print variable name
-             text(mean(uu[1:2]),mean(uu[3:4]), vnames[j1], cex=cext) }
+             text(mean(uu[1:2]),mean(uu[3:4]), vnames[j1], cex=cex.text) }
     }
       else frame()
     }
@@ -4019,7 +4045,7 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     attr(aod, "heading") <- head
     aod
 }
-
+## ==================================================================
 drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 			  k = 2, trace = FALSE, ...)
 {
@@ -4071,7 +4097,7 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     attr(aod, "heading") <- head
     aod
 }
-
+## ==================================================================
 drop1.lm <-
   function (object, scope, scale = 0, all.cols = TRUE, test = c("none",
     "Chisq", "F"), k = 2, ...)

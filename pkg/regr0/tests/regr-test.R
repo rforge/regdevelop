@@ -30,11 +30,12 @@ data(d.blast)
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 
-##- with(r.blast,
-##-      stopifnot( all.equal(testcoef[,"signif"],
-##-                           c(13.58841618, 3.40649491, 2.58310899, -2.72647480))
-##-                )
-##-      )
+with(r.blast,
+     stopifnot(all.equal(
+     testcoef[,"signif"],
+                          c(13.58841618, 3.40649491, -12.0192639, 8.1947910))
+                )
+     )
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
@@ -48,50 +49,35 @@ stopifnot(c(round(r.mt2[4,1]$p,7))==0.2757776)
 
 r.ct <- compareTerms(large=r.bl2,reduced=r.bl3,original=r.blast)
 
-##- ## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
-##-      ## Page 9: Plant Weight Data.
-##- t.ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
-##- t.trt <- c(4.81,4.17,4.41,3.59,5.87,3.83,6.03,4.89,4.32,4.69)
-##- d.dob <- data.frame(group = gl(2,10,20, labels=c("Ctl","Trt")),
-##-                     weight = c(t.ctl, t.trt))
-##- r.dob <- regr(weight ~ group, data=d.dob)
-##- 
-##- ## dput(r.dob[c("co","refi","dfgdf")]
 ## ========================================================================
 ## robust
+data(d.blast)
 r.rob <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast,
             robust=T)
 ## ========================================================================
-## ordered regression
+## ordered regression (using polr)
+## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
 r.survey <- regr(disturbance~age+education+location, data=d.surveyenvir)
 
-##- stopifnot(
-##-           all.equal(unname(coefficients[1:2]),
-##-                           c(-0.0034971305,  0.0697008869), tol=0)
-##- ,
-##-           
-##-           all.equal(unname(c(r.squared, fstatistic[1])),
-##-                           c(0.073077599, 1.419101297))
-##-                )
-##-      )
+with( r.survey, 
+     stopifnot(
+          all.equal(unname(coefficients[1:2]),
+                          c(-0.0034971305,  0.0697008869), tol=10e-6)
+,
+          all.equal(unname(zeta),
+                          c(-0.15772572, 1.37302143, 2.82205070 ), tol=10e-4)
+               )
+     )
 
-## ordered regression
-data(d.surveyenvir)
-r.survey <- regr(disturbance~age+education+location, data=d.surveyenvir)
-
-##- with(r.survey,
-##-      stopifnot( all.equal(coefficients["educationcollege"],0.84320952410413)
-##-                )
-##- )
 ## ========================================================================
 ## multivariate regression
 data(d.fossiles)
 r.mregr <-
   regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
                 data=d.fossiles)
-## plot(r.mregr)
+plot(r.mregr)
 ## ========================================================================
 ## Baby Survival
 data(d.babysurv)
@@ -134,6 +120,7 @@ drop1(r.mnom2)
 
 ## ===================================================================
 ## nonlinear
+## sysfile('external/d.reacten.rda', package='regr0')
 data(d.reacten)
 t.d <- d.reacten[300:1700,]
 r.lin <- regr(log10(q)~time,data=t.d)
@@ -147,25 +134,24 @@ t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=T,
 ##- plot(t.r)
 ## ===================================================================
 require(survival)
-# d.ovarian <- ovarian
-##- t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
-##-     dist = "weibull")
-##- t.rss <- summary(t.rs)
-##- ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
-##- ##-     data = ovarian, dist = "extreme") ## not the same
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
+    dist = "weibull")
+t.rss <- summary(t.rs)
+##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
+##-     data = ovarian, dist = "extreme") ## not the same
 r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
             family="weibull")
-## plot(t.r)
-##- r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+plot(r.surv)
+r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 
-##- bladder1 <- bladder[bladder$enum < 5, ]
-##- t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
-##-                cluster(id), bladder1) 
-##- t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
-##- r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull") 
-##- 
-##- bladder1$sizej <- jitter(bladder1$size)
-##- plresx(r.sr, vars="sizej")
+bladder1 <- bladder[bladder$enum < 5, ]
+t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
+               cluster(id), bladder1) 
+t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
+r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull") 
+
+bladder1$sizej <- jitter(bladder1$size)
+plresx(r.sr, vars="sizej")
 ## d.cmbscores <- t.d
 ## ===================================================================
 ## Tobit
