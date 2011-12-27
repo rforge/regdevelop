@@ -6,7 +6,7 @@
   Simulates residuals for a given normal regression model
 }
 \usage{
-simresiduals(object, nrep, resgen=NULL)
+simresiduals(object, nrep, resgen=NULL, glm.restype="deviance")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -16,12 +16,14 @@ simresiduals(object, nrep, resgen=NULL)
     which will be multiplied by object\$sigma. If TRUE, \code{rnorm} will
     be used. If NULL (default) the standardized residuals of
     \code{object} will be randomly permuted}
+  \item{glm.restype}{type of residuals to be generated (for glm)}
 }
 \details{
   The simulated residuals are obtained by replacing the response
-  variable by resampled standardized residuals of the fitted regression,
+  variable by permuted standardized residuals of the fitted regression,
   multiplied by the scale \code{object\$sigma}.
-  
+  If standarized residuals are not available, ordinary residuals are
+  used. 
 }
 \value{
   A list consisting of

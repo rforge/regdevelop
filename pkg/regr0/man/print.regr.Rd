@@ -4,7 +4,7 @@
 \title{Print Method for 'regr' objects}
 \description{Prints 'regr' objects. }
 \usage{
-print.regr(x, correlation = FALSE, dummycoef = NULL,
+\method{print}{regr}(x, correlation = FALSE, dummycoef = NULL,
 digits = max(3, getOption("digits") - 2), symbolic.cor = p > 4,
 signif.stars = getOption("show.signif.stars"),
 residuals = FALSE, niterations = FALSE, ...)

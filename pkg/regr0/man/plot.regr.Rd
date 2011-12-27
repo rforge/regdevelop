@@ -8,8 +8,8 @@
   Absolute residuals versus fit to assess equality of error variances;
   Normal Q-Q plot (for ordinary regression models);
   Residuals versus leverages to identify influential observations;
-  Residuals versus sequence;
-  and Residuals versus explanatory variables.
+  Residuals versus sequence (if requested);
+  and residuals versus explanatory variables.
   These plots are adjusted to the type of regression model.
 }
 \usage{
@@ -27,9 +27,9 @@
   weights = NULL, leverage.cooklim = 1:2,
   reslim = TRUE, reslimfac=3.0, reslimext=0.1,
   yaxp=NULL, resaxp=NULL, stresaxp=NULL,
-  ylim = TRUE, ylimfac=3.0, ylimext=0.1, 
+  ylim = TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE, 
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
-  sequence = NA, xplot = TRUE, x.se = FALSE, x.smooth = smooth,
+  sequence = FALSE, xplot = TRUE, x.se = FALSE, x.smooth = smooth,
   addcomp=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -40,7 +40,10 @@
   \item{data}{data set where explanatory variables are found}
   \item{markprop}{proportion of extreme residuals to be labeled}
   \item{lab}{labels of observations used to identify them}
-  \item{cex.lab}{character size for lab}
+  \item{cex.lab}{character size for lab. If the length is $>1$, the
+    second element determines the size of non-labeled points,
+    otherwise, their size is adjusted to the number of points
+    }
   \item{mf}{vector of 2 elements, indicating the number of rows and
     columns of panels on each plot page.
     Defaults to \code{c(2,2)}, except for multivariate models, where
@@ -64,7 +67,9 @@
 	\code{glm.restype="cond.quant"};}
     }
   }
-  \item{pch}{plotting character to use for unlabeled points}
+  \item{pch}{plotting character to use for unlabeled points. Defaults to
+    3 (corresponding to a plus sign) unless residuals are of class
+    \code{condquant}}
   \item{col}{color(s) to use for points}
   \item{main}{main title to be used on each page,
     defaults to the formula of object. If \code{main} starts by ":",
@@ -98,6 +103,8 @@
     residuals and standardized residuals, respectively, passed to
     argument \code{yaxp} of \code{plot}, see \code{?par}.}
   \item{ylim, ylimfac, ylimext, yaxp}{same, for plotting y values}
+  \item{jitterbinary}{logical: should variables with only 2 distinct values be
+    treated as factors, i.e., jittered?}
   \item{glm.restype}{type of residuals to be used for glm model.
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{cond.quant} is possible for

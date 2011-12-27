@@ -9,14 +9,18 @@
   The possible results depend on the class of the fitted model. 
 }
 \usage{
-\method{predict}{regr}(object, newdata = NULL, se.fit = FALSE,
-  scale = object$sigma,
-  interval = c("none", "confidence", "prediction"), level = 0.95,
-  type = NULL, terms = NULL, na.action = na.pass, ...)
+\method{predict}{regr}(object, newdata = NULL, scale = object$sigma,
+  type = NULL, ...)
 
 \method{predict}{polr}(object, newdata=NULL,
-  type = c("class", "probs", "link"), ...)}
+  type = c("class", "probs", "link"), ...)
 
+\method{predict}{mlm}(object, newdata=NULL, se.fit = FALSE,
+  scale = NULL, df = Inf,
+    interval = c("none", "confidence", "prediction"), level = 0.95,
+    type = c("response", "terms"), terms = NULL, na.action = na.pass,
+    pred.var = NULL, weights = 1. ...)
+}
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{Object of class \code{regr}}
@@ -31,7 +35,8 @@
   of the linear predictor.}
   \item{terms}{If \code{type="terms"}, which terms (default is all terms)}
   \item{na.action}{function determining what should be done with missing values
-          in \code{newdata}.  The default is to insert \code{NA}.}
+    in \code{newdata}.  The default is to insert \code{NA}.}
+  \item{pred.var, weights}{see \code{\link{lm}}}
   \item{\dots}{further arguments passed to specific methods}
 }
 \details{

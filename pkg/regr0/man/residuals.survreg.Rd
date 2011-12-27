@@ -18,7 +18,7 @@
 \arguments{
   \item{object}{an object inheriting from classes Survreg or coxph
 }
-  \item{type}{
+  \item{type}{type of residuals required
 }
   \item{\dots}{unused
 }
@@ -28,6 +28,7 @@ For censored observations, the conditional distribution of the survival
 time, given the censoring, is used to calculate quantiles ...\cr
 }
 \value{
+  matrix with class \code{condquant}
 %%  ~Describe the value returned
 %%  If it is a LIST, use
 %%  \item{comp1 }{Description of 'comp1'}
@@ -45,6 +46,9 @@ time, given the censoring, is used to calculate quantiles ...\cr
 %% ~~objects to See Also as \code{\link{help}}, ~~~
 }
 \examples{
+require(survival)
+t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
+residuals(t.r)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

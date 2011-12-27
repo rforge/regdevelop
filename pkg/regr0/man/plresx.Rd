@@ -12,13 +12,13 @@
 plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
   vars = NULL, sequence = FALSE, se = FALSE,
-  addcomp = FALSE, rug = FALSE, jitter = NULL,
-  smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
-  smooth.sim = 19, nxsmooth = 51, reflines = NULL,
+  addcomp = FALSE, rug = FALSE, jitter = NULL, reflines = NULL, 
+  smooth = TRUE, smooth.par = NA, smooth.iter = NA, smooth.group=NULL,
+  smooth.col=NULL, smooth.legend=TRUE, smooth.sim = 19, nxsmooth = 51, 
   lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
   colors = getOption("colors.ra"), pch = NULL, col = NULL,
   xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
-  ylim = TRUE, ylimfac = 3, ylimext = 0.1, yaxp = NULL, 
+  ylim = TRUE, ylimfac = 3, ylimext = 0.1, yaxp = NULL, jitterbinary=TRUE, 
   cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
   condprobrange=c(0.05,0.8),
   ask = NULL, multnrows = 0, multncols = 0, ...)
@@ -53,17 +53,22 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{rug}{if TRUE, the "rug" is displayed. It consists of tick marks
     for the observed values.}
   \item{jitter}{amount of jitter to be added for displaying factors}
-  \item{smooth}{if TRUE, a smooth line will be fitted to each plot.
-  By default, \code{\link{loess}} is used. Alternatively, another smoothing
-  function can be given as argument \code{smooth}}
- \item{smooth.par}{parameter driving the smooth: argument \code{span}
-   if \code{loess} is used, which defaults to
-   \code{3*nobs^log10(1/2)*(1+glm)}, where \code{glm==1} for glm models}
-  \item{smooth.iter}{iterations used in the smoothing algorithm}
-  \item{smooth.sim}{number of simulated smooth lines to be drawn}
-  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{reflines}{logical: Should reference lines be added to the plots
     of residuals on x? Default is TRUE if available.}
+  \item{smooth}{if TRUE, a smooth line will be fitted to each plot.
+    By default, \code{\link{loess}} is used. Alternatively,
+    another smoothing function can be given as argument \code{smooth}}
+  \item{smooth.par}{parameter driving the smooth: argument \code{span}
+    if \code{loess} is used, which defaults to
+    \code{3*nobs^log10(1/2)*(1+glm)}, where \code{glm==1} for glm models}
+  \item{smooth.iter}{iterations used in the smoothing algorithm}
+  \item{smooth.group}{grouping factor. If given, smooth will be drawn
+    for each group rather than for the whole dataset.}
+  \item{smooth.col}{colors to be used for the different groups}
+  \item{smooth.legend}{if a legend for the groups is desired, its
+    position should be given here}
+  \item{smooth.sim}{number of simulated smooth lines to be drawn}
+  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
     \describe{
       \item{[1] }{observations (only \code{colors[1]} matters);}
@@ -97,6 +102,8 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{ylimext}{argument passed to \code{plcoord}}
   \item{yaxp}{axis parameters used for residuals, passed to \code{plot},
     see \code{?par}.}
+  \item{jitterbinary}{logical: should variables with only 2 distinct values be
+    treated as factors, i.e., jittered?}
   \item{cex}{character expansion}
   \item{wsymbols}{if TRUE, weights are used as symbol size}
   \item{symbol.size}{maximal symbol size, relative to \code{0.02*par("pin")[1]}}

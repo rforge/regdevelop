@@ -6,7 +6,7 @@
 }
 \description{
   Fit a regression for an ordered target variable by \code{polr}
-  and return a corresponding regr object.
+  in a way adapted to the \code{regr} function.
 }
 \usage{
 polrregr(formula, data, weights, start, ..., 
@@ -28,6 +28,9 @@ method = c("logistic", "probit", "cloglog", "cauchit"))
 \code{\link{polr}}, \code{\link{regr}}
 }
 \examples{
+library(MASS) ## for data set housing
+(t.r <- polrregr(Sat ~ Infl + Type + Cont, weights = housing$Freq,
+  data = housing))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

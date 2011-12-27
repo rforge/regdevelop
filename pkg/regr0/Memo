@@ -11,7 +11,7 @@ regr: method for lassoselect object
 
 print, plot sollten doc und tit benuetzen
 
-c.env$verbose
+options$verbose
 
 doku: plTA.polr, fitted..polr
 predict.regr, residuals.polr

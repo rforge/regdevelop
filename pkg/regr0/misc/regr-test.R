@@ -1,4 +1,5 @@
-source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
+# source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
+source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
 options(digits=3)
 load("/u/stahel/data/regdata")
 load("../data/d.blast.rda")
@@ -24,14 +25,21 @@ options(verbose=1)
 plot(r.blast)
 
 options(project='regr0.demo', step='blast')
-u.pslatex('p-plotregr-ta')
+# u.pslatex('p-plotregr-ta')
   options(colors.ra =
           c("black","gray4","blue4","blue3","darkgreen","green",
             "burlywood4","burlywood3","burlywood4"))
 par(lwd=2)
-plot(r.blast, plotselect=c(ta=3), xplot=F, seq=F, pch=1, mf=1,
+plot(r.blast, plotselect=c(leverage=2), xplot=F, seq=F, pch=1, mf=1,
      lwd=c(2,1.5,2,1.5,1.5,1,1,1,1))
-ps.end()
+# ps.end()
+
+t.pr <- predict(r.blast, interval="prediction")
+
+t.r <- regr(tremor~distance+charge, data=d.blast)
+t.xd <- xdistResdiff(t.r, nsim=1000)
+plot(t.xd)
+
 ## Anorexia
 data(anorexia, package="MASS")
 r.anorexia <- regr(Postwt ~ Treat + Prewt + offset(Prewt),
@@ -107,7 +115,7 @@ compareTerms(large=t.r1,reduced=t.r2,small=t.r3)
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
             robust=T)
 ## -------------------------------------
-
+plot(t.r)
 ## Baby Survival
 ##- t.d <- read.table("/u/stahel/data/babysurvival.dat",sep=",",header=T)
 ##- t.d <- t.d[t.d$Age<35,]
@@ -126,6 +134,18 @@ plresx(r.babysurv,vars=~Age+Apgar1+Apgar5+pH,data=d.babysurv,
 
 plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=T, ask=c.ask)
 
+t.d <- na.omit(t.d)
+t.r <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
+t.fit <- fitted(t.r)
+t.nsim <- 1000
+##- t.sim <- rep(NA,t.nsim)
+##- for (li in 1:t.nsim) {
+##- t.d$Survival <- rbinom(nrow(t.d),1,t.fit)
+##- t.r <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
+##- t.sim[li] <- testBinFit(t.r, nclass=10)$p
+##- }
+##- hist(t.sim)
+##- r.simtBFSurv10 <- t.sim
 ##- t.d <- read.table("/u/stahel/data/babysurvival-w.dat",sep=",",header=T)
 ##- t.d <- t.d[,-1]
 ##- d.babysurv.w <- t.d
@@ -215,7 +235,7 @@ example(nls)
 t.d <- Treated
 t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = t.d, nonlinear=T,
        start = list(Vm = 200, K = 0.1))  
-plot(t.r)
+plot.regr(t.r)
 ## ===================================================================
 ##- options(step="manova")
 ##- t.d <- read.table("/u/stahel/data/fossilien-samples.dat")
@@ -283,21 +303,21 @@ f <- function()
 t.d <- d.initiative <-
   read.table("http://stat.ethz.ch/Teaching/Datasets/NDK/initiat.dat",
                   sep="\t",header=T)
-r.mod1 <- regr(y~sex+polit,data=t.d,family="gaussian",method="lm")
+r.mod1 <- regr(y~sex+polit,data=t.d,family="gaussian")
 
 drop1(r.mod1)
 ## ---------------------------------------
 require(survival)
 # d.ovarian <- ovarian
-t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
-    dist = "weibull")
-t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
-    dist = "weibull",scale=2)
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+                data = ovarian, dist = "weibull")
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+                data = ovarian, dist = "weibull",scale=2)
 t.rss <- summary(t.rs)
 ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
 ##-     data = ovarian, dist = "extreme") ## not the same
-t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian,
-            family="weibull")
+t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+            data = d.ovarian, family="weibull")
 plot(t.r)
 t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
 t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
@@ -307,10 +327,10 @@ t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) +
                cluster(id), bladder1) 
 t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
 
-## d.cmbscores <- t.d
-t.d <- d.cmbscores
+## d.cheese <- read.table("/u/stahel/data/cheese.dat")
+t.d <- d.cheese
 dim(na.omit(t.d))
-t.d$y <- Tobit(t.d$EVAPOR, 10, log=T)
-t.r <- regr(y~Temp+Time+lWindspeed, data=t.d)
+t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
+t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
 plot(t.r)
 

@@ -84,9 +84,11 @@ data(d.blast)
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
-r.mt <- modelTable(list(large=r.bl2,original=r.blast))
-format(r.mt)
+r.mt <- modelTable(list(large=r.bl2, original=r.blast))
 r.mt
+
+format(r.mt)
+print(r.mt, tex=TRUE)
 compareTerms(r.blast, r.bl2, seq=c("log10(distance)", "log10(charge)"))
 }
 \keyword{regression}

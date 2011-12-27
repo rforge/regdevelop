@@ -12,8 +12,9 @@
 plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   nrows = 0, ncols = nrows, save = TRUE,
   robrange. = FALSE, range. = NULL, pch = NULL, col = 1, 
-  reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r", vnames = NULL,
-  main = "", cex.points = NA, cex.lab = 0.9, cex.text = 1.3, cex.title = 1,
+  reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
+  xaxmar = NULL, yaxmar = NULL, vnames = NULL,
+  main = "", cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -46,6 +47,8 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
     log scale on horizontal axis, \code{"y"}, on vertical axis,
     \code{"xy"}, on both axes.}
   \item{xaxs, yaxs}{styles for x and y axis, see \code{\link{par}}}
+  \item{xaxmar, yaxmar}{in which margin should the x- [y-] axis be
+    labelled?}
   \item{vnames}{labels for the variables}
   \item{main}{main title for the plot (to be repeated on each plot page)}
   \item{cex.points}{character expansion for showing the observations}

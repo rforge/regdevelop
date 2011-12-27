@@ -49,6 +49,11 @@ stopifnot(c(round(r.mt2[4,1]$p,7))==0.2757776)
 
 r.ct <- compareTerms(large=r.bl2,reduced=r.bl3,original=r.blast)
 
+plresx(r.blast, vars=~distance,
+       pch=d.blast$location, smooth.group=d.blast$location,
+       smooth.col=c("blue","red","darkgreen","purple","brown","orange","cyan","black"),
+       smooth.legend=c(0,1))
+
 ## ========================================================================
 ## robust
 data(d.blast)
@@ -161,3 +166,4 @@ plresx(r.sr, vars="sizej")
 ##- t.d$y <- Tobit(t.d$EVAPOR, 10, log=T)
 ##- t.r <- regr(y~Temp+Time+lWindspeed, data=t.d)
 
+require(survival)

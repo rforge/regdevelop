@@ -9,7 +9,7 @@ Returns a \code{Surv} object that allows for setting up a Tobit
 regression model by calling \code{survreg} 
 }
 \usage{
-Tobit(data, limit = 0, log = FALSE)
+Tobit(data, limit = 0, transform = NULL, log = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -22,9 +22,15 @@ Tobit(data, limit = 0, log = FALSE)
     of \code{\link{logst}}(data), and if \code{limit>0}, it refers to the
     untransformed data.
 }
+  \item{transform}{
+    if data should be transformed, specify the function to be used.
+  }
   \item{log}{
     logical. If \code{TRUE}, \code{data} will be log transformed
     by calling \code{\link{logst}}.
+  }
+  \item{...}{
+    any additional arguments to the \code{transform} function
   }
 }
 \details{

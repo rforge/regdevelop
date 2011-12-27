@@ -36,6 +36,7 @@ condquant(x, dist = "normal", sig = 1)
 }
 
 \examples{
+condquant(cbind(seq(-2,0),c(0,1,Inf)))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
