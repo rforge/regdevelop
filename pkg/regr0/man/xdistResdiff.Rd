@@ -69,8 +69,6 @@ xdistResscale(x, perc = c(3, 10, 90), trim = 1/6)
 }
 \author{Werner A. Stahel, ETH Zurich}
 
-## \seealso{
-## }
 \examples{
 data(d.blast)
 rr <- regr(tremor~distance+charge, data=d.blast)

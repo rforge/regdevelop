@@ -24,13 +24,15 @@ options(verbose=1)
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
 plot(r.blast)
 
-options(project='regr0.demo', step='blast')
+plot(r.blast, plotselect=c(ta=2),xplot=F, seq=F, mf=1, cex.lab=1)
+
+userOptions(project='regr0.demo', step='blast')
 # u.pslatex('p-plotregr-ta')
-  options(colors.ra =
-          c("black","gray4","blue4","blue3","darkgreen","green",
-            "burlywood4","burlywood3","burlywood4"))
+##-   options(colors.ra =
+##-           c("black","gray4","blue4","blue3","darkgreen","green",
+##-             "burlywood4","burlywood3","burlywood4"))
 par(lwd=2)
-plot(r.blast, plotselect=c(leverage=2), xplot=F, seq=F, pch=1, mf=1,
+plot(r.blast, plotselect=c(leverage=2), xplot=F, pch=1, mf=1,
      lwd=c(2,1.5,2,1.5,1.5,1,1,1,1))
 # ps.end()
 
@@ -39,6 +41,11 @@ t.pr <- predict(r.blast, interval="prediction")
 t.r <- regr(tremor~distance+charge, data=d.blast)
 t.xd <- xdistResdiff(t.r, nsim=1000)
 plot(t.xd)
+
+dd <- d.blast
+dd$random <- c(NA,NA,rnorm(nrow(dd)-2))
+t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+random, data=dd)
+r.st <- step(t.r)
 
 ## Anorexia
 data(anorexia, package="MASS")
@@ -57,8 +64,8 @@ d.dob <- data.frame(group = gl(2,10,20, labels=c("Ctl","Trt")),
 t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
 
 ## ordered regression
-t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing)
-plot(t.r)
+##- t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing)
+##- plot(t.r)
 
 ## multivariate regression
 data(d.fossiles)
@@ -77,7 +84,8 @@ t.r <- regr(formula = y~f1+x1+x2+f1:x1, data=t.d)
 t.d[1,"x2"] <- NaN
 t.r <- regr(y~f1+x1+x2, data=t.d)
 plot(t.r,plotselect=
-     c( qq = NA, yfit=2, ta=3, tascale = NA, weights = NA, hat = 0),ask=c.ask)
+     c( qq = NA, yfit=2, ta=3, tascale = NA, weights = NA, leverage = 0),
+     ask=c.ask)
 t.r <- regr(y~f1+x1+x2+f1:x2, data=t.d)
 
 data(anorexia, package="MASS")
@@ -97,12 +105,20 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
 plot(t.r,ask=c.ask)
 plresx(t.r,var=names(t.d),ask=c.ask)
 
+t.d <- d.spreng
 t.d$ersch[3:5] <- NA
+t.d$ladung[5:7] <- NA
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
              weights = 5+1:nrow(t.d))  
+t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
+             weights = 5+1:nrow(t.d), subset=sample(1:nrow(t.d), nrow(t.d)/2))
+## round(runif(nrow(t.d)))
 plot(t.r,ask=c.ask)
 drop1(t.r)
-t.r <- regr(log10(ersch)~1, data=d.spreng)
+add1(t.r)
+t.d$redist[15:20] <- NA
+add1(t.r,scope=~redist)
+t.r <- regr(log10(ersch)~1, data=t.d)
 t.r1 <- step(t.r, scope=~.+Stelle+log10(dist)+log10(ladung),trace=F)
 t.r2 <- update(t.r1, formula=.~.-log10(ladung))
 t.r3 <- update(t.r2, formula=.~.-Stelle)
@@ -151,7 +167,7 @@ t.nsim <- 1000
 ##- d.babysurv.w <- t.d
 t.d <- d.babysurv.w
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
-t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
+#t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 plot(t.r,cex=1.2, ask=c.ask)
 
 ## ===========================================================
@@ -273,7 +289,7 @@ drop1.mlm(r.mregr)
 # t.r <- regr(as.matrix(t.y)~1,data=d.foss) ## does not work !!!
 ## ===================================================================
 require(MASS)
-options(step="polr")
+userOptions(step="polr")
 ##- t.r <- polr(Beeintr~Alter+Geschlecht, data=d.umweltumf)
 ##- summary(t.r)
 ##- t.d <- d.umweltumf
@@ -283,12 +299,30 @@ options(step="polr")
 t.r <- regr(Beeintr~Alter+Geschlecht, data=d.umweltumf) # multinom
 t.d <- d.umweltumf
 t.d$y <- ordered(t.d$Beeintr)
+dd <- t.d[seq(1,nrow(t.d),5),]
+dd$random <- c(rep(NA,20),rnorm(nrow(dd)-20))
 ## !!! attach in i.polr vermeiden! siehe i.mlm
-t.r <- regr(y~Alter+Geschlecht, data=t.d) 
+t.fo <- y~Alter+Geschlecht+random
+t.vars <- all.vars(t.fo)
+t.rr <- regr(t.fo, data=dd)
+t.rrd <- regr(t.fo, data=na.omit(dd[,t.vars]))
+t.r <- polr(t.fo, data=dd)
+t.rd <- polr(t.fo, data=na.omit(dd[,t.vars]))
+t.rst <- step(t.rd)
+t.r0 <- polr(y~Alter+Geschlecht, data=dd)
+t.r0d <- polr(y~Alter+Geschlecht, data=na.omit(dd[,t.vars]))
+add1(t.r0,scope="random")
+add1(t.r0d,scope="random")
+t.rr0 <- regr(y~Alter+Geschlecht, data=dd, subset=seq(1,nrow(dd),2))
+t.rr0d <- regr(y~Alter+Geschlecht, data=na.omit(dd[,t.vars]))
+add1(t.rr0,scope="random")
+add1(t.rr0d,scope="random")
 
 ##- r.rp <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 ##- summary(r.rp)
-t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing) 
+##- dd <- housing
+##- dd$Cont
+##- t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing) 
 
 f <- function()
 {
@@ -332,5 +366,6 @@ t.d <- d.cheese
 dim(na.omit(t.d))
 t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
 t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
+t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d, family="gaussian")
 plot(t.r)
 

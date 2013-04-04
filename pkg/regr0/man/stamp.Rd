@@ -7,12 +7,12 @@
 }
 \usage{
 stamp(sure = TRUE, outer.margin = NULL,
-  project = getOption("project"), step=getOption("step"),
-  stamp=getOption("stamp"), ...)
+  project = getUserOption("project"), step=getUserOption("step"),
+  stamp=getUserOption("stamp"), ...)
 }
 \arguments{
   \item{sure}{ if FALSE, the stamp will only be added if
-    \code{getOption("stamp")>0} }
+    \code{getUserOption("stamp")>0} }
   \item{outer.margin}{ if TRUE, the stamp is put to the outer margin of
     the plot. This is the default if the plot is currently split into panels.}
   \item{project, step}{character string describing the project and the step of
@@ -26,7 +26,7 @@ stamp(sure = TRUE, outer.margin = NULL,
   For getting final presentation versions of the plots, the stamp can be
   suppressed by changing the default by calling \code{options(stamp=0)}.
 
-  In more detail:  If \code{stamp==0} (or \code{\link{getOption}("stamp")==0})
+  In more detail:  If \code{stamp==0} (or \code{\link{getUserOption}("stamp")==0})
   the function will only do its thing if \code{sure==TRUE}.
 
   If \code{stamp==2}, it will certainly do it.
@@ -39,8 +39,9 @@ stamp(sure = TRUE, outer.margin = NULL,
 }
 \author{Werner A. Stahel, ETH Zurich}
 \examples{
-options(project="Example A",  step="regression analysis")
+userOptions(project="Example A",  step="regression analysis")
 plot(1:10)
+
 stamp()
 }
 \keyword{utilities}

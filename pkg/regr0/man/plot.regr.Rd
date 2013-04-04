@@ -18,14 +18,14 @@
   oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL, 
   multnrows = 0, multncols = 0,
   lty = c(1, 2, 5, 3, 4, 6, 1, 1), lwd = c(1, 1, 2, 1, 1.5, 1, 1, 1),
-  colors = getOption("colors.ra"), pch = NULL, col = NULL,
+  colors = getUserOption("colors.ra"), pch = NULL, col = NULL,
   main = NULL, cex.title = NULL,
   wsymbols = NULL, symbol.size = NULL,
-  smooth = TRUE, smooth.par = NA, smooth.iter = NA, 
-  smooth.sim = 19, nxsmooth = 51,
+  smooth = TRUE, smooth.par = NA, smooth.iter = NULL, smooth.sim = 19,
+  nxsmooth = 51,
   plotselect = NULL, 
   weights = NULL, leverage.cooklim = 1:2,
-  reslim = TRUE, reslimfac=3.0, reslimext=0.1,
+  reslim = TRUE, reslimfac=4, reslimext=0.1,
   yaxp=NULL, resaxp=NULL, stresaxp=NULL,
   ylim = TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE, 
   glm.restype = "deviance", condprobrange=c(0.05,0.8),
@@ -74,7 +74,7 @@
   \item{main}{main title to be used on each page,
     defaults to the formula of object. If \code{main} starts by ":",
     this colon is dropped and the formula is appended to the remainder.
-    If \code{getOption("doc")} is $>1$, then the \code{tit} attribute of
+    If \code{getUserOption("doc")} is $>1$, then the \code{tit} attribute of
     \code{x} (see \code{\link{tit}}) is printed on a separate line.}
   \item{cex.title}{character size for title}
   \item{wsymbols}{if TRUE, points are displayed by a bubble whose size
@@ -85,8 +85,16 @@
   \item{smooth}{if TRUE, smooths are added to the plots where
     appropriate. If it is a function, it is assumed to define the smooths.
   }
-  \item{smooth.par, smooth.iter}{arguments to the smooth function}
-%  \item{smooth.iter}{}
+%%  \item{smooth.rob}{if TRUE, smooth will be done robustly.
+%%    Default is FALSE for binomial or multinomial regression.}
+  \item{smooth.par}{argument to the smooth function. In case of default
+    smooth function, it is the argument \code{span} of \code{loess}}
+  \item{smooth.iter}{if the loess smooth is used,
+    this argument controls robustness of smooth. If \code{==0}, least
+    squares is used, otherwise, robust smoothing is,
+    \code{smooth.iter} being the maximal number of iterations.
+    Defaults to 0 if the family is \code{binomial} or
+    \code{multinomail}, to 50 otherwise.}
   \item{smooth.sim}{number of simulated smooths added to each plot}
   \item{nxsmooth}{number of values on the horizontal axes where smooths
     are evaluated}

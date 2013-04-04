@@ -13,12 +13,12 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
   vars = NULL, sequence = FALSE, se = FALSE,
   addcomp = FALSE, rug = FALSE, jitter = NULL, reflines = NULL, 
-  smooth = TRUE, smooth.par = NA, smooth.iter = NA, smooth.group=NULL,
-  smooth.col=NULL, smooth.legend=TRUE, smooth.sim = 19, nxsmooth = 51, 
+  smooth = TRUE, smooth.par = NA, smooth.iter = NULL, smooth.sim=19,
+  nxsmooth = 51, smooth.group=NULL, smooth.col=NULL, smooth.legend=TRUE, 
   lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
-  colors = getOption("colors.ra"), pch = NULL, col = NULL,
+  colors = getUserOption("colors.ra"), pch = NULL, col = NULL,
   xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
-  ylim = TRUE, ylimfac = 3, ylimext = 0.1, yaxp = NULL, jitterbinary=TRUE, 
+  ylim = TRUE, ylimfac = 4, ylimext = 0.1, yaxp = NULL, jitterbinary=TRUE, 
   cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
   condprobrange=c(0.05,0.8),
   ask = NULL, multnrows = 0, multncols = 0, ...)
@@ -61,14 +61,19 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{smooth.par}{parameter driving the smooth: argument \code{span}
     if \code{loess} is used, which defaults to
     \code{3*nobs^log10(1/2)*(1+glm)}, where \code{glm==1} for glm models}
-  \item{smooth.iter}{iterations used in the smoothing algorithm}
+  \item{smooth.iter}{if the loess smooth is used,
+    this argument controls robustness of smooth. If \code{==0}, least
+    squares is used, otherwise, robust smoothing is,
+    \code{smooth.iter} being the maximal number of iterations.
+    Defaults to 0 if the family is \code{binomial} or
+    \code{multinomail}, to 50 otherwise.}
+  \item{smooth.sim}{number of simulated smooth lines to be drawn}
+  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{smooth.group}{grouping factor. If given, smooth will be drawn
     for each group rather than for the whole dataset.}
   \item{smooth.col}{colors to be used for the different groups}
   \item{smooth.legend}{if a legend for the groups is desired, its
     position should be given here}
-  \item{smooth.sim}{number of simulated smooth lines to be drawn}
-  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
     \describe{
       \item{[1] }{observations (only \code{colors[1]} matters);}

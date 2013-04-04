@@ -22,8 +22,8 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL)
 }
 \details{
   The \code{tit} attribute of \code{data} will be printed if available and
-  \code{getOption("doc") > 0}, and any \code{doc} attribute,
-  if \code{getOption("doc") >= 2} (see \code{\link{tit}}).
+  \code{getUserOption("doc") > 0}, and any \code{doc} attribute,
+  if \code{getUserOption("doc") >= 2} (see \code{\link{tit}}).
 }
 
 \value{

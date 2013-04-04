@@ -15,7 +15,8 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
   xaxmar = NULL, yaxmar = NULL, vnames = NULL,
   main = "", cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
-  bty = "o", oma = NULL, ...)
+  bty = "o", oma = NULL, mar = rep(0.2, 4), keepmf = FALSE,
+  axes = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -58,6 +59,12 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   \item{cex.title}{character expansion for the main title}
   \item{bty}{box type for each panel, see \code{\link{par}}}
   \item{oma}{width of outer margins, ee \code{\link{par}}}
+  \item{mar}{margins for the panels}
+  \item{keepmf}{logical. If TRUE, the graphical settings
+    "mfrow", "mar", "cex", and "mgp" will be maintained, otherwise,
+    the old values will be restored (default).}
+  \item{axes}{logical. If TRUE, axes will be drawn and labels shown
+    (default).} 
   \item{\dots}{further arguments passed to the \code{panel} function}
 }
 \details{

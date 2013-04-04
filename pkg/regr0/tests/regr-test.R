@@ -49,11 +49,12 @@ stopifnot(c(round(r.mt2[4,1]$p,7))==0.2757776)
 
 r.ct <- compareTerms(large=r.bl2,reduced=r.bl3,original=r.blast)
 
-plresx(r.blast, vars=~distance,
-       pch=d.blast$location, smooth.group=d.blast$location,
-       smooth.col=c("blue","red","darkgreen","purple","brown","orange","cyan","black"),
-       smooth.legend=c(0,1))
-
+##- plresx(r.blast, vars=~distance,
+##-        pch=d.blast$location, smooth.group=d.blast$location,
+##-        smooth.col=c("blue","red","darkgreen","purple","brown",
+##-          "orange","cyan","black"),
+##-        smooth.legend="bottomright")
+## unreproduzierbarer Fehler
 ## ========================================================================
 ## robust
 data(d.blast)
@@ -64,6 +65,7 @@ r.rob <-
 ## ordered regression (using polr)
 ## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
+
 r.survey <- regr(disturbance~age+education+location, data=d.surveyenvir)
 
 with( r.survey, 
@@ -133,6 +135,11 @@ t.cl <- unname(coefficients(r.lin))
 t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=T,
              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
 
+t.d <- subset(DNase, Run == 1)
+t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
+            nonlinear = TRUE, 
+            data = t.d, control=list(maxiter=3, warnOnly=T),
+            start = list(Asym = 1, xmid = 0, scal = 1))
 ##- data(d.treated)
 ##- t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = d.treated, nonlinear=T,
 ##-        start = list(Vm = 200, K = 0.1))  # d.treated is found in example(nls)

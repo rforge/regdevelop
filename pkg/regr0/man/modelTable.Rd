@@ -22,9 +22,9 @@
 \usage{
 modelTable(models, data = NULL, seq = NULL)
 
-\method{format}{modelTable}(x, digits=3,
+\method{format}{modelTable}(x, digits=getUserOption("digits"),
        stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
-\method{print}{modelTable}(x, tex = FALSE, ...)
+\method{print}{modelTable}(x, tex = FALSE, transpose = FALSE, ...)
 
 compareTerms(... , list=NULL, seq = NULL)
 }
@@ -44,6 +44,7 @@ compareTerms(... , list=NULL, seq = NULL)
   }
   \item{sep}{separator. "\&" is used to prepare LaTeX format.}
   \item{tex}{if TRUE, the output is can be used in (La-)TeX.}
+  \item{transpose}{logical. If TRUE, the table is printed in transposed form}
   \item{\dots}{other arguments, passed to \code{print} or
     \code{format}.\cr
     In \code{compareTerms}, the models for which the terms should be

@@ -5,7 +5,7 @@
 \description{Prints 'regr' objects. }
 \usage{
 \method{print}{regr}(x, correlation = FALSE, dummycoef = NULL,
-digits = max(3, getOption("digits") - 2), symbolic.cor = p > 4,
+digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
 signif.stars = getOption("show.signif.stars"),
 residuals = FALSE, niterations = FALSE, ...)
 }
@@ -25,8 +25,8 @@ residuals = FALSE, niterations = FALSE, ...)
 }
 \details{  
   The \code{tit} attribute of \code{x} will be printed if available and
-  \code{getOption("doc") > 0}, and any \code{doc} attribute,
-  if \code{getOption("doc") >= 2} (see \code{\link{tit}}).
+  \code{getUserOption("doc") > 0}, and any \code{doc} attribute,
+  if \code{getUserOption("doc") >= 2} (see \code{\link{tit}}).
 }
 \value{Print functions return the object to be printed invisibly.
 }

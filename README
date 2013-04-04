@@ -18,7 +18,7 @@ This is the repository of your project. It contains two important
 pre-defined directories namely 'pkg' and 'www'. These directories must 
 not be deleted otherwise R-Forge's core functionality will not be 
 available (i.e., daily checking and building of your package or the 
-project websites).
+pbroject websites).
 'pkg' and 'www' are standardized and therefore are going to be
 described in this README. The rest of your repository can be used as
 you like.

@@ -1,7 +1,7 @@
 \name{predict.regr}
 \alias{predict.regr}
-\alias{predict.mlm}
 \alias{predict.polr}
+\alias{predict.mlm}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Prediction Methods for 'regr' Objects}
 \description{

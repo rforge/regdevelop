@@ -31,6 +31,9 @@ regr(formula, data, tit = NULL, family = NULL,
     "poisson"  for Poisson regression,
     "multinomial" for multinomial regression,
     "polr" for ordered response (cumulative logits) regression,
+    "weibull", "lognormal", "loglogistic", "extreme"
+    for survival regression with the respective distribution,
+    "ph" for Cox regression,
     or a suitable argument for \code{glm}, i.e.: A
     description of the error distribution and link
     function to be used in the model. This can be a character string
@@ -48,10 +51,10 @@ regr(formula, data, tit = NULL, family = NULL,
     \code{nlm}
   }
   \item{robust}{if TRUE, robust fitting is used if a function is
-    available.
+    available, see Details.
     }
   \item{method}{if suitable, a method argument that is passed to the
-  fitting procedure. ...}
+  fitting procedure, see Details.}
   \item{init.reg}{ function used to initialize robust methods }
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can
@@ -90,6 +93,19 @@ regr(formula, data, tit = NULL, family = NULL,
     b for binary, f for factor, o for ordered factor)}
   \item{binfac}{levels of binary factors}
   \item{fitfun}{R function that has been called for fitting the model}
+}
+\details{
+  Robust fitting is available for ordinary linear models, by setting
+  \code{robust = T}.
+  By default, the function \code{lmrob} from package \code{robustbase}
+  is call with the argument \code{setting="KS2011"}.
+  Alternative methods can be obtained by setting the \code{method}
+  argument. Choosing 
+  \code{method="rlm"}
+  {calls function \code{rlm} from package \code{MASS}}
+  with default \code{method="MM"}.
+  Any further elements of \code{method} will be passed on to the methods
+  argument of the called function.
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}

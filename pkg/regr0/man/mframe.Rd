@@ -7,8 +7,8 @@
 }
 \usage{
 mframe(mfrow = NULL, mfcol = NULL, mft = NULL, row = TRUE,
-  oma = c(0, 0, 2, 1), mar = getOption("mar"),
-  mgp = getOption("mgp"), \dots)
+  oma = c(0, 0, 2, 1), mar = getUserOption("mar"),
+  mgp = getUserOption("mgp"), \dots)
 }
 \arguments{
   \item{mfrow, mfcol}{number of rows and columns of panels. The default
