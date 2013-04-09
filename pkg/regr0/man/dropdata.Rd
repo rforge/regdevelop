@@ -8,7 +8,7 @@
   factor levels from a data.frame or matrix.  
 }
 \usage{
-dropdata(data, rowid, incol = "row.names")
+dropdata(data, rowid = NULL, incol = "row.names", colid = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -17,17 +17,21 @@ dropdata(data, rowid, incol = "row.names")
     dropped}
   \item{incol}{name or index of the column used to identify the
     observations (rows)}
+  \item{colid}{vector of character strings identifying the columns to be
+    dropped}
 }
 \value{
-  The data.frame or matrix without the dropped observations.
-  Attributes are kept.
+  The data.frame or matrix without the dropped observations and/or
+  variables. 
+  Attributes are passed on.
 }
 \author{Werner A. Stahel, ETH Zurich}
 \note{Ordinary subsetting by \code{[...,...]} drops attributes like
-  \code{\link{doc}} or \code{\link{tit}}. Furthermore, row or column
-  names cannot be used like indices, simply by a preceding minus sign to
-  drop the respective data.
+  \code{\link{doc}} or \code{\link{tit}}. Furthermore, the convenient
+  way to drop rows or columns by giving negative indices to
+  \code{[...,...]} cannot be used with names of rows or columns.
 }
+\seealso{\code{\link{subset}}
 \examples{
 dd <- rbind(a=1:3,b=4:6,c=7:9)
 dropdata(dd,"b")

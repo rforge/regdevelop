@@ -1,5 +1,29 @@
+step.regr  ist wieder wie step...
+
+simresiduals fuer multivariate regr
+  und weighted regr
+  und condquant (survreg)
 
 smooth in residuals.condquant is not right
+
+Tobit: allg. Transf. erlauben
+  scale: Test weg!
+  Glaettung?
+
+weighted regr: R2, stres, plots, any other changes?
+case of rob weights?
+rob: R2 as robust correlation? wsch nicht, untauglich fuer vorhersage
+
+regr wo intercept: R2
+
+Dokumentation von residuals.survreg vervollst.
+
+Examples fuer
+  simresiduals
+
+modelTable:
+do not standardize coefs for interactions!
+  should also avoid it if x is involved in more than 1 term
 
 predict.mlm mit se.fit=T oder interval=...
 

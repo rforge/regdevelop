@@ -36,6 +36,8 @@
 \alias{u.true}
 \alias{vif.regr}
 \alias{IR}
+\alias{subset}
+\alias{RNAMES}
 % \alias{"%nin%"}
 \description{Internal regr0 objects.}
 \details{These are not to be called by the user.}

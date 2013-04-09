@@ -19,7 +19,7 @@
   scale = NULL, df = Inf,
     interval = c("none", "confidence", "prediction"), level = 0.95,
     type = c("response", "terms"), terms = NULL, na.action = na.pass,
-    pred.var = NULL, weights = 1. ...)
+    pred.var = NULL, weights = 1, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

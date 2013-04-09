@@ -194,7 +194,6 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   if (robust) {
     if (lfn=="lmrob") {
       require(robustbase)
-      BR()
       if (length(method)>1) {
         if (substr(method[2],1,2)=="KS") {
           method <- NULL
@@ -3255,7 +3254,6 @@ i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iter=50)
   lsm <- try(loess(y~x, weights=weights, span=par, iter=iter,
                family=if (iter>0) "symmetric" else "gaussian",
                  na.action=na.exclude),silent=TRUE)
-#  BR()
   if (class(lsm)=="try-error") {
     lsm <- loess(y~x, weights=weights, span=0.99, iter=iter,
                family=if (iter>0) "symmetric" else "gaussian",
@@ -4202,34 +4200,63 @@ plTA.polr <- function(object, colbars=grey(0.7), colref=grey(0.7),
 ## ===========================================================================
 ## additional useful functions
 ## ===========================================================================
-dropdata <- function(data, rowid, incol="row.names")
+dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
 {
   ## Purpose:   drop observations from a data frame
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 31 Mar 2004, 15:32
-  if (incol=="row.names")
+  li <- lj <- NULL
+  ldata <- data
+  if (!is.null(rowid)) {
+    if (incol=="row.names")
     li <- match(as.character(rowid),row.names(data),nomatch=0)
-  else {
-    incol <- if (is.numeric(incol)) (1:ncol(data))[incol] else
-    match(incol, colnames(data))
-    if (is.na(incol)) stop("misspecified incolumn")
-    li <- match(rowid,data[,incol],nomatch=0)
+    else {
+      incol <- if (is.numeric(incol)) (1:ncol(data))[incol] else
+      match(incol, colnames(data))
+      if (is.na(incol)) stop("misspecified incolumn")
+      li <- match(rowid,data[,incol],nomatch=0)
+    }
+    if (any(li==0)) warning(":dropdata: observations",
+              paste(rowid[li==0],collapse=", "),"not found")
+    li <- li[li>0]
+    if (!is.null(li)) ldata <- ldata[-li,]
   }
-  li <- li[li>0]
-  ldata <- data[-li,]
+  ## drop variables
+  if (!is.null(colid)) {
+    lj <- match(as.character(colid),names(data),nomatch=0)
+    if (any(lj==0)) warning(":dropdata: variables  ",
+              paste(colid[lj==0],collapse=", "),"  not found")
+    lj <- lj[lj>0]
+    if (!is.null(lj)) ldata <- ldata[,-lj]
+  }
+  if (length(li)==0&length(lj)==0) {
+      warning(":dropdata: no data to be dropped")
+      return(data)
+    }
   lattr <- attributes(data)
-  lattr <- lattr[is.na(match(names(lattr),c("dim","dimnames","row.names")))]
+  lattr <- lattr[is.na(match(names(lattr),
+                             c("dim","dimnames","row.names","names")))]
   attributes(ldata) <- c(attributes(ldata),lattr)
-  if (length(attr(data,"na.action")))
-    li <- c(attr(data,"na.action"),
-            which(naresid(data,(1:nrow(data)%in%li))))
-  if (length(li)==0) warning(":dropobs: no observations dropped")
-  if (length(li)==nrow(data)) warning(":dropobs: no observations left")
-  class(li) <- "omit"
-  attr(ldata,"na.action") <- li
+  if (length(li)) { ## !!! does this make sense?
+    if (length(attr(data,"na.action")))
+      li <- c(attr(data,"na.action"),
+              which(naresid(data,(1:nrow(data)%in%li))))
+    if (length(li)==nrow(data)) warning(":dropobs: no observations left")
+    class(li) <- "omit"
+    attr(ldata,"na.action") <- li
+  }
   ldata
+}
+## ======================================================================
+subset <- function(x, ...) {
+  lattr <- attributes(x)
+  lattr <- lattr[is.na(match(names(lattr),
+                             c("dim","dimnames","row.names","names")))]
+  lsubs <- get("subset", pos="package:base")(x, ...)
+  attributes(lsubs) <- c(attributes(lsubs),lattr)
+  lsubs
 }
 ## ======================================================================
 showd <- function(data, first=3, nrow.=4, ncol.=NULL)
@@ -4355,14 +4382,14 @@ stamp <- function(sure=TRUE, outer.margin = NULL,
 ## ===========================================================================
 getUserOption <- function (x, default = NULL) 
 {
-    if (missing(default)) 
+    if (is.null(default)) 
         return(userOptions(x))
     if (x %in% names(userOptions())) 
         userOptions(x)
     else default
 }
 userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
-  {
+  { 
     if ((!is.null(x)&&is.character(x))) ## asking for options
       return(if(length(x)==1) UserOptions[[x]] else UserOptions[x])
     if (!is.null(default)) {

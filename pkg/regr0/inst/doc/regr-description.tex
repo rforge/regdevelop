@@ -17,14 +17,17 @@
 
 \providecommand{\code}[1]{\texttt{#1}}
 
+\addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
+\addtolength{\oddsidemargin}{-1.04cm}
+
 
 \begin{document}
-\title{The R-Function \T{regr} for an Augmented Regression Analysis\\
-(Draft)}
+\title{\vspace*{-10mm}
+The R-Function \T{regr} for an Augmented Regression Analysis}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
-\begin{abstract}
+\begin{abstract}\noindent
 The R function \T{regr} is a wrapper function that allows for fitting
 several different types of regression models by a unified call, and
 provides more informative numerical and graphical output than the 
@@ -391,7 +394,7 @@ to a residual scatterplot helps to spot a potential
 nonlinearity of the relationship between the response and the variable
 shown in the plot -- the fitted values or a single explanatory variable.
 The smooth used by default is \T{loess} with a span depending on the number
-of observations (currently $= 3n^{-0.3}$ for ordinary regression, and twice 
+of observations (currently $= 5n^{-0.3}$ for ordinary regression, and twice 
 this number for generalized linear regression; do not ask why).
 Such a smooth is more essential for generalized linear models than for 
 ordinary ones, since artefacts of the residuals may make it impossible to 
@@ -746,15 +749,26 @@ control over the precise content of the different plots.
   numerical output if desired.
 \end{itemize}
 
+\subsection{Subsetting Data}
+If observations (rows) of a data.frame are to be deleted, the usual
+R-function \T{subset} is useful. The package slightly modifies it to make
+sure that the attributes -- most importantly the documentation by
+\T{tit} and \T{doc} (see the preceding subsection) are passed along.
+
+There is an additional function \T{dropdata} which allows for dropping
+observations or variables based on their names.
+
 \subsection{Multiple Frames}
 Function \T{mframe} splits the screen by calling \T{par(mfrow=...)}.
 It adds flexibility and sets other defaults for margin widths and the like. 
-\\
+\\[10mm]
 
+{\small
 \Tit{This is the end} of the story for the time being. I hope that you will
 get into using \T{regr0} and have good success with your data analyses.
 Feedback is highly appreciated.
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
+}
 \end{document}
 
 %%% Local Variables: 

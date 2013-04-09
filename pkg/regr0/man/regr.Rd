@@ -24,7 +24,7 @@ regr(formula, data, tit = NULL, family = NULL,
   \item{tit}{ title (becomes tit attribute of result) }
   \item{family}{ character string describing the type of model and the
     fitting procedure. By default, \code{regr} will fit a model that is
-    suitable for the response variable, if possible.\\
+    suitable for the response variable, if possible.\cr 
     Can be either
     "gaussian" for ordinary regression, including multivariate response,
     "binomial" for logistic regression,
@@ -81,7 +81,7 @@ regr(formula, data, tit = NULL, family = NULL,
   those of the results of the fitting function and its summary.
   Additional components are described here in a draft version.
   \item{stres }{Standardized residuals}
-  \item{sigma }{estimated standard deviation for normal errors,\\
+  \item{sigma }{estimated standard deviation for normal errors,\cr 
   sqrt(dispersion) for \code{glm}}
   \item{testcoef}{Table for testing terms both for single and mulitple
     degree terms (continuous or binary explanatory variables and

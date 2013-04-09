@@ -49,11 +49,11 @@ stopifnot(c(round(r.mt2[4,1]$p,7))==0.2757776)
 
 r.ct <- compareTerms(large=r.bl2,reduced=r.bl3,original=r.blast)
 
-##- plresx(r.blast, vars=~distance,
-##-        pch=d.blast$location, smooth.group=d.blast$location,
-##-        smooth.col=c("blue","red","darkgreen","purple","brown",
-##-          "orange","cyan","black"),
-##-        smooth.legend="bottomright")
+plresx(r.blast, vars=~distance,
+       pch=d.blast$location, smooth.group=d.blast$location,
+       smooth.col=c("blue","red","darkgreen","purple","brown",
+         "orange","cyan","black"),
+       smooth.legend="bottomright")
 ## unreproduzierbarer Fehler
 ## ========================================================================
 ## robust
