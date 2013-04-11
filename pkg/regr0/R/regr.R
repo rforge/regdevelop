@@ -948,7 +948,7 @@ add1.regr <-
              sorted=sorted, add=TRUE, ...)
 }
 ## ==========================================================================
-step <- function(x, ...)
+step <- function(object, ...)
   UseMethod("step")
 step.default <- get("step", pos="package:stats")
 
@@ -1865,7 +1865,7 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
 }
 ## ==========================================================================
 predict.mlm <-
-  function (object, newdata, se.fit = FALSE, scale = NULL, df = Inf,
+  function (object, newdata=NULL, se.fit = FALSE, scale = NULL, df = Inf,
     interval = c("none", "confidence", "prediction"), level = 0.95,
     type = c("response", "terms"), terms = NULL, na.action = na.pass,
 ##-     pred.var = res.var/wgts, wgts = 1, ...)
@@ -2870,7 +2870,8 @@ for (liplot in 1:length(lplsel)) {
       for (lr in 1:lnsims) {
         ys <- smooth(lf, sqrt(abs(lsimstres[,lr])),
                      weights=lweights, par=lsmpar, iter=smooth.iter)
-        lines(lf[lio], ys[lio]^2, lty=lty[4], lwd=lwd[4], col=colors[4])
+        if (length(ys)) 
+          lines(lf[lio], ys[lio]^2, lty=lty[4], lwd=lwd[4], col=colors[4])
       }
     }
   }
@@ -3196,8 +3197,10 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
             lsms <- smooth(lxjo[lig], simres[lig,lr]^smooth.power,
                            weights=lwgo[lig], 
                            par=smooth.par, iter=smooth.iter)^(1/smooth.power)
-            if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
-            lines(lxjo[lig], lsms, lty=lty[4], col=lsmcol2[lgrp],lwd=lwd[4])
+            if (length(lsms)) {
+              if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
+              lines(lxjo[lig], lsms, lty=lty[4], col=lsmcol2[lgrp],lwd=lwd[4])
+            }
           }
         }
       }
@@ -3205,9 +3208,11 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
         lig <- lsmgrp==lgrp
         lsm <- smooth(lxjo[lig], lyjo[lig]^smooth.power, weights=lwgo[lig],
                       par=smooth.par, iter=smooth.iter)^(1/smooth.power)
-        if (llimy)  # lsm[lsm<lylimj[1]|lsm>lylimj[2]] <- NA
-          lsm <- plcoord(lsm, range=lylimj, limext=ylimext)
-        lines(lxjo[lig], lsm, lty=lty[3], col=lsmcol1[lgrp],lwd=lwd[3])
+        if (length(lsm)) {
+          if (llimy)  # lsm[lsm<lylimj[1]|lsm>lylimj[2]] <- NA
+            lsm <- plcoord(lsm, range=lylimj, limext=ylimext)
+          lines(lxjo[lig], lsm, lty=lty[3], col=lsmcol1[lgrp],lwd=lwd[3])
+        }
       }
       if (lngrp>1) { ## legend for smooths
         if (length(smooth.legend)) {
@@ -3250,7 +3255,8 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
 }
 ## ==========================================================================
 i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iter=50)
-  {
+{
+  if (length(x)<8) return(NULL)  
   lsm <- try(loess(y~x, weights=weights, span=par, iter=iter,
                family=if (iter>0) "symmetric" else "gaussian",
                  na.action=na.exclude),silent=TRUE)
@@ -4204,24 +4210,30 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
 {
   ## Purpose:   drop observations from a data frame
   ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date: 31 Mar 2004, 15:32
+  ## Author: Werner Stahel
   li <- lj <- NULL
-  ldata <- data
+  lattr <- attributes(data)
+  lattr <- lattr[is.na(match(names(lattr),
+                             c("dim","dimnames","row.names","names")))]
+  ln <- NROW(data)
   if (!is.null(rowid)) {
+    lrn <- RNAMES(data)
+    if (is.null(lrn)) lrn <- as.character(1:NROW(data))
     if (incol=="row.names")
-    li <- match(as.character(rowid),row.names(data),nomatch=0)
+      li <- match(as.character(rowid),lrn,nomatch=0)
     else {
       incol <- if (is.numeric(incol)) (1:ncol(data))[incol] else
       match(incol, colnames(data))
-      if (is.na(incol)) stop("misspecified incolumn")
+      if (is.na(incol)) stop("misspecified argument 'incol'")
       li <- match(rowid,data[,incol],nomatch=0)
     }
     if (any(li==0)) warning(":dropdata: observations",
               paste(rowid[li==0],collapse=", "),"not found")
     li <- li[li>0]
-    if (!is.null(li)) ldata <- ldata[-li,]
+    if (!is.null(li)) {
+      data <- cbind(data)[-li,]
+      names(li) <- lrn[li]
+    }
   }
   ## drop variables
   if (!is.null(colid)) {
@@ -4229,25 +4241,24 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
     if (any(lj==0)) warning(":dropdata: variables  ",
               paste(colid[lj==0],collapse=", "),"  not found")
     lj <- lj[lj>0]
-    if (!is.null(lj)) ldata <- ldata[,-lj]
+    if (!is.null(lj)) data <- data[,-lj,drop=FALSE]
   }
   if (length(li)==0&length(lj)==0) {
       warning(":dropdata: no data to be dropped")
       return(data)
     }
-  lattr <- attributes(data)
-  lattr <- lattr[is.na(match(names(lattr),
-                             c("dim","dimnames","row.names","names")))]
-  attributes(ldata) <- c(attributes(ldata),lattr)
-  if (length(li)) { ## !!! does this make sense?
-    if (length(attr(data,"na.action")))
-      li <- c(attr(data,"na.action"),
-              which(naresid(data,(1:nrow(data)%in%li))))
-    if (length(li)==nrow(data)) warning(":dropobs: no observations left")
-    class(li) <- "omit"
-    attr(ldata,"na.action") <- li
+  if (length(li)) { 
+    if (length(li)==NROW(data)) warning(":dropobs: no observations left")
+    if (length(lattr$na.action))  {
+      lin <- which(naresid(lattr$na.action, 1:ln%in%li))
+      names(lin) <- lrn[li]
+      li <- c(lattr$na.action, lin)
+    }
+    class(li) <- "exclude"
+    lattr$na.action <- li
   }
-  ldata
+  attributes(data) <- c(attributes(data),lattr)
+  data
 }
 ## ======================================================================
 subset <- function(x, ...) {
@@ -4465,10 +4476,10 @@ sumna <- function(object,inf=TRUE)
   ##   inf      treat Inf as NA
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 10 Oct 2007, 08:18
-  ff <- if(inf) function(x) !is.finite(x) else is.na
-  if (is.matrix(object)) apply(ff(object),2,sum)  else {
-    if (is.list(object)) sapply(object,function(x) sum(ff(x)) )
-    else if(is.atomic(object)) sum(ff(object))
+  ff <- if(inf) function(x) sum(!is.finite(x)) else function(x) sum(is.na(x))
+  if (is.matrix(object)) apply(object,2,ff)  else {
+    if (is.list(object)) sapply(object,ff)
+    else if(is.atomic(object)) ff(object)
   }
 }
 ## ==========================================================================

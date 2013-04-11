@@ -31,10 +31,19 @@ dropdata(data, rowid = NULL, incol = "row.names", colid = NULL)
   way to drop rows or columns by giving negative indices to
   \code{[...,...]} cannot be used with names of rows or columns.
 }
-\seealso{\code{\link{subset}}
+\seealso{
+  \code{\link{subset}}
+}
 \examples{
-dd <- rbind(a=1:3,b=4:6,c=7:9)
+dd <- data.frame(rbind(a=1:3,b=4:6,c=7:9,d=10:12))
 dropdata(dd,"b")
+dropdata(dd, col="X3")
+
+d1 <- dropdata(dd,"d")
+d2 <- dropdata(d1,"b")
+naresid(attr(d2,"na.action"),as.matrix(d2))
+
+dropdata(letters, 3:5)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

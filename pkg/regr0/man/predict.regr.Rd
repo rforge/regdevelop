@@ -28,6 +28,8 @@
           which to predict.  If omitted, the fitted values are used.}
   \item{se.fit}{if TRUE, standard errors will be calculated if possible}
   \item{scale}{Scale parameter for std.err. calculation}
+  \item{df}{Degrees of Freedom to be used, if \code{se.fit} is false,
+    for quantiles defining intervals}
   \item{interval}{Type of interval requested}
   \item{level}{Confidence level}
   \item{type}{Type of prediction: response or model term\cr
