@@ -2,7 +2,7 @@
 ## ==========================================================================
 regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
                  calcdisp=NULL, suffmean=3,
-                 nonlinear = FALSE, start=NULL, 
+                 nonlinear = FALSE, start=NULL,
                  robust = FALSE, method=NULL, init.reg="f.ltsreg",
                  subset=NULL, weights=NULL, na.action=nainf.exclude,
                  model = TRUE, x = FALSE, termtable=TRUE, vif=TRUE, ...)
@@ -51,7 +51,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     }
   }
   mf <- match.call(expand.dots = FALSE)
-  lj <- match(c("formula", "data", "weights", "offset"), # "subset", 
+  lj <- match(c("formula", "data", "weights", "offset"), # "subset",
              names(mf), 0L)
   mf <- mf[c(1L, lj)]
   mf$formula <- lformula
@@ -93,7 +93,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##-   if (is.null(lfam)||is.na(lfam))
 ##-     lfam <- as.character(substitute(dist))[1]
   if (is.null(lfam)||is.na(lfam)) {
-    lfam <- 
+    lfam <-
 ##-       if (lytype=="survival") "ph"
 ##-     {if (!is.null(attr(ly[[1]],'dist'))) attr(ly[[1]],'dist') else
 ##-       "ph" # "weibull"}
@@ -109,13 +109,13 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##-       warning(":regr: only method 'survreg' available for survival response")
 ##-     method <- "survreg"
 ##-   }
-##-   if (is.null(method)||is.na(method[1])) 
+##-   if (is.null(method)||is.na(method[1]))
 ##-     if (length(lfam)==0) stop("!regr! family = distribution not identified")
-    lfitfun <-      
+    lfitfun <-
       c(gaussian="lm", normal="lm", binomial="glm", poisson="glm",
-        Gamma="glm", 
+        Gamma="glm",
         cumlogit="polr", multinomial="multinomial",
-        weibull="survreg", lognormal="survreg", loggaussian="survreg", 
+        weibull="survreg", lognormal="survreg", loggaussian="survreg",
         loglogistic="survreg", extreme="survreg", ph="survreg")[lfam]
   if (lytype=="survival")   lfitfun <- "survreg"
   if (is.na(lfitfun[1])) stop("!regr! lfitfun not identified")
@@ -126,9 +126,18 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     stop (paste("!regr! fitting function",lfitname, "not found"))
   ## prepare call
   lcl <- lcall
-  lcl[[1]] <- as.name(lfitname)
+  lcl[[1]] <- ## hack --> eval(.) works also when call is source()d ...
+      switch(lfitname,
+	     "i.lm" = quote(regr0::i.lm),
+	     "i.glm" = quote(regr0::i.glm),
+	     "i.multinomial" = quote(regr0::i.multinomial),
+	     "i.polr" = quote(regr0::i.polr),
+	     "i.smooth" = quote(regr0::i.smooth), ## ??
+	     "i.survreg" = quote(regr0::i.survreg),
+	     ## default:
+	     as.name(lfitname))
   lcl$fname <- lfam
-#  lcl$data <- lav # !!! data 
+#  lcl$data <- lav # !!! data
   if (lfitfun=="glm")
     lcl$control <- list(calcdisp=calcdisp, suffmean=suffmean)
   lcl$na.action <- substitute(na.action)
@@ -142,7 +151,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ## --------------------------------------------
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
   lyy <- as.matrix(ly) # ly is a model.frame
-  if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])  
+  if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])
   lreg$Y <- lyy
   lreg$allvars <- lav ## needed more than $model
              ## since $model contains transformed variables
@@ -150,18 +159,18 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   lcall$formula <- formula(lreg) # hope this never damages anything
   lreg$call <- lcall
     ltit <- if (length(tit)==0) attr(data,"tit") else tit
-    ldoc <- attr(data,"doc") 
+    ldoc <- attr(data,"doc")
     tit(lreg) <- ltit
     doc(lreg) <- ldoc
   lterms <- if (nonlinear) NULL else terms(lreg)
-  if (is.null(attr(lterms, "predvars"))&&!nonlinear) { ## needed for survreg
+  if (is.null(attr(lterms, "predvars"))&& !nonlinear) { ## needed for survreg
     lterms <- attr(lm(lformula, data, method='model.frame'),'terms')
     attr(lreg$terms,'predvars') <- attr(lterms,'predvars')
   }
   lresnm <- colnames(lreg$residuals)
   ## standardized res
   lhat <- lreg$leverage
-  if (length(lhat)==0&& (!nonlinear) && !lfitfun%in%c("multinom"))
+  if (length(lhat)==0 && !nonlinear && !lfitfun %in% c("multinom"))
     warning(':regr: no leverages available')
   if (length(lhat)==NROW(lreg$stres))
     lreg$stres <- lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
@@ -169,7 +178,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
         warning(":regr: bug: leverages and st.res. incompatible")
   ## misc
   lreg$response <- ly
-  if (is.null(x)||!x) lreg$x <- NULL
+  if (is.null(x) || !x) lreg$x <- NULL
 ##-   class(lreg) <- if (class(lreg)[1]=="try-error") class(lreg)[-1] else
   class(lreg) <- if (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
@@ -185,33 +194,38 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
   lcall <- match.call()
-  lfn <- if (nonlinear) "nls" else {
-    if (robust) {
-      if (is.null(method)) method <- lcall$method
-      if (is.null(method)) method <- c("lmrob","KS")
-      method[1]
-    } else "lm"}
+  lfn <-
+      if (nonlinear) "nls"
+      else if (robust) {
+          if (is.null(method)) method <- lcall$method
+          if (is.null(method)) method <- c("lmrob","KS")
+          method[1]
+      } else "lm"
   if (robust) {
     if (lfn=="lmrob") {
-      require(robustbase)
       if (length(method)>1) {
-        if (substr(method[2],1,2)=="KS") {
+        if (substr(method[2],1,2)=="KS")
           method <- NULL
-          lcall$setting <- "KS2011"
-        } else  lcall$setting <- "KS2011"
+        lcall$setting <- "KS2011"
       }
       lcall$x <- TRUE
     }
     if (lfn=="rlm") {
-      require(MASS)
       lcall$method <- c(method,'MM')
       lcall$x.ret <- TRUE
       lcall$robust <- NULL
-    } 
+    }
   } else  lcall$x <- TRUE
   lcall$method <- method[-1]
   ##- lcall$method <- if (length(method)>1) method[-1] else NULL
-  lcall[[1]] <- as.name(lfn)
+  mkFn <- function(fn) { ## hack --> eval(.) works also when call is source()d ...
+      switch(fn,
+	     "lmrob" = quote(robustbase::lmrob),
+	     "rlm" = quote(MASS::rlm),
+	     ## default:
+	     as.name(fn))
+  }
+  lcall[[1]] <- mkFn(lfn)
   lcall$fname <- lcall$family <- lcall$vif <- lcall$nonlinear <- NULL
   ## --------------------------
   lreg <- eval(lcall, envir=environment(formula))
@@ -232,7 +246,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   ## multivariate
   if (class(lreg)[1]=="mlm")
     return(i.mlmsum(lreg, termtable))
-  
+
   lreg1 <- summary(lreg)
   lsig <- lreg1$sigma
   if (is.null(lsig)) lsig <- lreg$scale ## lmrob
@@ -269,7 +283,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
 ## -----------------------------------------------------------------------
 i.mlmsum <- function(object, termtable=TRUE)
 {
-  ## Purpose:  internal: fit multivariate lm
+  ## Purpose:  internal: fit multivariate lm;  called from i.lm() only
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
@@ -287,7 +301,7 @@ i.mlmsum <- function(object, termtable=TRUE)
   }
   lmodel <- nrow(lts)>=5  # non-trivial model
   if (lmodel) {
-    lts[4,] <- 1-pf(lts[3,],lts[4,],lts[5,])
+    lts[4,] <- pf(lts[3,],lts[4,],lts[5,], lower.tail=FALSE)
     lts <- lts[1:4,]
   }
   dimnames(object$coefficients)[[2]] <- as.character(lform[[2]])[-1]
@@ -314,7 +328,7 @@ i.mlmsum <- function(object, termtable=TRUE)
   object
 } # i.mlmsum
 ## -----------------------------------------------------------------------
-i.glm <- function(formula, data, family, fname, 
+i.glm <- function(formula, data, family, fname,
                   control=NULL, vif=TRUE, termtable=TRUE, ...)
 {
   ## Purpose:  internal: fit glm
@@ -367,7 +381,7 @@ i.glm <- function(formula, data, family, fname,
   ltbd <- cbind(deviance=c(diff(ldev),ldev), df=c(ldf,sum(ldf)),
                 p.value=NA)
   dimnames(ltbd)[[1]] <- c("Model","Residual","Null")
-  ltbd[1:2,3] <- 1-pchisq(ltbd[1:2,1],ltbd[1:2,2])
+  ltbd[1:2,3] <- pchisq(ltbd[1:2,1], ltbd[1:2,2], lower.tail=FALSE)
   if (!lsuffmean) ltbd[2,3] <- NA
   lreg$devtable <- ltbd
   ## ---
@@ -399,7 +413,6 @@ i.multinomial <- function(formula, data, wgts=data[[".Weights"]],
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  ltr <- control$trace
 ##  if (length(ltr)==0) ltr <- trace
-  require(nnet)
   lcall <- match.call()
   lcall[[1]] <- as.name('multinom')
   lcall$fname <- lcall$family <- lcall$control <- lcall$vif <- NULL
@@ -447,7 +460,6 @@ i.polr <- function(formula, data, wgts=data[[".Weights"]],
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
-  require(MASS)
   lcall <- match.call()
   lcall[[1]] <- as.name("polrregr")
   lcall$fname <- lcall$control <- lcall$family <- lcall$vif <- NULL
@@ -495,7 +507,6 @@ i.survreg <-
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
-  require(survival)
   lcall <- match.call()
 ##  if (method%nin%c("coxph","survreg")) stop ("!regr/survreg! unknown method")
   if (fname=="ph") {
@@ -563,7 +574,6 @@ Tobit <- function(data, limit=0, transform=NULL, log=FALSE, ...)
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Jan 2010, 21:49
-  require(survival)
   data <- pmax(data,limit)
   if (log) transform <- logst
 ##-     if (limit<=0) {
@@ -630,7 +640,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 ## terms with 1 coef
 ##  lcont1 <- lcont <- lasg[!lasg%in%lasg[duplicated(lasg)]]
   lcont1 <- lcont <- lasg[!lasg%in%lasg[duplicated(lasg)]]
-##  which(table(lasg)==1)-1 
+##  which(table(lasg)==1)-1
 ## vif --> R2.x
   lr2 <- NA
   if (vif) {
@@ -639,7 +649,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
       warning(":regr/i.termtable: error in the calculation of R2.x's")
       lvif <- NA
     } else lvif <- lvift[,3]^2
-    lr2 <- 1-1/lvif 
+    lr2 <- 1-1/lvif
   }
 ## prepare table
   lpvcol <- pmatch('Pr(',names(ldr1), nomatch=ncol(ldr1))
@@ -658,10 +668,10 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ltb$signif <- sqrt(ltb$testst/ltstq)
 ##-   lprcol <- pmatch("Pr(",names(ldr1))
 ##-   ldr1t <-  if (is.na(lprcol)) NA else ldr1[,lprcol]
-##      -qnorm(ldr1[,lprcol]/2)/qnorm(0.975) 
+##      -qnorm(ldr1[,lprcol]/2)/qnorm(0.975)
 ##-   lnt <- nrow(ldr1)
 ## significance
-##-   ldr1t <- sqrt(pmax(0,ldr1[,4])/ltstq) 
+##-   ldr1t <- sqrt(pmax(0,ldr1[,4])/ltstq)
 ## coefficients for terms with 1 df
   if (length(lcont)) {
     ltlb <- dimnames(ltb)[[1]]
@@ -697,7 +707,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 }
 ## ==========================================================================
 print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
-    digits = max(3, getUserOption("digits")-2), 
+    digits = max(3, getUserOption("digits")-2),
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
     residuals=FALSE, niterations=FALSE, ...)
 {
@@ -710,8 +720,7 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
   if (ldoc>=2) if (length(doc(x)))
     cat(" ",paste(doc(x),"\n "))
   ## mlm
-  if (inherits(x,"mlm")) { print.mregr(x, ...)
-    return() }
+  if (inherits(x,"mlm")) return(invisible(print.mregr(x, ...)))
   ## preparation
   if (length(dummycoef)==0)
     dummycoef <- c(getUserOption("show.dummy.coef"),TRUE)[1]
@@ -795,7 +804,7 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
     print(x$intercepts)
   }
   ## error
-  if (length(x$sigma) && !u.true(attr(x$sigma,"fixed"))) 
+  if (length(x$sigma) && !u.true(attr(x$sigma,"fixed")))
     cat("St.dev.error: ", formatC(x$sigma, digits = digits),
         "  on", rdf, "degrees of freedom\n")
   if (length(x$r.squared)&&!is.na(x$r.squared))
@@ -806,8 +815,8 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
   if (length(x$fstatistic)>0) {
     cat("F-statistic:  ", formatC(x$fstatistic[1],
             digits = digits), "  on", x$fstatistic[2], "and", x$fstatistic[3],
-            "d.f.,  p.value:", formatC(1 - pf(x$fstatistic[1],
-            x$fstatistic[2], x$fstatistic[3]), digits = digits),
+            "d.f.,  p.value:", formatC(pf(x$fstatistic[1],
+            x$fstatistic[2], x$fstatistic[3], lower.tail=FALSE), digits = digits),
          "\n")
     }
   ## deviances
@@ -952,9 +961,9 @@ step <- function(object, ...)
   UseMethod("step")
 step.default <- get("step", pos="package:stats")
 
-step.regr <- function (object, scope, scale = 0, direction = c("both", "backward", 
-    "forward"), trace = 1, keep = NULL, steps = 1000, k = 2, 
-    ...) 
+step.regr <- function (object, scope, scale = 0, direction = c("both", "backward",
+    "forward"), trace = 1, keep = NULL, steps = 1000, k = 2,
+    ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -963,12 +972,12 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
   ## Author: Werner Stahel, Date: 15 May 2012, 07:58
     mydeviance <- function(x, ...) {
         dev <- deviance(x)
-        if (!is.null(dev)) 
+        if (!is.null(dev))
             dev
         else extractAIC(x, k = 0)[2L]
     }
     cut.string <- function(string) {
-        if (length(string) > 1L) 
+        if (length(string) > 1L)
             string[-1L] <- paste0("\n", string[-1L])
         string
     }
@@ -977,7 +986,7 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         namc <- names(keep)
         nc <- length(keep)
         nr <- length(k1)
-        array(unlist(keep, recursive = FALSE), c(nr, nc), list(namr, 
+        array(unlist(keep, recursive = FALSE), c(nr, nc), list(namr,
             namc))
     }
     step.results <- function(models, fit, object, usingCp = FALSE) {
@@ -987,11 +996,11 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         rdf <- sapply(models, "[[", "df.resid")
         ddf <- c(NA, diff(rdf))
         AIC <- sapply(models, "[[", "AIC")
-        heading <- c("Stepwise Model Path \nAnalysis of Deviance Table", 
-            "\nInitial Model:", deparse(formula(object)), "\nFinal Model:", 
+        heading <- c("Stepwise Model Path \nAnalysis of Deviance Table",
+            "\nInitial Model:", deparse(formula(object)), "\nFinal Model:",
             deparse(formula(fit)), "\n")
-        aod <- data.frame(Step = I(change), Df = ddf, Deviance = dd, 
-            `Resid. Df` = rdf, `Resid. Dev` = rd, AIC = AIC, 
+        aod <- data.frame(Step = I(change), Df = ddf, Deviance = dd,
+            `Resid. Df` = rdf, `Resid. Dev` = rd, AIC = AIC,
             check.names = FALSE)
         if (usingCp) {
             cn <- colnames(aod)
@@ -1015,49 +1024,49 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
 ##-     lcdata <- object$call$data
 ##-     object$call$data <- ldt
 ##-     ## !!! end
-    md <- missing(direction) 
+    md <- missing(direction)
     direction <- match.arg(direction)
     backward <- direction == "both" | direction == "backward"
     forward <- direction == "both" | direction == "forward"
     if (missing(scope)) {
         fdrop <- numeric()
         fadd <- attr(Terms, "factors")
-        if (md) 
+        if (md)
             forward <- FALSE
     }
     else {
         if (is.list(scope)) {
-            fdrop <- if (!is.null(fdrop <- scope$lower)) 
+            fdrop <- if (!is.null(fdrop <- scope$lower))
                 attr(terms(update.formula(object, fdrop)), "factors")
             else numeric()
-            fadd <- if (!is.null(fadd <- scope$upper)) 
+            fadd <- if (!is.null(fadd <- scope$upper))
                 attr(terms(update.formula(object, fadd)), "factors")
         }
         else {
-            fadd <- if (!is.null(fadd <- scope)) 
+            fadd <- if (!is.null(fadd <- scope))
                 attr(terms(update.formula(object, scope)), "factors")
             fdrop <- numeric()
         }
     }
     models <- vector("list", steps)
-    if (!is.null(keep)) 
+    if (!is.null(keep))
         keep.list <- vector("list", steps)
     n <- nobs(object, use.fallback = TRUE)
     fit <- object
     bAIC <- extractAIC(fit, scale, k = k, ...)
     edf <- bAIC[1L]
     bAIC <- bAIC[2L]
-    if (is.na(bAIC)) 
+    if (is.na(bAIC))
         stop("AIC is not defined for this model, so 'step' cannot proceed")
     nm <- 1
     if (trace) {
-        cat("Start:  AIC=", format(round(bAIC, 2)), "\n", cut.string(deparse(formula(fit))), 
+        cat("Start:  AIC=", format(round(bAIC, 2)), "\n", cut.string(deparse(formula(fit))),
             "\n\n", sep = "")
         utils::flush.console()
     }
-    models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n - 
+    models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n -
         edf, change = "", AIC = bAIC)
-    if (!is.null(keep)) 
+    if (!is.null(keep))
         keep.list[[nm]] <- keep(fit, bAIC)
     usingCp <- FALSE
     while (steps > 0) {
@@ -1068,7 +1077,7 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         aod <- NULL
         change <- NULL
         if (backward && length(scope$drop)) {
-            aod <- drop1(fit, scope$drop, scale = scale, trace = trace, 
+            aod <- drop1(fit, scope$drop, scale = scale, trace = trace,
                 k = k, ...)
             rn <- row.names(aod)
             row.names(aod) <- c(rn[1L], paste("-", rn[-1L], sep = " "))
@@ -1080,7 +1089,7 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         ## forward
         if (is.null(change)) {
           if (forward && length(scope$add)) {
-            aodf <- add1(fit, scope$add, scale = scale, trace = trace, 
+            aodf <- add1(fit, scope$add, scale = scale, trace = trace,
                          k = k, ...)
             rn <- row.names(aodf)
             row.names(aodf) <- c(rn[1L], paste("+", rn[-1L], sep = " "))
@@ -1091,17 +1100,17 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
             }
             }
           attr(aod, "heading") <- NULL
-          nzdf <- if (!is.null(aod$Df)) 
+          nzdf <- if (!is.null(aod$Df))
             aod$Df != 0 | is.na(aod$Df)
           aod <- aod[nzdf, ]
-          if (is.null(aod) || ncol(aod) == 0) 
+          if (is.null(aod) || ncol(aod) == 0)
             break
           nc <- match(c("Cp", "AIC"), names(aod))
           nc <- nc[!is.na(nc)][1L]
           o <- order(aod[, nc])
-          if (trace) 
+          if (trace)
             print(aod[o, ])
-          if (o[1L] == 1) 
+          if (o[1L] == 1)
             break
           change <- rownames(aod)[o[1L]]
         }
@@ -1121,19 +1130,19 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         bAIC <- bAIC[2L]
         ## output
         if (trace) {
-            cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n", 
+            cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
                 cut.string(deparse(formula(fit))), "\n\n", sep = "")
             utils::flush.console()
         }
-        if (bAIC >= AIC + 1e-07) 
+        if (bAIC >= AIC + 1e-07)
             break
         nm <- nm + 1
-        models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n - 
+        models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n -
             edf, change = change, AIC = bAIC)
-        if (!is.null(keep)) 
+        if (!is.null(keep))
             keep.list[[nm]] <- keep(fit, bAIC)
     }
-    if (!is.null(keep)) 
+    if (!is.null(keep))
         fit$keep <- re.arrange(keep.list[seq(nm)])
     ## !!!
 ##-     if (lnna) {
@@ -1230,7 +1239,7 @@ extractAIC.regr <- function (fit, scale = 0, k = 2, ...)
   if (is.null(lres)) {
     lfit <- fit$fitted
     fit$fitted.values <- nna(lfit)
-  } else  fit$residuals <- nna(lres)                       
+  } else  fit$residuals <- nna(lres)
   class(fit) <- setdiff(class(fit),"regr")
   rr <- extractAIC(fit, scale = scale, k = k, ...)
   rr
@@ -1321,6 +1330,7 @@ drop1.multinom <-
     as.data.frame(ans)
 }
 ## =================================================================
+## FIXME: this is nowhere called, nor documented ...
 summary.mreg <- function(object, ...)
 {
   ## Purpose:   collect results for mlm object
@@ -1335,7 +1345,7 @@ summary.mreg <- function(object, ...)
                        lsum[[ly]][["fstatistic"]]))
     ltp <- cbind(ltp,lsum[[ly]][["coefficients"]][,4])
   }
-  lts[4,] <- 1-pf(lts[3,],lts[4,],lts[5,])
+  lts[4,] <- pf(lts[3,],lts[4,],lts[5,], lower.tail=FALSE)
   lts <- lts[1:4,]
   dimnames(ltp) <- dimnames(object$coefficients)
   dimnames(lts) <- list(c("sigma","r.squared","fstatistic","p-value"),
@@ -1343,10 +1353,17 @@ summary.mreg <- function(object, ...)
   list(coefficients=object$coefficients, pvalues=ltp, stats=lts)
 }
 ## =================================================================
-drop1.mlm <-
-function (object, scope = NULL,
-          test = c("Wilks", "Pillai", "Hotelling-Lawley", "Roy"),
-          total=TRUE, add=FALSE, ...)
+##' @title drop1() method for multivariate lm()'s
+##' @param object
+##' @param scope
+##' @param test
+##' @param total
+##' @param add
+##' @param ...
+##' @note R's  stats:::drop1.mlm() just has stop("no 'drop1' method for \"mlm\" models")
+drop1.mlm <- function (object, scope = NULL,
+                       test = c("Wilks", "Pillai", "Hotelling-Lawley", "Roy"),
+                       total=TRUE, add=FALSE, ...)
 {
   ## add=TRUE   do add instead of drop1
     Pillai <- function(eig, q, df.res) {
@@ -1390,8 +1407,8 @@ function (object, scope = NULL,
         c(test, (tmp2 * test)/tmp1, tmp1, tmp2)
     }
 ##-     if (!is.null(object$drop1)) return (object$drop1)
-    if (!(inherits(object, "maov")||inherits(object, "mlm")))
-        stop("object must be of class \"manova\", \"maov\", or \"mlm\"")
+    if (!(inherits(object, "maov") || inherits(object, "mlm")))
+        stop("object must be of class \"maov\" or \"mlm\"")
     test <- match.arg(test)
     asgn <- object$assign[object$qr$pivot[1:object$rank]]
     tl <- attr(object$terms, "term.labels")
@@ -1450,14 +1467,14 @@ function (object, scope = NULL,
       if (length(lna)) lpr <- lpr[-lna,] # drop rows with NA
       yy <- scale(res + lpr, scale=FALSE)
       bss <- crossprod(yy)-rss
-      eigs <- Re(eigen(qr.coef(rss.qr, bss),symmetric = FALSE)$values)
-      stats <- rbind(stats, "<total>"=tstfn(eigs, object$df[1], rdf))
+      eigs <- Re(eigen(qr.coef(rss.qr, bss), symmetric = FALSE)$values)
+      stats <- rbind(stats, "<total>"= tstfn(eigs, object$df[1], rdf))
     }
-    data.frame(stats, p.value = pf(stats[,2],stats[,3],stats[,4],
-                           lower.tail = FALSE))
+    data.frame(stats,
+               p.value = pf(stats[,2],stats[,3],stats[,4], lower.tail = FALSE))
 ##    attr(stats,"df") <- ldf
 ##    stats
-}
+} ## {drop1.mlm}
 ## ==========================================================================
 add1.mlm <-
   function (object, scope=NULL, test = c("Wilks", "Pillai", "Hotelling-Lawley", "Roy"), ...)
@@ -1486,6 +1503,7 @@ i.add1na <- function (object, scope)
     else lan <- NULL
   }
 ## ==========================================================================
+## currently only called from print.regr():
 print.mregr <- function(x, ...)
 {
   ## Purpose:   collect results for mregr object
@@ -1611,12 +1629,10 @@ condquant <- function(x, dist='normal', sig=1)
   lp <- rbind(fp(x))
   lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
   lprand <- lp[,1]+(lp[,2]-lp[,1])*runif(nrow(lp))
-  lr <- cbind(cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
-              uppq=fq(lpp[,3]), random=fq(lprand))*sig,
-              prob=abs(lp[,2]-lp[,1]))
-##  dimnames(lr)[[1]] <- row.names(x)
-  class(lr) <- "condquant"
-  lr
+  structure(cbind(sig*cbind(median= fq(lpp[,1]), lowq  = fq(lpp[,2]),
+			    uppq  = fq(lpp[,3]), random= fq(lprand)),
+		  prob=abs(lp[,2]-lp[,1])),
+	    class = c("condquant", "matrix")) # "matrix", e.g., for head()
 }
 ## ===================================================================
 residuals.coxph <- function(object, type='CoxSnellMod', ...)
@@ -1724,7 +1740,7 @@ residuals.polr <- function(object, na.action=object, ...)
 ##-   lr <- cbind(median=qlogis(lpp[,1]),lowq=qlogis(lpp[,2]),
 ##-               uppq=qlogis(lpp[,3]), random=qlogis(lprand), fit=lfit,y=ly)
   dimnames(lr)[[1]] <- row.names(object$model)
-  class(lr) <- "condquant"
+  class(lr) <- c("condquant", "matrix") # "matrix", e.g., for head()
   naresid(na.action$na.action, lr)
 }
 ## ===========================================================================
@@ -2189,7 +2205,7 @@ modelTable <-
     t.x <- model.matrix(t.form, data=t.data)
     t.vr <- apply(t.x,2,var)
     t.sd[t.trn] <- sqrt(t.vr)
-  } 
+  }
   ## --- coefs and p values
   t.nt <- length(t.tr)
   t.coef <- matrix(NA,t.nt,t.nm)
@@ -2298,8 +2314,7 @@ format.modelTable <-
   t.out
 }
 ## ==========================================================================
-print.modelTable <-
-  function(x, tex = FALSE, transpose=FALSE,...)
+print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -2352,7 +2367,7 @@ leverage <- function(fit)
 xdistResdiff <- function(object, perc=c(3,10,80), trim=0.1, nmax=100,
                          nsim=100, out="aggregate")
 {
-  ## Purpose:   distance in x space and absolute residual difference 
+  ## Purpose:   distance in x space and absolute residual difference
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
@@ -2387,7 +2402,7 @@ xdistResdiff <- function(object, perc=c(3,10,80), trim=0.1, nmax=100,
   rr <- data.frame(lid[lio,], xdist=ldist[lio], resdiff=lrd[lio])
   if (nsim) rr <- cbind(rr, rdsim=lrsim[lio,])
   class(rr) <- c("xdistResdiff","data.frame")
-  if (out=="aggregate")  xdistResscale(rr, perc=perc)  else rr 
+  if (out=="aggregate")  xdistResscale(rr, perc=perc)  else rr
 }
 ## ====================================================================
 xdistResscale <- function(x, perc=c(3,10,90), trim=1/6)
@@ -2481,7 +2496,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
          weights = NULL, leverage.cooklim = 1:2,
          reslim = TRUE, reslimfac=4.0, reslimext=0.1,
          yaxp=NULL, resaxp=NULL, stresaxp=NULL,
-         ylim=TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE, 
+         ylim=TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE,
          glm.restype = "deviance", condprobrange=c(0.05,0.8),
 	 sequence=FALSE, xplot = TRUE, x.se=FALSE, x.smooth = smooth,
          addcomp=FALSE, ...)
@@ -2807,7 +2822,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
 ## start plots
   if (!lmult) lplsel[c("resmatrix","qqmult")] <- 0
   lplsel <- lplsel[is.na(lplsel)|lplsel>0]
-  if (length(lplsel)) 
+  if (length(lplsel))
 for (liplot in 1:length(lplsel)) {
   lpllevel <- lplsel[liplot]
   lpls <- names(lpllevel)
@@ -2832,7 +2847,7 @@ for (liplot in 1:length(lplsel)) {
                 colors,lty,lwd,lpch, col,
                 lpty, llabna,cex.lab,ltxt, lwsymbols,lwgt,lweights,liwgt,
                 lsyinches, lpllevel>1,smooth,lsmpar,smooth.iter,
-                ylim=ylim, ylimext=ylimext, yaxp=yaxp, 
+                ylim=ylim, ylimext=ylimext, yaxp=yaxp,
                 reflinex=0,refliney=1,lnsims=lnsims, simres=lsimr,
                 condprobrange=condprobrange)
   } } }
@@ -2870,7 +2885,7 @@ for (liplot in 1:length(lplsel)) {
       for (lr in 1:lnsims) {
         ys <- smooth(lf, sqrt(abs(lsimstres[,lr])),
                      weights=lweights, par=lsmpar, iter=smooth.iter)
-        if (length(ys)) 
+        if (length(ys))
           lines(lf[lio], ys[lio]^2, lty=lty[4], lwd=lwd[4], col=colors[4])
       }
     }
@@ -2947,8 +2962,8 @@ for (liplot in 1:length(lplsel)) {
               main,outer.margin,cex.title,
               colors,lty,lwd,lpch, col, lpty, llabh,cex.lab,ltxt,
               lwsymbols,lwgt, lweights,liwgt,lsyinches,
-              FALSE, ylim=streslim, ylimext=reslimext, yaxp=stresaxp, 
-                condprobrange=condprobrange) 
+              FALSE, ylim=streslim, ylimext=reslimext, yaxp=stresaxp,
+                condprobrange=condprobrange)
   ##  line with constant Cook distance
       if (length(leverage.cooklim)>0) {
         llx <- seq(min(c(leverage.cooklim,4),na.rm=TRUE)^2*(1-ldfres/ln)/6,
@@ -3023,7 +3038,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   txt=FALSE,  plwgt=FALSE, wgt=1, weights=NULL, iwgt=NULL, syinches=0.1,
   do.smooth=TRUE, smooth=i.smooth, smooth.par=NULL, smooth.iter=10,
   smooth.power=1, # smooth.groups = NULL,
-  ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
+  ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
   reflinex=NULL, refliney=NULL, reflineyw=NULL, lnsims=0, simres=NULL,
   smooth.group = NULL, smooth.col=colors[3:4], smooth.legend = TRUE,
   condprobrange=c(0.05,0.8), new=TRUE, axes=1:2, ...)
@@ -3043,7 +3058,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   lnc <- if (lcq) 1 else ncol(ly)
   lnr <- nrow(lx)
   cex.pch <- if (length(cex.lab)>1) cex.lab[2] else
-     0.7*cex.lab*max(min(1,log(50)/log(lnr))^2,0.3) ## adjust symbol size to n 
+     0.7*cex.lab*max(min(1,log(50)/log(lnr))^2,0.3) ## adjust symbol size to n
   if (all(pch==".")) cex.pch <- 4*cex.pch
   if(is.factor(pch)) pch <- as.character(pch)
   lxlab <- rep(xlab,length=lnc)
@@ -3195,7 +3210,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
           for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
             lig <- lsmgrp==lgrp
             lsms <- smooth(lxjo[lig], simres[lig,lr]^smooth.power,
-                           weights=lwgo[lig], 
+                           weights=lwgo[lig],
                            par=smooth.par, iter=smooth.iter)^(1/smooth.power)
             if (length(lsms)) {
               if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
@@ -3256,7 +3271,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
 ## ==========================================================================
 i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iter=50)
 {
-  if (length(x)<8) return(NULL)  
+  if (length(x)<8) return(NULL)
   lsm <- try(loess(y~x, weights=weights, span=par, iter=iter,
                family=if (iter>0) "symmetric" else "gaussian",
                  na.action=na.exclude),silent=TRUE)
@@ -3305,7 +3320,7 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
   lres <- object$stres * object$sigma
   if (lnostres <- (length(lres)==0)||all(!is.finite(lres)))
     lres <- residuals(object)
-  if (class(lres)=="condquant") 
+  if (inherits(lres, "condquant"))
     lres <- structure(lres[,"random"], names=row.names(lres))
   if (length(lres)==0||all(lres==lres[1])) {
     warning(":simresiduals: no (distinct) residuals found -> No simulated residuals")
@@ -3314,7 +3329,7 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
   lfit <- object$fitted
   if (is.null(lfit)) lfit <- object$linear.predictors
   if (is.null(lfit)) lfit <- 0
-  
+
   if (nrow(ldata)!=length(lres)) {
     li <- match(names(lres),row.names(ldata))
     if (any(is.na(li))) {
@@ -3362,7 +3377,7 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
       ldata[,lynm] <- lfit + if (lrgen) resgen(lnrow)*lsig else sample(lres)
       lrs <- eval(lcall) ## update(x, formula=lfo, data=ldata)
       lrsr <- residuals(lrs)
-      if (class(lrsr)=="condquant") lrsr <- lrsr[,"random"]
+      if (inherits(lrsr, "condquant")) lrsr <- lrsr[,"random"]
       lsimres[,lr] <- lrsr
       if (!lnostres) lsimstres[,lr] <- lrs$stres
     }
@@ -3411,13 +3426,13 @@ plresx <-
   function (x, data = NULL, resid=NULL, partial.resid = TRUE,
   glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
   vars = NULL, sequence=FALSE, se = FALSE,
-  addcomp = FALSE, rug = FALSE, jitter=NULL, reflines = NULL, 
-  smooth = TRUE, smooth.par=NA, smooth.iter=NULL, smooth.sim=19, 
+  addcomp = FALSE, rug = FALSE, jitter=NULL, reflines = NULL,
+  smooth = TRUE, smooth.par=NA, smooth.iter=NULL, smooth.sim=19,
   nxsmooth=51, smooth.group=NULL, smooth.col=NULL, smooth.legend=TRUE,
   lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
-  colors = getUserOption("colors.ra"), pch=NULL, col=NULL, 
-  xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL, 
-  ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, jitterbinary=TRUE, 
+  colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
+  xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
+  ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, jitterbinary=TRUE,
   cex = par("cex"), wsymbols=NULL, symbol.size=NULL, condprobrange=c(0.05,0.8),
   ask = NULL, multnrows = 0, multncols = 0, ...)
 {
@@ -3570,7 +3585,7 @@ plresx <-
         ldata[[lvn]] <- factor(lv)
     }
   } # if (length(vars))
-  sequence <- length(sequence) && (!is.na(sequence)) && sequence 
+  sequence <- length(sequence) && (!is.na(sequence)) && sequence
 ##-        ( is.na(sequence) || (is.logical(sequence)&&sequence) )
   if (sequence) {
     ## is the seqence represented by any other variable?
@@ -3754,7 +3769,7 @@ plresx <-
                 lpty, llab,cex.lab,ltxt, lwsymbols,lwgt,lweights,liwgt,lsyinches,
                 ldosm&lcnt,smooth,lsmpar,smooth.iter,
 ##-                 ylim=lylim,
-                yaxp=yaxp, 
+                yaxp=yaxp,
                 lnsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy,
                 smooth.group=smooth.group, smooth.col=smooth.col)
@@ -3803,7 +3818,7 @@ plresx <-
 ##-         ww <- if (addcomp) match(ll,as.character(ff)) else 1:lnl
         lcil <- lci[1:lnl]
         if (!is.factor(lcompx[,lv]))  # binary (non)factor: fitcomp did not know
-          lcil <- lci[c(1,last(which(!is.na(lcompx[,lv]))))] 
+          lcil <- lci[c(1,last(which(!is.na(lcompx[,lv]))))]
         if (llimy) {
           lcilp <- plcoord(lcil, lylim, ylimfac, ylimext)
           if (attr(lcilp,"nmod")) {
@@ -3835,7 +3850,7 @@ plresx <-
         colors, lty, lwd, lpch, col, lpty, llab, cex.lab, ltxt,
         lwsymbols, lwgt, lweights, liwgt, lsyinches,
         ldosm, smooth, smooth.par, smooth.iter, smooth.power=1,
-        ylim=if(llimy) lylim else NULL, ylimfac, ylimext, yaxp, 
+        ylim=if(llimy) lylim else NULL, ylimfac, ylimext, yaxp,
         lrefx, lci, lrefyw, lnsims, lsimres,
         smooth.group=smooth.group, smooth.col=smooth.col,
                 smooth.legend=smooth.legend,
@@ -3862,7 +3877,7 @@ plmatrix <-
 function(x, y=NULL, data=NULL, panel=l.panel,
          nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
          pch=NULL, col=1, reference=0, ltyref=3,
-         log="", xaxs="r", yaxs="r", xaxmar=NULL, yaxmar=NULL, 
+         log="", xaxs="r", yaxs="r", xaxmar=NULL, yaxmar=NULL,
          vnames=NULL, main='', cex.points=NA, cex.lab=0.7, cex.text=1.3,
          cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keepmf=FALSE,
          axes=TRUE, ...)
@@ -4247,7 +4262,7 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
       warning(":dropdata: no data to be dropped")
       return(data)
     }
-  if (length(li)) { 
+  if (length(li)) {
     if (length(li)==NROW(data)) warning(":dropobs: no observations left")
     if (length(lattr$na.action))  {
       lin <- which(naresid(lattr$na.action, 1:ln%in%li))
@@ -4265,7 +4280,7 @@ subset <- function(x, ...) {
   lattr <- attributes(x)
   lattr <- lattr[is.na(match(names(lattr),
                              c("dim","dimnames","row.names","names")))]
-  lsubs <- get("subset", pos="package:base")(x, ...)
+  lsubs <- base::subset(x, ...)
   attributes(lsubs) <- c(attributes(lsubs),lattr)
   lsubs
 }
@@ -4391,21 +4406,21 @@ stamp <- function(sure=TRUE, outer.margin = NULL,
   invisible(t.txt)
 }
 ## ===========================================================================
-getUserOption <- function (x, default = NULL) 
+getUserOption <- function (x, default = NULL)
 {
-    if (is.null(default)) 
+    if (is.null(default))
         return(userOptions(x))
-    if (x %in% names(userOptions())) 
+    if (x %in% names(userOptions()))
         userOptions(x)
     else default
 }
 userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
-  { 
+  {
     if ((!is.null(x)&&is.character(x))) ## asking for options
       return(if(length(x)==1) UserOptions[[x]] else UserOptions[x])
     if (!is.null(default)) {
       if (default=="all") return(userOptions(list=UserDefault))
-      if (default=="unset") 
+      if (default=="unset")
         userOptions(list=UserDefault[names(UserDefault)%nin%names(UserOptions)])
       if (!is.character(default))
         stop("!userOptions! Unsuitable argument  default .")
@@ -4418,15 +4433,15 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     lold <- UserOptions[names(lop)]
     for (li in names(lop))
       UserOptions[li] <- list(lop[[li]])
-    assign("UserOptions", UserOptions, pos=1)
+    assignInMyNamespace("UserOptions", UserOptions)
     invisible(lold)
   }
 ## -----------------------------------------------------
-UserDefault <- 
+UserDefault <-
   list(stamp=1, project="", step="", doc=TRUE, show.dummy.coef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
-       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4 
+       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4
        )
 if (!exists("UserOptions")) UserOptions <- UserDefault  else
     userOptions(default="unset")
@@ -4699,33 +4714,30 @@ c.months <- c("January", "February", "March", "April", "May", "June",
         "December")
 c.mon <- substring(c.months,1,3)
 
-drevgumbel <-
-function (x, location = 0, scale = 1)
+drevgumbel <- function (x, location = 0, scale = 1)
 { # from VGAM
     if (!nafalse(scale>0))
         stop("\"scale\" must be positive")
-    temp = exp((x - location)/scale)
-    temp * exp(-temp)/scale
+    E <- exp((x - location)/scale)
+    E * exp(-E)/scale
 }
-prevgumbel <-
-function (q, location = 0, scale = 1)
+prevgumbel <- function (q, location = 0, scale = 1)
 {
     if (!nafalse(scale>0))
         stop("\"scale\" must be positive")
-    1-exp(-exp((q - location)/scale))
+    -expm1(-exp((q - location)/scale)) # expm1(u) = exp(u)-1, accurately also for |u| << 1
 }
-qrevgumbel <-
-function (p, location = 0, scale = 1)
+qrevgumbel <- function (p, location = 0, scale = 1)
 {
     if (!nafalse(scale>0))
         stop("\"scale\" must be positive")
     location + scale * log(-log(p))
 }
 
-qrevgumbelexp <- function (p) exp(qrevgumbel(p))
+## hardly imaginable that this is important enough
+## qrevgumbelexp <- function (p) exp(qrevgumbel(p))
 
-rrevgumbel <-
-function (n, location = 0, scale = 1)
+rrevgumbel <- function (n, location = 0, scale = 1)
 {
     if (!nafalse(n>=1))
         stop("bad input for argument \"n\"")
@@ -4848,7 +4860,7 @@ function (formula, data, weights, start, ..., subset, na.action,
   ## copy of polr from MASS. 1 line added by WSt to keep eta in the result
   ## ::: change argument name  method:::
 {
-    logit <- function(p) log(p/(1 - p))
+    ## use qlogis() ! logit <- function(p) log(p/(1 - p))
     fmin <- function(beta) {
         theta <- beta[pc + 1:q]
         gamm <- c(-100, cumsum(c(theta[1], exp(theta[-1]))),
@@ -4957,7 +4969,7 @@ function (formula, data, weights, start, ..., subset, na.action,
         x <- x[, keep[-1], drop = FALSE]
         pc <- ncol(x)
       }
-      spacing <- logit((1:q)/(q + 1))
+      spacing <- qlogis((1:q)/(q + 1)) # = logit(..)
       if (method != "logistic")
         spacing <- spacing/1.7
       gammas <- -coefs[1] + spacing - spacing[q1]

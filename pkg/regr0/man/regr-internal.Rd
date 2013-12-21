@@ -1,44 +1,33 @@
 \name{regr0-internal}
 \title{Internal regr0 objects}
-\alias{.Options}
-\alias{BR}
-\alias{DB}
-\alias{\%nin\%}
-\alias{add1.default}
-\alias{deviance.lm}
-\alias{drop1.default}
-\alias{drop1.lm}
-\alias{extractAIC.regr}
-\alias{fitted.values.polr}
-\alias{i.add1na}
 \alias{i.glm}
 \alias{i.lm}
-\alias{i.main}
-\alias{i.mlm}
-\alias{i.mlmsum}
 \alias{i.multinomial}
 \alias{i.survreg}
-\alias{i.plotlws}
-\alias{i.plotlars}
 \alias{i.polr}
-\alias{is.formula}
 \alias{i.smooth}
-\alias{i.termtable}
-\alias{is.R}
-\alias{merge1}
-\alias{nafalse}
-\alias{nna}
-\alias{nafalse}
-\alias{print.mregr}
+%
+\alias{is.formula}
+\alias{\%nin\%}
 \alias{summary.mreg}
-\alias{summary.regr}
-\alias{u.merge}
-\alias{u.true}
-\alias{vif.regr}
-\alias{IR}
-\alias{subset}
-\alias{RNAMES}
-% \alias{"%nin%"}
-\description{Internal regr0 objects.}
-\details{These are not to be called by the user.}
+\description{
+  Internal functions of package \pkg{regr0} that are exported, but
+  should normally not be called by the user directly.
+}
+\usage{
+## i.glm(...)
+## i.lm(...)
+## i.multinomial(...)
+## i.survreg(...)
+## i.polr(...)
+## i.smooth(...)
+
+is.formula(object)
+x \%nin\% y
+summary.mreg(object, ...)
+}
+\arguments{
+  \item{x,y, object}{\R objects}
+  \item{...}{...}
+}
 \keyword{internal}

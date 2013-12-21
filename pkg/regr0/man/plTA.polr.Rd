@@ -32,10 +32,9 @@ plTA.polr(object, colbars = grey(0.7), colref = grey(0.7), ploty = FALSE)
 \author{Werner A. Stahel, ETH Zurich}
 \seealso{\code{\link{plot.regr}}, \code{\link{residuals.polr}} }
 \examples{
+require(MASS) # polr() and 'housing' data
 house.plr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 plTA.polr(house.plr)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{hplot}
-\keyword{regression}% __ONLY ONE__ keyword per line
+\keyword{regression}

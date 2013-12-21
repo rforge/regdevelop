@@ -24,6 +24,6 @@ none.
 \author{Werner A. Stahel, ETH Zurich}
 %\seealso{ ~~objects to See Also as \code{\link{help}}, ~~~ }
 \examples{
-
+## FIXME
 }
 \keyword{hplot}

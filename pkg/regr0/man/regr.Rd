@@ -136,8 +136,9 @@ data(d.surveyenvir)
 t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
 
 ## ordered regression
+data(housing, package="MASS")
 t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq,
-  data = housing)
+            data = housing)
 plot(t.r)
 
 ## multivariate regression
@@ -147,5 +148,5 @@ r.mregr <-
                 data=d.fossiles)
 }
 
-\keyword{ regression }% at least one, from doc/KEYWORDS
-% \keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{ regression }
+

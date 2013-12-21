@@ -54,29 +54,28 @@ plresx(r.blast, vars=~distance,
        smooth.col=c("blue","red","darkgreen","purple","brown",
          "orange","cyan","black"),
        smooth.legend="bottomright")
-## unreproduzierbarer Fehler
 ## ========================================================================
-## robust
+## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
 data(d.blast)
 r.rob <-
-  regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast,
-            robust=T)
+  regr(log10(tremor) ~ location+log10(distance)+log10(charge),
+       data = d.blast, robust=TRUE)
+r.rob
 ## ========================================================================
 ## ordered regression (using polr)
 ## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
 
-r.survey <- regr(disturbance~age+education+location, data=d.surveyenvir)
+r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir)
 
-with( r.survey, 
+with( r.survey,
      stopifnot(
           all.equal(unname(coefficients[1:2]),
                           c(-0.0034971305,  0.0697008869), tol=10e-6)
-,
+         ,
           all.equal(unname(zeta),
                           c(-0.15772572, 1.37302143, 2.82205070 ), tol=10e-4)
-               )
-     )
+         ) )
 
 ## ========================================================================
 ## multivariate regression
@@ -91,16 +90,16 @@ data(d.babysurv)
 t.d <- d.babysurv
 t.r <- regr(Survival~.,data=t.d)
 t.rglm <- glm(Survival~.,data=t.d,family=binomial)
-t.rs <- step(t.r, trace=F)  ## ???
+t.rs <- step(t.r, trace=FALSE)  ## ???
 t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
 plot(r.babysurv,xplot=~Weight,cex=0.7,symbol.size=NULL,res.lim=c(-5,5))
 plot(r.babysurv,glm.restype="cond", ask=FALSE)
 
 mframe(2,2)
 plresx(r.babysurv,vars=~Age+Apgar1+Apgar5+pH,data=d.babysurv,
-       weights=F,cex.lab=0.2)
+       weights=FALSE,cex.lab=0.2)
 
-plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=T)
+plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=TRUE)
 
 data(d.babysurv.w)
 t.d <- d.babysurv.w
@@ -112,18 +111,18 @@ plot(t.r,cex=1.2)
 ## Gamma
 data(d.transaction)
 r.gam <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma)
-r.gami <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma(link=identity)) 
+r.gami <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma(link=identity))
 
 ## ===========================================================
 ##- multinom
 data(d.surveyenvir)
 require(nnet)
 r.mnom <- multinom(responsibility~age+education+disturbance+sex,
-          data=d.surveyenvir) 
+          data=d.surveyenvir)
 r.mnom <- regr(responsibility~age+education+disturbance+sex,
-          data=d.surveyenvir, family="multinomial", na.action=na.omit) 
+          data=d.surveyenvir, family="multinomial", na.action=na.omit)
 r.mnom2 <- regr(responsibility~age+education, data=d.surveyenvir[1:100,])
-drop1(r.mnom2) 
+drop1(r.mnom2)
 
 ## ===================================================================
 ## nonlinear
@@ -132,13 +131,13 @@ data(d.reacten)
 t.d <- d.reacten[300:1700,]
 r.lin <- regr(log10(q)~time,data=t.d)
 t.cl <- unname(coefficients(r.lin))
-t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=T,
+t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=TRUE,
              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
 
 t.d <- subset(DNase, Run == 1)
 t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
-            nonlinear = TRUE, 
-            data = t.d, control=list(maxiter=3, warnOnly=T),
+            nonlinear = TRUE,
+            data = t.d, control=list(maxiter=3, warnOnly=TRUE),
             start = list(Asym = 1, xmid = 0, scal = 1))
 ##- data(d.treated)
 ##- t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = d.treated, nonlinear=T,
@@ -146,10 +145,10 @@ t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
 ##- plot(t.r)
 ## ===================================================================
 require(survival)
-t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian, 
+t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
     dist = "weibull")
 t.rss <- summary(t.rs)
-##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
+##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,
 ##-     data = ovarian, dist = "extreme") ## not the same
 r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
             family="weibull")
@@ -157,10 +156,10 @@ plot(r.surv)
 r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 
 bladder1 <- bladder[bladder$enum < 5, ]
-t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
-               cluster(id), bladder1) 
-t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
-r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull") 
+t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) +
+               cluster(id), bladder1)
+t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1)
+r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
 
 bladder1$sizej <- jitter(bladder1$size)
 plresx(r.sr, vars="sizej")

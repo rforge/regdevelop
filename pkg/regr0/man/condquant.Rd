@@ -1,18 +1,15 @@
 \name{condquant}
-\Rdversion{1.1}
 \alias{condquant}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{Quantiles of a Conditional Distribution}
 \description{
   Calculates quantiles of a conditional distribution, as well
-  as corresponding random numbers. The condtion is simply to restrict
+  as corresponding random numbers.  The condtion is simply to restrict
   the distribution (given by \code{dist}) to a range (given by
   \code{x})
 }
 \usage{
 condquant(x, dist = "normal", sig = 1)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{matrix with 2 columns or vector of length 2 giving the
     limits for the conditional distribution}
@@ -31,14 +28,11 @@ condquant(x, dist = "normal", sig = 1)
   \item{prob}{probability of the condition being true}
 }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
-\note{The function is needed for \code{residuals.polr} and
-  \code{residuals.survreg}
+\note{The function is needed for \code{\link{residuals.polr}} and
+  \code{\link{residuals.survreg}}
 }
 
 \examples{
 condquant(cbind(seq(-2,0),c(0,1,Inf)))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{distribution}
-%\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line

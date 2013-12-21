@@ -1,2 +1,73 @@
+importFrom("stats",
+           ## S3 Generics for which we define methods:
+           add1, drop1, extractAIC, fitted, predict, residuals)
+importFrom("graphics", plot)
+
+importFrom("MASS", rlm, polr)
+importFrom("nnet", multinom)
+importFrom("survival", coxph, survreg, Surv)
+
+importFrom("robustbase", lmrob)
+
 ### This exports everything but  ".foobar" :
-exportPattern("^[^\\.]")
+## exportPattern("^[^\\.]")
+
+## Ok, now we are better and do not export all
+export(asinperc,
+       ## BR, DB, IR,
+       ## UserOptions,
+       ## add1.default, add1.mlm, add1.regr,
+       ## drop1.default, drop1.mlm, drop1.multinom, drop1.regr,
+       c.mon, c.months, compareTerms, condquant, c.weekdays,
+       doc, "doc<-",
+       dropdata, extractAIC.regr,
+       fitcomp,
+       fitted.polr,
+       format.modelTable,
+       getmeth,
+       ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
+       ## if we export these, can use quote(regr0::i.<foo>) and no check--warning:
+       i.glm, i.lm, i.multinomial, i.polr, i.smooth, i.survreg,
+       is.formula,
+       last, legendr, leverage, logst, mframe,
+       modelTable,
+       ## nafalse,
+       nainf.exclude, "%nin%",
+       ## nna,
+       plcoord, plfitpairs, plmatrix,
+       plot.regr, plot.xdistResscale,
+       plres2x, plresx, plTA.polr, polrregr,
+       predict.mlm, predict.polr, predict.regr,
+       print.modelTable, # print.mregr,
+       print.regr,
+       drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
+       regr,
+       residuals.coxph, residuals.polr, residuals.survreg,
+       ## RNAMES,
+       robrange, showd, simresiduals, stamp,
+       step, step.default, step.regr,
+       subset,
+       summary.mreg, # summary.regr,
+       sumna, terms2order,
+       tit, "tit<-",
+       Tobit,
+       ##u.merge,
+       userOptions,
+       getUserOption, UserDefault, ## <- ??
+       ## u.true,
+       ## vif.regr,
+       warn, xdistResdiff,
+       xdistResscale)
+
+S3method(add1, default)
+S3method(add1, mlm)
+S3method(add1, regr)
+
+S3method(drop1, default)
+S3method(drop1, mlm)
+S3method(drop1, multinom)
+S3method(drop1, regr)
+
+S3method(summary, regr)# trivial: returns it unchanged
+
+S3method("[", modelTable)

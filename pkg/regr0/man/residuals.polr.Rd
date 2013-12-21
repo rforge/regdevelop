@@ -31,7 +31,7 @@
   y[i].
 }
 \value{
-  a data.frame with the variables 
+  a data.frame with the variables
   \item{median}{medians of the conditional distributions}
   \item{lowq}{lower quartiles}
   \item{uppq}{upper quartiles}
@@ -42,15 +42,12 @@
 }
 \references{See http://stat.ethz.ch/~stahel/regression}
 \author{Werner A. Stahel, ETH Zurich}
-%%- \note{ ~~further notes~~ 
-%%- 
-%%-  ~Make other sections like Warning with \section{Warning }{....} ~
-%%- }
 \seealso{\code{\link{condquant}}, \code{\link{plot.regr}}}
 \examples{
+require(MASS)
 house.plr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 house.resid <- residuals(house.plr)
+head   (house.resid)
+summary(house.resid)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{regression}

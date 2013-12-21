@@ -1,6 +1,5 @@
 \name{fitted.polr}
 \alias{fitted.polr}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{Fitted Values for polr objects}
 \description{
   Calculates Fitted Values for ordered response regression.
@@ -10,7 +9,6 @@
 \usage{
 \method{fitted}{polr}(object, type = "link", na.action = object, ...)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{an object that inherits from class \code{polr}}
   \item{type}{type of fitted values (as with \code{predict}).
@@ -32,9 +30,9 @@
 }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
 \examples{
+require(MASS) # -> dataset 'housing' and polr() :
 house.plr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 house.fit <- fitted(house.plr, type="link") # only possible with regr version
+summary( house.fit )
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{regression}

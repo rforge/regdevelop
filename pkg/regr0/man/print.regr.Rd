@@ -1,15 +1,16 @@
 \name{print.regr}
 \alias{print.regr}
-
 \title{Print Method for 'regr' objects}
-\description{Prints 'regr' objects. }
+\description{
+  Printing \code{"regr"} objects, i.e. the results of
+  \code{\link{regr}(*)}.
+}
 \usage{
 \method{print}{regr}(x, correlation = FALSE, dummycoef = NULL,
-digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
-signif.stars = getOption("show.signif.stars"),
-residuals = FALSE, niterations = FALSE, ...)
+      digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
+      signif.stars = getOption("show.signif.stars"),
+      residuals = FALSE, niterations = FALSE, ...)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{'regr' object}
   \item{correlation}{logical: should correlation among estimated
@@ -23,7 +24,7 @@ residuals = FALSE, niterations = FALSE, ...)
   \item{niterations}{???}
   \item{\dots}{further arguments, passed to the print methods used.}
 }
-\details{  
+\details{
   The \code{tit} attribute of \code{x} will be printed if available and
   \code{getUserOption("doc") > 0}, and any \code{doc} attribute,
   if \code{getUserOption("doc") >= 2} (see \code{\link{tit}}).
