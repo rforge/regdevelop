@@ -5,14 +5,14 @@
 \description{
   'regr' fits regression models of various types: ordinary, robust,
   generalized linear, multinomial, ordered response, multivariate, ...
-  
+
   It is a wrapper function which calls the respective S fitting
   functions and yields an extensive result, to be used by the
   respective print and plot methods.
 }
 \usage{
 regr(formula, data, tit = NULL, family = NULL,
-  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL, 
+  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL,
   robust = FALSE, method=NULL, init.reg = "f.ltsreg",
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   model = TRUE, x = FALSE, termtable = TRUE, vif = TRUE, ...)
@@ -24,7 +24,7 @@ regr(formula, data, tit = NULL, family = NULL,
   \item{tit}{ title (becomes tit attribute of result) }
   \item{family}{ character string describing the type of model and the
     fitting procedure. By default, \code{regr} will fit a model that is
-    suitable for the response variable, if possible.\cr 
+    suitable for the response variable, if possible.\cr
     Can be either
     "gaussian" for ordinary regression, including multivariate response,
     "binomial" for logistic regression,
@@ -71,7 +71,7 @@ regr(formula, data, tit = NULL, family = NULL,
   \item{termtable}{if \code{FALSE}, the \code{regr} type term table will
     not be generated}
   \item{vif}{ a logical value indicating whether the collinearity
-    measure R2.j ahould be calculated } 
+    measure R2.j ahould be calculated }
   \item{\dots}{ other argument to be passed to the fitting function }
 }
 % \details{}
@@ -81,7 +81,7 @@ regr(formula, data, tit = NULL, family = NULL,
   those of the results of the fitting function and its summary.
   Additional components are described here in a draft version.
   \item{stres }{Standardized residuals}
-  \item{sigma }{estimated standard deviation for normal errors,\cr 
+  \item{sigma }{estimated standard deviation for normal errors,\cr
   sqrt(dispersion) for \code{glm}}
   \item{testcoef}{Table for testing terms both for single and mulitple
     degree terms (continuous or binary explanatory variables and
@@ -96,24 +96,25 @@ regr(formula, data, tit = NULL, family = NULL,
 }
 \details{
   Robust fitting is available for ordinary linear models, by setting
-  \code{robust = T}.
-  By default, the function \code{lmrob} from package \code{robustbase}
-  is call with the argument \code{setting="KS2011"}.
+  \code{robust = TRUE}.
+  By default, the function \code{\link[robustbase]{lmrob}} from package \pkg{robustbase}
+  is called with the argument \code{setting="KS2011"}.
   Alternative methods can be obtained by setting the \code{method}
-  argument. Choosing 
+  argument. Choosing
   \code{method="rlm"}
-  {calls function \code{rlm} from package \code{MASS}}
+  {calls function \code{\link[MASS]{rlm}} from package \pkg{MASS}}
   with default \code{method="MM"}.
   Any further elements of \code{method} will be passed on to the methods
   argument of the called function.
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
-%% \note{ ~~further notes~~ 
+%% \note{ ~~further notes~~
 %%  ~Make other sections like Warning with \section{Warning }{....} ~
 %% }
-\seealso{ \code{\link{lm}}, \code{\link{glm}}, \code{\link{rlm}},
-  \code{\link{multinom}}, \code{\link{polr}},... }
+\seealso{
+  \code{\link{lm}}, \code{\link{glm}}, \code{\link[MASS]{rlm}},
+  \code{\link[nnet]{multinom}}, \code{\link[MASS]{polr}},... }
 \examples{
 data(d.blast)
 ( r.blast <-
