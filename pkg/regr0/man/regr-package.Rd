@@ -61,7 +61,7 @@ useful for efficient data analysis. They include
   displays any rectangular scatterplot matrix and can also be used to
   produce the full usual quadratic scatterplot matrix for many variables
   in appropriate junks with panels that are still large enough to be useful.
-  \item \code{\link{lassoselect}()} to do model selection.
+  %% Gibt's nicht: \item \code{\link{lassoselect}()} to do model selection.
 }
 
 The package also includes some additional utility functions, like
