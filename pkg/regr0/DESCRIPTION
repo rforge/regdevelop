@@ -4,7 +4,7 @@ Title: Building regression models
 Version: 1.0-4
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
-Imports: stats, graphics, MASS, survival, robustbase, nnet
+Imports: stats, graphics, MASS, nnet, survival, robustbase, quantreg
 Description: Helps to perform efficient model building for many kinds of
  regression models, including graphical residuals analysis. It also
  contains some useful utility functions.

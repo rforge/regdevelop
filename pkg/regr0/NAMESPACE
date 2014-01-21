@@ -4,13 +4,12 @@ importFrom("stats",
 importFrom("graphics", plot)
 
 importFrom("MASS", rlm, polr)
-importFrom("nnet", multinom)
-importFrom("nnet", nnet.default)
+importFrom("nnet", multinom, nnet.default)
 importFrom("survival", coxph, survreg, Surv)
 
 importFrom("robustbase", lmrob)
 
-## importFrom("quantreg", rq)
+importFrom("quantreg", rq)
 
 ### This exports everything but  ".foobar" :
 ## exportPattern("^[^\\.]")
