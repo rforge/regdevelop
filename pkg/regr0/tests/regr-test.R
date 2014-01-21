@@ -1,4 +1,4 @@
-library(regr0, lib="~/R/regdevelop/pkg/regr0.Rcheck")
+library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
 # source('../R/regr.R')
 options(digits=3)
 # load("/u/stahel/data/regdata")
