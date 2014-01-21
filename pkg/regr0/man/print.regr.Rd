@@ -19,7 +19,8 @@
     factors be shown?}
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
-  \item{signif.stars}{logical: should significance asterisks be shown?}
+  \item{signif.stars}{logical: should significance asterisks be shown?
+    If >1, a legend will also be shown.}
   \item{residuals}{logical: should summary(residuals) be shown?}
   \item{niterations}{???}
   \item{\dots}{further arguments, passed to the print methods used.}

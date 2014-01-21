@@ -23,7 +23,8 @@
 
 \begin{document}
 \title{\vspace*{-10mm}
-The R-Function \T{regr} for an Augmented Regression Analysis}
+The R-Function \T{regr} and Package \T{regr0} for an Augmented 
+Regression Analysis}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
@@ -625,7 +626,9 @@ $Y$. Residuals are defined as the median of this distribution, and
 it may help to characterize the uncertainty about the latent residuals by 
 the quartiles of the conditional distribution.
 The plots show the interquartile range by a vertical line and the median,
-by a horizontal tick on them.
+by a horizontal tick on them. (The vertical line is not shown if the 
+probability observed $Y$ is either too low or too high, see argument
+\T{condprobrange}.)
 
 Note that this definition may not have appeared in the literature yet.
 

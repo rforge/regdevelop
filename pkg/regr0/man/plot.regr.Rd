@@ -118,7 +118,8 @@
     \code{glm} objects, type \code{cond.quant} is possible for
     (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
     an explanation.}
-  \item{condprobrange}{if conditional probabilities are shown by bars:
+  \item{condprobrange}{if conditional probabilities are shown by
+    vertical bars:
     show only those that are contained in \code{condprobrange}
     (vector of length 2)}
   \item{sequence}{logical: should residuals  be plotted versus sequence?}

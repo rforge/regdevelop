@@ -3,13 +3,16 @@
 \alias{i.glm}
 \alias{i.lm}
 \alias{i.multinomial}
+\alias{i.multinomfit}
 \alias{i.survreg}
 \alias{i.polr}
+\alias{i.polrfit}
 \alias{i.smooth}
 %
 \alias{is.formula}
 \alias{\%nin\%}
-\alias{summary.mreg}
+\alias{summary.mregr}
+\alias{print.mregr}
 \description{
   Internal functions of package \pkg{regr0} that are exported, but
   should normally not be called by the user directly.
@@ -24,7 +27,7 @@
 
 is.formula(object)
 x \%nin\% y
-summary.mreg(object, ...)
+## summary.mregr(object, ...)
 }
 \arguments{
   \item{x,y, object}{\R objects}

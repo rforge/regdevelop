@@ -8,7 +8,7 @@
   \code{x})
 }
 \usage{
-condquant(x, dist = "normal", sig = 1)
+condquant(x, dist = "normal", sig = 1, randomrange = 0.9)
 }
 \arguments{
   \item{x}{matrix with 2 columns or vector of length 2 giving the
@@ -17,7 +17,11 @@ condquant(x, dist = "normal", sig = 1)
     logistic are implemented.
 }
   \item{sig}{standard deviation for normal distribution
-}
+  }
+  \item{randomrange}{random numbers from the conditional distribution
+    are drawn for the inner \code{100*randomrange} percent of the
+    suitable p-range. This avoids random extreme outliers and points
+    close to the limit of the intervals on which they are conditioned.}
 }
 \value{Matrix consisting of a row for each row of \code{x} and the
   following columns:

@@ -4,6 +4,7 @@
 \title{ Fitting Regression Models }
 \description{
   'regr' fits regression models of various types: ordinary, robust,
+  quantile, Tobit, logistic, 
   generalized linear, multinomial, ordered response, multivariate, ...
 
   It is a wrapper function which calls the respective S fitting
@@ -11,11 +12,11 @@
   respective print and plot methods.
 }
 \usage{
-regr(formula, data, tit = NULL, family = NULL,
+regr(formula, data = NULL, tit = NULL, family = NULL,
   calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL,
-  robust = FALSE, method=NULL, init.reg = "f.ltsreg",
+  robust = FALSE, method = NULL, init.reg = "f.ltsreg",
   subset = NULL, weights = NULL, na.action = nainf.exclude,
-  model = TRUE, x = FALSE, termtable = TRUE, vif = TRUE, ...)
+  model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -53,21 +54,21 @@ regr(formula, data, tit = NULL, family = NULL,
   \item{robust}{if TRUE, robust fitting is used if a function is
     available, see Details.
     }
-  \item{method}{if suitable, a method argument that is passed to the
-  fitting procedure, see Details.}
+    \item{method}{"rq" or "quantreg" requires fitting by quantile
+  regression. Then, the argument \code{tau} is used for setting the
+  quantile: \code{regr(..., method="quantreg", tau=0.9)}.
+  Otherwise, if suitable, a method argument that is passed to the
+  fitting procedure, see also Details.}
   \item{init.reg}{ function used to initialize robust methods }
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can
     be used to generate the vector. }
   \item{weights}{ an optional vector of weights to be used for fitting. }
   \item{na.action}{ a function which indicates what should happen when the data
-          contain 'NA's.  The default is set by the 'na.action' setting
-          of 'options', and is 'na.fail' if that is unset.  The
-          "factory-fresh" default is 'na.omit'.  Another possible value
-          is 'NULL', no action.  Value 'na.exclude' can be useful. }
+          contain 'NA's. The default is '\code{\link{nainf.exclude}}'.}
   \item{model, x}{ logical values indicating whether the model frame or
-  the model.matrix, respectively, should be
-          included as a component of the returned value. }
+    the model matrix, respectively, should be included as a component
+    of the returned value. }
   \item{termtable}{if \code{FALSE}, the \code{regr} type term table will
     not be generated}
   \item{vif}{ a logical value indicating whether the collinearity
@@ -119,10 +120,12 @@ regr(formula, data, tit = NULL, family = NULL,
 data(d.blast)
 ( r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
+
 ## Anorexia
 data(anorexia, package="MASS")
 r.anorexia <- regr(Postwt ~ Prewt + Treat + offset(Prewt),
                    data = anorexia)
+
 ## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
      ## Page 9: Plant Weight Data.
 ctl <- c(4.17,5.58,5.18,6.11,4.50,4.61,5.17,4.53,5.33,5.14)
@@ -133,9 +136,12 @@ d.dob <- data.frame(group = gl(2,10,20, labels=c("Ctl","Trt")),
 
 ## multinomial regression
 data(d.surveyenvir)
-t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
+d.surveyenvir$dist.unordered <- factor(as.character(d.surveyenvir$disturbance))
+t.r <- regr(dist.unordered~age+education+location, data=d.surveyenvir)
 
 ## ordered regression
+## This example fails in the installation phase...
+require(MASS) ## should not be needed
 data(housing, package="MASS")
 t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq,
             data = housing)

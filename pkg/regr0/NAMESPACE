@@ -5,18 +5,21 @@ importFrom("graphics", plot)
 
 importFrom("MASS", rlm, polr)
 importFrom("nnet", multinom)
+importFrom("nnet", nnet.default)
 importFrom("survival", coxph, survreg, Surv)
 
 importFrom("robustbase", lmrob)
+
+## importFrom("quantreg", rq)
 
 ### This exports everything but  ".foobar" :
 ## exportPattern("^[^\\.]")
 
 ## Ok, now we are better and do not export all
 export(asinperc,
-       ## BR, DB, IR,
+       BR, DB, IR,
        ## UserOptions,
-       ## add1.default, add1.mlm, add1.regr,
+       ## add1.default, add1.mlm, add1.regr, ## see below
        ## drop1.default, drop1.mlm, drop1.multinom, drop1.regr,
        c.mon, c.months, compareTerms, condquant, c.weekdays,
        doc, "doc<-",
@@ -26,17 +29,18 @@ export(asinperc,
        format.modelTable,
        getmeth,
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
-       ## if we export these, can use quote(regr0::i.<foo>) and no check--warning:
+       ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.smooth, i.survreg,
+       i.polrfit, i.multinomfit, 
        is.formula,
        last, legendr, leverage, logst, mframe,
        modelTable,
        ## nafalse,
        nainf.exclude, "%nin%",
-       ## nna,
+       nna,
        plcoord, plfitpairs, plmatrix,
        plot.regr, plot.xdistResscale,
-       plres2x, plresx, plTA.polr, polrregr,
+       plres2x, plresx, plTA.polr, 
        predict.mlm, predict.polr, predict.regr,
        print.modelTable, # print.mregr,
        print.regr,
@@ -47,7 +51,7 @@ export(asinperc,
        robrange, showd, simresiduals, stamp,
        step, step.default, step.regr,
        subset,
-       summary.mreg, # summary.regr,
+       summary.mregr, # summary.regr,
        sumna, terms2order,
        tit, "tit<-",
        Tobit,
@@ -57,7 +61,8 @@ export(asinperc,
        ## u.true,
        ## vif.regr,
        warn, xdistResdiff,
-       xdistResscale)
+       xdistResscale
+       )
 
 S3method(add1, default)
 S3method(add1, mlm)

@@ -1,4 +1,4 @@
-library(regr0)
+library(regr0, lib="~/R/regdevelop/pkg/regr0.Rcheck")
 # source('../R/regr.R')
 options(digits=3)
 # load("/u/stahel/data/regdata")
@@ -66,6 +66,7 @@ r.rob
 ## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
 
+require(MASS)  ## should not be needed
 r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir)
 
 with( r.survey,
@@ -123,7 +124,7 @@ r.mnom <- regr(responsibility~age+education+disturbance+sex,
           data=d.surveyenvir, family="multinomial", na.action=na.omit)
 r.mnom2 <- regr(responsibility~age+education, data=d.surveyenvir[1:100,])
 drop1(r.mnom2)
-
+## !!! wieso geht drop1 in der regr-fn nicht?
 ## ===================================================================
 ## nonlinear
 ## sysfile('external/d.reacten.rda', package='regr0')

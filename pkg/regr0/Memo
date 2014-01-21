@@ -1,5 +1,10 @@
 step.regr  ist wieder wie step...
 
+Was mir immer wieder fehlt (und ich weiss, ich bin nicht allein ;-)), sind die Sternchen nach dem P-Wert des  print-outs.
+Könntest Du nochmals überlegen, ob Du, den Benutzern zuliebe, über Deinen Schatten springen wolltest und die Sternchen für uns Dummy-User doch noch anzeigen?
+
+vif und leverage für alle Modelle
+
 simresiduals fuer multivariate regr
   und weighted regr
   und condquant (survreg)

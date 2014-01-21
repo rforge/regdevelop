@@ -1,12 +1,13 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
-source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
+# source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
+# require("/u/stahel/R/pkg/regr0")
 options(digits=3)
 load("/u/stahel/data/regdata")
-load("../data/d.blast.rda")
-load("../data/d.surveyenvir.rda")
-load("../data/d.rehab.rda")
-load("../data/d.fossiles.rda")
-
+load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
+load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
+load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
+load("/u/stahel/R/regdevelop/pkg/regr0/data/d.fossiles.rda")
+require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
 ##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
 ##- options(digits=3)
@@ -68,7 +69,7 @@ t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
 ##- plot(t.r)
 
 ## multivariate regression
-data(d.fossiles)
+## data(d.fossiles)
 r.mregr <-
   regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
                 data=d.fossiles)
@@ -123,9 +124,17 @@ t.r1 <- step(t.r, scope=~.+Stelle+log10(dist)+log10(ladung),trace=F)
 t.r2 <- update(t.r1, formula=.~.-log10(ladung))
 t.r3 <- update(t.r2, formula=.~.-Stelle)
 ##- t.mt <- modelTable(c("t.r","t.r1"))
-t.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
+.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
 t.mt[,-2]
 compareTerms(large=t.r1,reduced=t.r2,small=t.r3)
+
+t.r <- regr(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
+             data=swiss)
+t.lm <- lm(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
+             data=swiss)
+dummy.coef(t.r)
+dummy.coef(t.lm)
+t.r$allcoef
 ## -------------------------------------
 ## robust
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
@@ -137,8 +146,10 @@ plot(t.r)
 ##- t.d <- t.d[t.d$Age<35,]
 ##- d.babysurv <- t.d
 t.d <- d.babysurv
-t.r <- regr(Survival~.,data=t.d)
-t.rglm <- glm(Survival~.,data=t.d,family=binomial)
+##- t.d$y <- factor(t.d$Survival)
+##- t.r <- regr(y~.-Survival,data=t.d)
+t.r <- regr(Survival~.,data=t.d) # family=binomial
+t.rglm <- glm(Survival~.,data=t.d, family=binomial) 
 t.rs <- step(t.r, trace=F)  ## ???
 t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
 plot(r.babysurv,xplot=~Weight,cex=0.7,symbol.size=NULL,res.lim=c(-5,5))
@@ -179,6 +190,7 @@ t.nn <- nrow(t.dg)/2
 t.db <- data.frame(t.dg[1:t.nn,c(1:3,5)],Beeintr.y=t.dg[t.nn+1:t.nn,"Freq"])
 names(t.db)[4] <- "Beeintr.n"
 t.r <- r.lgr <- regr(cbind(Beeintr.y,Beeintr.n)~.,data=t.db,family=binomial)
+## !!! bug
 plot(t.r, ask=c.ask)
 t.r <- r.l <- regr(Beeintr2 ~ Alter+Geschlecht+Schule+Wohnlage+
                     Ortsgroesse+Partei,data=t.d,family=binomial)
@@ -290,6 +302,12 @@ drop1.mlm(r.mregr)
 ## ===================================================================
 require(MASS)
 userOptions(step="polr")
+
+data(housing, package="MASS")
+t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq,
+            data = housing)
+plot(t.r)
+
 ##- t.r <- polr(Beeintr~Alter+Geschlecht, data=d.umweltumf)
 ##- summary(t.r)
 ##- t.d <- d.umweltumf
@@ -351,21 +369,38 @@ t.rss <- summary(t.rs)
 ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
 ##-     data = ovarian, dist = "extreme") ## not the same
 t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
-            data = d.ovarian, family="weibull")
+            data = ovarian, family="weibull")
 plot(t.r)
-t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
-t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = d.ovarian)
+t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 
 bladder1 <- bladder[bladder$enum < 5, ]
 t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
                cluster(id), bladder1) 
 t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
+t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
+showd(residuals(t.r))
 
-## d.cheese <- read.table("/u/stahel/data/cheese.dat")
+d.cheese <- read.table("/u/stahel/data/cheese.dat")
 t.d <- d.cheese
 dim(na.omit(t.d))
 t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
 t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
 t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d, family="gaussian")
 plot(t.r)
+## margEffTobit(t.r)
 
+t.rr <- residuals(t.r)
+t.i <- which(t.rr[,"prob"]>0)
+t.o <- order(t.rr[t.i,"fit"])
+t.i <- t.i[t.o]
+matplot(t.rr[t.i,"fit"],t.rr[t.i,c(1:3)],type="l")
+t.rr[t.i,"fit"]
+rr <- t.rr[t.i,]
+## ----------------------------------------------------------
+## quantile regr
+t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
+            method="rq", tau=0.7)
+##- t.r <- rq(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
+##-           tau=0.7)
+##- drop1(t.r, test="Chisq")
