@@ -146,7 +146,11 @@
      Modify this vector to change the selection and the sequence in
      which the plots appear.
      Alternatively, provide a named vector defining all plot that should
-     be shown, like \code{plotselect = c(ta = 2, leverage = 1)}.
+     be shown on a different level than the default indicates,
+     like \code{plotselect = c(ta = 2, leverage = 1)}.
+     Adding an element \code{default = 0} suppresses all plots not
+     mentioned. This is useful to select single plots, like
+     \code{plotselect = c(ta = 2, default = 0)}
 
      The names of \code{plotselect} refer to:
      \describe{

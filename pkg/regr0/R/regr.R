@@ -36,13 +36,27 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   mf <- mf[c(1L, lj)]
   mf$formula <- lformula
   mf[[1L]] <- as.name("get_all_vars")
-  if (nonlinear) {
+  if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
+    lcf <- setdiff(all.vars(formula),names(data))
+    if(nonlinear=="lazy") {
+      lcfundef <- setdiff(lcf, names(start))
+      if (length(lcfundef)) {
+        warning(":regr(nonlinear): check if  ",paste(lcfundef, collapse=", "),
+                "  are coefficients. Starting values will be 0.")
+        lst <- rep(0,length(lcfundef))
+        names(lst) <- lcfundef
+        start <- c(start,lst)
+      }
+    }
+    lcall$start <- start <- start[names(start)%in%lcf]
     lfo <- setdiff(all.vars(formula),names(start))
     mf$formula <- as.formula(paste("~",paste(lfo,collapse="+")))
+    lcall$nonlinear <- nonlinear <- TRUE
+  } else {
+    mf$formula <- lformula
   }
   lav <- try(eval(mf, parent.frame()))
   if (class(lav)=="try-error") stop("!regr! undefined variables in formula")
-  ## scr-varchack
   ## convert character to factor
   for (lvn in 1:ncol(lav)) {
     lv <- lav[[lvn]]
@@ -93,15 +107,16 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
              "unknown")
   if (lfitfun=="unknown") stop("!regr! Fitting function not identified")
   ## additional checks
-  if (lytype=="survival") lfitfun <- "survreg"
-  if (lfitfun=="glm")
-    lcall$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcall$control)
-  if (lfitfun=="survreg") {
+  if (lytype=="survival") {
     if (!inherits(ly,"Surv"))
       stop("!regr! bug: convert response to Surv object")
     ## !!! hier machen! lav[,1] ersetzen durch Surv davon
+    lfitfun <- "survreg"
+    if (is.null(family)) lfam <-attr(ly,"distribution")
   }
-  ## fitting function
+  else  if (lfitfun=="glm")
+    lcall$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcall$control)
+  ## 
   lfitname <- paste("i",lfitfun,sep=".")
   if (!exists(lfitname)||!is.function(get(lfitname)))
     stop (paste("!regr! Fitting function",lfitname, "not found"))
@@ -117,7 +132,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 	     "i.survreg" = quote(regr0::i.survreg),
 	     ## default:
 	     as.name(lfitname))
-#  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
+##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
   lcl$fname <- lfam
   lcl$na.action <- substitute(na.action)
 ##  lcl$data <- as.name("lav") ## environment(formula)
@@ -134,7 +149,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])
   lreg$Y <- lyy
   lreg$response <- ly
-## >>>>>>> .r32
+  if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
+  ## >>>>>>> .r32
   lreg$allvars <- lav ## needed more than $model
              ## since $model contains transformed variables
   lreg$funcall <- lreg$call
@@ -264,6 +280,11 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
              "df","cov.unscaled")
   lreg[lcomp] <- lreg1[lcomp]
+  if (nonlinear) {
+    lreg$coefficients <- lreg1$coefficients[,1]
+    lreg$testcoef <- lreg1$coefficients
+#   lreg$r.squared <- 1-(lsig/lsdy)^2
+  }
   ## degrees of freedom
   ldfr <- lreg$df.residual
   if (length(ldfr)==0||is.na(ldfr))
@@ -278,14 +299,16 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lse <- sqrt(diag(lcov))
   lreg$correlation <- lcov/outer(lse, lse)
   ## --- table of terms
-  if (termtable & !nonlinear) {
-    ly <- lreg$model[[1]]
-    lsdy <- sqrt(var(ly))
-    ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype, lsdy=lsdy,
-                       vif=vif, leverage=TRUE) 
-    lcmpn <- c("testcoef","allcoef","leverage")
-    lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
-  }  else  class(lreg) <- c("orig",class(lreg))
+  if (!nonlinear) {
+    if(termtable) {
+      ly <- lreg$model[[1]]
+      lsdy <- sqrt(var(ly))
+      ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype, lsdy=lsdy,
+                         vif=vif, leverage=TRUE) 
+      lcmpn <- c("testcoef","allcoef","leverage")
+      lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
+    }  else  class(lreg) <- c("orig",class(lreg))
+  }
   ## result of i.lm
   lreg
 }
@@ -813,7 +836,7 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
           unique(c(row.names(x$testcoef)[x$testcoef[,"df"]>1],
                    names(attr(x$terms,"dataClasses")[-1]%in%
                          c("factor","ordered")) ))
-        if (length(mterms)>0&dummycoef & length(x$allcoef)>0) {
+        if (length(mterms)>0 & dummycoef & length(x$allcoef)>0) {
           imt <- mterms%in%names(x$allcoef)
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
@@ -934,6 +957,7 @@ drop1.regr <-
     if (is.null(ldata[li,])) stop("!step.regr! no data found ")
     lvars <-unique(c(all.vars(formula(object)),
                      if (is.formula(scope)) all.vars(scope) else scope))
+    lvars <- lvars[lvars%in%names(ldata)]
     linna <- li & !apply(is.na(ldata[,lvars]),1,any)
     lnobs <- sum(linna)
 ##-     ldt <- ldata[!lina,]
@@ -1480,7 +1504,7 @@ drop1.mlm <- function (object, scope = NULL,
 ## full model
     rss <- crossprod(as.matrix(res))
     rss.qr <- qr(rss)
-    if (rss.qr$rank < ncol(res))
+    if (rss.qr$rank < NCOL(res))
       stop(paste("!drop1.mlm! residuals have rank", rss.qr$rank, "<",
                  ncol(res)))
     stats <- matrix(NA,length(scope),4)
@@ -1740,7 +1764,8 @@ residuals.survreg <- function(object, type="response", ...)
   lrr[,"prob"] <- 0
   ## censoring
   lst <- ly[,2]  # status
-  ltt <- attr(object$response[[1]], "type")
+##   ltt <- attr(object$response[[1]], "type")
+  ltt <- attr(object$response, "type")
 ##-   if (length(ltt)>0&&ltt=="left") lst[lst==0] <- 2
   ltl <- length(ltt)>0&&ltt=="left"
   li <- lst!=1
@@ -2644,20 +2669,25 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
   lplsel <- c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA,
               leverage = 2, resmatrix = 1, qqmult = 3)
   if (length(plotselect)>0) {
+    lpls <- TRUE
     lplnm <- names(plotselect)
     if (length(lplnm)==0) {
       if (length(plotselect)==length(lplsel))
         lplnm <- names(lplsel)
       else {
         warning(":plot.regr: Inadequate argument plotselect")
-        plotselect <- NULL }
-    } else {
-      lplsel[] <- if ("default"%in%lplnm)
-        pmin(lplsel,plotselect["default"]) else 0
+        lpls <- FALSE}
+    }
+    if (lpls) {
+      if ("default"%in%lplnm) {
+        lplnm <- setdiff(lplnm, "default")
+        lplsel[] <- if (plotselect["default"]==0) 0 else
+        pmin(lplsel,plotselect["default"])
+      }
       lina <- is.na(match(lplnm,names(lplsel)))
       if (any(lina)) {
-	warning(":plot.regr: Inadequate elements in plotselect: ",
-		paste(names(plotselect)[lina], collapse=", "))
+        warning(":plot.regr: Inadequate elements in plotselect: ",
+              paste(names(plotselect)[lina], collapse=", "))
         lplnm <- lplnm[!lina] }
       lplsel[lplnm] <- plotselect[lplnm]
     }
@@ -2841,7 +2871,7 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
 ## plot symbols
   if (length(symbol.size)==0||is.na(symbol.size)) symbol.size <- 3/ln^0.3
   if (lwsymbols) {
-    liwgt <- is.na(llabna)
+    liwgt <- is.na(llabna) ## labels precede weights: which weights are used?
     if (any(liwgt)) {
       lweights <- lweights/mean(lweights,na.rm=TRUE)
       lsyinches <- 0.02*symbol.size*par("pin")[1] # *max(lweights,na.rm=TRUE)
@@ -3309,7 +3339,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       }
     }
     ##- points
-    lpclr <- if (length(col)) rep(col,length=lnr) else colors[1]
+    lpclr <- rep(if (length(col)) col else colors[1], length=lnr)
     if (lcq) {
       lyplj <- lypl[,"random"]
       lpclr <- if (length(col)) rep(col,length=lnr) else
@@ -3319,12 +3349,12 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
     if (txt) {
       text(lxj,lyplj, lab, cex=cex.lab, col=lpclr)
       if (plwgt) {
-        if (is.null(iwgt)) iwgt <- rep(iwgt,length(x))
+        if (is.null(iwgt)) iwgt <- rep(TRUE,length(x))
         symbols(lxj[iwgt], lyplj[iwgt], circles=sqrt(weights[iwgt]),
-                     inches=syinches, fg=lpclr, add=TRUE)
+                     inches=syinches, fg=lpclr[iwgt], add=TRUE)
       }
       else  if (any(li <- is.na(lab)|lab==""))
-        points(lxj[li], lyplj[li], pch=pch, cex=cex.pch, col=lpclr)
+        points(lxj[li], lyplj[li], pch=pch, cex=cex.pch, col=lpclr[li])
     } else   points(lxj, lyplj, pch=pch, cex=cex.pch, col=lpclr)
 ##-       if (any(li <- is.na(lab)|lab==""))
 ##-         points(lxj[li], lyplj[li], pch=pch, cex=cex.pch, col=lpclr)
@@ -3588,6 +3618,8 @@ plresx <-
       lwgt <- FALSE
   }
   lwsymbols <- lwgt&any(liwgt)
+  if (!is.null(wsymbols)) if ((lws <- wsymbols[1])&!lwsymbols)
+      warning(":plresx: no weights available") else lwsymbols <- lws
 ## color vector
   if (length(col)>ln) if(length(lnaaction)>0 && max(lnaaction)<=length(col))
     col <- col[-lnaaction]
@@ -4176,6 +4208,11 @@ plres2x <-
     if (length(formula)==0) lform <- formula(reg)[c(1,3)]
     if (length(lform)<3) {
       lform <- update.formula(lform,residuals~.)
+      lrs <- resid(reg)
+      if (length(lrs)!=nrow(ldata)) {
+          ldata <- ldata[names(lrs),]
+          if (nrow(ldata)!=length(lrs)) stop("!plres2x! residuals and data incompatible")
+      }
       ldata <- data.frame(ldata,residuals=resid(reg))
     }
   } else stop("!plres2x! unsuitable argument reg")
@@ -4489,7 +4526,8 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     if ((!is.null(x)&&is.character(x))) ## asking for options
       return(if(length(x)==1) UserOptions[[x]] else UserOptions[x])
     if (!is.null(default)) {
-      if (default=="all") return(userOptions(list=UserDefault))
+        default <- as.character(default)
+      if (default=="TRUE"|default=="all") return(userOptions(list=UserDefault))
       if (default=="unset")
         userOptions(list=UserDefault[names(UserDefault)%nin%names(UserOptions)])
       if (!is.character(default))
@@ -4508,14 +4546,14 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     invisible(lold)
   }
 ## -----------------------------------------------------
-UserDefault <-
+UserDefault <- UserOptions <- 
   list(stamp=1, project="", step="", doc=TRUE, show.dummy.coef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4
        )
-if (!exists("UserOptions")) UserOptions <- UserDefault  else
-    userOptions(default="unset")
+##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
+##-     userOptions(default="unset")
 ## ===========================================================================
 last <-
 function(data,n = 1)
@@ -4527,7 +4565,14 @@ function(data,n = 1)
 nainf.exclude <- function (object, ...)
   ## na.omit, modified to omit also Inf and NaN values
 {
-    n <- length(object)
+  if (is.atomic(object)) {
+    i <- is.finite(object)
+    if (length(dim(i))) ## matrix 
+      return( object[apply(i,1,all),,drop=FALSE] )
+    else return( object[i] )
+  }
+  ## list
+  n <- length(object)
     omit <- FALSE
     vars <- seq_len(n)
     for (j in vars) {
@@ -4562,7 +4607,10 @@ sumna <- function(object,inf=TRUE)
   ##   inf      treat Inf as NA
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 10 Oct 2007, 08:18
-  ff <- if(inf) function(x) sum(!is.finite(x)) else function(x) sum(is.na(x))
+  ff <- if(inf) {
+    function(x)
+    if(is.numeric(x)) sum(!is.finite(x)) else sum(is.na(x)) }
+      else function(x) sum(is.na(x))
   if (is.matrix(object)) apply(object,2,ff)  else {
     if (is.list(object)) sapply(object,ff)
     else if(is.atomic(object)) ff(object)
