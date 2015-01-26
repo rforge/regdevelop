@@ -1,1 +1,4 @@
 doc/.*[.]tex
+misc
+tests/.RData
+tests/.Rhistory

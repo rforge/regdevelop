@@ -7,6 +7,7 @@
 }
 \usage{
 \method{print}{regr}(x, correlation = FALSE, dummycoef = NULL,
+      testcoefcol = getUserOption("regr.testcoefcol"),
       digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
       residuals = FALSE, niterations = FALSE, ...)
@@ -17,6 +18,8 @@
     coefficients be shown?}
   \item{dummycoef}{logical: should the dummy coefficients for the
     factors be shown?}
+  \item{testcoefcol}{columns of the coefficient table to be printed.
+    If \code{NULL}, all columns will be printed.}
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
   \item{signif.stars}{logical: should significance asterisks be shown?

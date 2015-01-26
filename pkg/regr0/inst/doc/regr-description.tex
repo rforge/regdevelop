@@ -77,7 +77,7 @@ In particular, the following models can be fitted by \T{regr}:
   \T{nnet},
 \item
   ordered response models, by calling \T{polr} of package
-  \T{MARS},
+  \T{MASS},
 \item
   models for survival data and Tobit regression, by calling
   \T{survreg} of package \T{survival},
@@ -618,7 +618,7 @@ maximum likelihood. This is implemented in the function \T{polr}
 (proportional odds linear regression) of the \T{MASS} package, 
 which is the function invoked by \T{regr} for ordinal regression.
 
-Resdiuals for this model may be defined by considering the conditional
+Residuals for this model may be defined by considering the conditional
 distribution of the latent variable $Z$, given the observation $Y$ and the
 explanatory variables. This is a logistic distribution with parameters
 given by the model, restricted to the class of $Z$ given by the observed

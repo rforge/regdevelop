@@ -1,16 +1,22 @@
-\name{fitted.polr}
+\name{fitted.regr}
+\alias{fitted.regr}
 \alias{fitted.polr}
-\title{Fitted Values for polr objects}
+\title{Fitted Values for regr and polr objects}
 \description{
-  Calculates Fitted Values for ordered response regression.
+  \code{fitted.regr} extracts fitted values from \code{regr} objects.
+  The function is needed for results of survival models, including Tobit
+  models. 
+  \code{fitted.polr} calculates Fitted Values for ordered response regression.
   In addition to the types of the usual version, this function allows
   for extracting the \code{link} type of predictions.
 }
 \usage{
+\method{fitted}{regr}(object, ...)
 \method{fitted}{polr}(object, type = "link", na.action = object, ...)
 }
 \arguments{
-  \item{object}{an object that inherits from class \code{polr}}
+  \item{object}{an object of class \code{regr} (for \code{fitted.regr}),
+  or one that inherits from class \code{polr} (for \code{fitted.polr})}
   \item{type}{type of fitted values (as with \code{predict}).
     \describe{
       \item{\code{link}}{asks for the linear predictor,}
@@ -23,7 +29,8 @@
     component. If it is of the class \code{exclude}, the fitted values
     will be expanded to fit the number of rows in the data.frame used
     for fitting the regression.}
-  \item{\dots}{not used}
+  \item{\dots}{further arguments, passed to \code{fitted} methods called
+  by \code{fitted.regr}; not used in \code{fitted.polr}}
 }
 \value{
   Vector of fitted values

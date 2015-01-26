@@ -8,5 +8,5 @@ Imports: stats, graphics, MASS, nnet, survival, robustbase, quantreg
 Description: Helps to perform efficient model building for many kinds of
  regression models, including graphical residuals analysis. It also
  contains some useful utility functions.
-License: GPL
+License: GPL-2
 LazyLoad: yes

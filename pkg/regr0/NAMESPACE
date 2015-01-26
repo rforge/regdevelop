@@ -4,7 +4,7 @@ importFrom("stats",
 importFrom("graphics", plot)
 
 importFrom("MASS", rlm, polr)
-importFrom("nnet", multinom, nnet.default)
+importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
 importFrom("survival", coxph, survreg, Surv)
 
 importFrom("robustbase", lmrob)
@@ -24,7 +24,7 @@ export(asinperc,
        doc, "doc<-",
        dropdata, extractAIC.regr,
        fitcomp,
-       fitted.polr,
+       fitted.regr, fitted.polr,
        format.modelTable,
        getmeth,
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
@@ -75,3 +75,4 @@ S3method(drop1, regr)
 S3method(summary, regr)# trivial: returns it unchanged
 
 S3method("[", modelTable)
+

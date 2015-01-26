@@ -1,6 +1,6 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 # source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
-# require("/u/stahel/R/pkg/regr0")
+# require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 options(digits=3)
 load("/u/stahel/data/regdata")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
@@ -47,6 +47,13 @@ dd <- d.blast
 dd$random <- c(NA,NA,rnorm(nrow(dd)-2))
 t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+random, data=dd)
 r.st <- step(t.r)
+
+## environment problem
+f.rr <- function(fo) {
+  ldt <- d.blast[1:20,]
+  regr(fo, data=ldt)
+}
+f.rr(tremor~distance)
 
 ## Anorexia
 data(anorexia, package="MASS")
@@ -386,8 +393,14 @@ t.d <- d.cheese
 dim(na.omit(t.d))
 t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
 t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
-t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d, family="gaussian")
+t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d,
+            family="gaussian")
 plot(t.r)
+t.rf <- fitted(t.r)
+t.rp <- predict(t.r)
+t.rr <- residuals(t.r)
+
+add1(t.r)
 ## margEffTobit(t.r)
 
 t.rr <- residuals(t.r)

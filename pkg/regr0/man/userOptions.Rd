@@ -2,7 +2,7 @@
 \alias{userOptions}
 \alias{getUserOption}
 \alias{UserDefault}
-\title{Set and Get User "Session" Options that influence "regr0" behavior}
+\title{Set and Get User "Session" Options that influence "regr0"s behavior}
 \description{
   The user can set (and get) "Session" options which influence the
   behavior \pkg{regr0} functions, notably \code{\link{stamp}()}.
