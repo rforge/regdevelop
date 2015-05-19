@@ -174,3 +174,12 @@ plresx(r.sr, vars="sizej")
 ##- t.r <- regr(y~Temp+Time+lWindspeed, data=t.d)
 
 require(survival)
+
+## last
+df <- data.frame(X=c(2,5,3,8), F=LETTERS[1:4], G=c(TRUE,FALSE,FALSE,TRUE))
+last(df,3,-2)
+last(df, ncol=1)
+t.x <- matrix(11:30,5)
+last(t.x,1)
+last(t.x,,1)
+last(t.x,1,drop=FALSE)

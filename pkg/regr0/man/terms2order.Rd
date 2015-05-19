@@ -4,18 +4,21 @@
 \description{Create all square and interaction terms of a given formula
 }
 \usage{
-terms2order(object, squared = TRUE)
+terms2order(object, squared = TRUE, interactions = TRUE)
 }
 \arguments{
   \item{object}{An object for which \code{formula(object)} returns a
     formula. Usually a regression fit}
-  \item{squared}{logical: Should square terms be added to the interactions?}
+  \item{squared}{logical: Should square terms be added to the
+    interactions?}
+  \item{interactions}{logical: Should interaction terms be added?}  
 }
 \details{The 'squares' are the squares of the terms of \code{dataClass}
   'numeric' appearing in the formula (cf.
   \code{attr(object$terms, "dataClass")},
-  except for terms that are already squares (contain \code{^})
-  or interactions (contain \code{:}).
+  except for terms that are already squares (contain \code{^}).
+  Analogously for interactions: they combine all terms that do not
+  contain \code{:}.
 }
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~

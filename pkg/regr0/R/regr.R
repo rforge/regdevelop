@@ -550,7 +550,7 @@ i.survreg <-
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
-  require(survival)  ## !?!
+##  require(survival)  ## !?!
   lcall <- match.call()
   ## b. --- method
   if (fname=="ph") {
@@ -755,7 +755,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   rr
 }
 ## ==========================================================================
-print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
+print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
     testcoefcol = getUserOption("regr.testcoefcol"),
     digits = max(3, getUserOption("digits")-2), 
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
@@ -775,9 +775,13 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
   if (length(dummycoef)==0)
     dummycoef <- c(getUserOption("show.dummy.coef"),TRUE)[1]
   ## call, fitting fn, residuals
-  cat("\nCall:\n")
-  cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
-  cat("Fitting function: ",x$fitfun,"\n")
+  if (call) {
+    if(!is.null(x$call)) {
+      cat("\nCall:\n")
+      cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
+    }
+    cat("Fitting function: ",x$fitfun,"\n")
+  }
   df <- x$df
     rdf <- c(x$df.resid,df[2])[1]
   if (residuals) {
@@ -837,30 +841,9 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
       if (lsigst > 1) 
         cat("---\nSignif. codes:  ", attr(lsignif, "legend"),"\n", sep = "")
     } ## end if(lltc)
-    if (x$distrname=="multinomial") {
-      cat("\nCoefficients:\n")
-      print(t(x$coefficients))
-    } else {
-      lidf <- match("df",colnames(x$testcoef))
-      if (is.na(lidf)) {
-        if (getOption("verbose"))
-          warning(":print.regr: df of coef not available")
-      } else {
-        mterms <-
-          unique(c(row.names(x$testcoef)[x$testcoef[,"df"]>1],
-                   names(attr(x$terms,"dataClasses")[-1]%in%
-                         c("factor","ordered")) ))
-        if (length(mterms)>0 & dummycoef & length(x$allcoef)>0) {
-          imt <- mterms%in%names(x$allcoef)
-          mt <- x$allcoef[mterms[imt]]
-          if (length(mt)>0) {
-            cat("\nCoefficients for factors:\n")
-            print(mt) }
-        } else  cat("\n")
-      }}
+  ## --- error block
   } else {
-    lcf <- x$coef
-    if (length(lcf)) {
+    if (length(x$coef)) {
       cat("\nCoefficients:\n")
       print(x$coef)
     }
@@ -913,7 +896,31 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
     if (niterations&&length(x$iter)>0)
       cat("Number of iterations:", x$iter, "\n")
   }
-  ## correlation
+  ## --- additional coefficients
+  if (x$distrname=="multinomial") {
+    cat("\nCoefficients:\n")
+    print(t(x$coefficients))
+  } else {
+    if (length(ltc)&dummycoef) {        
+      lidf <- match("df",colnames(x$testcoef))
+      if (is.na(lidf)) {
+        if (getOption("verbose"))
+          warning(":print.regr: df of coef not available")
+      } else { ## dummy coefficients
+        mterms <-
+          unique(c(row.names(x$testcoef)[x$testcoef[,"df"]>1],
+                   names(attr(x$terms,"dataClasses")[-1]%in%
+                         c("factor","ordered")) ))
+        if (length(mterms)>0 & length(x$allcoef)>0) {
+          imt <- mterms%in%names(x$allcoef)
+          mt <- x$allcoef[mterms[imt]]
+          if (length(mt)>0) {
+            cat("\nCoefficients for factors:\n")
+            print(mt) }
+        } else  cat("\n")
+      }}
+  }
+  ## ---- correlation
   correl <- x$correlation
   if (correlation && length(correl)>0) {
     p <- NCOL(correl)
@@ -928,6 +935,7 @@ print.regr <- function (x, correlation = FALSE, dummycoef = NULL,
       }
     }
   }
+  cat("\n")
   invisible(x)
 }
 ## ==========================================================================
@@ -943,10 +951,10 @@ drop1.regr <-
   lfam <- object$distrname
   lres <- object$residuals
   if (is.null(test)) test <- if (is.null(lfam)) "none" else {
-    if (lfam=="gaussian"|((lfam=="binomial"|lfam=="poisson")&&
-          object$dispersion>1)) {
+    if ((lfam=="gaussian"&&as.character(object$fitfun)%in%c("lm"))|
+        ((lfam=="binomial"|lfam=="poisson")&&object$dispersion>1)) {
           if (inherits(object,"mlm")) "Wilks" else "F" }
-            else "Chisq"
+    else "Chisq"
   }
   if (length(scope)==0) {
     scope <- if (add) terms2order(object) else drop.scope(object)
@@ -1040,9 +1048,9 @@ step <- function(object, ...)
   UseMethod("step")
 step.default <- get("step", pos="package:stats")
 
-step.regr <- function (object, scope, scale = 0, direction = c("both", "backward",
-    "forward"), trace = 1, keep = NULL, steps = 1000, k = 2,
-    ...)
+step.regr <- function (object, scope, scale = 0,
+  direction = c("both", "backward","forward"), trace = 1, keep = NULL,
+  steps = 1000, k = 2, ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -1089,7 +1097,7 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
         attr(aod, "heading") <- heading
         fit$anova <- aod
         fit
-    }
+      }
     ## end step.results
     Terms <- terms(object)
     object$call$formula <- object$formula <- Terms
@@ -1238,26 +1246,35 @@ step.regr <- function (object, scope, scale = 0, direction = c("both", "backward
     step.results(models = models[seq(nm)], fit, object, usingCp)
 }
 ## ==========================================================================
-terms2order <- function(object, squared = TRUE)
+terms2order <- function(object, squared = TRUE, interactions = TRUE)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 15 Oct 2009, 16:01
-  ltsq <- ""
+  ltadd <- NULL
   if (squared) {
 #    lvrs <- all.vars(formula(object)[-2])
-    ltl <- attr(object$terms, "term.labels")
+    if (!is.list(object)||length(lterms <- object$terms)==0)
+      stop("!terms2order! first argument has no 'terms' component")
+    ltl <- attr(lterms, "term.labels")
     lts <- c(grep("\\^",ltl),grep(":",ltl))
     if (length(lts)) ltl <- ltl[-lts]
     ltn <- ltl[attr(object$terms,"dataClasses")[ltl]=="numeric"]
-    ltsq <- if (length(ltn))
-        paste(paste(paste("I(", ltn,"^2)",sep=""), collapse="+"),"+")
+    if (length(ltn)) ltadd <- paste(paste("I(", ltn,"^2)",sep=""), collapse="+")
   }
-    lfad <- paste("~",ltsq,"(.)^2")
-##-     attr(terms(update.formula(object, lfad)), "term.labels")
-    update.formula(object, lfad)
+  if (interactions) {
+    ltint <- "(.)^2"
+    if (is.null(ltadd)) ltadd <- ltint else ltadd <- paste(ltadd, ltint, sep=" + ")
+  }
+  if (is.null(ltadd)) {
+    warning(":terms2order: nothing to add")
+    return(formula(object))
+  }
+  ltadd <- paste("~.+", ltadd)
+##-     attr(terms(update.formula(object, ltadd)), "term.labels")
+  update.formula(object, ltadd)
 }
 ## ==========================================================================
 fitted.regr <-
@@ -1318,17 +1335,16 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
             dispersion=object$dispersion^2, ... )
 }
 ## ==========================================================================
-extractAIC.regr <- function (fit, scale = 0, k = 2, ...)
-{  #  AIC, divided by n to allow for comparing models with different n
-  lres <- fit$residuals
-  if (is.null(lres)) {
-    lfit <- fit$fitted
-    fit$fitted.values <- nna(lfit)
-  } else  fit$residuals <- nna(lres)
-  class(fit) <- setdiff(class(fit),"regr")
-  rr <- extractAIC(fit, scale = scale, k = k, ...)
-  rr
-}
+##- extractAIC.regr <- function (fit, scale = 0, k = 2, ...)
+##- {  ##- #  AIC, divided by n to allow for comparing models with different n
+##- ##-   lres <- fit$residuals
+##- ##-   if (is.null(lres)) {
+##- ##-     lfit <- fit$fitted
+##- ##-     fit$fitted.values <- nna(lfit)
+##- ##-   } else  fit$residuals <- nna(lres)
+##-   class(fit) <- setdiff(class(fit),"regr")
+##-   extractAIC(fit, scale = scale, k = k, ...)
+##- }
 ## ==========================================================================
 vif.regr <- function(mod, cov, mmat)
 {
@@ -1952,7 +1968,7 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
       if (is.factor(ldv)) { # ---
         ldx <- factor(levels(ldv))
         lnl <- length(ldx)
-        ld <- lxm[1:lnl,]
+        ld <- lxm[1:lnl,,drop=FALSE]
         ld[,lv] <- ldx
         lx[,lv] <- factor(c(1:lnl,rep(NA,lnxc-lnl)),labels=levels(ldv))
         ##
@@ -2669,6 +2685,8 @@ function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
   lnaaction <- x$na.action
   x$na.action <- NULL
 ## family
+  if (inherits(x,"mulltinom"))
+    stop("!plot.regr! I do not know how to plot results of a mulitnomial regresseion")
   lfam <- x$distrname
   if (length(lfam)==0) lfam <- x$family$family
   if (is.null(lfam) || lfam=="" || is.na(lfam)) lfam <- "gaussian"
@@ -3304,7 +3322,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       }
     }
     ## smooth
-    if(do.smooth) {
+    if(do.smooth) { 
       lna <- (is.na(lxj)|is.na(lyj))
       lxj[lna] <- NA
       lio <- order(lxj)[1:sum(!lna)]
@@ -3511,7 +3529,7 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
     if (is.null(lfam)) lfam <- ""
     switch(lfam,
            binomial = {
-             if (NCOL(ly)==1 && length(unique(ly[[1]]))!=2) {
+             if (NCOL(ly)==1 && length(unique(ly))!=2) {
                warning(":simresiduals: binomial distribution with unsuitable response.\n",
                        "No residuals simulated")
                return(list(simres=numeric(0)))
@@ -4422,12 +4440,14 @@ showd <- function(data, first=3, nrow.=4, ncol.=NULL)
   if (length(ldoc)>0 && ldoc && length(tit(data))>0) {
     cat("tit: ",tit(data),"\n")
   }
-  if (length(dim(data))>0) {
-    cat("dim: ",dim(data),"\n")
-  }
+  lldim <- length(dim(data))
+  if (lldim>2) stop("!showd not yet programmed for arrays")
+  if (lldim>0) cat("dim: ",dim(data),"\n") else
+    if (is.factor(data)) data <- as.character(data)
   ldata <- cbind(data)
   l.nr <- nrow(ldata)
   l.nc <- ncol(ldata)
+  ## select columns
   l.ic <- if (length(ncol.)==0) 1:l.nc  else {
     if (length(ncol.)==1) {
       if (l.nc>ncol.)
@@ -4437,16 +4457,20 @@ showd <- function(data, first=3, nrow.=4, ncol.=NULL)
       if (length(lic)>0) lic else 1:l.nc
     }
   }
+  ## select rows
   if (l.nr<=nrow.+first)  l.dc <- format(ldata[,l.ic])  else {
     l.ir <- c(1:first,round(seq(first,l.nr,length=nrow.+1))[-1])
     l.ir <- unique(c(last(l.ir,-1),l.nr))
     l.dc <- data.frame(u.merge(format(ldata[l.ir,l.ic]),"",after=first),
                        stringsAsFactors=FALSE)
     names(l.dc) <- colnames(ldata)[l.ic]
-    if (length(lrn <- row.names(ldata))>0)
-      row.names(l.dc) <- c(lrn[1:first],"...", lrn[l.ir[-(1:first)]])
+    lrn <- row.names(ldata)
+    if (is.null(lrn)) lrn <- paste("r",1:l.nr,sep=".")
+    row.names(l.dc) <- c(lrn[1:first],"...", lrn[l.ir[-(1:first)]])
   }
+  ## was vector or array with only 1 column
   if (l.nc==1) {
+    if (lldim>0) cat("     transposed column\n")
     row.names(l.dc) <-
       format(rbind(row.names(l.dc),l.dc[,1]),justify="right")[1,]
     l.dc <- t(l.dc)
@@ -4555,7 +4579,8 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
         userOptions(list=UserDefault[names(UserDefault)%nin%names(UserOptions)])
       if (!is.character(default))
         stop("!userOptions! Unsuitable argument  default .")
-      return(userOptions(list=UserDefault[default[default%in%names(UserDefault)]]))
+      return(userOptions(list=UserDefault[
+                           default[default%in%names(UserDefault)]]))
     }
     lop <- c(list,list(...))
     ## show all options
@@ -4565,7 +4590,7 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     for (li in names(lop))
       UserOptions[li] <- list(lop[[li]])
     assign("UserOptions", UserOptions,pos=1)
-        ## assignInMyNamespace does not work 
+        ## assignInMyNamespace does not work
     invisible(lold)
   }
 ## -----------------------------------------------------
@@ -4579,10 +4604,22 @@ UserDefault <- UserOptions <-
 ##-     userOptions(default="unset")
 ## ===========================================================================
 last <-
-function(data,n = 1)
+function(data,n = NULL, ncol=NULL, drop=is.matrix(data))
 {
-  ldt <- length(data)
-  data[sign(n)*((ldt-abs(n)+1):ldt)]
+  ldim <- dim(data)
+  if (is.null(ldim)) {
+    if (is.null(n)) n <- 1
+    ldt <- length(data)
+    if (is.null(n)) n <- ldt
+    return(data[sign(n)*((ldt-abs(n)+1):ldt)])
+  }
+  if (length(ldim)!=2)
+    stop ("!last! not programmed for arrays of dimension >2")
+  if (is.null(n)&is.null(ncol)) n <- 1
+  if (is.null(n)) n <- ldim[1]
+  if (is.null(ncol)) ncol <- ldim[2]
+  data[sign(n)*((ldim[1]-abs(n)+1):ldim[1]),
+       sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## ==============================================================
 nainf.exclude <- function (object, ...)
@@ -5173,6 +5210,7 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     ...)
     ## copy of multinom from MASS. Argument x added by WSt
 {
+##  require(nnet)
     class.ind <- function(cl) {
         n <- length(cl)
         x <- matrix(0, n, length(levels(cl)))

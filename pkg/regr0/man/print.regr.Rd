@@ -6,7 +6,7 @@
   \code{\link{regr}(*)}.
 }
 \usage{
-\method{print}{regr}(x, correlation = FALSE, dummycoef = NULL,
+\method{print}{regr}(x, call=TRUE, correlation = FALSE, dummycoef = NULL,
       testcoefcol = getUserOption("regr.testcoefcol"),
       digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
@@ -16,6 +16,7 @@
   \item{x}{'regr' object}
   \item{correlation}{logical: should correlation among estimated
     coefficients be shown?}
+  \item{call}{logical: should the call to \code{regr} be shown?}
   \item{dummycoef}{logical: should the dummy coefficients for the
     factors be shown?}
   \item{testcoefcol}{columns of the coefficient table to be printed.

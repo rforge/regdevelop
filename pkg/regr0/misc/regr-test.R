@@ -7,7 +7,7 @@ load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.fossiles.rda")
-require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
 ##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
 ##- options(digits=3)
@@ -158,7 +158,7 @@ t.d <- d.babysurv
 t.r <- regr(Survival~.,data=t.d) # family=binomial
 t.rglm <- glm(Survival~.,data=t.d, family=binomial) 
 t.rs <- step(t.r, trace=F)  ## ???
-t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
+t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d)
 plot(r.babysurv,xplot=~Weight,cex=0.7,symbol.size=NULL,res.lim=c(-5,5))
 plot(r.babysurv,glm.restype="cond", ask=c.ask)
 
@@ -171,7 +171,8 @@ plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=T, ask=c.ask)
 t.d <- na.omit(t.d)
 t.r <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
 t.fit <- fitted(t.r)
-t.nsim <- 1000
+t.rs <- step(t.r, k=5)
+##- t.nsim <- 1000
 ##- t.sim <- rep(NA,t.nsim)
 ##- for (li in 1:t.nsim) {
 ##- t.d$Survival <- rbinom(nrow(t.d),1,t.fit)
@@ -388,7 +389,7 @@ t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1)
 t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
 showd(residuals(t.r))
 
-d.cheese <- read.table("/u/stahel/data/cheese.dat")
+## d.cheese <- read.table("/u/stahel/data/cheese.dat")
 t.d <- d.cheese
 dim(na.omit(t.d))
 t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
