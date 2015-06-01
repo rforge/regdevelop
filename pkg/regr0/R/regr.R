@@ -860,7 +860,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
   }
   ## error
   if (length(x$sigma) && !u.true(attr(x$sigma,"fixed")))
-    cat("St.dev.error: ", formatC(x$sigma, digits = digits),
+    cat("\nSt.dev.error: ", formatC(x$sigma, digits = digits),
         "  on", rdf, "degrees of freedom\n")
   if (length(x$r.squared)&&!is.na(x$r.squared))
     cat("Multiple R^2: ", formatC(x$r.squared, digits = digits),
@@ -917,30 +917,55 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
           if (length(mt)>0) {
             cat("\nCoefficients for factors:\n")
             print(mt) }
-        } else  cat("\n")
+        } ## else  cat("\n")
       }}
   }
   ## ---- correlation
   correl <- x$correlation
-  if (correlation && length(correl)>0) {
+  if (length(correl)>0 && correlation) {
     p <- NCOL(correl)
     if (p > 1) {
       cat("\nCorrelation of Coefficients:\n")
-      if (symbolic.cor)
-        print(symnum(correl)[-1, -p])
-      else {
+      if (symbolic.cor) {
+        symbc <- symnum(correl, symbols=c(" ", ".", ",", "+", "*", "H"))
+        symbl <- attr(symbc,"legend")
+        attr(symbc,"legend") <- NULL
+        print(symbc)
+        cat("\nSymbols:  ",symbl,"\n")
+      } else {
         correl[!lower.tri(correl)] <- NA
-        print(correl[-1, -p, drop = FALSE], digits = digits,
-              na = "")
+        print(correl[-1, -p, drop = FALSE], digits = digits, na = "")
       }
     }
   }
-  cat("\n")
+##  cat("\n")
   invisible(x)
 }
 ## ==========================================================================
-summary.regr <- function(object, dispersion=NULL, ...)  object
+summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
+confint.regr <- function(fitted, ...)
+{
+if (!inherits(fitted, c("glm","nls"))) {
+    class(fitted) <- class(fitted)[-1]
+    return(confint(fitted, ...))
+}
+if (inherits(fitted, "glm")) {
+      ## confint needs $coefficients from object (a vector) as well as
+      ## from its sumary (a matrix containing 'Std. Error"
+  summary <- function(fitted) 
+    list(coefficients = cbind(fitted$coefficients,
+                                 "Std. Error"=sqrt(diag(t.r$covariance))) )
+  class(fitted) <- class(fitted)[-1]
+} else { ## workaround: call nls again, since  profile.nls  is difficult to adapt...
+  call <- fitted$call
+  call$start <- fitted$coefficients
+  call$nonlinear <- NULL
+  call[[1]] <- as.name("nls")
+  fitted <- eval(call, parent.frame())
+}
+  confint(fitted, ...)
+}
 ## ==========================================================================
 drop1.regr <-
   function (object, scope=NULL, scale = 0, test = NULL, k = 2,
@@ -4208,6 +4233,198 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   "plmatrix: done"
 }
 
+## ====================================================================
+plmbox <- function(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
+                   outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
+                   h0=NULL, adj=0.5, extquant=TRUE, 
+                   widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
+                   colors=c(box="lightblue2",med="blue",na="gray90"))
+{
+  ## Purpose:   multi-boxplot
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 14 Dec 2013, 10:09
+##-   if (is.null(col))
+##-     col <- "gray70"
+  f.box <- function(wid, quant, col) {
+    if (wid>lwmax) {
+      polygon(at+lwmax*lpos, quant, col="black")
+      if (is.na(col)||col==0) col="white"
+      polygon(at+lpos*lwmax^2/wid, quant, col=col)
+    }  else 
+    if(wid>0) polygon(at+wid*lpos, quant, col=col)
+  }
+  if (length(x)==0) {
+    warning(":plmbox: no data")
+    return()
+  }
+  stopifnot(length(width)==1,length(wfac)<=1)
+  lprobs <- if (all(probs<=0.5))  c(probs,1-probs)  else c(probs)
+  lprobs <- sort(unique(lprobs))
+#  lprb <- c(-rev(lprobs),0,lprobs)/2+0.5
+  colors <- as.list(colors)
+  box.col <- colors[["box"]]
+  if (length(box.col)==1)
+    box.col <- ifelse(0.25<=last(lprobs,-1) & lprobs[-1]<=0.75, box.col, NA)
+  ## values for degenerate case
+  lfac <- if (is.null(wfac)) width*mad(x)/dnorm(0) else wfac*length(x)
+  lq <- widid <- NULL
+  lmed <- median(x, na.rm=TRUE)
+  lwmed <- width
+  lhtot <- diff(range(x, na.rm=TRUE))
+  if (lhtot>0) { ## non-degenerate
+  if (is.null(h0)) h0 <- lhtot*0.02
+  lq <- quinterpol(x, probs=lprobs, extend=extquant)
+  loutl <- x[x<min(lq)|x>max(lq)]
+  ## ---
+  lwid <- lfac*diff(lprobs)/pmax(diff(lq),h0)
+  lwmax <- widthfac["max"]*lfac*0.5/IQR(x, na.rm=TRUE)
+  lwmed <- max(widthfac["med"]*min(lwmax,max(nainf.exclude(lwid))),
+               widthfac["medmin"],na.rm=TRUE)
+  lpos <- c(-adj,-adj,1-adj,1-adj)
+  lwoutl <- widthfac["outl"]
+  if (is.na(lwoutl)) lwoutl <- 0.1*lwmax
+  ## ---
+  for (li in 1:(length(lprobs)-1)) 
+      f.box(lwid[li], lq[li+c(0,1,1,0)], box.col[li])
+  if (!is.null(na.pos)) {
+      lmna <- mean(is.na(x))
+      if (lmna) {
+          ldna <- diff(na.pos)
+          if (length(ldna)==0 || is.na(ldna) || ldna==0)
+              stop("!plmbox! argument 'na.pos' not suitable")
+          lwidna <- lfac*lmna/abs(ldna)
+          f.box(lwidna, na.pos[c(1,2,2,1)], colors[["na"]])
+      }
+  }
+  lines(c(at,at), # +linepos*0.01*diff(par("usr")[1:2])*(0.5-adj),
+        range(x, na.rm=TRUE), lwd=2)
+  if (outliers&&length(loutl)) {
+      lat <- rep(at,length(loutl))
+      segments(lat-lwoutl*adj, loutl, lat+lwoutl*(1-adj), loutl)
+  }
+}
+  ## median
+  lines(at+lwmed*c(-adj,1-adj), rep(lmed,2), col=colors[["med"]], lwd=3)
+##
+  invisible(structure(lfac/length(x), attributes=list(q=lq,width=lwid)))
+}
+## ====================================================================
+plmboxes <- function(formula, data, width=1, at=NULL, 
+    probs=c(0.05,0.1,0.25,0.50,0.75,1)/2, outliers=TRUE, na=FALSE, 
+    refline=NULL, add=FALSE, extend=1, xlim=NULL, ylim=NULL,
+    axes=TRUE, xlab=NULL, ylab=NULL, labelsvert=FALSE, mar=NULL,
+    widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
+    colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
+{
+  ## Purpose:    multibox plot
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 14 Dec 2013, 23:38
+##  widthfac <- 1
+  f.ylim <- function(ylm, ext)
+    c((1+ext)*ylm[1]-ext*ylm[2], (1+ext)*ylm[2]-ext*ylm[1])
+  formula <- as.formula(formula)
+  if (length(formula)<3) stop("!plmboxes! formula must have left hand side")  
+  ## widths
+  lwfac <- c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003)
+  if (is.null(names(widthfac)))
+      names(widthfac) <- names(lwfac)[1:length(widthfac)]
+  if (any(names(widthfac)%nin%names(lwfac)))
+    warning(":plmboxes: argument 'widthfac' has unsuitable names") else
+    lwfac[names(widthfac)] <- widthfac
+  ## colors
+  lcol <- list(box="lightblue",med="blue",na="gray90",refline="magenta")
+  if (is.null(names(colors))) names(colors) <- names(lcol)[1:length(colors)]
+  colors <- as.list(colors)
+  if (any(names(colors)%nin%names(lcol)))
+    warning(":plmboxes: argument 'colors' has unsuitable names") else
+    lcol[names(colors)] <- colors
+  ## data
+  if (length(dim(data))!=2||nrow(data)==0)
+    stop("!plmboxes! Argument 'data' has dimension   ",
+         paste(dim(data),colapse=" ")) 
+  ldt <- model.frame(formula, data, na.action=na.pass)
+  ly <- ldt[,1]
+  ##
+  if (length(formula[[3]])>1 && as.character(formula[[3]][[2]])=="1") 
+    ldt <- data.frame(ldt[,1],0,ldt[,2])
+  lx <- ldt[,2] <- factor(ldt[,2]) # unused levels are dropped
+  lxx <- ldt[,-1]
+  llr <- ncol(ldt)>2
+  llist <- split(ly,lxx)
+  llev <- levels(lx)
+  lng <- length(llev)
+  lnn <- sapply(llist,length)
+  lsd <- mean(sapply(llist,mad,na.rm=TRUE),na.rm=TRUE)
+  width <- rep(width, length=lng)
+  lfac <- width*lsd/(max(lnn)*(1+llr))
+#  print(c(lsd=lsd,lnn=max(lnn),lfac=lfac))
+  if (is.null(xlab)||is.na(xlab)) {
+      xlab <- as.character(formula[[3]])
+      if (length(xlab)>1) xlab <- xlab[2]
+      if (xlab=="1") xlab <- ""
+  }
+  if (is.null(ylab)) ylab <- as.character(formula[[2]])
+  if (is.null(at)) at <- 1:lng else
+    if (length(at)!=lng) {
+      warning(":plmboxes: 'x' has wrong length")
+      at <- at[1:lng] ## may produce NAs
+  }
+  ## graphics
+  oldpar <- par(mar=mar)
+  if (is.null(na)||is.na(na)||(is.logical(na)&&!na)) na.pos <- NULL else 
+      if (is.logical(na))
+          na.pos <- c(min(ly, na.rm=TRUE)*(1-0.3)-0.3*max(ly, na.rm=TRUE))
+  if (length(na.pos)==1)
+      na.pos <- na.pos+ 0.03*diff(range(ly,na.rm=TRUE))*c(-1,1)
+  if (!add) {
+  if (is.null(mar)) mar <-
+      c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
+  lxlim <- if(is.null(xlim))
+    range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5 else xlim
+  lext <- 0.03+0.04*extend
+  lylim <- if(is.null(ylim))
+    f.ylim(range(ly,na.pos, na.rm=TRUE),lext) else ylim
+  plot(lxlim, lylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
+  }  ##  if (!add)
+  if (!is.null(refline))
+    abline(h=refline, col=lcol[["refline"]], lty=3, lwd=1.5)
+  ## ---
+  lusr <- diff(par("usr")[1:2])
+  lsep <- lwfac["sep"]*llr*lusr
+  lwoutl <- lwfac["outl"]
+  if (is.na(lwoutl)) lwoutl <- 0.05*lusr
+  lwfac["outl"] <- lwoutl/lng
+  if (llr) lwfac[c("medmin","outl")] <- lwfac[c("medmin","outl")] /2
+  for (li in 1:lng) {
+    if (is.na(at[li])) next
+    if (length(lli <- llist[[li]])) 
+    plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
+           adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE, 
+           widthfac=lwfac, colors=lcol)
+    if (llr) 
+      if (length(llir <- llist[[li+lng]]))
+        plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
+               adj=0, na.pos=na.pos, extquant=TRUE, 
+               widthfac=lwfac, colors=lcol)
+  }
+  if (axes&!add) {
+    axis(1,at=at,labels=llev,las=1+2*labelsvert)
+    lat <- pretty(f.ylim(range(ly, na.rm=TRUE), lext)) #, n=7,n.min=5
+    if(!is.null(na.pos)) {
+        lat <- lat[lat>max(na.pos)]
+        mtext("NA",2,1,at=mean(na.pos),las=1)
+    }
+    axis(2, at=lat)
+    box()
+  }
+  mtext(xlab,1,par("mar")[1]-1)
+  par(oldpar)
+  invisible(at)
+}
 ## ===========================================================================
 plres2x <-
   function(formula=NULL, reg=NULL, data=reg, restricted=NULL, size = 0,
@@ -4558,6 +4775,34 @@ stamp <- function(sure=TRUE, outer.margin = NULL,
        || (is.logical(outer.margin)&&outer.margin) ))  )
        mtext(t.txt, 4, cex = 0.6, adj = 0, outer = outer.margin, ...)
   invisible(t.txt)
+}
+## =======================================================================
+quinterpol <- function(x, probs = c(0.25,0.5,0.75), extend=TRUE)
+{
+  ## Purpose:
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 15 Nov 2014, 16:04
+  lx <- x[!is.na(x)]
+  ltb <- table(lx)
+  ln <- length(lx)
+  lnn <- length(ltb)
+  ln1 <- lnn+1
+  lxx <- as.numeric(names(ltb))
+  lxm <- (lxx[-1]+lxx[-lnn])/2
+  lx0 <- if(extend) 2*lxx[1]-lxm[1] else lxx[1]
+  lx1 <- if(extend) 2*lxx[lnn]-lxm[lnn-1] else lxx[lnn]
+  lxe <- c(rbind(c(lx0,lxm),lxx),lx1)
+  lp <- c(0,cumsum(ltb)/ln)
+  lpp <- (lp[-1]+lp[-ln1])/2
+  lpe <- c(rbind(lp,c(lpp,1)))  ## last element (1) is ineffective
+  ld <- outer(probs,lpe,"-")
+  li <- apply(ld>0,1,sum)
+  lii <- 1:length(probs)
+  ldd <- cbind(ld[cbind(lii,li)],ld[cbind(lii,li+1)])
+  lh <- ldd[,1]/(ldd[,1]-ldd[,2])
+  lxe[li]*(1-lh) + lxe[li+1]*lh
 }
 ## ===========================================================================
 getUserOption <- function (x, default = NULL)

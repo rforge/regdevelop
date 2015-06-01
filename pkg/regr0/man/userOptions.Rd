@@ -1,6 +1,7 @@
 \name{userOptions}
 \alias{userOptions}
 \alias{getUserOption}
+\alias{UserOptions}
 \alias{UserDefault}
 \title{Set and Get User "Session" Options that influence "regr0"s behavior}
 \description{
@@ -10,6 +11,7 @@
 \usage{
 userOptions  (x=NULL, default=NULL, list=NULL, ...)
 getUserOption(x, default = NULL)
+UserOptions
 UserDefault
 }
 \arguments{

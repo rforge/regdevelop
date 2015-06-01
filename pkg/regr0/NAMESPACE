@@ -60,7 +60,8 @@ export(asinperc,
        ## u.true,
        ## vif.regr,
        warn, xdistResdiff,
-       xdistResscale
+       xdistResscale,
+       plmbox, plmboxes, quinterpol
        )
 
 S3method(add1, default)

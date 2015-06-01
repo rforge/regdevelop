@@ -1,5 +1,6 @@
 \name{regr}
 \alias{regr}
+\alias{summary.regr}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{ Fitting Regression Models }
 \description{
@@ -17,6 +18,8 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   robust = FALSE, method = NULL, init.reg = "f.ltsreg",
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE, ...)
+
+\method{summary}{regr}(object, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -74,6 +77,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   \item{vif}{ a logical value indicating whether the collinearity
     measure R2.j ahould be calculated }
   \item{\dots}{ other argument to be passed to the fitting function }
+  \item{object}{'summary.regr' simply returns its only argument object.}
 }
 % \details{}
 \value{
@@ -107,6 +111,9 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   with default \code{method="MM"}.
   Any further elements of \code{method} will be passed on to the methods
   argument of the called function.
+
+  The 'summary' generic function does nothing to 'regr' objects, since
+  all useful information is already collected in the object.
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}

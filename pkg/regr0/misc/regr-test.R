@@ -265,8 +265,7 @@ t.cl <- unname(coefficients(r.lin))
 ## !!! termtable
 t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=T,
              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
-##- t.r <- nls(q~theta1*exp(-theta2*time), data=t.d, 
-##-              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
+##- t.r <- nls(q~theta1*exp(-theta2*time), data=t.d, start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
 example(nls)
 t.d <- Treated
 t.r <- regr(~weighted.MM(rate, conc, Vm, K), data = t.d, nonlinear=T,
@@ -403,6 +402,7 @@ t.rr <- residuals(t.r)
 
 add1(t.r)
 ## margEffTobit(t.r)
+confint(t.r)
 
 t.rr <- residuals(t.r)
 t.i <- which(t.rr[,"prob"]>0)
@@ -418,3 +418,32 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
 ##- t.r <- rq(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
 ##-           tau=0.7)
 ##- drop1(t.r, test="Chisq")
+## -----------------------------------------------------------
+plmboxes(tremor~location, data=d.blast)
+plmboxes(tremor~location+I(charge>5), data=d.blast)
+plmboxes(tremor~1+location, data=d.blast)
+plmboxes(tremor~location, data=d.blast, x=c(1,3,4,7,NA,10,11,12),width=c(1,0.5))
+
+plmboxes(len~dose+supp, data=ToothGrowth, colors=c(med="red"),
+         probs=c(0.1,0.25))
+boxplot(len~dose+supp, data=ToothGrowth)
+
+     utils::data(anorexia, package = "MASS")
+plmboxes( I(Postwt-Prewt)~Treat , data=anorexia)
+t.wtmed <- median(anorexia$Prewt)
+d.anorexia <- anorexia
+d.anorexia[sample(nrow(d.anorexia),5),"Postwt"] <- NA
+plmboxes( I(Postwt-Prewt)~Treat + I(Prewt>t.wtmed) , data=d.anorexia,
+         probs=c(0.1,0.25), na=T)
+
+
+plot( I(Postwt-Prewt)~as.numeric(Treat), data=anorexia)
+
+plmboxes(Sepal.Length~Species, data=iris)
+
+set.seed(2)
+t.x <- sort(round(2*rchisq(20,2)))
+table(t.x)
+t.p <- ppoints(100)
+plot(quinterpol(t.x,t.p),t.p, type="l")
+lines(c(0,t.x), 0:length(t.x)/length(t.x) , type="s")
