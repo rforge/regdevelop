@@ -180,6 +180,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     lreg$stres <- lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
+  if (class(lreg)=="survreg") lreg$n.obs <- length(lreg$linear.predictor)
   ## misc
   if (is.null(x) || !x) lreg$x <- NULL
 ##-   class(lreg) <- if (class(lreg)[1]=="try-error") class(lreg)[-1] else
@@ -4234,9 +4235,8 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 }
 
 ## ====================================================================
-plmbox <- function(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
-                   outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
-                   h0=NULL, adj=0.5, extquant=TRUE, 
+plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
+                   width=1, wfac=NULL, h0=NULL, adj=0.5, extquant=TRUE, 
                    widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
                    colors=c(box="lightblue2",med="blue",na="gray90"))
 {
@@ -4260,6 +4260,9 @@ plmbox <- function(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
     return()
   }
   stopifnot(length(width)==1,length(wfac)<=1)
+  if (is.null(probs))
+      probs <- if (sum(!is.na(ly))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
+               c(0.05,0.1,0.25,0.50,0.75,1)/2
   lprobs <- if (all(probs<=0.5))  c(probs,1-probs)  else c(probs)
   lprobs <- sort(unique(lprobs))
 #  lprb <- c(-rev(lprobs),0,lprobs)/2+0.5
@@ -4312,7 +4315,7 @@ plmbox <- function(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
 }
 ## ====================================================================
 plmboxes <- function(formula, data, width=1, at=NULL, 
-    probs=c(0.05,0.1,0.25,0.50,0.75,1)/2, outliers=TRUE, na=FALSE, 
+    probs=NULL, outliers=TRUE, na=FALSE, 
     refline=NULL, add=FALSE, extend=1, xlim=NULL, ylim=NULL,
     axes=TRUE, xlab=NULL, ylab=NULL, labelsvert=FALSE, mar=NULL,
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
@@ -4373,6 +4376,9 @@ plmboxes <- function(formula, data, width=1, at=NULL,
       warning(":plmboxes: 'x' has wrong length")
       at <- at[1:lng] ## may produce NAs
   }
+  if (is.null(probs))
+      probs <- if (sum(!is.na(ly))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
+               c(0.05,0.1,0.25,0.50,0.75,1)/2
   ## graphics
   oldpar <- par(mar=mar)
   if (is.null(na)||is.na(na)||(is.logical(na)&&!na)) na.pos <- NULL else 

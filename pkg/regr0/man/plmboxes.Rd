@@ -14,7 +14,7 @@ Multibox plots
 }
 \usage{
 plmboxes(formula, data, width=1, at=NULL,
-    probs=c(0.05,0.1,0.25,0.50,0.75,1)/2, outliers=TRUE, na=FALSE,
+    probs=NULL, outliers=TRUE, na=FALSE,
     refline=NULL, add=FALSE, extend=1, xlim=NULL, ylim=NULL,
     axes=TRUE, xlab=NULL, ylab=NULL, labelsvert=FALSE, mar=NULL,
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
@@ -47,9 +47,11 @@ plmbox(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
 }
 \item{probs}{probability values for selecting the quantiles.
   If all 'probs' are <=0.5, they will be mirrored at 0.5 for
-  'plmboxes'.
+  'plmboxes'. The default is c(0.05,0.25,0.5) if the average number of
+  data per group (for 'plmboxes', or the number of data, for 'plmbox')
+  is less than 20, c(0.025,0.05,0.125,0.25,0.375,0.5), otherwise. 
 }
-  \item{outliers}{logical: should outliers be marked?
+\item{outliers}{logical: should outliers be marked?
 }
 \item{na, na.pos}{if 'na' is not NULL, NA values will be represented by
   a box.

@@ -6,7 +6,11 @@ load("/u/stahel/data/regdata")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
-load("/u/stahel/R/regdevelop/pkg/regr0/data/d.fossiles.rda")
+install.packages("regr0", repos="http://R-forge.R-project.org")
+install.packages("~/wwwcopy/regression/regr0_1.0-4.tar.gz")
+install.packages("http://stat.ethz.ch/~stahel/regression/regr0_1.0-4.tar.gz")
+
+
 require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
 ##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
@@ -390,6 +394,8 @@ showd(residuals(t.r))
 
 ## d.cheese <- read.table("/u/stahel/data/cheese.dat")
 t.d <- d.cheese
+t.d$Anzahl[1] <- NA
+t.d$Bakt[2] <- NA
 dim(na.omit(t.d))
 t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
 t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
@@ -401,6 +407,7 @@ t.rp <- predict(t.r)
 t.rr <- residuals(t.r)
 
 add1(t.r)
+step(t.r)
 ## margEffTobit(t.r)
 confint(t.r)
 

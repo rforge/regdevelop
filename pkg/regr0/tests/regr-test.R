@@ -167,14 +167,24 @@ plresx(r.sr, vars="sizej")
 ## d.cmbscores <- t.d
 ## ===================================================================
 ## Tobit
-
-##- t.d <- d.cmbscores
-##- dim(na.omit(t.d))
-##- t.d$y <- Tobit(t.d$EVAPOR, 10, log=T)
-##- t.r <- regr(y~Temp+Time+lWindspeed, data=t.d)
-
 require(survival)
-
+##- t.d <- d.cheese
+##- t.d$Anzahl[1] <- NA
+##- t.d$Bakt[2] <- NA
+##- dim(na.omit(t.d))
+##- t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
+##- t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
+##- t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d,
+##-             family="gaussian")
+##- plot(t.r)
+##- t.rf <- fitted(t.r)
+##- t.rp <- predict(t.r)
+##- t.rr <- residuals(t.r)
+##- 
+##- add1(t.r)
+##- step(t.r)
+##- confint(t.r)
+## -----------------------------------------------------
 ## last
 df <- data.frame(X=c(2,5,3,8), F=LETTERS[1:4], G=c(TRUE,FALSE,FALSE,TRUE))
 last(df,3,-2)
