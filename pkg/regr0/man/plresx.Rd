@@ -9,37 +9,29 @@
   response variable.  
 }
 \usage{
-plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
-  glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
-  vars = NULL, sequence = FALSE, se = FALSE,
-  addcomp = FALSE, rug = FALSE, jitter = NULL, reflines = NULL, 
-  smooth = TRUE, smooth.par = NA, smooth.iter = NULL, smooth.sim=19,
-  nxsmooth = 51, smooth.group=NULL, smooth.col=NULL, smooth.legend=TRUE, 
-  lty = c(1,2,5,3,6,4,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
-  colors = getUserOption("colors.ra"), pch = NULL, col = NULL,
-  xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
-  ylim = TRUE, ylimfac = 4, ylimext = 0.1, yaxp = NULL, jitterbinary=TRUE, 
-  cex = par("cex"), wsymbols = NULL, symbol.size = NULL,
-  condprobrange=c(0.05,0.8),
-  ask = NULL, multnrows = 0, multncols = 0, ...)
+plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
+            se = FALSE, partial.resid = TRUE, addcomp = FALSE, 
+            glm.restype = "deviance", condprobrange=c(0.05,0.8),            
+            weights = NULL, wsymbols=NULL, symbol.size=NULL,
+            markprop=NULL, lab = NULL, cex.lab = 0.7,
+            reflines = TRUE, mbox = TRUE, jitter=NULL, jitterbinary=TRUE,
+            smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
+            smooth.sim=19, nxsmooth=51, smooth.group=NULL,
+            smooth.col=NULL, smooth.legend=TRUE, 
+            multnrows = 0, multncols = 0, 
+            lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
+            colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
+            rug = FALSE, 
+            main = NULL, cex.title = NULL,  xlabs = NULL, ylabs = NULL, 
+            ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, 
+            cex = par("cex"), ask = NULL,
+            ...)
 }
 \arguments{
   \item{x}{fitted regression object, result of calling \code{link{regr}}}
   \item{data}{data set. defaults to the data set used when calling \code{regr}}
   \item{resid}{residuals. If not \code{NULL}, these will be used instead
-  of \code{residuals(x)}}
-  \item{partial.resid}{if TRUE (default),
-    residuals for observations will be displayed}
-  \item{glm.restype}{type of residuals to be plotted in case of a glm
-    model. In addition to those allowed in \code{residuals()} for
-    \code{glm} objects, type \code{cond.quant} is possible for
-    (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
-    an explanation.}
-  \item{weights}{weights to be used for smoothing as well as
-    plotting of observations without label}
-  \item{lab}{character string labels to be used for displaying observed
-    residuals}
-  \item{cex.lab}{character expansion for labels}
+    of \code{residuals(x)}}
   \item{vars}{variables against which the residuals shall be plotted.
     Defaults to the variables contained in the formula of \code{object}.
     \code{vars} can be a formula (of which all variables on the right
@@ -48,13 +40,33 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{sequence}{if TRUE, the residuals are also plotted against their
     sequence number}
   \item{se}{if TRUE, standard errors of the fit are plotted}
+  \item{partial.resid}{if TRUE (default),
+    residuals for observations will be displayed}
   \item{addcomp}{if TRUE, the component effect is added to the residuals
-  as is common for a "partial residual plot"}
-  \item{rug}{if TRUE, the "rug" is displayed. It consists of tick marks
-    for the observed values.}
-  \item{jitter}{amount of jitter to be added for displaying factors}
+    as is common for a "partial residual plot"}
+  \item{glm.restype}{type of residuals to be plotted in case of a glm
+    model. In addition to those allowed in \code{residuals()} for
+    \code{glm} objects, type \code{cond.quant} is possible for
+    (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
+    an explanation.}
+  \item{condprobrange}{if conditional probabilities are shown by bars:
+    show only those that are contained in \code{condprobrange}
+    (vector of length 2)}
+  \item{weights}{weights to be used for smoothing as well as
+    plotting of observations without label}
+  \item{wsymbols}{if TRUE, weights are used as symbol size}
+  \item{symbol.size}{maximal symbol size, relative to \code{0.02*par("pin")[1]}}
+  \item{markprop}{proportion of extreme residuals to be labeled}
+  \item{lab}{character string labels to be used for displaying observed
+    residuals}
+  \item{cex.lab}{character expansion for labels}
   \item{reflines}{logical: Should reference lines be added to the plots
     of residuals on x? Default is TRUE if available.}
+  \item{mbox}{For plotting residuals versus factors, should
+    \code{\link{plmboxes}} be used?}
+  \item{jitter}{amount of jitter to be added for displaying factors}
+  \item{jitterbinary}{logical: should variables with only 2 distinct values be
+    treated as factors, i.e., jittered?}
   \item{smooth}{if TRUE, a smooth line will be fitted to each plot.
     By default, \code{\link{loess}} is used. Alternatively,
     another smoothing function can be given as argument \code{smooth}}
@@ -74,6 +86,8 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   \item{smooth.col}{colors to be used for the different groups}
   \item{smooth.legend}{if a legend for the groups is desired, its
     position should be given here}
+  \item{multnrows, multncols}{number of rows and columns for multiple
+    frames in case of multivatiate residuals}
   \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
     \describe{
       \item{[1] }{observations (only \code{colors[1]} matters);}
@@ -96,28 +110,21 @@ plresx(x, data = NULL, resid = NULL, partial.resid = TRUE,
   }
   \item{pch}{plotting character to use for unlabeled points}
   \item{col}{color(s) to use for points}
+  \item{rug}{if TRUE, the "rug" is displayed. It consists of tick marks
+    for the observed values.}
+  \item{main}{main title}
+  \item{cex.title}{character expansion for main title}
   \item{xlabs}{labels of x variables to be used instead of those
     given by \code{vars}}
   \item{ylabs}{label for residuals}
-  \item{main}{main title}
-  \item{cex.title}{character expansion for main title}
   \item{ylim}{if TRUE, the range of the y axis will be restricted by
     calling \code{\link{robrange}}}
   \item{ylimfac}{argument passed to \code{robrange} if selected}
   \item{ylimext}{argument passed to \code{plcoord}}
   \item{yaxp}{axis parameters used for residuals, passed to \code{plot},
     see \code{?par}.}
-  \item{jitterbinary}{logical: should variables with only 2 distinct values be
-    treated as factors, i.e., jittered?}
   \item{cex}{character expansion}
-  \item{wsymbols}{if TRUE, weights are used as symbol size}
-  \item{symbol.size}{maximal symbol size, relative to \code{0.02*par("pin")[1]}}
-  \item{condprobrange}{if conditional probabilities are shown by bars:
-    show only those that are contained in \code{condprobrange}
-    (vector of length 2)}
   \item{ask}{as in \code{\link{par}}}
-  \item{multnrows, multncols}{number of rows and columns for multiple
-    frames in case of multivatiate residuals}
   \item{\ldots}{further arguments passed to \code{plot}}
 }
 \details{

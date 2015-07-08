@@ -418,6 +418,14 @@ t.i <- t.i[t.o]
 matplot(t.rr[t.i,"fit"],t.rr[t.i,c(1:3)],type="l")
 t.rr[t.i,"fit"]
 rr <- t.rr[t.i,]
+
+example(survreg)
+data("tobin", package="survival")
+Tobit(tobin$durable, log=T)
+t.r <- regr(Tobit(durable) ~ age + quant, data=tobin)
+plot(t.r)
+t.r <- regr(Tobit(durable, log=T) ~ age + quant, data=tobin)
+plot(t.r)
 ## ----------------------------------------------------------
 ## quantile regr
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,

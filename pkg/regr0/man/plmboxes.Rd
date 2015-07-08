@@ -20,8 +20,7 @@ plmboxes(formula, data, width=1, at=NULL,
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
     colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
 
-plmbox(x, at=0, probs=c(0.05,0.1,0.25,0.50,0.75,1)/2,
-    outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
+plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
     h0=NULL, adj=0.5, extquant=TRUE, 
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
     colors=c(box="lightblue2",med="blue",na="gray90"))

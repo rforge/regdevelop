@@ -13,24 +13,23 @@
   These plots are adjusted to the type of regression model.
 }
 \usage{
-\method{plot}{regr}(x, data = NULL, markprop = NULL, lab = NULL, cex.lab = 0.7,
-  mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
-  oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL, 
-  multnrows = 0, multncols = 0,
-  lty = c(1, 2, 5, 3, 4, 6, 1, 1), lwd = c(1, 1, 2, 1, 1.5, 1, 1, 1),
-  colors = getUserOption("colors.ra"), pch = NULL, col = NULL,
-  main = NULL, cex.title = NULL,
-  wsymbols = NULL, symbol.size = NULL,
-  smooth = TRUE, smooth.par = NA, smooth.iter = NULL, smooth.sim = 19,
-  nxsmooth = 51,
-  plotselect = NULL, 
-  weights = NULL, leverage.cooklim = 1:2,
-  reslim = TRUE, reslimfac=4, reslimext=0.1,
-  yaxp=NULL, resaxp=NULL, stresaxp=NULL,
-  ylim = TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE, 
-  glm.restype = "deviance", condprobrange=c(0.05,0.8),
-  sequence = FALSE, xplot = TRUE, x.se = FALSE, x.smooth = smooth,
-  addcomp=FALSE, ...)
+\method{plot}{regr}(x, data=NULL, plotselect = NULL, sequence=FALSE,
+         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
+         condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
+         weights = NULL, wsymbols=NULL, symbol.size=NULL,
+         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = TRUE, jitterbinary=TRUE,
+         smooth = TRUE, x.smooth = smooth,
+         smooth.par=NA, smooth.iter=NULL, smooth.sim=19, nxsmooth=51,
+         multnrows = 0, multncols=0,
+         lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
+         colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
+         main = NULL, cex.title = NULL,
+         reslim = TRUE, reslimfac=4.0, reslimext=0.1, 
+         resaxp=NULL, stresaxp=NULL, 
+         ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
+         mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
+         oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
+         ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,18 +37,59 @@
     object (result of a call to \code{regr}). Thiw iw the only argument
     that is needed. All others have useful defaults.}
   \item{data}{data set where explanatory variables are found}
+  \item{plotselect}{which plots should be shown? See Details}
+  \item{sequence}{logical: should residuals  be plotted versus sequence?}
+  \item{xplot}{if TRUE, residuals will be plotted versus all (raw)
+    explanatory variables in the model (by calling \code{plresx})} 
+  \item{x.se}{logical: Should confidence bands be drawn in plot of residuals
+    versus explanatory variables?}
+  \item{addcomp}{ logical: should component effects be added to
+    residuals for residuals versus input variables plots? }
+  \item{glm.restype}{type of residuals to be used for glm model.
+    In addition to those allowed in \code{residuals()} for
+    \code{glm} objects, type \code{cond.quant} is possible for
+    (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
+    an explanation.}
+  \item{condprobrange}{if conditional probabilities are shown by
+    vertical bars:
+    show only those that are contained in \code{condprobrange}
+    (vector of length 2)}
+  \item{leverage.cooklim}{levels of Cook distance for which contours are
+    plotted in the leverage plot}
+  \item{weights}{if TRUE, residuals will be plotted versus
+    \code{object$weights}. Alternatively, a vector of weights can be specified}
+  \item{wsymbols}{if TRUE, points are displayed by a bubble whose size
+    indicates the weight as given in \code{object$weights}.
+    If it is a vector of appropriate size, it will be used to determine
+    the sizes of such bubbles.}
+  \item{symbol.size}{determines the size of weight symbols}
   \item{markprop}{proportion of extreme residuals to be labeled}
   \item{lab}{labels of observations used to identify them}
   \item{cex.lab}{character size for lab. If the length is $>1$, the
     second element determines the size of non-labeled points,
     otherwise, their size is adjusted to the number of points
     }
-  \item{mf}{vector of 2 elements, indicating the number of rows and
-    columns of panels on each plot page.
-    Defaults to \code{c(2,2)}, except for multivariate models, where
-    it adjusts to the number of target variables}
-  \item{mfcol}{if TRUE, the panel will be filled columnwise}
-  \item{mar, mgp, oma, cex, ask}{see \code{?par}}
+  \item{mbox}{For plotting residuals versus factors, should
+    \code{\link{plmboxes}} be used?}
+  \item{jitterbinary}{logical: should variables with only 2 distinct values be
+    treated as factors, i.e., jittered?}
+  \item{smooth}{if TRUE, smooths are added to the plots where
+    appropriate. If it is a function, it is assumed to define the smooths.
+  }
+  \item{x.smooth}{like \code{smooth}, for the latter plots}
+%%  \item{smooth.rob}{if TRUE, smooth will be done robustly.
+%%    Default is FALSE for binomial or multinomial regression.}
+  \item{smooth.par}{argument to the smooth function. In case of default
+    smooth function, it is the argument \code{span} of \code{loess}}
+  \item{smooth.iter}{if the loess smooth is used,
+    this argument controls robustness of smooth. If \code{==0}, least
+    squares is used, otherwise, robust smoothing is,
+    \code{smooth.iter} being the maximal number of iterations.
+    Defaults to 0 if the family is \code{binomial} or
+    \code{multinomail}, to 50 otherwise.}
+  \item{smooth.sim}{number of simulated smooths added to each plot}
+  \item{nxsmooth}{number of values on the horizontal axes where smooths
+    are evaluated}
   \item{multnrows, multncols}{number of rows and columns of panels on
     one page, for residuals of multivariate regression only}
   \item{lty, lwd, colors}{three vectors of length 6 each, defining the
@@ -77,32 +117,6 @@
     If \code{getUserOption("doc")} is $>1$, then the \code{tit} attribute of
     \code{x} (see \code{\link{tit}}) is printed on a separate line.}
   \item{cex.title}{character size for title}
-  \item{wsymbols}{if TRUE, points are displayed by a bubble whose size
-    indicates the weight as given in \code{object$weights}.
-    If it is a vector of appropriate size, it will be used to determine
-    the sizes of such bubbles.}
-  \item{symbol.size}{determines the size of weight symbols}
-  \item{smooth}{if TRUE, smooths are added to the plots where
-    appropriate. If it is a function, it is assumed to define the smooths.
-  }
-%%  \item{smooth.rob}{if TRUE, smooth will be done robustly.
-%%    Default is FALSE for binomial or multinomial regression.}
-  \item{smooth.par}{argument to the smooth function. In case of default
-    smooth function, it is the argument \code{span} of \code{loess}}
-  \item{smooth.iter}{if the loess smooth is used,
-    this argument controls robustness of smooth. If \code{==0}, least
-    squares is used, otherwise, robust smoothing is,
-    \code{smooth.iter} being the maximal number of iterations.
-    Defaults to 0 if the family is \code{binomial} or
-    \code{multinomail}, to 50 otherwise.}
-  \item{smooth.sim}{number of simulated smooths added to each plot}
-  \item{nxsmooth}{number of values on the horizontal axes where smooths
-    are evaluated}
-  \item{plotselect}{which plots should be shown? See Details}
-  \item{weights}{if TRUE, residuals will be plotted versus
-    \code{object$weights}. Alternatively, a vector of weights can be specified}
-  \item{leverage.cooklim}{levels of Cook distance for which contours are
-    plotted in the leverage plot}
   \item{reslim}{limits for plotting residuals directly. Beyond these
     limits, points are shown in the margins with squeezes scale}
   \item{reslimfac, reslimext}{arguments passed to \code{robrange} if
@@ -110,26 +124,13 @@
   \item{resaxp, stresaxp}{axis parameters used for 
     residuals and standardized residuals, respectively, passed to
     argument \code{yaxp} of \code{plot}, see \code{?par}.}
-  \item{ylim, ylimfac, ylimext, yaxp}{same, for plotting y values}
-  \item{jitterbinary}{logical: should variables with only 2 distinct values be
-    treated as factors, i.e., jittered?}
-  \item{glm.restype}{type of residuals to be used for glm model.
-    In addition to those allowed in \code{residuals()} for
-    \code{glm} objects, type \code{cond.quant} is possible for
-    (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
-    an explanation.}
-  \item{condprobrange}{if conditional probabilities are shown by
-    vertical bars:
-    show only those that are contained in \code{condprobrange}
-    (vector of length 2)}
-  \item{sequence}{logical: should residuals  be plotted versus sequence?}
-  \item{xplot}{if TRUE, residuals will be plotted versus all (raw)
-    explanatory variables in the model (by calling \code{plresx})} 
-  \item{x.se}{logical: Should confidence bands be drawn in plot of residuals
-    versus explanatory variables?}
-  \item{x.smooth}{like \code{smooth}, for the latter plots}
-  \item{addcomp}{ logical: should component effects be added to
-    residuals for residuals versus input variables plots? }
+  \item{yaxp, ylim, ylimfac, ylimext}{same, for plotting y values}
+  \item{mf}{vector of 2 elements, indicating the number of rows and
+    columns of panels on each plot page.
+    Defaults to \code{c(2,2)}, except for multivariate models, where
+    it adjusts to the number of target variables}
+  \item{mfcol}{if TRUE, the panel will be filled columnwise}
+  \item{mar, mgp, oma, cex, ask}{see \code{\link{par}}}
   \item{\dots}{further arguments to be passed to \code{plot}}
 }
 \details{

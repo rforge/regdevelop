@@ -76,7 +76,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     if (lysimple&&length(unique(ly))==2 &&
         (is.factor(ly[[1]]) || all(ly%in%0:1)))
         lytype <- "binary"
-    if (inherits(ly,"Surv"))  lytype <- "survival"
+    if (inherits(ly,"Surv"))  {
+        lytype <- "survival"
+        require(survival)
+    }
 ## strange variables
 ##-   l1v <- sapply(ldta, function(x) all(x==c(x[!is.na(x)],0)[1],na.rm=TRUE) )
 ##-                                 ## covers case of several or all NAs
@@ -180,7 +183,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     lreg$stres <- lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
-  if (class(lreg)=="survreg") lreg$n.obs <- length(lreg$linear.predictor)
+  if (class(lreg)[1]=="survreg") lreg$n.obs <- length(lreg$linear.predictor)
   ## misc
   if (is.null(x) || !x) lreg$x <- NULL
 ##-   class(lreg) <- if (class(lreg)[1]=="try-error") class(lreg)[-1] else
@@ -1105,6 +1108,7 @@ step.regr <- function (object, scope, scale = 0,
     step.results <- function(models, fit, object, usingCp = FALSE) {
         change <- sapply(models, "[[", "change")
         rd <- sapply(models, "[[", "deviance")
+        if(is.matrix(rd)) rd <- rd[2,]
         dd <- c(NA, abs(diff(rd)))
         rdf <- sapply(models, "[[", "df.resid")
         ddf <- c(NA, diff(rdf))
@@ -2633,23 +2637,23 @@ plot.xdistResscale <- function(x, xlab="distance in x space",
 ## plotting functions
 ## ==========================================================================
 plot.regr <-
-function(x, data=NULL, markprop=NULL, lab=NULL, cex.lab=0.7,
-         mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
-         oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
+function(x, data=NULL, plotselect = NULL, sequence=FALSE,
+         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
+         condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
+         weights = NULL, wsymbols=NULL, symbol.size=NULL,
+         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = TRUE, jitterbinary=TRUE,
+         smooth = TRUE, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
+         smooth.sim=19, nxsmooth=51, 
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
          colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
-         main = NULL, cex.title = NULL, wsymbols=NULL, symbol.size=NULL,
-         smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
-         smooth.sim=19, nxsmooth=51,
-         plotselect = NULL,
-         weights = NULL, leverage.cooklim = 1:2,
-         reslim = TRUE, reslimfac=4.0, reslimext=0.1,
-         yaxp=NULL, resaxp=NULL, stresaxp=NULL,
-         ylim=TRUE, ylimfac=3.0, ylimext=0.1, jitterbinary=TRUE,
-         glm.restype = "deviance", condprobrange=c(0.05,0.8),
-	 sequence=FALSE, xplot = TRUE, x.se=FALSE, x.smooth = smooth,
-         addcomp=FALSE, ...)
+         main = NULL, cex.title = NULL,
+         reslim = TRUE, reslimfac=4.0, reslimext=0.1, 
+         resaxp=NULL, stresaxp=NULL,
+         ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
+         mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
+         oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
+         ...)
 {
 ## Purpose:  more plots for residual analysis
 ## -------------------------------------------------------------------------
@@ -3183,15 +3187,18 @@ for (liplot in 1:length(lplsel)) {
   lylimfac <- if (addcomp) ylimfac else reslimfac
   lylimext <- if (addcomp) ylimext else reslimext
   if (lxpl || is.na(lseq) || lseq) {
-    plresx(x, resid=lres, partial.resid=TRUE, glm.restype = glm.restype,
-           data=data, lab=llab, cex.lab=cex.lab,
-           vars=xvars, sequence=lseq, se=x.se, addcomp = addcomp,
+    plresx(x, data=data, resid=lres, vars=xvars, sequence=lseq,
+           se=x.se, partial.resid=TRUE, addcomp = addcomp,
+           glm.restype = glm.restype,
+           wsymbols=lwsymbols, symbol.size=symbol.size,
+           markprop=NULL, lab=llab, cex.lab=cex.lab,
+           mbox=mbox, jitterbinary = jitterbinary,
            smooth=x.smooth, smooth.par=lsmpar, smooth.iter=smooth.iter,
-           smooth.sim=lsimres, lty=lty, lwd=lwd, colors = colors, col=col,
+           smooth.sim=lsimres, lty=lty, lwd=lwd, colors = colors,
+           pch=lpch, col=col,
            main=main, cex.title=cex.title,
            ylim = lylim, ylimfac = lylimfac, ylimext = lylimext, yaxp=resaxp,
-           jitterbinary = jitterbinary,
-           wsymbols=lwsymbols, symbol.size=symbol.size, pch=lpch, ...)
+           ...)
   }
 ## --- end
   par(loldpar)
@@ -3589,18 +3596,23 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
 }
 ## ==========================================================================
 plresx <-
-  function (x, data = NULL, resid=NULL, partial.resid = TRUE,
-  glm.restype = "deviance", weights = NULL, lab = NULL, cex.lab = 1,
-  vars = NULL, sequence=FALSE, se = FALSE,
-  addcomp = FALSE, rug = FALSE, jitter=NULL, reflines = NULL,
-  smooth = TRUE, smooth.par=NA, smooth.iter=NULL, smooth.sim=19,
-  nxsmooth=51, smooth.group=NULL, smooth.col=NULL, smooth.legend=TRUE,
-  lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
-  colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
-  xlabs = NULL, ylabs = NULL, main = NULL, cex.title = NULL,
-  ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, jitterbinary=TRUE,
-  cex = par("cex"), wsymbols=NULL, symbol.size=NULL, condprobrange=c(0.05,0.8),
-  ask = NULL, multnrows = 0, multncols = 0, ...)
+  function (x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
+            se = FALSE, partial.resid = TRUE, addcomp = FALSE, 
+            glm.restype = "deviance", condprobrange=c(0.05,0.8),            
+            weights = NULL, wsymbols=NULL, symbol.size=NULL,
+            markprop=NULL, lab = NULL, cex.lab = 0.7,
+            reflines = TRUE, mbox = TRUE, jitter=NULL, jitterbinary=TRUE,
+            smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
+            smooth.sim=19, nxsmooth=51, smooth.group=NULL,
+            smooth.col=NULL, smooth.legend=TRUE, 
+            multnrows = 0, multncols = 0, 
+            lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
+            colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
+            rug = FALSE, 
+            main = NULL, cex.title = NULL,  xlabs = NULL, ylabs = NULL, 
+            ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, 
+            cex = par("cex"), ask = NULL,
+            ...)
 {
 ## Purpose:        draw residuals against x variables,
 ##                 with component of the fit
@@ -3967,6 +3979,8 @@ plresx <-
       ff <- factor(ldata[, lv])
       ll <- levels(ff)
       lnl <- length(ll)
+      if (mbox) plmboxes(rr~ff, data=ldata,
+                         xlab = xlabs[lv], ylab = ylabs[lv]) else {
       xx <- as.numeric(ff)+runif(ln,-jitter,jitter)
       xlims <- c(0.5,lnl+0.5)
       i.plotlws(xx, rr, xlab = xlabs[lv], ylab = ylabs[lv],
@@ -3980,6 +3994,7 @@ plresx <-
       axis(1,labels=ll,at=1:lnl)
       axis(2)
       box(lty=3)
+  }
       ## -
       if (lcmpj) {
         lx <- seq(along = ll)

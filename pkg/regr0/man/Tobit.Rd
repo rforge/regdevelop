@@ -49,38 +49,13 @@ Werner A. Stahel
   \code{Surv}
 }
 \examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
+data("tobin", package="survival")
 
-## The function is currently defined as
-function(data, limit=NULL, log=FALSE)
-{
-  ## Purpose:   create a Surv object for tobit regression
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date:  1 Jan 2010, 21:49
-  if (is.null(limit)) limit <- min(data)
-  if (log) {
-    if (limit<=0) {
-      data <- logst(data)
-      limit <- min(data)
-    } else {
-      data <- log10(data)
-      limit <- log10(limit)
-    }
-  }
-  data <- pmax(data,limit)
-  if (sum(data==limit)<=1)
-    warning(":Tobit: <= 1 observation equal to 'limit'")
-  rr <- Surv(data, data!=limit, type='left')
-  attr(rr,'distribution') <- 'gaussian'
-  class(rr) <- c(class(rr), "matrix")
-  rr
-  }
+Tobit(tobin$durable) 
+(t.r <- regr(Tobit(durable) ~ age + quant, data=tobin))
+plot(t.r)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{regression}
+
