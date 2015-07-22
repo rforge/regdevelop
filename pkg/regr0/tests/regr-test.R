@@ -36,7 +36,7 @@ with(r.blast,
                           c(13.58841618, 3.40649491, -12.0192639, 8.1947910))
                 )
      )
-
+ 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
 r.bl3 <- step(r.bl2, trace=FALSE)
@@ -167,23 +167,21 @@ plresx(r.sr, vars="sizej")
 ## d.cmbscores <- t.d
 ## ===================================================================
 ## Tobit
-require(survival)
-##- t.d <- d.cheese
-##- t.d$Anzahl[1] <- NA
-##- t.d$Bakt[2] <- NA
-##- dim(na.omit(t.d))
-##- t.d$y <- Tobit(t.d$Anzahl, 10, log=T)
-##- t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
-##- t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d,
-##-             family="gaussian")
-##- plot(t.r)
-##- t.rf <- fitted(t.r)
-##- t.rp <- predict(t.r)
-##- t.rr <- residuals(t.r)
-##- 
-##- add1(t.r)
-##- step(t.r)
-##- confint(t.r)
+data("tobin", package="survival")
+dd <- tobin
+dd[1,"durable"] <- NA
+dd[2,"age"] <- NA
+t.r <- regr(Tobit(durable) ~ age + quant, data=dd)
+plot(t.r)
+
+t.rf <- fitted(t.r)
+t.rp <- predict(t.r)
+t.rr <- residuals(t.r)
+
+add1(t.r)
+step(t.r)
+confint(t.r)
+## =======================================================================
 ## -----------------------------------------------------
 ## last
 df <- data.frame(X=c(2,5,3,8), F=LETTERS[1:4], G=c(TRUE,FALSE,FALSE,TRUE))

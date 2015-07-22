@@ -1,3 +1,95 @@
+drop1Wald <-
+  function (object, scope, scale = 0, all.cols = TRUE, test = c("none", 
+    "Chisq", "F"), k = 2, ...) 
+{
+    x <- model.matrix(object)
+    offset <- model.offset(model.frame(object))
+    n <- nrow(x)
+    asgn <- attr(x, "assign")
+    tl <- attr(object$terms, "term.labels")
+    if (missing(scope)) 
+        scope <- drop.scope(object)
+    else {
+        if (!is.character(scope)) 
+            scope <- attr(terms(update.formula(object, scope)), 
+                "term.labels")
+        if (!all(match(scope, tl, 0L) > 0L)) 
+            stop("scope is not a subset of term labels")
+    }
+    ndrop <- match(scope, tl)
+    ns <- length(scope)
+    rdf <- object$df.residual
+    chisq <- object$sigma^2 * rdf
+    ## sum(weighted.residuals(object)^2, na.rm = TRUE)
+    ## deviance.lm(object)
+    dfs <- numeric(ns)
+    RSS <- numeric(ns)
+    cov <- object$cov.unscaled
+    if (is.null(cov)) cov <- object$covariance/object$sigma^2
+    if (is.null(cov)) stop("!drop1Wald! no covariance matrix found")
+    cf <- object$coefficients
+##-     y <- object$residuals + predict(object)
+    for (i in 1:ns) {
+        ii <- seq_along(asgn)[asgn == ndrop[i]]
+        RSS[i] <- if (length(ii)==1) cf[ii]^2/cov[ii,ii] else
+          cf[ii]%*%solve(cov[ii,ii])%*%cf[ii]
+        dfs[i] <- length(ii)
+##-         if (all.cols) 
+##-             jj <- setdiff(seq(ncol(x)), ii)
+##-         else jj <- setdiff(na.coef, ii)
+##-         z <- if (iswt) 
+##-             lm.wfit(x[, jj, drop = FALSE], y, wt, offset = offset)
+##-         else lm.fit(x[, jj, drop = FALSE], y, offset = offset)
+##-         dfs[i] <- z$rank
+##-         oldClass(z) <- "lm"
+##-         RSS[i] <- deviance(z)
+    }
+    scope <- c("<none>", scope)
+    dfs <- c(object$rank, dfs)
+    RSS <- chisq + c(0, RSS)
+    if (scale > 0) 
+        aic <- RSS/scale - n + k * dfs
+    else aic <- n * log(RSS/n) + k * dfs
+##-     dfs <- dfs[1] - dfs
+##-     dfs[1] <- NA
+    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - 
+        RSS[1]), RSS = RSS, AIC = aic, row.names = scope, check.names = FALSE)
+    if (scale > 0) 
+        names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
+    test <- match.arg(test)
+    if (test == "Chisq") {
+        dev <- aod$"Sum of Sq"
+        if (scale == 0) {
+            dev <- n * log(RSS/n)
+            dev <- dev - dev[1]
+            dev[1] <- NA
+        }
+        else dev <- dev/scale
+        df <- aod$Df
+        nas <- !is.na(df)
+        dev[nas] <- pchisq(dev[nas], df[nas], lower.tail = FALSE)
+        aod[, "Pr(Chi)"] <- dev
+    }
+    else if (test == "F") {
+        dev <- aod$"Sum of Sq"
+        dfs <- aod$Df
+        rdf <- object$df.residual
+        rms <- aod$RSS[1]/rdf
+        Fs <- (dev/dfs)/rms
+        Fs[dfs < 1e-04] <- NA
+        P <- Fs
+        nas <- !is.na(Fs)
+        P[nas] <- pf(Fs[nas], dfs[nas], rdf, lower.tail = FALSE)
+        aod[, c("F value", "Pr(F)")] <- list(Fs, P)
+    }
+    head <- c("Single term deletions", "\nModel:", deparse(as.vector(formula(object))), 
+        if (scale > 0) paste("\nscale: ", format(scale), "\n"))
+    class(aod) <- c("anova", "data.frame")
+    attr(aod, "heading") <- head
+    aod
+}
+
+
 if(getRversion() <= "2.7.1") {
 
 add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
@@ -103,91 +195,6 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     aod
 }
 
-drop1.lm <-
-  function (object, scope, scale = 0, all.cols = TRUE, test = c("none", 
-    "Chisq", "F"), k = 2, ...) 
-{
-    x <- model.matrix(object)
-    offset <- model.offset(model.frame(object))
-    iswt <- !is.null(wt <- object$weights)
-    n <- nrow(x)
-    asgn <- attr(x, "assign")
-    tl <- attr(object$terms, "term.labels")
-    if (missing(scope)) 
-        scope <- drop.scope(object)
-    else {
-        if (!is.character(scope)) 
-            scope <- attr(terms(update.formula(object, scope)), 
-                "term.labels")
-        if (!all(match(scope, tl, 0L) > 0L)) 
-            stop("scope is not a subset of term labels")
-    }
-    ndrop <- match(scope, tl)
-    ns <- length(scope)
-    rdf <- object$df.residual
-    chisq <- deviance.lm(object)
-    dfs <- numeric(ns)
-    RSS <- numeric(ns)
-##-     y <- object$residuals + predict(object)
-    y <- object$residuals + object$fitted.values
-    na.coef <- (1:length(object$coefficients))[!is.na(object$coefficients)]
-    for (i in 1:ns) {
-        ii <- seq_along(asgn)[asgn == ndrop[i]]
-        if (all.cols) 
-            jj <- setdiff(seq(ncol(x)), ii)
-        else jj <- setdiff(na.coef, ii)
-        z <- if (iswt) 
-            lm.wfit(x[, jj, drop = FALSE], y, wt, offset = offset)
-        else lm.fit(x[, jj, drop = FALSE], y, offset = offset)
-        dfs[i] <- z$rank
-        oldClass(z) <- "lm"
-        RSS[i] <- deviance(z)
-    }
-    scope <- c("<none>", scope)
-    dfs <- c(object$rank, dfs)
-    RSS <- c(chisq, RSS)
-    if (scale > 0) 
-        aic <- RSS/scale - n + k * dfs
-    else aic <- n * log(RSS/n) + k * dfs
-    dfs <- dfs[1] - dfs
-    dfs[1] <- NA
-    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - 
-        RSS[1]), RSS = RSS, AIC = aic, row.names = scope, check.names = FALSE)
-    if (scale > 0) 
-        names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
-    test <- match.arg(test)
-    if (test == "Chisq") {
-        dev <- aod$"Sum of Sq"
-        if (scale == 0) {
-            dev <- n * log(RSS/n)
-            dev <- dev - dev[1]
-            dev[1] <- NA
-        }
-        else dev <- dev/scale
-        df <- aod$Df
-        nas <- !is.na(df)
-        dev[nas] <- pchisq(dev[nas], df[nas], lower.tail = FALSE)
-        aod[, "Pr(Chi)"] <- dev
-    }
-    else if (test == "F") {
-        dev <- aod$"Sum of Sq"
-        dfs <- aod$Df
-        rdf <- object$df.residual
-        rms <- aod$RSS[1]/rdf
-        Fs <- (dev/dfs)/rms
-        Fs[dfs < 1e-04] <- NA
-        P <- Fs
-        nas <- !is.na(Fs)
-        P[nas] <- pf(Fs[nas], dfs[nas], rdf, lower.tail = FALSE)
-        aod[, c("F value", "Pr(F)")] <- list(Fs, P)
-    }
-    head <- c("Single term deletions", "\nModel:", deparse(as.vector(formula(object))), 
-        if (scale > 0) paste("\nscale: ", format(scale), "\n"))
-    class(aod) <- c("anova", "data.frame")
-    attr(aod, "heading") <- head
-    aod
-}
-# <environment: namespace:stats>
 deviance.lm <- function (object, ...) 
 sum(weighted.residuals(object)^2, na.rm = TRUE)
 }## only for R version <= 2.7.1

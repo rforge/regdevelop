@@ -17,7 +17,7 @@
          xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
          condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
-         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = TRUE, jitterbinary=TRUE,
+         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = FALSE, jitterbinary=TRUE,
          smooth = TRUE, x.smooth = smooth,
          smooth.par=NA, smooth.iter=NULL, smooth.sim=19, nxsmooth=51,
          multnrows = 0, multncols=0,

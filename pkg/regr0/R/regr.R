@@ -282,6 +282,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
     lreg$stres <- lreg$residuals/lsig
     if (length(lreg$weights)) lreg$stres <- lreg$stres*sqrt(lreg$weights)
   } ## standardization by lhat is done in regr
+  if (class(lreg)=="lmrob") lreg1$cov.unscaled <- lreg$cov/lsig^2 ## !!!
   ## from summary
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
              "df","cov.unscaled")
@@ -558,13 +559,14 @@ i.survreg <-
   lcall <- match.call()
   ## b. --- method
   if (fname=="ph") {
-    lfitfun <- as.name("coxph")
+    lfitfun <- "coxph"
+    lcall[[1]] <- quote(survival::coxph)
   } else {
-    lfitfun <- as.name("survreg")
+    lfitfun <- "survreg"
+    lcall[[1]] <- quote(survival::survreg)
     lcall$dist <- fname
     lcall$method <- lcall$control <- NULL
   }
-  lcall[[1]] <- lfitfun
   lcall$fname <- lcall$family <- lcall$vif <- NULL
   lcall$x <- TRUE
   ## ---
@@ -656,8 +658,11 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
                   R2.x=NA,df=length(lreg$coef),p.value=NA)))
 ## drop1
   ldr1 <-
-    try(drop1(lreg, test=ltesttype, scope=terms(lreg),trace=FALSE),
-        silent=TRUE)
+      if (class(lreg)%in%c("lm","lmrob"))
+          try(drop1Wald(lreg, test=ltesttype, scope=terms(lreg)),
+              silent=TRUE) else
+        try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
+            silent=TRUE)
   if (class(ldr1)[1]=="try-error") {
     warning(paste(":regr: drop1 did not work. I return the table produced by ",
                   lreg$fitfun))
@@ -980,7 +985,7 @@ drop1.regr <-
   lfam <- object$distrname
   lres <- object$residuals
   if (is.null(test)) test <- if (is.null(lfam)) "none" else {
-    if ((lfam=="gaussian"&&as.character(object$fitfun)%in%c("lm"))|
+    if ((lfam=="gaussian"&&as.character(object$fitfun)%in%c("lm","roblm"))|
         ((lfam=="binomial"|lfam=="poisson")&&object$dispersion>1)) {
           if (inherits(object,"mlm")) "Wilks" else "F" }
     else "Chisq"
@@ -1000,6 +1005,8 @@ drop1.regr <-
   }
   class(object) <- setdiff(class(object), "regr")
   dr1 <- if (add) {
+    if (class(object)[1]=="lmrob")
+        stop("!add1.regr! 'add1' not (yet) available for 'lmrob' objects")
     ldata <- eval(object$call$data)
     li <- row.names(ldata)%in%RNAMES(object$residuals)
 ##-     if (any(!li)) {
@@ -1039,13 +1046,15 @@ drop1.regr <-
     }
     add1(object, scope=scope, scale=scale, test=test, k=k, ...)
   } else {
+    if (class(object)[1]%in%c("lmrob")) ## to be expanded
+       drop1Wald(object, test="F", ...) else {
     ldata <- object$allvars # eval(object$call$data)
     if (is.null(ldata)) stop("!drop1.regr! no data found ")
     lina <- apply(is.na(ldata),1,any)
     if (any(lina)) ldata[lina,] <- NA
     object$call$data <- ldata
     drop1(object, scope=scope, scale=scale, test=test, k=k, ...)
-  }
+  }}
 ##-   rnm <- row.names(dr1)
 ##-   row.names(dr1) <- paste(ifelse(substring(rnm,1,1)=="<","",
 ##-                                  if (add) "+ " else "- "),rnm,sep="")
@@ -1072,6 +1081,99 @@ add1.regr <-
   drop1.regr(object, scope=scope, scale=scale, test=test, k=k,
              sorted=sorted, add=TRUE, ...)
 }
+## ==========================================================================
+drop1Wald <-
+  function (object, scope=NULL, scale = 0, test = c("none", "Chisq", "F"),
+            k = 2) 
+{
+    x <- model.matrix(object)
+    offset <- model.offset(model.frame(object))
+    n <- nrow(x)
+    asgn <- attr(x, "assign")
+    tl <- attr(object$terms, "term.labels")
+    if (is.null(scope)) 
+        scope <- drop.scope(object)
+    else {
+        if (!is.character(scope)) 
+            scope <- attr(terms(update.formula(object, scope)), 
+                "term.labels")
+        if (!all(match(scope, tl, 0L) > 0L)) 
+            stop("scope is not a subset of term labels")
+    }
+    ndrop <- match(scope, tl)
+    ns <- length(scope)
+    rdf <- object$df.residual
+    chisq <- object$sigma^2 * rdf
+    ## sum(weighted.residuals(object)^2, na.rm = TRUE)
+    ## deviance.lm(object)
+    dfs <- numeric(ns)
+    RSS <- numeric(ns)
+    cov <- object$cov.unscaled
+    if (is.null(cov)) cov <- object$covariance/object$sigma^2
+    if (is.null(cov)) stop("!drop1Wald! no covariance matrix found")
+    cf <- object$coefficients
+##-     y <- object$residuals + predict(object)
+    for (i in 1:ns) {
+        ii <- seq_along(asgn)[asgn == ndrop[i]]
+        RSS[i] <- if (length(ii)==1) cf[ii]^2/cov[ii,ii] else
+          cf[ii]%*%solve(cov[ii,ii])%*%cf[ii]
+        dfs[i] <- length(ii)
+##-         if (all.cols) 
+##-             jj <- setdiff(seq(ncol(x)), ii)
+##-         else jj <- setdiff(na.coef, ii)
+##-         z <- if (iswt) 
+##-             lm.wfit(x[, jj, drop = FALSE], y, wt, offset = offset)
+##-         else lm.fit(x[, jj, drop = FALSE], y, offset = offset)
+##-         dfs[i] <- z$rank
+##-         oldClass(z) <- "lm"
+##-         RSS[i] <- deviance(z)
+    }
+    scope <- c("<none>", scope)
+    dfs <- c(object$rank, dfs)
+    RSS <- chisq + c(0, RSS)
+    if (scale > 0) 
+        aic <- RSS/scale - n + k * dfs
+    else aic <- n * log(RSS/n) + k * dfs
+##-     dfs <- dfs[1] - dfs
+##-     dfs[1] <- NA
+    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - 
+        RSS[1]), RSS = RSS, AIC = aic, row.names = scope, check.names = FALSE)
+    if (scale > 0) 
+        names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
+    test <- match.arg(test)
+    if (test == "Chisq") {
+        dev <- aod$"Sum of Sq"
+        if (scale == 0) {
+            dev <- n * log(RSS/n)
+            dev <- dev - dev[1]
+            dev[1] <- NA
+        }
+        else dev <- dev/scale
+        df <- aod$Df
+        nas <- !is.na(df)
+        dev[nas] <- pchisq(dev[nas], df[nas], lower.tail = FALSE)
+        aod[, "Pr(Chi)"] <- dev
+    }
+    else if (test == "F") {
+        dev <- aod$"Sum of Sq"
+        dfs <- aod$Df
+        rdf <- object$df.residual
+        rms <- aod$RSS[1]/rdf
+        Fs <- (dev/dfs)/rms
+        Fs[dfs < 1e-04] <- NA
+        P <- Fs
+        nas <- !is.na(Fs)
+        P[nas] <- pf(Fs[nas], dfs[nas], rdf, lower.tail = FALSE)
+        aod[, c("F value", "Pr(F)")] <- list(Fs, P)
+    }
+    head <- c("Single term deletions (Wald test)", "\nModel:",
+              deparse(as.vector(formula(object))), 
+        if (scale > 0) paste("\nscale: ", format(scale), "\n"))
+    class(aod) <- c("anova", "data.frame")
+    attr(aod, "heading") <- head
+    aod
+}
+
 ## ==========================================================================
 step <- function(object, ...)
   UseMethod("step")
@@ -2641,7 +2743,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
          condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
-         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = TRUE, jitterbinary=TRUE,
+         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = FALSE, jitterbinary=TRUE,
          smooth = TRUE, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
          smooth.sim=19, nxsmooth=51, 
          multnrows = 0, multncols=0,
@@ -3601,7 +3703,7 @@ plresx <-
             glm.restype = "deviance", condprobrange=c(0.05,0.8),            
             weights = NULL, wsymbols=NULL, symbol.size=NULL,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
-            reflines = TRUE, mbox = TRUE, jitter=NULL, jitterbinary=TRUE,
+            reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
             smooth.sim=19, nxsmooth=51, smooth.group=NULL,
             smooth.col=NULL, smooth.legend=TRUE, 
@@ -3979,8 +4081,9 @@ plresx <-
       ff <- factor(ldata[, lv])
       ll <- levels(ff)
       lnl <- length(ll)
-      if (mbox) plmboxes(rr~ff, data=ldata,
-                         xlab = xlabs[lv], ylab = ylabs[lv]) else {
+      if (mbox)
+          plmboxes(rr~ff, data=ldata, xlab = xlabs[lv], ylab = ylabs[lv],
+                         refline=0) else {
       xx <- as.numeric(ff)+runif(ln,-jitter,jitter)
       xlims <- c(0.5,lnl+0.5)
       i.plotlws(xx, rr, xlab = xlabs[lv], ylab = ylabs[lv],

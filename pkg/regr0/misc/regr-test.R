@@ -1,17 +1,19 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 # source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
+require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 # require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-options(digits=3)
+##- options(digits=3)
 load("/u/stahel/data/regdata")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
-install.packages("regr0", repos="http://R-forge.R-project.org")
-install.packages("~/wwwcopy/regression/regr0_1.0-4.tar.gz")
-install.packages("http://stat.ethz.ch/~stahel/regression/regr0_1.0-4.tar.gz")
+d.cheese <- read.table("/u/stahel/data/cheese.dat")
+##- install.packages("regr0", repos="http://R-forge.R-project.org")
+##- install.packages("~/wwwcopy/regression/regr0_1.0-4.tar.gz")
+##- install.packages("http://stat.ethz.ch/~stahel/regression/regr0_1.0-4.tar.gz")
 
 
-require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
 ##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
 ##- options(digits=3)
@@ -59,6 +61,15 @@ f.rr <- function(fo) {
 }
 f.rr(tremor~distance)
 
+t.rlm <- lm(formula = log10(tremor) ~ location + log10(distance) +
+                log10(charge) + I(log10(charge)^2) + location:log10(distance),
+            data = d.blast)
+t.r <- lm(formula = log10(tremor) ~ log10(charge) + I(log10(charge)^2)
+          +location, data = d.blast)
+t.rr <- lm(formula = log10(tremor) ~ location + log10(distance) +
+                log10(charge) + location:log10(distance),
+            data = d.blast) ## works
+## ------------------------------------------------------------
 ## Anorexia
 data(anorexia, package="MASS")
 r.anorexia <- regr(Postwt ~ Treat + Prewt + offset(Prewt),
@@ -392,7 +403,7 @@ t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1)
 t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
 showd(residuals(t.r))
 
-## d.cheese <- read.table("/u/stahel/data/cheese.dat")
+## 
 t.d <- d.cheese
 t.d$Anzahl[1] <- NA
 t.d$Bakt[2] <- NA
@@ -402,6 +413,7 @@ t.r <- regr(y~Temp+Bakt+Konz, data=t.d)
 t.r <- regr(Tobit(Anzahl, 10, log=TRUE)~Temp+Bakt+Konz, data=t.d,
             family="gaussian")
 plot(t.r)
+t.d$y <- Tobit(t.d$Anzahl, 10, transform=sqrt)
 t.rf <- fitted(t.r)
 t.rp <- predict(t.r)
 t.rr <- residuals(t.r)
