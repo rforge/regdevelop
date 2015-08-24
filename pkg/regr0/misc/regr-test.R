@@ -1,6 +1,6 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 # source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
-require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+## require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 # require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- options(digits=3)
@@ -120,7 +120,7 @@ plot(r.savings, ask=c.ask)
 ## Spreng
 t.d <- d.spreng
 ## t.d <- t.d[t.d$stelle<=2,]
-t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng)
+t.r <- regr(log10(ersch)~Stelle*log10(dist)+log10(ladung), data=d.spreng)
 t.form <- log10(ersch)~Stelle+log10(dist)+log10(ladung)
 t.r <- regr(t.form, data=t.d)
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,

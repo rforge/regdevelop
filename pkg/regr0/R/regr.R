@@ -186,7 +186,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   if (class(lreg)[1]=="survreg") lreg$n.obs <- length(lreg$linear.predictor)
   ## misc
   if (is.null(x) || !x) lreg$x <- NULL
-##-   class(lreg) <- if (class(lreg)[1]=="try-error") class(lreg)[-1] else
   class(lreg) <- if (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
 ## result of regr
@@ -450,7 +449,7 @@ i.glm <- function(formula, data, family, fname,
 }
 ## -----------------------------------------------------------------------
 i.multinomial <- function(formula, data, family, fname,
-                 model=TRUE, vif=TRUE, termtable=TRUE, ...)
+                          model=TRUE, vif=TRUE, termtable=TRUE, ...)
 {
   ## Purpose:  internal: fit multinom
   ## ----------------------------------------------------------------------
@@ -483,8 +482,8 @@ i.multinomial <- function(formula, data, family, fname,
   lreg$df <- c(ldfm,prod(dim(lres)-1)-ldfm,ldfm)
 ##-   environment(lreg$call$formula) <- environment()
   lreg$fitfun <- "multinom"
-  ldr1 <- try(drop1(lreg, test="Chisq", trace=FALSE),
-              silent=TRUE)
+  ldr1 <- if (u.debug()) drop1(lreg, test="Chisq", trace=FALSE) else 
+              try(drop1(lreg, test="Chisq", trace=FALSE), silent=TRUE)
   if (class(ldr1)[1]=="try-error") {
     warning(paste(":regr/i.multinom: drop1 did not work.",
                   "I return the multinom object"))
@@ -499,7 +498,7 @@ i.multinomial <- function(formula, data, family, fname,
 }
 ## -----------------------------------------------------------------------
 i.polr <- function(formula, data, family, fname, weights = NULL, 
-                 model=TRUE, vif=TRUE, termtable=TRUE, ...)
+                   model=TRUE, vif=TRUE, termtable=TRUE, ...)
 {
   ## Purpose:  internal: fit ordered y
   ## ----------------------------------------------------------------------
@@ -515,7 +514,8 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
 ##  lreg$call$formula <- formula
   lreg$w <- weights
   lreg$leverage <- hat(lreg[["x"]])
-  lreg1 <- try(summary(lreg))
+  lreg1 <- if (u.debug()) summary(lreg) else
+           try(summary(lreg))
   if (class(lreg1)[1]=="try-error") {
     warning(paste(":regr/i.polr: summary did not work.",
                   "I return the polr object"))
@@ -573,7 +573,8 @@ i.survreg <-
   lreg <- eval(lcall, envir=environment(formula))
   ## ---
 ##  lreg$call$formula <- formula
-  lreg1 <- try(summary(lreg))
+  lreg1 <- if (u.debug()) summary(lreg) else
+           try(summary(lreg), silent=TRUE)
   if (class(lreg1)[1]=="try-error") {
     warning(paste(":regr/i.survreg: summary did not work.",
                   "I return the survreg object"))
@@ -608,6 +609,7 @@ i.survreg <-
   if (termtable) {
     ltt <- i.termtable(lreg, lreg1$table, data, lcov, ltesttype="Chisq",
                        lsdy=1, vif=vif)
+    ## log(scale): signif<-NA
     lcmpn <- c("testcoef","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
@@ -658,11 +660,16 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
                   R2.x=NA,df=length(lreg$coef),p.value=NA)))
 ## drop1
   ldr1 <-
-      if (class(lreg)%in%c("lm","lmrob"))
-          try(drop1Wald(lreg, test=ltesttype, scope=terms(lreg)),
-              silent=TRUE) else
-        try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
-            silent=TRUE)
+      if (class(lreg)[1]%in%c("lm","lmrob")) {
+          if (u.debug()) 
+              drop1Wald(lreg, test=ltesttype, scope=terms(lreg)) else
+              try(drop1Wald(lreg, test=ltesttype, scope=terms(lreg)),
+              silent=TRUE) } else {
+          if (u.debug()) 
+              drop1(lreg, test=ltesttype, scope=terms(lreg)) else
+              try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
+                  silent=TRUE)
+          }
   if (class(ldr1)[1]=="try-error") {
     warning(paste(":regr: drop1 did not work. I return the table produced by ",
                   lreg$fitfun))
@@ -699,7 +706,9 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 ## vif --> R2.x
   lr2 <- NA
   if (vif) {
-    lvift <- try(vif.regr(lreg, lcov, lmmt))
+    lvift <-     ## lterms: n of levels for each term
+        if (u.debug()) vif.regr(lreg, lcov, lmmt) else
+        try(vif.regr(lreg, lcov, lmmt), silent=TRUE)
     if (class(lvift)[1]=="try-error" || length(lvift)==0) {
       warning(":regr/i.termtable: error in the calculation of R2.xs")
       lvif <- NA
@@ -753,12 +762,12 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lrg <- lreg
   class(lrg) <- "lm"
   if (inherits(lreg,"polr")) lrg$coefficients <- c("(Intercept)" = NA, lcoef)
-  lallcf <- if (is.R()) try(dummy.coef(lrg),silent=TRUE)  else
-    try(dummy.coef(lrg))
-  if (class(lallcf)=="try-error") {
-    warning("dummy.coef did not work")
-    lallcf <- NULL
-  }
+  lallcf <- if (u.debug()) dummy.coef.regr(lrg)  else
+                try(dummy.coef(lrg), silent=TRUE)
+##-   if (class(lallcf)=="try-error") {
+##-     warning("dummy.coef did not work")
+##-     lallcf <- NULL
+##-   }
   rr <- list(testcoef=ltb[,1:6], allcoef=lallcf)
   if (leverage) rr <- c(rr,list(leverage=hat(lmmt)))
   rr
@@ -925,7 +934,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
             cat("\nCoefficients for factors:\n")
-            print(mt) }
+            print(unclass(mt)) } ## avoid  print.dummy_coef 
         } ## else  cat("\n")
       }}
   }
@@ -953,6 +962,78 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
 ## ==========================================================================
 summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
+dummy.coef.regr <- function (object, use.na = FALSE, ...) 
+{
+    if (length(object$xlevels)==0)  return(as.list(coef(object)))
+    Terms <- terms(object)
+    tl <- attr(Terms, "term.labels")
+    int <- attr(Terms, "intercept")
+    facs <- attr(Terms, "factors")[-1, , drop = FALSE]
+    Terms <- delete.response(Terms)
+    mf <- object$model
+    if (is.null(mf)) mf <- model.frame(object)
+    xtnm <- dimnames(facs)[[1]]  ## names
+    xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
+    xtnl <- pmax(sapply(xtlv,length),1)  ## number of levels
+    termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0]))
+    nl <- sum(termnl)
+    ## df.dummy: data frame of vars
+    args <- setNames(vector("list", length(xtnm)), xtnm)
+    for (i in xtnm)
+        args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else
+          factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
+    df.dummy <- as.data.frame(args) # do.call("data.frame", args)
+    names(df.dummy) <- xtnm
+    ## rnn: names of rows
+    pos <- 0
+    rn <- rep.int(tl, termnl)
+    rnn <- rep.int("", nl)
+    ## fill df.dummy
+    for (j in tl) {
+        i <- unlist(xtnm[facs[, j] > 0])
+        ifac <- i[xtnl[i] > 1]
+        if (length(ifac) == 0L) {
+            rnn[pos + 1] <- j
+        }
+        else if (length(ifac) == 1L) {
+            df.dummy[pos + 1L:termnl[j], ifac] <- xtlv[[ifac]]
+            rnn[pos + 1L:termnl[j]] <- as.character(xtlv[[ifac]])
+        }
+        else {
+            tmp <- expand.grid(xtlv[ifac])
+            df.dummy[pos + 1L:termnl[j], ifac] <- tmp
+            rnn[pos + 1L:termnl[j]] <- apply(as.matrix(tmp), 
+                1L, function(x) paste(x, collapse = ":"))
+        }
+        pos <- pos + termnl[j]
+    }
+    attr(df.dummy,"terms") <- attr(mf,"terms")
+    lcontr <- object$contrasts
+    lci <- sapply(df.dummy,is.factor)
+    lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?) 
+    mm <- model.matrix(Terms, df.dummy, lcontr)
+    if (any(is.na(mm))) {
+        warning("some terms will have NAs due to the limits of the method")
+        mm[is.na(mm)] <- NA
+    }
+    coef <- object$coefficients
+    if (!use.na) 
+        coef[is.na(coef)] <- 0
+    asgn <- attr(mm, "assign")
+    res <- setNames(vector("list", length(tl)), tl)
+    for (j in seq_along(tl)) {
+        keep <- asgn == j
+        ij <- rn == tl[j]
+        res[[j]] <- setNames(drop(mm[ij, keep, drop = FALSE] %*% 
+            coef[keep]), rnn[ij])
+    }
+    if (int > 0) {
+        res <- c(list(`(Intercept)` = coef[int]), res)
+    }
+    class(res) <- "dummy_coef"
+    res
+}
+## ====================================================================
 confint.regr <- function(fitted, ...)
 {
 if (!inherits(fitted, c("glm","nls"))) {
@@ -964,7 +1045,7 @@ if (inherits(fitted, "glm")) {
       ## from its sumary (a matrix containing 'Std. Error"
   summary <- function(fitted) 
     list(coefficients = cbind(fitted$coefficients,
-                                 "Std. Error"=sqrt(diag(t.r$covariance))) )
+                                 "Std. Error"=sqrt(diag(fitted$covariance))) )
   class(fitted) <- class(fitted)[-1]
 } else { ## workaround: call nls again, since  profile.nls  is difficult to adapt...
   call <- fitted$call
@@ -1974,7 +2055,8 @@ residuals.polr <- function(object, na.action=object, ...)
   lyr <- as.character(formula(object)[2])
   ldi <- max(match(c("model","allvars"), names(object), nomatch=0))
   if (ldi) ldt <- object[[ldi]]  else {
-      ldt <- try(model.frame(object),silent=TRUE)
+      ldt <- if (u.debug())  model.frame(object) else
+      try(model.frame(object),silent=TRUE)
       if (class(ldt)=="try-error") 
           stop ("!residuals.polr! no data found")
   }          
@@ -2969,7 +3051,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (lmult) lnsims <- 0 # not yet programmed for mlm
   lsimres <- NULL
   if (lnsims>0) {
-    lsimr <- try(simresiduals(x, lnsims),silent=TRUE)
+      lsimr <- if(u.debug())  simresiduals(x, lnsims)  else
+      try(simresiduals(x, lnsims),silent=TRUE)
     if (class(lsimr)=="try-error") 
       warning(":plot.regr/simresiduals: simresiduals did not work. ",
               "No simulated smooths")
@@ -3547,9 +3630,29 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
 i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iter=50)
 {
   if (length(x)<8) return(NULL)
-  lsm <- try(loess(y~x, weights=weights, span=par, iter=iter,
-               family=if (iter>0) "symmetric" else "gaussian",
-                 na.action=na.exclude),silent=TRUE)
+  lsm <- ## ----------------------------------------------------------------
+formTrsf <- function(formula, xtrsf) {
+    ## recode formula to avoid evaluation of transformed variables
+    ## xtrsf:  labels of transformed variables as used in data.frame
+    ## formula:  --> all occurencies of elements of  xtrsf  will be
+    ##   replaced by  .Xt1, .Xt2, ...
+    lform <- as.character(formula)
+    lf3 <- last(lform)
+    lxtr <- xtrsf[io <- order(nchar(xtrsf),decreasing=TRUE)]
+    lnew <- paste(".Xt",1:length(lxtr),sep="")
+    lno <- lnew[io]
+    for (li in seq_along(lxtr))
+        lf3 <- gsub(lxtr[li], lno[li], lf3, fixed=TRUE)
+    structure( as.formula(paste(if(length(lform)==3) lform[2], "~", lf3)),
+              newvars=lnew)
+}
+  lsm <- if (u.debug())
+             loess(y~x, weights=weights, span=par, iter=iter,
+                   family=if (iter>0) "symmetric" else "gaussian",
+                   na.action=na.exclude)  else
+  try(loess(y~x, weights=weights, span=par, iter=iter,
+            family=if (iter>0) "symmetric" else "gaussian",
+            na.action=na.exclude), silent=TRUE)
   if (class(lsm)=="try-error") {
     lsm <- loess(y~x, weights=weights, span=0.99, iter=iter,
                family=if (iter>0) "symmetric" else "gaussian",
@@ -3582,7 +3685,8 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
   lerror <- NULL
   ldata <- object$allvars
   if (is.null(ldata)) {
-    ldata <- try(eval(lcall$data))
+      ldata <- if (u.debug())  eval(lcall$data)  else
+      try(eval(lcall$data))
     if (class(ldata)=="try-error"||is.null(dim(ldata))) {
       warning(":simresiduals: data not found -> No simulated residuals")
       return(NULL)
@@ -4379,7 +4483,7 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   }
   stopifnot(length(width)==1,length(wfac)<=1)
   if (is.null(probs))
-      probs <- if (sum(!is.na(ly))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
+      probs <- if (sum(!is.na(x))<20) c(0.1,0.5,1)/2 else
                c(0.05,0.1,0.25,0.50,0.75,1)/2
   lprobs <- if (all(probs<=0.5))  c(probs,1-probs)  else c(probs)
   lprobs <- sort(unique(lprobs))
@@ -4967,7 +5071,8 @@ UserDefault <- UserOptions <-
   list(stamp=1, project="", step="", doc=TRUE, show.dummy.coef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
-       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4, regr.testcoefcol=NULL
+       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4, regr.testcoefcol=NULL,
+       debug=0
        )
 ##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
 ##-     userOptions(default="unset")
@@ -5149,6 +5254,7 @@ is.formula <- function(object)
 nafalse <- function(x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 
 u.true <- function(x) length(x)>0 && x[1]
+u.debug <- function() u.true(getUserOption("debug"))
 u.merge <- function(dd1, dd2 = NA, which=NULL, after=NULL,
                     length=NULL, names=NULL)
 {
