@@ -28,7 +28,7 @@ d.cheese <- read.table("/u/stahel/data/cheese.dat")
 options(verbose=1)
 
 ( r.blast <-
-  regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
+  regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
 plot(r.blast)
 
 plot(r.blast, plotselect=c(ta=2),xplot=F, seq=F, mf=1, cex.lab=1)

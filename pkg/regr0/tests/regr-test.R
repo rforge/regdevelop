@@ -32,8 +32,8 @@ r.blast <-
 
 with(r.blast,
      stopifnot(all.equal(
-     testcoef[,"signif"],
-                          c(13.58841618, 3.40649491, -12.0192639, 8.1947910))
+     testcoef[-1,"signif"],
+                          c(3.40649491, -12.0192639, 8.1947910))
                 )
      )
  
@@ -67,7 +67,8 @@ r.rob
 data(d.surveyenvir)
 
 require(MASS)  ## should not be needed
-r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir)
+r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir,
+                 contrasts="contr.treatment")
 
 with( r.survey,
      stopifnot(

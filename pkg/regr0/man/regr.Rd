@@ -17,6 +17,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL,
   robust = FALSE, method = NULL, init.reg = "f.ltsreg",
   subset = NULL, weights = NULL, na.action = nainf.exclude,
+  contrasts=getUserOption("regr.contrasts"),
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE, ...)
 
 \method{summary}{regr}(object, ...)
@@ -68,7 +69,14 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
     be used to generate the vector. }
   \item{weights}{ an optional vector of weights to be used for fitting. }
   \item{na.action}{ a function which indicates what should happen when the data
-          contain 'NA's. The default is '\code{\link{nainf.exclude}}'.}
+    contain 'NA's. The default is '\code{\link{nainf.exclude}}'.}
+  \item{contrasts}{contrasts used for factors. Either a named list that
+    determines contrasts for each factor or a character vector of two
+    elements giving the names of the functions to be used for unordered
+    and ordered factors, respectively. See \code{contrast.arg} in
+    \code{\link{model.matrix.default}} or \code{contrasts} in
+    \code{\link{options}}.
+    }
   \item{model, x}{ logical values indicating whether the model frame or
     the model matrix, respectively, should be included as a component
     of the returned value. }

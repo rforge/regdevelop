@@ -5,6 +5,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
                  nonlinear = FALSE, start=NULL,
                  robust = FALSE, method=NULL, init.reg="f.ltsreg",
                  subset=NULL, weights=NULL, na.action=nainf.exclude,
+                 contrasts=getUserOption("regr.contrasts"),
                  model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE, ...)
 {
   ## !!! dispersion: allow to be set.
@@ -141,9 +142,18 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##  lcl$data <- as.name("lav") ## environment(formula)
   lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
+  old.opt <- NULL
+  if(is.atomic(contrasts)&&length(contrasts)) {
+      if(!is.character(contrasts))
+          warning("!regr! invalid contrasts argument") else {
+              old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
+              lcl$contrasts <- NULL
+          }
+  }
 ## --------------------------------------------
   lreg <- eval(lcl, envir=environment(formula))
-## --------------------------------------------
+  ## --------------------------------------------
+  if (length(old.opt)) options(old.opt)
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
 ##  <<<<<<< .mine
 #  lreg$Y <- data.frame(ly) # ly is a model.frame
@@ -218,7 +228,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
         lcall$setting <- "KS2011"
       }
       lcall$x <- TRUE
-    }
+  }
     if (lfn=="rlm") {
 ##      require(MASS)    ##  !?!
       lcall$method <- c(method,"MM")
@@ -717,19 +727,19 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   }
 ## prepare table
   lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
-  ltb <- data.frame(coef=NA, stcoef=NA, signif=NA, R2.x=lr2,
+  ltb <- data.frame(coef=NA, stcoef=NA, ci25=NA, ci975=NA, signif=NA, R2.x=lr2,
                     df=ldr1[,1], p.value=ldr1[,lpvcol], testst=ldr1[,lpvcol-1])
   row.names(ltb) <- row.names(ldr1)
 ## intercept
   if ("(Intercept)"==names(lcoef)[1]) {
     ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
       lcoeftab[1,3]^2 # else lcoeftab[1,3]
-    ltb <- rbind("(Intercept)"=c(NA,NA,NA,NA,1,NA,ltstint),ltb)
+    ltb <- rbind("(Intercept)"=c(NA,NA,NA,NA,NA,NA,1,NA,ltstint),ltb)
     lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
 ## signif
-  ltb$signif <- sqrt(ltb$testst/ltstq)
+  ltb$signif <- lsg <- sqrt(ltb$testst/ltstq)
 ##-   lprcol <- pmatch("Pr(",names(ldr1))
 ##-   ldr1t <-  if (is.na(lprcol)) NA else ldr1[,lprcol]
 ##      -qnorm(ldr1[,lprcol]/2)/qnorm(0.975)
@@ -750,14 +760,17 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
       sqrt(apply(lmmt[,names(lcf[lcont>0]),drop=FALSE],2,var)) / lsdy
     ## fill in
     ltb$coef[lcont1] <- lcf
+    lci <- lcf*(1+outer(1/lsg[lcont1], c(-1,1)))
+       ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
+    ltb[lcont1,c("ci25","ci975")] <- lci
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
     ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
-  }
-  if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
-    ltsc <- lcoeftab[nrow(lcoeftab),]
-    ltb <- rbind(ltb,"log(scale)"=c(ltsc[1],NA,ltsc[3]/qnorm(0.975),
-                       NA,1,NA))
-  }
+}
+##-   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
+##-     ltsc <- lcoeftab[nrow(lcoeftab),]
+##-     ltb <- rbind(ltb,"log(scale)"=c(ltsc[1],NA,NA,NA,ltsc[3]/qnorm(0.975),
+##-                        NA,1,NA,NA))
+##-  }
 ## --- dummy coef
   lrg <- lreg
   class(lrg) <- "lm"
@@ -768,12 +781,13 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 ##-     warning("dummy.coef did not work")
 ##-     lallcf <- NULL
 ##-   }
-  rr <- list(testcoef=ltb[,1:6], allcoef=lallcf)
+  rr <- list(testcoef=ltb, allcoef=lallcf)
   if (leverage) rr <- c(rr,list(leverage=hat(lmmt)))
   rr
 }
 ## ==========================================================================
-print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
+print.regr <- function (x, call=TRUE, correlation = FALSE,
+    dummy.coef = getUserOption("show.dummy.coef"),
     testcoefcol = getUserOption("regr.testcoefcol"),
     digits = max(3, getUserOption("digits")-2), 
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
@@ -790,8 +804,8 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
   ## mlm
   if (inherits(x,"mlm")) return(invisible(print.mregr(x, ...)))
   ## preparation
-  if (length(dummycoef)==0)
-    dummycoef <- c(getUserOption("show.dummy.coef"),TRUE)[1]
+##-   if (length(dummycoef)==0)
+##-     dummycoef <- c(getUserOption("show.dummy.coef"),TRUE)[1]
   ## call, fitting fn, residuals
   if (call) {
     if(!is.null(x$call)) {
@@ -834,7 +848,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
   if (length(ltc)>0) {
     lltc <- TRUE
     if(!is.null(testcoefcol)) {
-      if (all(testcoefcol)=="") lltc <- FALSE else {
+      if (all(testcoefcol=="")) lltc <- FALSE else {
         ljp <- match(testcoefcol,colnames(ltc), nomatch=0)
         if (sum(ljp)==0)
           warning(":print.regr: no valid columns of  testcoef  selected") else
@@ -853,8 +867,9 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
         lsignif <- symnum(pv, corr = FALSE, na = FALSE, 
                           cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
                           symbols = c("***", "**", "*", ".", " "))
-        ltcf <- cbind(ltcf, " "=format(lsignif))
-      }
+        ltcf <- cbind(ltcf,format(lsignif))
+        names(ltcf)[ncol(ltcf)] <- " "
+    }
       print(ltcf, quote=FALSE)
       if (lsigst > 1) 
         cat("---\nSignif. codes:  ", attr(lsignif, "legend"),"\n", sep = "")
@@ -919,7 +934,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE, dummycoef = NULL,
     cat("\nCoefficients:\n")
     print(t(x$coefficients))
   } else {
-    if (length(ltc)&dummycoef) {        
+    if (length(ltc)&u.true(dummy.coef)) {        
       lidf <- match("df",colnames(x$testcoef))
       if (is.na(lidf)) {
         if (getOption("verbose"))
@@ -5042,14 +5057,18 @@ getUserOption <- function (x, default = NULL)
     else default
 }
 userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
-  {
+    {
+##-     lpos <- find("UserOptions")
+##-     luopt <- get("UserOptions", pos=lpos)
+    luopt <- if (exists("UserOptions", where=1)) get("UserOptions", pos=1) else
+         UserOptions            
     if ((!is.null(x)&&is.character(x))) ## asking for options
-      return(if(length(x)==1) UserOptions[[x]] else UserOptions[x])
+      return(if(length(x)==1) luopt[[x]] else luopt[x])
     if (!is.null(default)) {
         default <- as.character(default)
       if (default=="TRUE"|default=="all") return(userOptions(list=UserDefault))
       if (default=="unset")
-        userOptions(list=UserDefault[names(UserDefault)%nin%names(UserOptions)])
+        userOptions(list=UserDefault[names(UserDefault)%nin%names(luopt)])
       if (!is.character(default))
         stop("!userOptions! Unsuitable argument  default .")
       return(userOptions(list=UserDefault[
@@ -5057,12 +5076,12 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     }
     lop <- c(list,list(...))
     ## show all options
-    if (length(lop)==0) return(UserOptions)
+    if (length(lop)==0) return(luopt)
     ## set options
-    lold <- UserOptions[names(lop)]
+    lold <- luopt[names(lop)]
     for (li in names(lop))
-      UserOptions[li] <- list(lop[[li]])
-    assign("UserOptions", UserOptions,pos=1)
+      luopt[li] <- list(lop[[li]])
+    assign("UserOptions", luopt,pos=1)
         ## assignInMyNamespace does not work
     invisible(lold)
   }
@@ -5071,7 +5090,9 @@ UserDefault <- UserOptions <-
   list(stamp=1, project="", step="", doc=TRUE, show.dummy.coef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
-       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4, regr.testcoefcol=NULL,
+       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
+       regr.contrasts=c(unordered="contr.sum", ordered="contr.poly"),
+       regr.testcoefcol=c("coef", "stcoef", "df", "R2.x", "signif", "p.value"),
        debug=0
        )
 ##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
@@ -5191,9 +5212,9 @@ logst <- function(data, calib=data, threshold=NULL, mult=1)
     lnmpd <- names(ljdt) <- names(lthr) <- colnames(data)  else
     lnmpd <- as.character(1:lncol)
   if (ncol(data)==1) data <- data[,1]
-  attr(data,"threshold") <- c(lthr)
+  attr(data,"threshold") <- lthr
   if (any(!ljdt)) {
-    warning(":logst: no positive data for variables",lnmpd[!ljdt],
+    warning(":logst: no positive data for variables ",lnmpd[!ljdt],
             ". These are not transformed")
     attr(data,"untransformed") <- c(ljdt)
   }
