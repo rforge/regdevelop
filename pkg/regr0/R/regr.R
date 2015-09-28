@@ -775,8 +775,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lrg <- lreg
   class(lrg) <- "lm"
   if (inherits(lreg,"polr")) lrg$coefficients <- c("(Intercept)" = NA, lcoef)
-  lallcf <- if (u.debug()) dummy.coef.regr(lrg)  else
-                try(dummy.coef(lrg), silent=TRUE)
+  lallcf <- dummy.coef.regr(lrg) 
+##                try(dummy.coef(lrg), silent=TRUE)
 ##-   if (class(lallcf)=="try-error") {
 ##-     warning("dummy.coef did not work")
 ##-     lallcf <- NULL
