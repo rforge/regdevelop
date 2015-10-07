@@ -646,7 +646,7 @@ Tobit <- function(data, limit=0, transform=NULL, log=FALSE, ...)
   if (!is.null(transform)) {
     if (is.character(transform)) transform <- get(transform)
     if (!is.function(transform))
-      stop("!Tobit! argument  transform  does not yield a function")
+      stop("!Tobit! argument 'transform' does not yield a function")
     ldt <- transform(c(limit,data), ...)
     data <- ldt[-1]
     limit <- ldt[1]
@@ -3095,7 +3095,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
 ## labels
   ## priorities:  lab , pch , row.names
   lpch <- pch
-  if (length(lpch)==ln) {
+  if (length(lpch)==ln) { ## labels given in pch
     if (length(lab)==0) lab <- lpch
     lpch <- NULL }
   if (length(lpch)==0)
@@ -3103,41 +3103,36 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
       3 # ifelse(ln>200,"+",3)
   lrown <- row.names(lres)
   if (length(lrown)==0) lrown <- as.character(1:ln)
+  
   if (length(lab)>1&length(lab)!=ln) {
     warning(":plot.regr: argument  lab  has unsuitable length")
     lab <- NULL
   }
   llabels <- lrown
   if (length(lab)>0) {
-    llabels <- if (is.character(lab)) lab else as.numeric(lab)
+    llabels <- if (is.character(lab)) lab else as.numeric(lab) # factors
     if (length(llabels)>ln) {
       if(length(lnaaction)>0 && max(lnaaction)<=length(llabels))
         llabels <- llabels[-lnaaction]
     }
     else
       llabels <- rep(llabels, length=ln)
-  }                                        # factors: as.numeric
+}
+  ## now, llabels always useful
   if (length(markprop)==0 || is.na(markprop))
-    markprop <- if (length(lab)>1|lcondq) 0 else ceiling(sqrt(ln)/2)/ln
+      markprop <- if (length(lab)>1|lcondq) 0 else ceiling(sqrt(ln)/2)/ln
   if (markprop==0) {
     llab <- rep(lpch, length=ln)
-    llabna <- NA
   } else  {
     llab <- llabels
     if (markprop<1) {
       li <- if (lmult)  order(lresmd)[1:(ln*(1-markprop))]  else
       order(abs(lstres[,1]))[1:(ln*(1-markprop))]  # [,1] for condq
-##-       llab[li] <- if (is.numeric(llab)) {
-##-         if(is.numeric(lpch)) lpch[1] else 1
-##-       } else  {
-##-         if (is.numeric(lpch)) "+" else lpch[1]
-##-       }
       llab[li] <- NA
-      llabna <- llab
-      llabna[li] <- NA
     }
-  }
-  if (!lwgt) llabna <- llab
+}
+  ## llabna will contain NA where weights should determine symbol
+  llabna <- if (lwgt&markprop==0) rep(NA, length=ln) else llab 
 ## weights to be used for symbols
 ## plot symbols
   if (length(symbol.size)==0||is.na(symbol.size)) symbol.size <- 3/ln^0.3
@@ -3146,7 +3141,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     if (any(liwgt)) {
       lweights <- lweights/mean(lweights,na.rm=TRUE)
       lsyinches <- 0.02*symbol.size*par("pin")[1] # *max(lweights,na.rm=TRUE)
-      llab[liwgt] <- ifelse(is.character(llab),"",0)
+      llab[liwgt] <- ifelse(is.character(llab),"",0) ## could be NA?
     } else lwgt <- FALSE
   }
   ltxt <- is.character(llab) # &&any(nchar(llab)>1)
@@ -3179,6 +3174,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
             "burlywood4","burlywood3","burlywood4")
   else
     rep(colors,length=9)
+  if (is.na(colors[4])) colors[4] <- colorpale(colors[4])
+  if (is.na(colors[6])) colors[4] <- colorpale(colors[6])
   lftext <- paste(as.character(lform)[c(2,1,3)],collapse="")
   if (length(main)==0) main <- lftext
   if (is.logical(main)) main <- if (main) lftext else ""
@@ -3189,7 +3186,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
       par("mfg")[4]*par("pin")[1]/(par("cin")[1]*nchar(main))))
   outer.margin <- par("oma")[3]>0
 ## --------------------------------------------------------------------------
-## start plots
+  ## start plots
   if (!lmult) lplsel[c("resmatrix","qqmult")] <- 0
   lplsel <- lplsel[is.na(lplsel)|lplsel>0]
   if (length(lplsel))
@@ -3389,9 +3386,9 @@ for (liplot in 1:length(lplsel)) {
   if (lxpl || is.na(lseq) || lseq) {
     plresx(x, data=data, resid=lres, vars=xvars, sequence=lseq,
            se=x.se, partial.resid=TRUE, addcomp = addcomp,
-           glm.restype = glm.restype,
+           glm.restype = glm.restype, # weights = lwgts,
            wsymbols=lwsymbols, symbol.size=symbol.size,
-           markprop=NULL, lab=llab, cex.lab=cex.lab,
+           markprop=NULL, lab=llabna, cex.lab=cex.lab,
            mbox=mbox, jitterbinary = jitterbinary,
            smooth=x.smooth, smooth.par=lsmpar, smooth.iter=smooth.iter,
            smooth.sim=lsimres, lty=lty, lwd=lwd, colors = colors,
@@ -3413,7 +3410,8 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   smooth.power=1, # smooth.groups = NULL,
   ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
   reflinex=NULL, refliney=NULL, reflineyw=NULL, lnsims=0, simres=NULL,
-  smooth.group = NULL, smooth.col=colors[3:4], smooth.legend = TRUE,
+  smooth.group = NULL, smooth.col=colors[3:4], smooth.pale=0.2,
+  smooth.legend = TRUE,
   condprobrange=c(0.05,0.8), new=TRUE, axes=1:2, ...)
 {
   ## Purpose:   panel for residual plots (labels, weights, smooth)
@@ -3540,9 +3538,9 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
         lrfyr <- lrfyj==lrfyjp
         lines(lrfxj[lrfyr],lrfyj[lrfyr],lty=lty[5],col=colors[5],lwd=lwd[5])
         ## draw reference lines
-        if (any(lrfyl))
+        if (any(lrfyl,na.rm=TRUE))
           lines(lrfxj[lrfyl],lrfyjp[lrfyl],lty=lty[5],col=colors[5],lwd=lwd[5]/2)
-        if (any(lrfyh))
+        if (any(lrfyh,na.rm=TRUE))
           lines(lrfxj[lrfyh],lrfyjp[lrfyh],lty=lty[5],col=colors[5],lwd=lwd[5]/2)
         if (lrfyw) {
           lrfylj[lrfylj<lylimj[1]|lrfylj>lylimj[2]] <- NA
@@ -3564,7 +3562,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       lyjo <- lyj[lio]
       lsmgrp <- rep(1,length(lio))
       lngrp <- 1
-      if (length(smooth.col)==0) smooth.col <- colors[3:4]
+      if (length(smooth.col)==0) smooth.col <- colors[3:4] 
       lsmcol1 <- smooth.col[1]
       lsmcol2 <- smooth.col[length(smooth.col)]
       if (length(smooth.group)) { # groups
@@ -3575,17 +3573,18 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
         if (NROW(smooth.col)<lngrp) smooth.col <- colors
         lsmcol1 <- rep(smooth.col, length=lngrp)
         lsmcol2 <- if(NCOL(smooth.col)>1)
-          rep(smooth.col[,2], length=lngrp)  else  lsmcol1
+                       rep(smooth.col[,2], length=lngrp)  else
+        colorpale(lsmcol1, pale=smooth.pale)
       }
       if (lnsims>0) {
         simres <- simres[lio,]
         for (lr in 1:lnsims) {
           for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
             lig <- lsmgrp==lgrp
-            lsms <- smooth(lxjo[lig], simres[lig,lr]^smooth.power,
-                           weights=lwgo[lig],
-                           par=smooth.par, iter=smooth.iter)^(1/smooth.power)
-            if (length(lsms)) {
+            lsms <- try(smooth(lxjo[lig], simres[lig,lr]^smooth.power,
+                               weights=lwgo[lig], par=smooth.par,
+                               iter=smooth.iter)^(1/smooth.power) )
+            if (class(lsms)!="try-error" & length(lsms)) {
               if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
               lines(lxjo[lig], lsms, lty=lty[4], col=lsmcol2[lgrp],lwd=lwd[4])
             }
@@ -3594,21 +3593,21 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       }
       for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
         lig <- lsmgrp==lgrp
-        lsm <- smooth(lxjo[lig], lyjo[lig]^smooth.power, weights=lwgo[lig],
-                      par=smooth.par, iter=smooth.iter)^(1/smooth.power)
-        if (length(lsm)) {
+        lsm <- try(smooth(lxjo[lig], lyjo[lig]^smooth.power, weights=lwgo[lig],
+                      par=smooth.par, iter=smooth.iter)^(1/smooth.power))
+        if (class(lsm)!="try-error" & length(lsm)) {
           if (llimy)  # lsm[lsm<lylimj[1]|lsm>lylimj[2]] <- NA
             lsm <- plcoord(lsm, range=lylimj, limext=ylimext)
           lines(lxjo[lig], lsm, lty=lty[3], col=lsmcol1[lgrp],lwd=lwd[3])
         }
-      }
+    }
       if (lngrp>1) { ## legend for smooths
         if (length(smooth.legend)) {
           if (is.logical(smooth.legend))
             smooth.legend <- if (smooth.legend) "topright" else NULL
           if (length(smooth.legend))
             legend(smooth.legend, legend=lsmglab, lty=rep(lty[4],lngrp),
-                   col=lsmcol1, bg="white")
+                   col=lsmcol1, lwd=3, bg="white")
         }
       }
     }
@@ -3825,7 +3824,7 @@ plresx <-
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
             smooth.sim=19, nxsmooth=51, smooth.group=NULL,
-            smooth.col=NULL, smooth.legend=TRUE, 
+            smooth.col=NULL, smooth.pale=0.2, smooth.legend=TRUE, 
             multnrows = 0, multncols = 0, 
             lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
             colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -3913,7 +3912,7 @@ plresx <-
         weights[-lnaaction] } else weights
   }
   if (is.na(lwgt)) lwgt <- length(lweights)>1
-  if (lwgt&& length(lweights)!=length(lres)) {
+  if (lwgt&& length(lweights)!=nrow(lres)) {
       warning(":plresx: no suitable weights found")
       lwgt <- FALSE
   }
@@ -4017,7 +4016,7 @@ plresx <-
     lweights <- lweights/mean(lweights)
     if (length(symbol.size)==0||is.na(symbol.size)) symbol.size <- 3/ln^0.3
     lsyinches <- 0.02*symbol.size*par("pin")[1] # *max(lweights,na.rm=TRUE)
-    if (lwsymbols) llab[liwgt] <- ifelse(is.character(llab),"",0)
+    if (lwsymbols) llab[liwgt] <- NA # ifelse(is.character(llab),"",0)
   } else  {
     lweights <- NULL
 #    llab[liwgt] <- lpch
@@ -4173,7 +4172,8 @@ plresx <-
                 yaxp=yaxp,
                 lnsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy,
-                smooth.group=smooth.group, smooth.col=smooth.col)
+                smooth.group=smooth.group, smooth.col=smooth.col,
+                smooth.pale=smooth.pale)
     }
     plmatrix(ldata[,vars,drop=FALSE],lres, panel=lpanel, pch=llab, range.=lylim,
              reference=FALSE,
@@ -4249,7 +4249,7 @@ plresx <-
       if (lcmpj) {
         lrefx <- lcompx[,lv]
         if (se) lrefyw <- qnt*lcompse[,lv]
-      }
+    }
       i.plotlws(as.numeric(ldata[, lv]), rr, xlab = xlabs[lv], ylab = ylabs[lv],
         "", outer.margin, cex.title,
         colors, lty, lwd, lpch, col, lpty, llab, cex.lab, ltxt,
@@ -4258,7 +4258,7 @@ plresx <-
         ylim=if(llimy) lylim else NULL, ylimfac, ylimext, yaxp,
         lrefx, lci, lrefyw, lnsims, lsimres,
         smooth.group=smooth.group, smooth.col=smooth.col,
-                smooth.legend=smooth.legend,
+        smooth.pale=smooth.pale, smooth.legend=smooth.legend,
         condprobrange=condprobrange)
     }
 ##    if (llimy|llimyrob) abline(h=attr(rr,"range"),lty=lty[2],col=colors[2])
@@ -4283,7 +4283,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
          nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
          pch=NULL, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r", xaxmar=NULL, yaxmar=NULL,
-         vnames=NULL, main="", cex.points=NA, cex.lab=0.7, cex.text=1.3,
+         vnames=NULL, main="", cex=NA, cex.points=NA, cex.lab=0.7, cex.text=1.3,
          cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keepmf=FALSE,
          axes=TRUE, ...)
 {
@@ -4413,6 +4413,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 ##-   cext <- cex*cextext
   par(oma=oma*cex.lab, mar=mar, mgp=cex.lab*c(1,0.5,0))
   if (keepmf) par(mfg=lmfg, new=FALSE)
+  if (!is.na(cex)) cex.points <- cex
   if (is.na(cex.points)) cex.points <- max(0.2,min(1,1.5-0.2*log(tnr)))
 ##
   ## log
@@ -4473,9 +4474,9 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 
 ## ====================================================================
 plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
-                   width=1, wfac=NULL, h0=NULL, adj=0.5, extquant=TRUE, 
-                   widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
-                   colors=c(box="lightblue2",med="blue",na="gray90"))
+  width=1, wfac=NULL, h0=NULL, adj=0.5, extquant=TRUE, 
+  ilim=NULL, ilimext=0.05, widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
+  colors=c(box="lightblue2",med="blue",na="gray90"))
 {
   ## Purpose:   multi-boxplot
   ## ----------------------------------------------------------------------
@@ -4491,7 +4492,8 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
       polygon(at+lpos*lwmax^2/wid, quant, col=col)
     }  else 
     if(wid>0) polygon(at+wid*lpos, quant, col=col)
-  }
+}
+  
   if (length(x)==0) {
     warning(":plmbox: no data")
     return()
@@ -4502,20 +4504,25 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
                c(0.05,0.1,0.25,0.50,0.75,1)/2
   lprobs <- if (all(probs<=0.5))  c(probs,1-probs)  else c(probs)
   lprobs <- sort(unique(lprobs))
-#  lprb <- c(-rev(lprobs),0,lprobs)/2+0.5
   colors <- as.list(colors)
   box.col <- colors[["box"]]
   if (length(box.col)==1)
     box.col <- ifelse(0.25<=last(lprobs,-1) & lprobs[-1]<=0.75, box.col, NA)
   ## values for degenerate case
-  lfac <- if (is.null(wfac)) width*mad(x)/dnorm(0) else wfac*length(x)
-  lq <- widid <- NULL
+  lfac <- if (is.null(wfac)) width*2*IQR(x, na.rm=TRUE) else wfac*length(x)
+                                        # was mad/dnorm(0)
+  lq <- NULL
   lmed <- median(x, na.rm=TRUE)
   lwmed <- width
   lhtot <- diff(range(x, na.rm=TRUE))
   if (lhtot>0) { ## non-degenerate
   if (is.null(h0)) h0 <- lhtot*0.02
-  lq <- quinterpol(x, probs=lprobs, extend=extquant)
+  lrg <- range(x, na.rm=TRUE)
+  lqy <- lq <- quinterpol(x, probs=lprobs, extend=extquant)
+  if (length(ilim)) {
+      lrg <- plcoord(lrg, range=ilim, limext=ilimext)
+      lqy <- plcoord(lqy, range=ilim, limext=ilimext)
+  }
   loutl <- x[x<min(lq)|x>max(lq)]
   ## ---
   lwid <- lfac*diff(lprobs)/pmax(diff(lq),h0)
@@ -4526,8 +4533,9 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   lwoutl <- widthfac["outl"]
   if (is.na(lwoutl)) lwoutl <- 0.1*lwmax
   ## ---
+  BR()
   for (li in 1:(length(lprobs)-1)) 
-      f.box(lwid[li], lq[li+c(0,1,1,0)], box.col[li])
+      f.box(lwid[li], lqy[li+c(0,1,1,0)], box.col[li])
   if (!is.null(na.pos)) {
       lmna <- mean(is.na(x))
       if (lmna) {
@@ -4539,7 +4547,7 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
       }
   }
   lines(c(at,at), # +linepos*0.01*diff(par("usr")[1:2])*(0.5-adj),
-        range(x, na.rm=TRUE), lwd=2)
+        lrg, lwd=2)
   if (outliers&&length(loutl)) {
       lat <- rep(at,length(loutl))
       segments(lat-lwoutl*adj, loutl, lat+lwoutl*(1-adj), loutl)
@@ -4553,8 +4561,9 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
 ## ====================================================================
 plmboxes <- function(formula, data, width=1, at=NULL, 
     probs=NULL, outliers=TRUE, na=FALSE, 
-    refline=NULL, add=FALSE, extend=1, xlim=NULL, ylim=NULL,
-    axes=TRUE, xlab=NULL, ylab=NULL, labelsvert=FALSE, mar=NULL,
+    refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
+    xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL, 
+    labelsvert=FALSE, mar=NULL,
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
     colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
 {
@@ -4566,6 +4575,7 @@ plmboxes <- function(formula, data, width=1, at=NULL,
 ##  widthfac <- 1
   f.ylim <- function(ylm, ext)
     c((1+ext)*ylm[1]-ext*ylm[2], (1+ext)*ylm[2]-ext*ylm[1])
+
   formula <- as.formula(formula)
   if (length(formula)<3) stop("!plmboxes! formula must have left hand side")  
   ## widths
@@ -4590,7 +4600,8 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   ly <- ldt[,1]
   ##
   if (length(formula[[3]])>1 && as.character(formula[[3]][[2]])=="1") 
-    ldt <- data.frame(ldt[,1],0,ldt[,2])
+      ldt <- data.frame(ldt[,1],0,ldt[,2])
+  ## preliminary 
   lx <- ldt[,2] <- factor(ldt[,2]) # unused levels are dropped
   lxx <- ldt[,-1]
   llr <- ncol(ldt)>2
@@ -4601,23 +4612,24 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   lsd <- mean(sapply(llist,mad,na.rm=TRUE),na.rm=TRUE)
   width <- rep(width, length=lng)
   lfac <- width*lsd/(max(lnn)*(1+llr))
-#  print(c(lsd=lsd,lnn=max(lnn),lfac=lfac))
+  ## labels
   if (is.null(xlab)||is.na(xlab)) {
       xlab <- as.character(formula[[3]])
       if (length(xlab)>1) xlab <- xlab[2]
       if (xlab=="1") xlab <- ""
   }
   if (is.null(ylab)) ylab <- as.character(formula[[2]])
+  ## position
   if (is.null(at)) at <- 1:lng else
     if (length(at)!=lng) {
       warning(":plmboxes: 'x' has wrong length")
       at <- at[1:lng] ## may produce NAs
   }
+  ## probabilities
   if (is.null(probs))
       probs <- if (sum(!is.na(ly))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
                c(0.05,0.1,0.25,0.50,0.75,1)/2
   ## graphics
-  oldpar <- par(mar=mar)
   if (is.null(na)||is.na(na)||(is.logical(na)&&!na)) na.pos <- NULL else 
       if (is.logical(na))
           na.pos <- c(min(ly, na.rm=TRUE)*(1-0.3)-0.3*max(ly, na.rm=TRUE))
@@ -4626,45 +4638,62 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   if (!add) {
   if (is.null(mar)) mar <-
       c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
-  lxlim <- if(is.null(xlim))
-    range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5 else xlim
-  lext <- 0.03+0.04*extend
-  lylim <- if(is.null(ylim))
-    f.ylim(range(ly,na.pos, na.rm=TRUE),lext) else ylim
-  plot(lxlim, lylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
-  }  ##  if (!add)
-  if (!is.null(refline))
-    abline(h=refline, col=lcol[["refline"]], lty=3, lwd=1.5)
-  ## ---
-  lusr <- diff(par("usr")[1:2])
-  lsep <- lwfac["sep"]*llr*lusr
-  lwoutl <- lwfac["outl"]
-  if (is.na(lwoutl)) lwoutl <- 0.05*lusr
-  lwfac["outl"] <- lwoutl/lng
-  if (llr) lwfac[c("medmin","outl")] <- lwfac[c("medmin","outl")] /2
-  for (li in 1:lng) {
-    if (is.na(at[li])) next
-    if (length(lli <- llist[[li]])) 
-    plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
-           adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE, 
-           widthfac=lwfac, colors=lcol)
-    if (llr) 
-      if (length(llir <- llist[[li+lng]]))
-        plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
-               adj=0, na.pos=na.pos, extquant=TRUE, 
-               widthfac=lwfac, colors=lcol)
+  oldpar <- par(mar=mar)
+  if(is.null(xlim)) xlim <- 
+    range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
+  lrg <- range(ly,na.pos, na.rm=TRUE)
+  if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
+      warning(":plmboxes: unsuitable argument 'ilim'")
+      ilim <- NULL
   }
-  if (axes&!add) {
+  if (is.null(ilim)) ilim <- lrg
+  ljlim <- ilim[1]<lrg[1] | ilim[2]<lrg[2] ## inner range is actif
+  if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
+  ## ---------------------------------
+  plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
+  lusr <- par("usr")
+  if (axes) {
     axis(1,at=at,labels=llev,las=1+2*labelsvert)
-    lat <- pretty(f.ylim(range(ly, na.rm=TRUE), lext)) #, n=7,n.min=5
+    lat <- pretty(f.ylim(lrg, ilimext)) #, n=7,n.min=5
     if(!is.null(na.pos)) {
         lat <- lat[lat>max(na.pos)]
         mtext("NA",2,1,at=mean(na.pos),las=1)
     }
     axis(2, at=lat)
-    box()
+    if (ljlim) { ## inner and outer box
+        box(lty=3)
+        lines(lusr[c(1,2,2,1,1)],ilim[c(1,1,2,2,1)])
+    } else box()
   }
   mtext(xlab,1,par("mar")[1]-1)
+} # if (!add)
+  ## ---
+  if (!is.null(refline))
+      abline(h=refline, col=lcol[["refline"]], lty=3, lwd=1.5)
+  ## ---
+  lusrd <- diff(par("usr")[1:2])
+  lsep <- lwfac["sep"]*llr*lusrd
+  lwoutl <- lwfac["outl"]
+  if (is.na(lwoutl)) {
+      lwoutl <- 0.05*lusrd
+      lwfac["outl"] <- lwoutl/lng
+  }
+  if (llr) lwfac[c("medmin","outl")] <- lwfac[c("medmin","outl")] /2
+  ## ------------
+  for (li in 1:lng) {
+    if (is.na(at[li])) next
+    if (length(lli <- llist[[li]])) 
+    plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
+           adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE,
+           ilim=if(ljlim) ilim, ilimext=ilimext, 
+           widthfac=lwfac, colors=lcol)
+    if (llr) ## second half of asymmetrix  mbox
+      if (length(llir <- llist[[li+lng]]))
+        plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
+               adj=0, na.pos=na.pos, extquant=TRUE,
+               ilim=ilim, ilimext=ilimext, 
+               widthfac=lwfac, colors=lcol)
+  }
   par(oldpar)
   invisible(at)
 }
@@ -4967,24 +4996,29 @@ function(mfrow=NULL, mfcol=NULL, mft=NULL, row=TRUE, oma=c(0,0,2,1),
 }
 ## ==========================================================================
 robrange <-
-function(data, trim=0.2, fac=3)
+  function(data, trim=0.2, fac=3, na.rm=TRUE)
 {
-  ldat <- data[is.finite(data)]
-  if (is.character(ldat)|length(ldat)==0) stop("!robrange! invalid data")
+  lna <- any(!is.finite(data))
+  if (lna) {
+    if(!na.rm) stop("!robrange! 'data' contains NAs")
+    data <- data[is.finite(data)]
+  }
+  ln <- length(data)
+  if (is.character(data)|length(data)==0) stop("!robrange! invalid data")
   trim <- c(trim, 0.2)[1]
   if (!is.finite(trim)) trim <- 0.2
-  lmn <- mean(ldat,trim=trim)
-  lds <- sort(abs(ldat-lmn))
-  ln <- ceiling((1-trim)*length(ldat))
-  if (ln<3) {
+  lmn <- mean(data,trim=trim)
+  lds <- sort(abs(data-lmn))
+  lnt <- ceiling((1-trim)*ln)
+  if (lnt<3 | lnt==ln) {
     warning(":robrange: not enough valid data. returning ordinary range")
     lsd <- Inf } else {
-    lsd <- fac*sum(lds[1:ln]/(ln-1))
+    lsd <- fac*sum(lds[1:lnt]/(lnt-1))
     if (lsd==0) {
       warning(":robrange: robust range has width 0. returning ordinary range")
       lsd <- Inf }
   }
-  c(max(lmn-lsd,min(ldat)), min(lmn+lsd,max(ldat)))
+  c(max(lmn-lsd,min(data)), min(lmn+lsd,max(data)))
 }
 ## ==========================================================================
 stamp <- function(sure=TRUE, outer.margin = NULL,
@@ -5863,3 +5897,13 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     if (x) fit$x <- XX ## !Wst return design matrix
     fit
 }
+## ================================================================
+colorpale <- function(col=NA, pale=0.3, ...)
+  {
+    if (is.na(col)) {
+      col <- palette()[2]
+      warning(":colorpale: Argument 'col' is NA. I assume  ", col)
+    }
+    crgb <- t(col2rgb(col)/255)
+    rgb(1-pale*(1-crgb), ...)
+  }

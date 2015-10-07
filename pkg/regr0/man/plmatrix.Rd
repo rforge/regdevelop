@@ -13,8 +13,8 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   nrows = 0, ncols = nrows, save = TRUE,
   robrange. = FALSE, range. = NULL, pch = NULL, col = 1, 
   reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
-  xaxmar = NULL, yaxmar = NULL, vnames = NULL,
-  main = "", cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
+  xaxmar = NULL, yaxmar = NULL, vnames = NULL, main = "",
+  cex = NA, cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, mar = rep(0.2, 4), keepmf = FALSE,
   axes = TRUE, ...)
 }
@@ -52,7 +52,9 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
     labelled?}
   \item{vnames}{labels for the variables}
   \item{main}{main title for the plot (to be repeated on each plot page)}
-  \item{cex.points}{character expansion for showing the observations}
+  \item{cex, cex.points}{character expansion for showing the
+    observations (both arguments are equivalent, cex has priority).
+  }
   \item{cex.lab, cex.text}{character expansion for variable labels
     in the margin and in the "diagonal", respectively,
     relative to \code{cex}}

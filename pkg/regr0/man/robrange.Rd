@@ -4,7 +4,7 @@
 \title{ Robust Range of Data }
 \description{
   Determines a robust range of the data on the basis of the trimmed mean
-  and variance
+  and mean absolute deviation
 }
 \usage{
 robrange(data, trim = 0.2, fac = 3)

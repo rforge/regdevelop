@@ -446,10 +446,14 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
 ##-           tau=0.7)
 ##- drop1(t.r, test="Chisq")
 ## -----------------------------------------------------------
+mframe(1,2)
 plmboxes(tremor~location, data=d.blast)
+plmboxes(tremor~location, data=d.blast, ilimext=0.1)
+plmboxes(tremor~location, data=d.blast, ilim=c(0,20),ilimext=0.05)
+plmboxes(tremor~location, data=d.blast, ilim=c(0,15))
 plmboxes(tremor~location+I(charge>5), data=d.blast)
 plmboxes(tremor~1+location, data=d.blast)
-plmboxes(tremor~location, data=d.blast, x=c(1,3,4,7,NA,10,11,12),width=c(1,0.5))
+plmboxes(tremor~location, data=d.blast, at=c(1,3,4,7,NA,10,11,12),width=c(1,0.5))
 
 plmboxes(len~dose+supp, data=ToothGrowth, colors=c(med="red"),
          probs=c(0.1,0.25))

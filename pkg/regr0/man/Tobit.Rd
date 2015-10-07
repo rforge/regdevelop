@@ -27,7 +27,8 @@ Tobit(data, limit = 0, transform = NULL, log = FALSE, ...)
   }
   \item{log}{
     logical. If \code{TRUE}, \code{data} will be log transformed
-    by calling \code{\link{logst}}.
+    by calling \code{\link{logst}}. Argument \code{transform} will be
+    ignored. 
   }
   \item{...}{
     any additional arguments to the \code{transform} function

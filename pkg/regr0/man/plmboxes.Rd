@@ -15,13 +15,14 @@ Multibox plots
 \usage{
 plmboxes(formula, data, width=1, at=NULL,
     probs=NULL, outliers=TRUE, na=FALSE,
-    refline=NULL, add=FALSE, extend=1, xlim=NULL, ylim=NULL,
-    axes=TRUE, xlab=NULL, ylab=NULL, labelsvert=FALSE, mar=NULL,
+    refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
+    xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
+    labelsvert=FALSE, mar=NULL,
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
     colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
 
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
-    h0=NULL, adj=0.5, extquant=TRUE, 
+    h0=NULL, adj=0.5, extquant=TRUE, ilim=NULL, ilimext=0.05, 
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
     colors=c(box="lightblue2",med="blue",na="gray90"))
 }
@@ -66,9 +67,16 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
 \item{add}{logical. If TRUE, the mboxes will be added to an existing
   plot without calling 'plot'.
 }
-\item{extend}{number ruling the amount of expansion of the vertical plotting
-  range beyond the range of the data values: the data range will be
-  extended by a factor of 0.03+0.04*'extend' in both directions.
+\item{ilim}{limits for ordinary plotting (in vertical direction).
+  Beyond these limits, boxes are shown in the margins with squeezes
+  scale. Note that the width of the boxes will not be adjusted to the
+  squeezed scale, such that areas are no longer proportional to
+  probabilities.
+}
+\item{ilimext}{number ruling the amount of expansion of the vertical
+  plotting range beyond the range of the data values (or \code{ilim}
+  if used): the data range will be extended by the factor 'ilimext'
+  in both directions.
 }
   \item{xlim}{plotting limits for the horizontal axis.
 }
@@ -83,9 +91,9 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
   'formula'.
 }
 \item{labelsvert}{logical: Should the labels for the level of the
-  "x factor".
+  "x factor" be marked in vertical direction?
 }
-\item{mar}{plot margins. Default tries to be suitable
+\item{mar}{plot margins. Default tries to be suitable.
 }
 \item{widthfac}{named vector with elements
 
@@ -145,7 +153,7 @@ Specific arguments for 'plmbox':
   quartiles, thereby recovering the box of the traditional box plot.
 }
 \value{
-  invisibly returns the 'at' values finally used.
+  invisibly returns the 'at' values that are finally used.
 }
 %% \references{
 %% %% ~put references to the literature/web site here ~

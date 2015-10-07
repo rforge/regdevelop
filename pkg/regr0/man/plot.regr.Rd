@@ -63,8 +63,10 @@
     If it is a vector of appropriate size, it will be used to determine
     the sizes of such bubbles.}
   \item{symbol.size}{determines the size of weight symbols}
-  \item{markprop}{proportion of extreme residuals to be labeled}
-  \item{lab}{labels of observations used to identify them}
+  \item{markprop}{proportion of extreme residuals to be labeled.
+    If all points should be labeled, let \code{markprop=1}.}
+  \item{lab}{labels of observations used to identify them, depending on
+    \code{markprop}.}
   \item{cex.lab}{character size for lab. If the length is $>1$, the
     second element determines the size of non-labeled points,
     otherwise, their size is adjusted to the number of points
