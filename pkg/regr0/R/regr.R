@@ -4306,8 +4306,11 @@ function(x, y=NULL, data=NULL, panel=l.panel,
     if (length(x)==2)
     x <- model.frame(x,data, na.action=NULL)  else {
       ld <- model.frame(x[c(1,3)],data, na.action=NULL)
-      ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
-      x <- ld
+      lv <- setdiff(all.vars(x[1:2]),colnames(ld))
+      x <- cbind(ld, data[,all.vars(x[1:2]),drop=FALSE])
+                                        # works with lhs = cbind(...)
+      x <- x[,rev(!duplicated(rev(names(x))))]
+                                        # duplicates arise from ~. formulas
     }
   }
   if (is.data.frame(x)) {
@@ -4325,10 +4328,10 @@ function(x, y=NULL, data=NULL, panel=l.panel,
     save <- FALSE
     if (is.formula(y))  {
       ld <- model.frame(x[c(1,3)],data, na.action=NULL)
-    if (length(x)>2)
-      ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
-    x <- ld
-  }
+      if (length(x)>2)
+        ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
+      x <- ld
+    }
     if (is.formula(y)) {
       if (length(y)==2)
         y <- model.frame(y,data, na.action=NULL)  else {
@@ -4342,7 +4345,8 @@ function(x, y=NULL, data=NULL, panel=l.panel,
       y <- as.matrix(y)
     }
     ldata <- cbind(x, as.matrix(y))
-    nv2 <- ncol(ldata)-nv1 ; lv2 <- nv1 }
+    nv2 <- ncol(ldata)-nv1 ; lv2 <- nv1
+  }
   nvv <- ncol(ldata)
   tnr <- nrow(ldata)
 ## variable labels
@@ -4492,7 +4496,7 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
       polygon(at+lpos*lwmax^2/wid, quant, col=col)
     }  else 
     if(wid>0) polygon(at+wid*lpos, quant, col=col)
-}
+  }
   
   if (length(x)==0) {
     warning(":plmbox: no data")
@@ -4533,7 +4537,6 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   lwoutl <- widthfac["outl"]
   if (is.na(lwoutl)) lwoutl <- 0.1*lwmax
   ## ---
-  BR()
   for (li in 1:(length(lprobs)-1)) 
       f.box(lwid[li], lqy[li+c(0,1,1,0)], box.col[li])
   if (!is.null(na.pos)) {
