@@ -132,7 +132,10 @@
     Defaults to \code{c(2,2)}, except for multivariate models, where
     it adjusts to the number of target variables}
   \item{mfcol}{if TRUE, the panel will be filled columnwise}
-  \item{mar, mgp, oma, cex, ask}{see \code{\link{par}}}
+  \item{mar, mgp, oma, cex}{see \code{\link{par}}}
+  \item{ask}{Should R ask before erasing the screen?
+    The default is 'getOption('ask'), followed by TRUE for certain
+    graphical devices.}
   \item{\dots}{further arguments to be passed to \code{plot}}
 }
 \details{

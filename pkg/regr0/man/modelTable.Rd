@@ -20,7 +20,7 @@
   which models.
 }
 \usage{
-modelTable(models, data = NULL, seq = NULL)
+modelTable(models, seq = NULL) % data = NULL, 
 
 \method{format}{modelTable}(x, digits=getUserOption("digits"),
        stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
@@ -32,7 +32,7 @@ compareTerms(... , list=NULL, seq = NULL)
 \arguments{
   \item{models}{a character vector containing the names of the models to
     be collected, or a list of model fits. }
-  \item{data}{data on which all models are evaluated.}
+%%  \item{data}{data on which all models are evaluated.}
   \item{seq}{The sequence in which the terms should appear in the table.
     If incomplete, the terms mentioned in \code{seq} will be the first
     rows in the result. }
@@ -43,7 +43,7 @@ compareTerms(... , list=NULL, seq = NULL)
     \code{c(-1, 0.001, 0.01, 0.05, 0.1, 1)}
   }
   \item{sep}{separator. "\&" is used to prepare LaTeX format.}
-  \item{tex}{if TRUE, the output is can be used in (La-)TeX.}
+  \item{tex}{if TRUE, the output can be used in (La-)TeX.}
   \item{transpose}{logical. If TRUE, the table is printed in transposed form}
   \item{\dots}{other arguments, passed to \code{print} or
     \code{format}.\cr
@@ -63,9 +63,10 @@ compareTerms(... , list=NULL, seq = NULL)
     terms.  For terms with more than 1 degree of freedom, the matrix
     element is NA.  If possible, standardized coefficients are given.}
   \item{p}{p values, in the same form}
-  \item{sd.terms}{standard deviations for terms with 1 degree of
-    freedom}
+%%-   \item{sd.terms}{standard deviations for terms with 1 degree of
+%%-     freedom}
   \item{sigma}{estimated error standard deviations of the models}
+  \item{fitfun}{fitting functions used for fitting the models}
 
   \code{format.modelTable} returns a character matrix and thereby
   prepares for \code{print.modelTable}.  If needed, the ouput of

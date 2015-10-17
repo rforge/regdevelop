@@ -7,13 +7,15 @@
   and mean absolute deviation
 }
 \usage{
-robrange(data, trim = 0.2, fac = 3)
+robrange(data, trim = 0.2, fac = 3, na.rm=TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{data}{ a vector of data. Missing values are dropped }
   \item{trim}{ trimming proportion }
   \item{fac}{ factor used for expanding the range, see Details }
+  \item{na.rm}{logical: should NAs be removed? If FALSE, result will be
+    NA if there are NAs in 'data'.}
 }
 \details{
   The function determines the trimmed mean \code{m} and then the "upper

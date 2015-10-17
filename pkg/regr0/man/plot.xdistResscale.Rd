@@ -9,12 +9,13 @@
   Mahalanobis distance in the design space.
 }
 \usage{
-\method{plot}{xdistResscale}(x, xlab = "distance in x space",
+\method{plot}{xdistResscale}(x, lwd=2, cex=2, xlab = "distance in x space",
   ylab = "average abs. residual difference", col.aux = "grey30", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{an object of class \code{xdistResscale}}
+  \item{lwd, cex}{line width and character expansion for plotting}
   \item{xlab, ylab}{label for axes}
   \item{col.aux}{color to be used for auxiliary lines}
   \item{...}{arguments passed to \code{plot.default}}

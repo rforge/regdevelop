@@ -15,7 +15,7 @@ importFrom("quantreg", rq)
 ## exportPattern("^[^\\.]")
 
 ## Ok, now we are better and do not export all
-export(asinperc,
+export(asinp,
        BR, DB, IR,
        UserOptions,
        add1.regr, ## add1.default, add1.mlm, ## see below
@@ -39,7 +39,7 @@ export(asinperc,
        modelTable,
        ## nafalse,
        nainf.exclude, "%nin%",
-       nna,
+       notna,
        plcoord, plfitpairs, plmatrix,
        plot.regr, plot.xdistResscale,
        plres2x, plresx, plTA.polr, 

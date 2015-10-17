@@ -123,10 +123,23 @@ t.d <- d.spreng
 t.r <- regr(log10(ersch)~Stelle*log10(dist)+log10(ladung), data=d.spreng)
 t.form <- log10(ersch)~Stelle+log10(dist)+log10(ladung)
 t.r <- regr(t.form, data=t.d)
-t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
+t.rw <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
              weights = 5+1:nrow(t.d))
-plot(t.r,ask=c.ask)
+plot(t.rw,ask=c.ask)
 plresx(t.r,var=names(t.d),ask=c.ask)
+
+## adequate weights
+t.y <- fitted(t.r)
+t.e <- rnorm(length(t.y))/sqrt(4+1:length(t.y))
+t.e <- t.e*t.r$sigma/mean(abs(t.e))
+t.y <- t.y+t.e
+#plot(t.y,log10(t.d$ersch))
+
+t.rww <- regr(t.y~Stelle+log10(dist)+log10(ladung), data=t.d,
+             weights = 5+1:nrow(t.d))
+plot(t.rww,ask=c.ask)
+
+
 
 t.d <- d.spreng
 t.d$ersch[3:5] <- NA

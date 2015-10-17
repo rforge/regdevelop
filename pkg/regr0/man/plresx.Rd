@@ -126,7 +126,9 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
   \item{yaxp}{axis parameters used for residuals, passed to \code{plot},
     see \code{?par}.}
   \item{cex}{character expansion}
-  \item{ask}{as in \code{\link{par}}}
+  \item{ask}{Should R ask before erasing the screen?
+    The default is 'getOption('ask'), followed by TRUE for certain
+    graphical devices.}
   \item{\ldots}{further arguments passed to \code{plot}}
 }
 \details{
