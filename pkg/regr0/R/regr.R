@@ -2510,7 +2510,7 @@ modelTable <-
   ##  t.trmc <- NULL ## term classes
   ## -----------------------------------------------------------
   for (li in t.mnm) {
-    lr <- if (t.islist) models[[li]] else get(models[li],envir=parent.frame())
+    lr <- if (t.islist) models[[li]] else get(li,envir=parent.frame())
     lfitfun <- NULL
     for (lc in c("lm","glm","multinom","polr","survreg"))
       if (inherits(lr,lc)) lfitfun <- lc
@@ -2635,7 +2635,7 @@ format.modelTable <-
   t.nm <- row.names(t.cfo)
   if (lsd) t.nm <- paste(t.nm,ifelse(!is.na(t.sd),"@",""))
   dimnames(t.out) <- list(t.nm,c(if (lsd) "sd",dimnames(x$p)[[2]]))
-  structure( t.out, class=c("modelTable", "modelTF"), nterms=nrow(t.cf))
+  structure( t.out, class=c("modelTable", "modelTF"), nterms=nrow(x$coef))
 }
 ## ==========================================================================
 print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
@@ -2661,12 +2661,12 @@ print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
       }
     } else   t.out <- unclass( format(x, sep=sep) )
     ##    if (transpose) t.out <- t(t.out) ## would not work yet, need to select rows
-    mc1 <- "\\mc{2}{c}{"
+    mc1 <- "\\mc{2}{|c}{"
     mc2 <- "}"
     end <- "\\\\"
     headend <- "\\\\ \\hline"
-    tabstart <- "  \\begin{tabular}" # \\providecommand{
-    tabend <- "  \\end{tabular}"
+    tabstart <- "  {\\def\\mc{\\multicolumn}\n\\begin{tabular}" # \\providecommand{
+    tabend <- "  \\end{tabular}\n}"
     lnt <- attr(t.out,"nterms")
     t.end <- c(rep(end,nrow(t.out)-1),"")
     t.end[lnt] <- headend
