@@ -5258,6 +5258,7 @@ logst <- function(data, calib=data, threshold=NULL, mult=1)
 }
 ## ===========================================================================
 asinp <- function(x) asin(sqrt(x/100))/asin(1)
+asinperc <- asinp  ## compatibility
 ## ===========================================================================
 plcoord <-
 function(x, range=NULL, limfac=3.0, limext=0.1)
