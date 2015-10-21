@@ -159,7 +159,7 @@ t.r1 <- step(t.r, scope=~.+Stelle+log10(dist)+log10(ladung),trace=F)
 t.r2 <- update(t.r1, formula=.~.-log10(ladung))
 t.r3 <- update(t.r2, formula=.~.-Stelle)
 ##- t.mt <- modelTable(c("t.r","t.r1"))
-.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
+r.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
 t.mt[,-2]
 compareTerms(large=t.r1,reduced=t.r2,small=t.r3)
 

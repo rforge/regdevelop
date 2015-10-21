@@ -2595,6 +2595,7 @@ format.modelTable <-
   ## Author: Werner Stahel, Date: 23 Dec 2008, 10:09
   t.sd <- x$sd.terms
   lsd <- length(t.sd)>0
+  t.ntrm <- nrow(x$coef)
   t.stars <- c(stars, rep(" ",5))[1:5]
   t.st <- stars[cut(x$p,c(-1,0.001,0.01,0.05,0.1,1))]
   t.st[is.na(t.st)] <- "   "
@@ -2616,7 +2617,9 @@ format.modelTable <-
     t.st <- rbind(t.st, "   ")
     if(lsd) t.sd <- c(t.sd, .nobs.=NA)
   }
-  t.cfo <- format(t.cf, digits=digits)
+  t.cfo <- format(t.cf, digits=digits, ...)
+  t.nna <- is.na(x$coef)&!is.na(x$p)
+  t.cfo[1:t.ntrm,][t.nna] <- paste(c(rep(" ",1+digits/2),"+++"),collapse="")
   t.cfo[".df.",] <- paste("  ",format(t.cf[".df.",]))
   if (lnobs) t.cfo[".nobs.",] <- paste("",format(t.cf[".nobs.",]))
   lff <- x$fitfun
@@ -2635,10 +2638,10 @@ format.modelTable <-
   t.nm <- row.names(t.cfo)
   if (lsd) t.nm <- paste(t.nm,ifelse(!is.na(t.sd),"@",""))
   dimnames(t.out) <- list(t.nm,c(if (lsd) "sd",dimnames(x$p)[[2]]))
-  structure( t.out, class=c("modelTable", "modelTF"), nterms=nrow(x$coef))
+  structure( t.out, class=c("modelTable", "modelTF"), nterms=t.ntrm)
 }
 ## ==========================================================================
-print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
+print.modelTable <- function(x, tex = FALSE, transpose=FALSE, ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -2648,7 +2651,8 @@ print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
   ##            (la)tex source
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 23 Dec 2008, 10:09
-  t.out <- unclass( if (t.fo <- inherits(x, "modelTF")) x else format(x) )
+  t.out <- unclass( if (t.fo <- inherits(x, "modelTF")) x else
+                   format(x, ...) )
   if (tex) {
     sep <- "&"
     if (t.fo) {
@@ -2659,7 +2663,7 @@ print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
              ,"most probably be wrong")
         for (lj in 1:(ncol(t.out)-1)) t.out[,lj] <- paste(t.out[,lj], sep)
       }
-    } else   t.out <- unclass( format(x, sep=sep) )
+    } else   t.out <- unclass( format(x, sep=sep, ...) )
     ##    if (transpose) t.out <- t(t.out) ## would not work yet, need to select rows
     mc1 <- "\\mc{2}{|c}{"
     mc2 <- "}"
@@ -2679,7 +2683,7 @@ print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
   } else {
     if (transpose) t.out <- t(t.out)
     colnames(t.out) <- paste("",colnames(t.out))
-    print(t.out, quote=FALSE)
+    print(structure(t.out, nterms=NULL), quote=FALSE)
   } ## !!!
   invisible(x)
 }
