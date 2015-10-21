@@ -2680,8 +2680,7 @@ print.modelTable <- function(x, tex = FALSE, transpose=FALSE,...)
     if (transpose) t.out <- t(t.out)
     colnames(t.out) <- paste("",colnames(t.out))
     print(t.out, quote=FALSE)
-  }
-##  if (length(x$sd.terms) && any(!is.na(x$sd.terms))) cat("\n  @ : standardized coefficients\n")
+  } ## !!!
   invisible(x)
 }
 ## ===================================================================
