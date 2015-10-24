@@ -32,6 +32,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   ## f. --- names of all variables to be used (as in lm)
   ## get all vars
   mf <- match.call(expand.dots = FALSE)
+  mf <- mf[sapply(mf,length)>0]
   lj <- match(c("formula", "data", "weights", "offset"), # "subset",
              names(mf), 0L)
   mf <- mf[c(1L, lj)]
@@ -2001,7 +2002,7 @@ residuals.coxph <- function(object, type="CoxSnellMod", ...)
     lr <- condquant(llim, "normal")
     lrr[li,] <- lr
   }
-  lrr <- cbind(lrr, fit=object$linear.predictors)
+  lrr <- cbind(lrr, fit=object$linear.predictor)
   class(lrr) <- "condquant"
   naresid(object$na.action, lrr)
 }

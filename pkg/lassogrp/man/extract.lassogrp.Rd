@@ -5,7 +5,7 @@
 \alias{[}% <- needed for R CMD check {MM thinks this is bogous}
 \alias{[.lassogrp}
 \description{
-  Extract several regression results fits from a lasso fit (table).
+  Extract a regression fits from a lasso fit (table).
 }
 \usage{
 extract.lassogrp(object, i = NULL, lambda = NULL, data=NULL, fitfun = "lm", ...)
@@ -31,11 +31,15 @@ extract.lassogrp(object, i = NULL, lambda = NULL, data=NULL, fitfun = "lm", ...)
   \code{extract.lassogrp} generates an object of a regression class
   like \code{lm} or \code{regr}.  This is useful for applying the
   respective plot and print methods to the lasso fit.
+  The result of an unpenalized fit to the ``selected'' model
+  (terms with non-zero coefficients) is available as 'fit.unpen'
+  component of the result.
 }
 \value{
   \code{extract.lassogrp}: object of class \code{lassofit} inheriting from
-  the class specified by
-  \code{fitfun}.
+  the class specified by \code{fitfun}.
+  \code{$fit.unpen}: The result of fitting the model (by code{fitfun})
+  to the reduced model.
 
   \code{x[i]}: an object of class \code{lassogrp} containing only the specified
   fits, i.e. all the information corresponding to these fits.
@@ -44,10 +48,10 @@ extract.lassogrp(object, i = NULL, lambda = NULL, data=NULL, fitfun = "lm", ...)
 \examples{
 data(asphalt)
 rr <- lasso(log10(RUT) ~ log10(VISC) + ASPH+BASE+FINES+VOIDS+RUN,
-            data=asphalt)
+            data=asphalt, adaptive=TRUE)
 ## Extract results for three lambda's:
-rr[c(1,10,15)]
-extract.lassogrp(rr, lambda=2.5)
+rr[c(1,19,20)]
+extract.lassogrp(rr, 19)
 
 ## The above relies on finding the original data;
 ## it does not work otherwise
