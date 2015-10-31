@@ -146,8 +146,10 @@ t.d$ersch[3:5] <- NA
 t.d$ladung[5:7] <- NA
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
              weights = 5+1:nrow(t.d))  
+##- t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
+##-              weights = 5+1:nrow(t.d), subset=sample(1:nrow(t.d), nrow(t.d)/2))
 t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
-             weights = 5+1:nrow(t.d), subset=sample(1:nrow(t.d), nrow(t.d)/2))
+             weights = 5+1:nrow(t.d), subset=stelle<=4)
 ## round(runif(nrow(t.d)))
 plot(t.r,ask=c.ask)
 drop1(t.r)

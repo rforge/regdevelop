@@ -1,4 +1,6 @@
-source('/u/stahel/R/Pkgs/lassogrp/R/lassogrp.R')
+require(lassogrp)
+## source('/u/stahel/R/Pkgs/lassogrp/R/lassogrp.R')
+require(regr0)
 
 d.asphalt <- read.table('/u/stahel/R/regdevelop/pkg/lassogrp/data/asphalt.dat',
                         header=T)
@@ -6,7 +8,7 @@ dd <- d.asphalt
 rr <- lasso(log10(RUT)~log10(VISC)+ASPH+BASE+FINES+VOIDS+RUN, data=dd)
 rr <- lasso(log10(RUT)~log10(VISC)+ASPH+BASE+FINES+VOIDS+RUN, nonpen=~1+RUN,
             data=dd)
-rrf <- extract.lassogrp(rr, 13)
+rrf <- extract.lassogrp(rr, 13, fitfun="regr")
 
 rra <- lasso(rr, adaptlambda=2.29)
 rrr <- extract.lassogrp(rra, 11, data=dd, fitfun='lm')

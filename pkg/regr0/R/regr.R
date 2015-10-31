@@ -26,18 +26,20 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   lcall$formula <- lformula
   ## d. --- data
   dataname <- deparse(substitute(data))
-  data <- as.data.frame(data)
-    lnobs <- nrow(data)
-  if (lnobs==0&&ncol(data)>0) stop("!regr! no observations in data")
+  ldata <- as.data.frame(eval(data))
+    lnobs <- nrow(ldata)
+  if (lnobs==0) stop("!regr! no observations in data")
   ## f. --- names of all variables to be used (as in lm)
   ## get all vars
-  mf <- match.call(expand.dots = FALSE)
-  mf <- mf[sapply(mf,length)>0]
-  lj <- match(c("formula", "data", "weights", "offset"), # "subset",
-             names(mf), 0L)
-  mf <- mf[c(1L, lj)]
-  mf$formula <- lformula
-  mf[[1L]] <- as.name("get_all_vars")
+##-  lcgetv <- match.call(expand.dots = FALSE)
+##-  lcgetv <- lcgetv[sapply(lcgetv,length)>0]
+##-  lj <- match(c("formula", "data"), 
+##-             names(lcgetv), 0L)
+##-  lcgetv <- lcgetv[c(1L, lj)]
+##-  lcgetv$formula <- lformula
+##-   lcgetv[[1L]] <- as.name("get_all_vars")
+##-   BR()
+  lcgetv <- call("get_all_vars", formula=lformula, data=lcall$data)
   if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
     lcf <- setdiff(all.vars(formula),names(data))
     if(nonlinear=="lazy") {
@@ -52,13 +54,28 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     }
     lcall$start <- start <- start[names(start)%in%lcf]
     lfo <- setdiff(all.vars(formula),names(start))
-    mf$formula <- as.formula(paste("~",paste(lfo,collapse="+")))
+    lcgetv$formula <- as.formula(paste("~",paste(lfo,collapse="+")))
     lcall$nonlinear <- nonlinear <- TRUE
-  } else {
-    mf$formula <- lformula
   }
-  lav <- try(eval(mf, parent.frame()))
+  lcgetv$data <- eval(lcall$data, sys.parent()) ## !!! oct 15
+  lav <- try(eval(lcgetv, parent.frame())) ## 
   if (class(lav)=="try-error") stop("!regr! undefined variables in formula")
+  ##
+  lcl <- lcall
+  if (!is.null(lcl$weights)) {
+    lwgt <- eval(substitute(weights), data)
+    lav <- cbind(lav, .weights.=lwgt)
+    lcl$weights <- lwgt
+  }
+  if (!is.null(lcl$offset)) {
+    lav <- cbind(lav, .offset.=eval(substitute(offset), data))
+    lcl$weights <- as.name(".offset.")
+  }
+  if (!is.null(lcl$subset)) {
+    li <- eval(substitute(subset), data, environment())
+    lav <- lav[li,]
+    lcl$subset <- NULL
+  }
   ## convert character to factor
   for (lvn in 1:ncol(lav)) {
     lv <- lav[[lvn]]
@@ -120,13 +137,12 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     if (is.null(family)) lfam <-attr(ly,"distribution")
   }
   else  if (lfitfun=="glm")
-    lcall$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcall$control)
+    lcl$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcl$control)
   ## 
   lfitname <- paste("i",lfitfun,sep=".")
   if (!exists(lfitname)||!is.function(get(lfitname)))
     stop (paste("!regr! Fitting function",lfitname, "not found"))
   ## m. --- prepare call
-  lcl <- lcall
   lcl[[1]] <- ## hack --> eval(.) works also when call is source()d ...
       switch(lfitname,
 	     "i.lm" = quote(regr0::i.lm),
@@ -140,8 +156,9 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
   lcl$fname <- lfam
   lcl$na.action <- substitute(na.action)
-##  lcl$data <- as.name("lav") ## environment(formula)
-  lcl$data <- eval(lcl$data, sys.parent())
+  lcl$data <- as.name("lav") ## environment(formula)
+  environment(lcl$formula) <- environment() ## !!!
+##-  lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
   old.opt <- NULL
   if(is.atomic(contrasts)&&length(contrasts)) {
@@ -151,8 +168,9 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
               lcl$contrasts <- NULL
           }
   }
-## --------------------------------------------
-  lreg <- eval(lcl, envir=environment(formula))
+##- ## --------------------------------------------
+  ##-   lreg <- eval(lcl, envir=environment(formula))
+  lreg <- eval(lcl)
   ## --------------------------------------------
   if (length(old.opt)) options(old.opt)
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
@@ -168,8 +186,14 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
   ## >>>>>>> .r32
   lreg$allvars <- lav ## needed more than $model
-             ## since $model contains transformed variables
-  lreg$funcall <- lreg$call
+  ## since $model contains transformed variables
+  ## recover some arguments to effective function call
+  lfc <- lreg$call
+  largs <- intersect(c("data", "weights", "offset", "subset"), names(lfc))
+  ## these arguments should be restored because otherwise,
+  ## add1 does not work if they have changed.
+  lfc[largs] <- lcall[largs]
+  lreg$funcall <- lfc
   lcall$formula <- formula(lreg) # hope this never damages anything
   lreg$call <- lcall
   tit(lreg) <- if (length(tit)==0) attr(data,"tit") else tit
@@ -728,7 +752,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   }
 ## prepare table
   lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
-  ltb <- data.frame(coef=NA, stcoef=NA, ci25=NA, ci975=NA, signif=NA, R2.x=lr2,
+  ltb <- data.frame(coef=NA, stcoef=NA, ciLow=NA, ciHigh=NA, signif=NA, R2.x=lr2,
                     df=ldr1[,1], p.value=ldr1[,lpvcol], testst=ldr1[,lpvcol-1])
   row.names(ltb) <- row.names(ldr1)
 ## intercept
@@ -761,9 +785,9 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
       sqrt(apply(lmmt[,names(lcf[lcont>0]),drop=FALSE],2,var)) / lsdy
     ## fill in
     ltb$coef[lcont1] <- lcf
-    lci <- lcf*(1+outer(1/lsg[lcont1], c(-1,1)))
+    lci <- lcf*(1+outer(sign(lcf)/lsg[lcont1], c(-1,1)))
        ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
-    ltb[lcont1,c("ci25","ci975")] <- lci
+    ltb[lcont1,c("ciLow","ciHigh")] <- lci
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
     ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
 }
@@ -851,7 +875,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     if(!is.null(testcoefcol)) {
       if (all(testcoefcol=="")) lltc <- FALSE else {
         ljp <- match(testcoefcol,colnames(ltc), nomatch=0)
-        if (sum(ljp)==0)
+        if (sum(ljp)==0) 
           warning(":print.regr: no valid columns of  testcoef  selected") else
         ltc <- ltc[,ljp,drop=FALSE]
       }
@@ -2098,13 +2122,14 @@ residuals.polr <- function(object, na.action=object, ...)
   naresid(na.action$na.action, lr)
 }
 ## ===========================================================================
-linear.predictors <- linpred <- function(object) {
+linear.predictors <- function(object) {
   llp <- object$linear.predictors
   if (is.null(llp)) llp <- object$fitted.values
   if (is.null(llp))
     stop("linear.predictors! no component linear predictor")
   naresid(object$na.action, llp)
 }
+linpred <- linear.predictors
 ## ===========================================================================
 fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
                       xm=NULL, xfromdata=FALSE, nxcomp=51)
@@ -2521,7 +2546,8 @@ modelTable <-
     t.nobs[li] <- lnr <-
       NROW(if(lfitfun=="survreg") lr$linear.predictors else lr$fitted.values)
     t.df[li] <- ldf <- lnr-lr$df.residual
-    ltnm <- attr(lr$terms, "term.labels")
+    lt <- terms(lr)
+    ltnm <- c( if(attr(lt,"intercept")) "(Intercept)", attr(lt, "term.labels"))
     t.cf[[li]] <-
       lr$testcoef[match(ltnm,row.names(lr$testcoef),nomatch=0),
                   c("coef","p.value")]
@@ -4916,7 +4942,7 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
   data
 }
 ## ======================================================================
-subset <- function(x, ...) {
+subset <- function(x, ...) { ## function subset that preserves attributes
   lattr <- attributes(x)
   lattr <- lattr[!names(lattr)%in%c("dim","dimnames","row.names","names")]
   lsubs <- base::subset(x, ...)
