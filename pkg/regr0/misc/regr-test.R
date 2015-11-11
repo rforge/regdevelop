@@ -119,8 +119,9 @@ r.savings <- regr(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
 plot(r.savings, ask=c.ask)
 ## Spreng
 t.d <- d.spreng
-## t.d <- t.d[t.d$stelle<=2,]
-t.r <- regr(log10(ersch)~Stelle*log10(dist)+log10(ladung), data=d.spreng)
+t.d <- t.d[t.d$stelle<=2,]
+t.r <- regr(log10(ersch)~factor(stelle)*log10(dist)+log10(ladung),
+            data=d.spreng)
 t.form <- log10(ersch)~Stelle+log10(dist)+log10(ladung)
 t.r <- regr(t.form, data=t.d)
 t.rw <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
@@ -373,7 +374,7 @@ t.rr0d <- regr(y~Alter+Geschlecht, data=na.omit(dd[,t.vars]))
 add1(t.rr0,scope="random")
 add1(t.rr0d,scope="random")
 
-##- r.rp <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
+r.rp <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 ##- summary(r.rp)
 ##- dd <- housing
 ##- dd$Cont

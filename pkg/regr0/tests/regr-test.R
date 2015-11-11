@@ -66,7 +66,7 @@ r.rob
 ## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
 
-require(MASS)  ## should not be needed
+## require(MASS)  ## should not be needed
 r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir,
                  contrasts="contr.treatment")
 
@@ -118,9 +118,9 @@ r.gami <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma(link=identity))
 ## ===========================================================
 ##- multinom
 data(d.surveyenvir)
-require(nnet)
-r.mnom <- multinom(responsibility~age+education+disturbance+sex,
-          data=d.surveyenvir)
+## require(nnet)
+##- r.mnom <- multinom(responsibility~age+education+disturbance+sex,
+##-           data=d.surveyenvir)
 r.mnom <- regr(responsibility~age+education+disturbance+sex,
           data=d.surveyenvir, family="multinomial", na.action=na.omit)
 r.mnom2 <- regr(responsibility~age+education, data=d.surveyenvir[1:100,])
@@ -146,10 +146,10 @@ t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
 ##-        start = list(Vm = 200, K = 0.1))  # d.treated is found in example(nls)
 ##- plot(t.r)
 ## ===================================================================
-require(survival)
-t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
-    dist = "weibull")
-t.rss <- summary(t.rs)
+require(survival) ## for dataset ovarian
+##- t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
+##-     dist = "weibull")
+##- t.rss <- summary(t.rs)
 ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,
 ##-     data = ovarian, dist = "extreme") ## not the same
 r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,

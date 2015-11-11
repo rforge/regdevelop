@@ -24,9 +24,8 @@ UserDefault
 %% %%  ~~ If necessary, more details than the description above ~~
 %% }
 \value{
-FIXME
-}
-\author{Werner Stahel}
+FIXME}
+\author{Werner A. Stahel}
 %% \note{
 %% %%  ~~further notes~~
 %% }
@@ -35,6 +34,13 @@ FIXME
 }
 \examples{
 ## see example(stamp)
-%% FIXME: add more
+## set options
+userOptions(project="Example A",  step="regression analysis")
+userOptions(show.dummy.coef=FALSE)  ## suppress dummy coefficients
+                        ##  for factors when using  print.regr 
+userOptions("regr.contrasts")  ##  c("treatment","poly")
+
+userOptions(stamp=NULL)
+getUserOption("stamp", default=2)
 }
 \keyword{utilities}

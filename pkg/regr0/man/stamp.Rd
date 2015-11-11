@@ -26,7 +26,8 @@ stamp(sure = TRUE, outer.margin = NULL,
   For getting final presentation versions of the plots, the stamp can be
   suppressed by changing the default by calling \code{options(stamp=0)}.
 
-  In more detail:  If \code{stamp==0} (or \code{\link{getUserOption}("stamp")==0})
+  In more detail:  If \code{stamp==0}
+  (or \code{\link{getUserOption}("stamp")==0})
   the function will only do its thing if \code{sure==TRUE}.
 
   If \code{stamp==2}, it will certainly do it.
@@ -35,13 +36,15 @@ stamp(sure = TRUE, outer.margin = NULL,
   plot page is complete.
 }
 \value{
-  invisibly returns the string that is added to the plot
+  invisibly returns the string that is added to the plot --
+  consisting of project title, step title and
+  current date (including time).
 }
 \author{Werner A. Stahel, ETH Zurich}
 \examples{
 userOptions(project="Example A",  step="regression analysis")
 plot(1:10)
-stamp() #-> "stamp" at bottom of right border
+stamp() ##-> "stamp" at bottom of right border
 }
 \keyword{utilities}
 \keyword{misc}

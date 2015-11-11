@@ -38,7 +38,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##-  lcgetv <- lcgetv[c(1L, lj)]
 ##-  lcgetv$formula <- lformula
 ##-   lcgetv[[1L]] <- as.name("get_all_vars")
-##-   BR()
   lcgetv <- call("get_all_vars", formula=lformula, data=lcall$data)
   if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
     lcf <- setdiff(all.vars(formula),names(data))
@@ -162,11 +161,13 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   ## problem with environment if different for  data  and  formula
   old.opt <- NULL
   if(is.atomic(contrasts)&&length(contrasts)) {
-      if(!is.character(contrasts))
-          warning("!regr! invalid contrasts argument") else {
-              old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
-              lcl$contrasts <- NULL
-          }
+    if(!is.character(contrasts))
+      warning("!regr! invalid contrasts argument") else {
+        old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
+        lcl$contrasts <- NULL
+      }
+    if (contrasts[1]=="contr.wsum") lav <- contr.wsum(lav)
+    lcl$contrasts[1] <- "contr.sum"  ## modify: appply  contr.wfac  to model.frame 
   }
 ##- ## --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
@@ -237,7 +238,9 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   ## b. --- method
   lcall <- match.call()
   lmeth <- c(lcall$method,"")[1]
-  lfn <- if (nonlinear) "nls" else {
+  lfn <- if (nonlinear) {
+    lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
+    "nls" } else {
     if (lmeth=="rlm") robust <- TRUE
     if (robust) {
       if (is.null(method)) method <- lcall$method
@@ -542,6 +545,7 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  require(MASS)   ## !?!
   lcall <- match.call()
+  lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
   lcall[[1]] <- as.name("polr") ## quote(regr0::i.polrfit)
   lcall$fname <- lcall$control <- lcall$family <- lcall$vif <- NULL
   lcall$Hess <- TRUE
@@ -592,6 +596,7 @@ i.survreg <-
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  require(survival)  ## !?!
   lcall <- match.call()
+  lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
   ## b. --- method
   if (fname=="ph") {
     lfitfun <- "coxph"
@@ -775,8 +780,9 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   if (length(lcont)) {
     ltlb <- dimnames(ltb)[[1]]
     lclb <- ltlb[lcont1]
-    licf <- pmatch(lclb,dimnames(lcoeftab)[[1]])
-    if (any(is.na(licf))) warning(":regr: bug: coefficients not found")
+##- ##-     licf <- pmatch(lclb,dimnames(lcoeftab)[[1]])
+##-     licf <- match(lcont, lasg)
+##-     if (any(is.na(licf))) warning(":regr: bug: coefficients not found")
     ## !!! bug if some coefs have 0 df
     ljc <- match(lcont,lasg) # index of coefs for cont variables
     lcf <- lcoef[ljc]
@@ -790,7 +796,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     ltb[lcont1,c("ciLow","ciHigh")] <- lci
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
     ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
-}
+  }
 ##-   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
 ##-     ltsc <- lcoeftab[nrow(lcoeftab),]
 ##-     ltb <- rbind(ltb,"log(scale)"=c(ltsc[1],NA,NA,NA,ltsc[3]/qnorm(0.975),
@@ -811,6 +817,41 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   rr
 }
 ## ==========================================================================
+contr.wsum <- 
+  function (n, w = NULL, contrasts = TRUE, sparse = FALSE) 
+{  ## provide weighted sum contrasts
+  if (is.data.frame(n)) {
+    df <- n
+    for (lj in 1:ncol(df)) 
+      if(class(df[,lj])=="factor") ## avoid ordered factors (for the time being)
+        attr(df[,lj],"contrasts") <- contr.wsum(df[,lj])
+    return(df)
+  }
+  if (is.factor(n)) {
+    w <- table(n)
+    n <- levels(n)
+  }
+  contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
+  if (is.null(w)) {
+    warning(":contr.wsum: no weights provided.",
+            " Returning unweighted contrasts for ", paste(n,collapse=", "))
+    return(contr)
+  }
+  if (length(w)!=nrow(contr) || any(is.na(w)) || any(w<0) || all(w==0)) {
+    warning(":contr.wsum: weights 'w' not suitable.",
+            " Returning unweighted contrasts")
+    return(contr)
+  }
+##-   li0 <- w==0
+  ##-   if (any(li0)) contr <- contr[c(!li0,TRUE),!li0]
+  n <- nrow(contr)
+  if (w[n]==0) 
+    warning(":contr.wsum: last weight is zero.",
+            " Returning unweighted contrasts") else {
+  contr[n,] <- - w[-n]/w[n] }
+  contr
+}
+##  ===================================================================
 print.regr <- function (x, call=TRUE, correlation = FALSE,
     dummy.coef = getUserOption("show.dummy.coef"),
     testcoefcol = getUserOption("regr.testcoefcol"),
@@ -875,8 +916,8 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     if(!is.null(testcoefcol)) {
       if (all(testcoefcol=="")) lltc <- FALSE else {
         ljp <- match(testcoefcol,colnames(ltc), nomatch=0)
-        if (sum(ljp)==0) 
-          warning(":print.regr: no valid columns of  testcoef  selected") else
+        if (sum(ljp)!=0) 
+  ##        warning(":print.regr: no valid columns of  testcoef  selected") else
         ltc <- ltc[,ljp,drop=FALSE]
       }
     }
@@ -1298,7 +1339,10 @@ drop1Wald <-
 ## ==========================================================================
 step <- function(object, ...)
   UseMethod("step")
-step.default <- get("step", pos="package:stats")
+
+step.default <- stats::step
+## step.default <- get("step", pos="package:stats")
+#### !!! sollte das anders heissen? step.default <- stats::step  ???
 
 step.regr <- function (object, scope, scale = 0,
   direction = c("both", "backward","forward"), trace = 1, keep = NULL,
@@ -2132,7 +2176,7 @@ linear.predictors <- function(object) {
 linpred <- linear.predictors
 ## ===========================================================================
 fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
-                      xm=NULL, xfromdata=FALSE, nxcomp=51)
+                      xm=NULL, xfromdata=FALSE, noexpand=NULL, nxcomp=51)
 {
   ## Purpose:    components of a fit
   ## ----------------------------------------------------------------------
@@ -2164,10 +2208,12 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   lvars <- all.vars(formula(object)[[3]])
   if (lnls)
     lvars <- lvars[match(lvars,names(coefficients(object)),nomatch=0)==0]
-  lvmiss <- match(lvars,names(data),nomatch=0)==0
-  if (any(lvmiss))
-    stop(paste("!fitcomp! variable(s)",
-               paste(lvars[lvmiss],collapse=", "),"not in data"))
+##-   lvmiss <- match(lvars,names(data),nomatch=0)==0
+##-   if (any(lvmiss))
+  lvmiss <- setdiff(lvars,names(data))
+  if (length(lvmiss)) 
+    stop(paste("!fitcomp! variable(s)", paste(lvmiss,collapse=", "),
+               "not in data"))
   if (length(lvars)==0)
     stop("!fitcomp! no variables selected")
   ldata <- data[,lvars,drop=FALSE]
@@ -2211,8 +2257,15 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   if (xfromdata) {
     lx <- ldata
   } else {
-    lnxc <- sapply(ldata, function(x) if (is.factor(x)) length(levels(x)) else 0)
-    lnxc <- max(nxcomp, lnxc)
+    lnxj <- sapply(ldata,
+                   function(x) if (is.factor(x)) length(levels(x)) else 0)
+    if(!is.null(noexpand) && is.numeric(noexpand))
+      noexpand <- names(noexpand)[noexpand>0]
+    lvconv <- names(ldata) %in% noexpand
+    names(lvconv) <- names(ldata)
+    if (any(lvconv)) lnxj[lvconv] <-
+      sapply(ldata[lvconv], function(x) length(unique(x)) )
+    lnxc <- max(nxcomp, lnxj)
     lx <- ldata[1,,drop=FALSE][1:lnxc,,drop=FALSE]
     row.names(lx) <- 1:lnxc
   }
@@ -2222,18 +2275,22 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   lcomp <- array(dim=c(nrow(lx),length(lvars),lny)) # [,lvars,drop=FALSE]
   dimnames(lcomp) <- c(dimnames(lx),list(names(lprm)))
   lcse <- if (se) lcomp  else NULL
+  ## 
   for (lv in lvars) {
     if (xfromdata) {
       ld <- lxm
-      ld[,lv] <- ldata[,lv]  # eliminate extra levels of factors
+      ld[,lv] <- ldata[,lv]
+      lfc <- sapply(ld,is.factor) # eliminate extra levels of factors
+      if (any(lfc)) ld[lfc] <- lapply(ld[lfc], factor)
     } else { # +++
       ldv <- ldata[,lv]
-      if (is.factor(ldv)) { # ---
-        ldx <- factor(levels(ldv))
+      if (lnxj[lv]) { # factor levels
+        ldx <- if (lvconv[lv]) sort(unique(ldv)) else factor(levels(ldv))
         lnl <- length(ldx)
         ld <- lxm[1:lnl,,drop=FALSE]
         ld[,lv] <- ldx
-        lx[,lv] <- factor(c(1:lnl,rep(NA,lnxc-lnl)),labels=levels(ldv))
+##-         lx[,lv] <- factor(c(1:lnl,rep(NA,lnxc-lnl)),labels=levels(ldv))
+        lx[,lv] <- c(ldx,rep(NA,lnxc-lnl))
         ##
         lpr <- predict(object, newdata=ld, se.fit = se) # lf.
         if (se) {
@@ -3085,8 +3142,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
       warning(":plot.regr/simresiduals: simresiduals did not work. ",
               "No simulated smooths")
     else {
-      lsimres <- lsimr$simres
-      lsimstres <- lsimr$simstres
+      lsimres <- lsimr
+      lsimstres <- attr(lsimr,"stres")
     }
     if (length(lsimres)==0) lnsims <- 0
   }
@@ -3308,7 +3365,7 @@ for (liplot in 1:length(lplsel)) {
       abline(0,1,lty = lty[2], col=colors[2])
       if (lpllevel>2&lnsims>0) {
         lxx <- qnorm(ppoints(ln))
-        lsimstr <- simresiduals(x, nrep=lnsims, resgen=rnorm)$simstres
+        lsimstr <- attr(simresiduals(x, nrep=lnsims, resgen=rnorm), "stres")
         for (lr in 1:lnsims) {
           lines(lxx,sort(lsimstr[,lr]),lty=lty[4], lwd=lwd[4], col=colors[4])
         }
@@ -3693,26 +3750,28 @@ formTrsf <- function(formula, xtrsf) {
 }
 ## i.smoothrob <- function(x,y,weights,par=3*length(x)^log10(1/2),iter=50)
 ## ==========================================================================
-simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
-{
+simresiduals <- function(object, ...)  UseMethod("simresiduals")
   ## Purpose:   simulate residuals according to regression model
   ##            by permuting residuals of actual model or by random numbers
   ## ----------------------------------------------------------------------
   ## Arguments:  resgen: how are residuals generated?
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date: 10 Aug 2008, 07:55
-  if (!class(object)[1]%in%c("regr","lm","glm")) {
-    warning(":simresiduals: ",
-            "I can simulate only for `regr`, `lm`, or `glm` objects")
-    return(NULL)
-  }
+## ---------------------------------------------------------------------
+simresiduals.glm <- function(object, nrep, resgen=NULL, glm.restype="deviance")
+{
   lcall <- object$call
   if ("weights"%in%names(lcall)) {
     warning(":simresiduals: I cannot simulate for weighted regression (yet)")
     ## get_all_vars  contains  weights  without parentheses -> danger!
     return(NULL)
   }
-  lerror <- NULL
+  loverd <- attr(object$scale, "fixed")
+  if (length(loverd) && !loverd)
+    warning(":simresiduals: Cannot simulate from overdispersed model",
+            " Using dispersion 1")
+  lcall[[1]] <- as.name("glm")
+  lfit <- object$fitted.values
+  ## -------
+##  lerror <- NULL
   ldata <- object$allvars
   if (is.null(ldata)) {
       ldata <- if (u.debug())  eval(lcall$data)  else
@@ -3722,23 +3781,92 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
       return(NULL)
     }
   }
-##-   if (length(object$na.action)) {
-##-     attr(ldata,"na.action") <- object$na.action
-##-     ldata <- na.action(ldata)
+  ## prepare call
+  lform <- formula(object)
+  lynm <- all.vars(lform[[2]])
+  environment(lform) <- environment()
+  lcl <- call("glm", formula=lform, data=as.name("ldata"),
+              family=object$family, start=object$coef, model=FALSE, y=FALSE)
+  lfam <- object$distrname
+  if (length(lfam)==0) lfam <- object$family$family
+  if (is.null(lfam)) lfam <- ""
+  ly <- object$response
+  if(lfam%in%c("binomial","quasibinomial")) {
+      if (NCOL(ly)==1 && length(unique(ly))!=2) {
+        warning(":simresiduals: binomial distribution with ",
+                "unsuitable response.\n  No residuals simulated")
+        return(list(simres=numeric(0)))
+      }
+      resgen <- if(NCOL(ly)==1) function(x) rbinom(x, 1, lfit)
+                else
+                  function(x) {
+                    lnbin <- ly[,1]+ly[,2]
+                    ly1 <- rbinom(x, lnbin, lfit)
+                    cbind(ly1,lnbin-ly1)
+                  }
+    } else {
+      if (lfam%in%c("poisson","quasipoisson")) 
+        resgen <- function(x) rpois(x, lfit)  else {
+          warning(":simresiduals: not (yet) available for this ",
+                     "type of model.\n  No residuals simulated")
+          return(list(simres=numeric(0)))
+        }
+    }
+  ## ---
+  ##
+  lnrow <- nrow(ldata)
+  lsimres <- matrix(NA,lnrow,nrep)
+  for (lr in 1:nrep) {
+    ldata[,lynm] <- resgen(lfit)
+    lrs <- eval(lcl) 
+    lsimres[,lr] <- residuals(lrs, type=glm.restype)
+  }
+  lsimres
+}
+## ==========================================================================
+simresiduals.default <- function(object, nrep, resgen=NULL)
+  ## glm.restype="deviance")
+{
+  ## Purpose:   simulate residuals according to regression model
+  ##            by permuting residuals of actual model or by random numbers
+  ## ----------------------------------------------------------------------
+  ## Arguments:  resgen: how are residuals generated?
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 10 Aug 2008, 07:55
+##-   if (!class(object)[1]%in%c("regr","lm","glm")) {
+##-     warning(":simresiduals: ",
+##-             "I can simulate only for `regr`, `lm`, or `glm` objects")
+##-     return(NULL)
 ##-   }
+  lcall <- object$call
+  if ("weights"%in%names(lcall)) {
+    warning(":simresiduals: I cannot simulate for weighted regression (yet)")
+    ## get_all_vars  contains  weights  without parentheses -> danger!
+    return(NULL)
+  }
+##  lerror <- NULL
+  ldata <- object$allvars
+  if (is.null(ldata)) {
+      ldata <- if (u.debug())  eval(lcall$data)  else
+      try(eval(lcall$data))
+    if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+      warning(":simresiduals: data not found -> No simulated residuals")
+      return(NULL)
+    }
+  }
   lres <- object$stres * object$sigma
   if (lnostres <- (length(lres)==0)||all(!is.finite(lres)))
     lres <- residuals(object)
   if (inherits(lres, "condquant"))
     lres <- structure(lres[,"random"], names=row.names(lres))
   if (length(lres)==0||all(lres==lres[1])) {
-    warning(":simresiduals: no (distinct) residuals found -> No simulated residuals")
+    warning(":simresiduals: no (distinct) residuals found",
+            "-> No simulated residuals")
     return(NULL)
   }
-  lfit <- object$fitted
+  lfit <- object$fitted.values
   if (is.null(lfit)) lfit <- object$linear.predictors
   if (is.null(lfit)) lfit <- 0
-
   if (nrow(ldata)!=length(lres)) {
     li <- match(names(lres),row.names(ldata))
     if (any(is.na(li))) {
@@ -3761,11 +3889,14 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
 ## ---
   if (length(resgen)) {
     if (!is.function(resgen)) resgen <- rnorm
+    ## ---
+  ## weibull not yet implemented
     lsig <- object$sigma
     if (length(lsig)!=1) lsig <- 1  ## only standardized res useful!
     lrgen <- TRUE
   } else  lrgen <- FALSE
   ## -------
+  ## prepare call
   lcall$data <- as.name("ldata")
   lform <- formula(object)
   lynm <- all.vars(lform[[2]])
@@ -3777,58 +3908,18 @@ simresiduals <- function(object, nrep, resgen=NULL, glm.restype="deviance")
   lsimres <- matrix(NA,lnrow,nrep)
   lfam <- object$distrname
   if (length(lfam)==0) lfam <- object$family$family
-  ## ---
-  ## weibull not yet implemented
-  if (lfam%in%c("gaussian","Gaussian")) {
-    lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
-    lsimstres <- if (lnostres) NULL else lsimres
-    for (lr in 1:nrep) {
-      ldata[,lynm] <- lfit + if (lrgen) resgen(lnrow)*lsig else sample(lres)
-      lrs <- eval(lcall) ## update(x, formula=lfo, data=ldata)
-      lrsr <- residuals(lrs)
-      if (inherits(lrsr, "condquant")) lrsr <- lrsr[,"random"]
-      lsimres[,lr] <- lrsr
-      if (!lnostres) lsimstres[,lr] <- lrs$stres
-    }
-  ## ---
-  }  else  {  ## glm
-    ly <- object$response
-    if (is.null(ly))  ly <- object$y
-    lfam <- object$family$family
-    if (is.null(lfam)) lfam <- ""
-    switch(lfam,
-           binomial = {
-             if (NCOL(ly)==1 && length(unique(ly))!=2) {
-               warning(":simresiduals: binomial distribution with unsuitable response.\n",
-                       "No residuals simulated")
-               return(list(simres=numeric(0)))
-             }
-             resgen <- function(x) {
-               if(NCOL(ly)==1) rbinom(x, 1, lfit)   else {
-                 lnbin <- ly[,1]+ly[,2]
-                 ly1 <- rbinom(x, lnbin, lfit)
-                 cbind(ly1,lnbin-ly1)
-               }
-             }
-           },
-           poisson = {
-             resgen <- function(x) rpois(x, lfit)
-           },
-           {
-             warning(":simresiduals: not (yet) available for this type of model.\n",
-                     "No residuals simulated")
-             return(list(simres=numeric(0)))
-           }
-           )
-    lrgen <- TRUE
-    lsimstres <- NULL
-    for (lr in 1:nrep) {
-      ldata[,lynm] <- if (lrgen) resgen(lnrow)  else  sample(lres)
-      lrs <- eval(lcall) ## update(x, formula=lfo, data=ldata)
-      lsimres[,lr] <- residuals(lrs, type=glm.restype)
-    }
+##  if (lfam%in%c("gaussian","Gaussian")) 
+  lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
+  lsimstres <- if (lnostres) NULL else lsimres
+  for (lr in 1:nrep) {
+    ldata[,lynm] <- lfit + if (lrgen) resgen(lnrow)*lsig else sample(lres)
+    lrs <- eval(lcall) ## update(x, formula=lfo, data=ldata)
+    lrsr <- residuals(lrs)
+    if (inherits(lrsr, "condquant")) lrsr <- lrsr[,"random"]
+    lsimres[,lr] <- lrsr
+    if (!lnostres) lsimstres[,lr] <- lrs$stres
   }
-  list(simres=lsimres, simstres=lsimstres)
+  structure(lsimres, stres=lsimstres)
 }
 ## ==========================================================================
 plresx <-
@@ -3969,11 +4060,12 @@ plresx <-
       vars <- unique(vars)
     }
   }
+  ## check vars, find them in call$data
   dvars <- names(ldata)
   if (length(vars)) {
-    mv <- match(vars,dvars,nomatch=0)
-    if (any(mv==0)) {
-      lvm <- vars[mv==0]
+    lmv <- match(vars,dvars,nomatch=0)
+    if (any(lmv==0)) {
+      lvm <- vars[lmv==0]
       ldx <- eval(x$call$data)
       lj <- match(lvm,names(ldx),nomatch=0)
       if (any(lj>0)) {
@@ -3994,16 +4086,25 @@ plresx <-
       }
     }
     ldata <- ldata[,vars,drop=FALSE]
-## convert character and variables with 2 values to factor
-    for (lvn in 1:ncol(ldata)) {
-      lv <- ldata[[lvn]]
-      if (is.character(lv)||(jitterbinary&&length(unique(lv))<=2))
-        ldata[[lvn]] <- factor(lv)
+  ## --- factors
+    ## convert character to factor
+    if (any(lic <- sapply(ldata,is.character)))
+      ldata[lic] <- lapply(ldata[lic], factor)
+    is.fac <- sapply(ldata, is.factor)
+    ## variables with only 2 values
+    lnv <- apply(ldata,2, function(x) length(unique(x)) )
+    if (jitterbinary) is.fac[lnv<=2] <- 2
+    ## factors created in the formula argument of the call to regr
+    ltv <- attr(terms(x),"variables")
+    ltfc <- ltv[grep("factor\\(",as.character(ltv))]
+    if (!is.null(ltfc)) {
+      lfc <- all.vars(formula(paste("~",paste(ltfc,collapse="+"))))
+      is.fac[match(lfc,names(ldata),nomatch=0)] <- 2
     }
   } # if (length(vars))
-  sequence <- length(sequence) && (!is.na(sequence)) && sequence
-##-        ( is.na(sequence) || (is.logical(sequence)&&sequence) )
-  if (sequence) {
+##  --- sequence
+  ljseq <- length(sequence) && (!is.na(sequence)) && sequence
+  if (ljseq) {
     ## is the seqence represented by any other variable?
     lseqvar <- if (length(vars)>0)
       sapply(ldata[,vars,drop=FALSE],function(x) {
@@ -4011,20 +4112,22 @@ plresx <-
              ld <- diff(x)
              sum(ld==0)<0.1*length(x) && (all(ld<=0) | all(ld>=0)) }
            } ) else FALSE
-    sequence <- !any(lseqvar)
+    ljseq <- !any(lseqvar)
     if (any(lseqvar)) warning(paste(":plresx: sequence represented by",
                                     paste(vars[lseqvar],collapse=", ")))
-    ldata$.sequence <- 1:nrow(ldata)
-    vars <- c(".sequence",vars)
-    dvars <- c(".sequence",dvars)
+    ldata$.sequence. <- 1:nrow(ldata)
+    vars <- c(".sequence.",vars)
+    dvars <- c(".sequence.",dvars)
+    is.fac <- c(is.fac, .sequence.=FALSE)
   }
+## ------------------
   ncd <- length(dvars)
   nvars <- length(vars)
   if (nvars==0) {
     warning(":plresx: I did not find any x variables")
     return() }
+## terminmodel
   terminmodel <- match(vars,lvmod,nomatch=0)>0
-##  tin <- vars[terminmodel]
 ##  reference lines
   if (is.null(reflines)) reflines <- !inherits(x,"coxph")
 ## weight symbols
@@ -4054,7 +4157,7 @@ plresx <-
   lnsims <- smooth.sim
   if (length(lnsims)==0) lnsims <- 0
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
-#  if (lcondq) lnsims <- 0
+  if (lcondq) lnsims <- 0
   if (lmult) lnsims <- 0
   if (length(lnsims)>1) {
     lnsims <- ncol(smooth.sim)
@@ -4062,7 +4165,7 @@ plresx <-
       warning(":plresx: unsuitable argument smooth.sim")
       lnsims <- 0 } else lsimres <- smooth.sim
   } else  if (lnsims)  {
-    lsimres <- simresiduals(x, lnsims)$simres
+    lsimres <- simresiduals(x, lnsims)
     if (length(lsimres)==0) lnsims <- 0
   }
 ## graphical elements
@@ -4092,7 +4195,7 @@ plresx <-
       warning("argument  xlabs  has wrong length")
       xlabs <- NULL }
   if (length(xlabs)==0) xlabs <- dvars
-  xlabs[xlabs==".sequence"] <- "sequence"
+  xlabs[xlabs==".sequence."] <- "sequence"
   names(xlabs) <- dvars
   if (length(ylabs)==0)
       ylabs <- if (addcomp) {
@@ -4132,12 +4235,11 @@ plresx <-
   outer.margin <- lonetitle&&loma[3]>0
   if (is.null(cex.title)) cex.title <- max(0.5, min(1.2,
       par("mfg")[4]*par("pin")[1]/(par("cin")[1]*nchar(main))))
+## -----------------------------------
 ## machinery
-##  ldfres <- x$df.residual
   ldfres <- x$df
   if(length(ldfres)>1) ldfres <- ldfres[2]
   qnt <- if (length(ldfres)==0) 2 else qt(0.975,ldfres)
-  is.fac <- sapply(ldata[,vars,drop=FALSE], is.factor)
 ##-   if (sum(terminmodel)>0) {
 ##-     comps <- fitcomp(x, ldt, vars=tin, xfromdata=addcomp, se=se)
 ##-     if (addcomp) {
@@ -4152,9 +4254,11 @@ plresx <-
 ##-   }
 ##-   environment(x$call$formula) <- environment()
 ##-   x$call$data <- as.name("ldata")
+
+## reflines: fitcomp!
   if (sum(terminmodel)>0 && reflines &&lnnls) {
+    lcmp <- fitcomp(x, xfromdata=FALSE, se=se, noexpand=is.fac)
 ##-     lcmp <- try(fitcomp(x, xfromdata=FALSE, se=se))
-    lcmp <- fitcomp(x, xfromdata=FALSE, se=se)
 ##-     if (class(lcmp)=="try-error") {
 ##-       warning(":plresx: fitcomp did not work. no reference lines")
 ##-       terminmodel[] <- FALSE
@@ -4165,9 +4269,9 @@ plresx <-
       if (addcomp) {
 ##-         if (length(ldata)==0&&(ln!=nrow(ldata))) # length(res)
 ##-           stop("!plresx! BUG: number of residuals != nrow(comps)")
-        lcompdt <- fitcomp(x, ldata, vars=vars[terminmodel], xfromdata=TRUE)$comp
+        lcompdt <-
+          fitcomp(x, ldata, vars=vars[terminmodel], xfromdata=TRUE)$comp
       }
-##-     }
   }
 ## ------------------------------------------------------------------
   if (inherits(x,"mlm")) {
@@ -4198,7 +4302,7 @@ plresx <-
              nrows=multnrows, ncols=multncols, main=main) # clrsmooth=colors[3]
     return()
   }
-## --- loop ---
+## --- loop --- plresx
   for (lj in 1:nvars) {
     lv <- vars[lj]
     lcmpj <- terminmodel[lj] && reflines&&lnnls
@@ -4219,8 +4323,8 @@ plresx <-
       ll <- levels(ff)
       lnl <- length(ll)
       if (mbox)
-          plmboxes(rr~ff, data=ldata, xlab = xlabs[lv], ylab = ylabs[lv],
-                         refline=0) else {
+        plmboxes(rr~ff, data=ldata, xlab = xlabs[lv], ylab = ylabs[lv],
+                 refline=0, mar=NA, ilim=lylim) else {
       xx <- as.numeric(ff)+runif(ln,-jitter,jitter)
       xlims <- c(0.5,lnl+0.5)
       i.plotlws(xx, rr, xlab = xlabs[lv], ylab = ylabs[lv],
@@ -4240,8 +4344,6 @@ plresx <-
         lx <- seq(along = ll)
 ##-         ww <- if (addcomp) match(ll,as.character(ff)) else 1:lnl
         lcil <- lci[1:lnl]
-        if (!is.factor(lcompx[,lv]))  # binary (non)factor: fitcomp did not know
-          lcil <- lci[c(1,last(which(!is.na(lcompx[,lv]))))]
         if (llimy) {
           lcilp <- plcoord(lcil, lylim, ylimfac, ylimext)
           if (attr(lcilp,"nmod")) {
@@ -4664,37 +4766,40 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   if (length(na.pos)==1)
       na.pos <- na.pos+ 0.03*diff(range(ly,na.rm=TRUE))*c(-1,1)
   if (!add) {
-  if (is.null(mar)) mar <-
+    if (is.null(mar)) mar <-
       c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
-  oldpar <- par(mar=mar)
-  if(is.null(xlim)) xlim <- 
-    range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
-  lrg <- range(ly,na.pos, na.rm=TRUE)
-  if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
+    if (!is.na(mar[1])) {
+      oldpar <- par(mar=mar)
+      on.exit(par(oldpar))
+    }
+    if(is.null(xlim)) xlim <- 
+      range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
+    lrg <- range(ly,na.pos, na.rm=TRUE)
+    if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
       warning(":plmboxes: unsuitable argument 'ilim'")
       ilim <- NULL
-  }
-  if (is.null(ilim)) ilim <- lrg
-  ljlim <- ilim[1]<lrg[1] | ilim[2]<lrg[2] ## inner range is actif
-  if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
+    }
+    if (is.null(ilim)) ilim <- lrg
+    ljlim <- ilim[1]<lrg[1] | ilim[2]<lrg[2] ## inner range is actif
+    if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
   ## ---------------------------------
-  plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
-  lusr <- par("usr")
-  if (axes) {
-    axis(1,at=at,labels=llev,las=1+2*labelsvert)
-    lat <- pretty(f.ylim(lrg, ilimext)) #, n=7,n.min=5
-    if(!is.null(na.pos)) {
+    plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
+    lusr <- par("usr")
+    if (axes) {
+      axis(1,at=at,labels=llev,las=1+2*labelsvert)
+      lat <- pretty(f.ylim(lrg, ilimext)) #, n=7,n.min=5
+      if(!is.null(na.pos)) {
         lat <- lat[lat>max(na.pos)]
         mtext("NA",2,1,at=mean(na.pos),las=1)
-    }
-    axis(2, at=lat)
-    if (ljlim) { ## inner and outer box
+      }
+      axis(2, at=lat)
+      if (ljlim) { ## inner and outer box
         box(lty=3)
         lines(lusr[c(1,2,2,1,1)],ilim[c(1,1,2,2,1)])
-    } else box()
-  }
-  mtext(xlab,1,par("mar")[1]-1)
-} # if (!add)
+      } else box()
+    }
+    mtext(xlab,1,par("mar")[1]-1)
+  } # if (!add)
   ## ---
   if (!is.null(refline))
       abline(h=refline, col=lcol[["refline"]], lty=3, lwd=1.5)
@@ -4722,7 +4827,6 @@ plmboxes <- function(formula, data, width=1, at=NULL,
                ilim=ilim, ilimext=ilimext, 
                widthfac=lwfac, colors=lcol)
   }
-  par(oldpar)
   invisible(at)
 }
 ## ===========================================================================
@@ -5113,8 +5217,8 @@ quinterpol <- function(x, probs = c(0.25,0.5,0.75), extend=TRUE)
 getUserOption <- function (x, default = NULL)
 {
     if (is.null(default))
-        return(userOptions(x))
-    if (x %in% names(userOptions()))
+      return(userOptions(x))
+    if (x %in% names(userOptions())&&!is.null(userOptions(x)))
         userOptions(x)
     else default
 }

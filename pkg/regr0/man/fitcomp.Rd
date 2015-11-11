@@ -10,7 +10,7 @@
 }
 \usage{
 fitcomp(object, data = NULL, vars = NULL, se = FALSE,
-  xm = NULL, xfromdata = FALSE, nxcomp = 51)
+  xm = NULL, xfromdata = FALSE, noexpand=NULL, nxcomp = 51)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +27,11 @@ fitcomp(object, data = NULL, vars = NULL, se = FALSE,
     the data values in \code{data}, otherwise, the range of each
     variable is filled with \code{nxcomp} equidistant points.
     This is useful for residual plots with component effects}
+  \item{noexpand}{vector determining which variables should not be
+    ``filled in'', probably because they are used like factors.
+    Either a character vector of variable names or a vector of
+    logical or numerical values with names, in which case the names
+    corresponding to positive values will be identified.}
   \item{nxcomp}{number of points used for each (quantitative) variable
     if \code{xfromdata} is \code{FALSE}}
 }
@@ -55,7 +60,8 @@ and the mode of factors).
 \examples{
 data(d.blast)
 t.r <- regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-fitcomp(t.r,se=TRUE)
+t.fc <- fitcomp(t.r,se=TRUE)
+t.fc$comp[1:10,]
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
