@@ -1,6 +1,7 @@
 \name{simresiduals}
 \alias{simresiduals}
 \alias{simresiduals.default}
+\alias{simresiduals.glm}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Simulate Residuals}
 \description{
@@ -9,7 +10,7 @@
 \usage{
 simresiduals(object, ...)
 \method{simresiduals}{default}(object, nrep, resgen=NULL)
-\method{simresiduals}{glm}(object, nrep, resgen=NULL, glm.restype="deviance"))
+\method{simresiduals}{glm}(object, nrep, resgen=NULL, glm.restype="deviance")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

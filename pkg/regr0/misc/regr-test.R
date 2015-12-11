@@ -1,6 +1,7 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 # source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
 ## require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+attach("/u/stahel/regr0/misc/regr0.rda")
 require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 # require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- options(digits=3)
@@ -9,6 +10,10 @@ load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
 load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
 d.cheese <- read.table("/u/stahel/data/cheese.dat")
+d.kevlar <- read.table("http://stat.ethz.ch/Teaching/Datasets/WBL/kevlar49.dat",
+                       header=T)  
+d.kevlar$Spool <- factor(d.kevlar$Spool)
+d.kevlar <- d.kevlar[d.kevlar$Stress>=24,]
 ##- install.packages("regr0", repos="http://R-forge.R-project.org")
 ##- install.packages("~/wwwcopy/regression/regr0_1.0-4.tar.gz")
 ##- install.packages("http://stat.ethz.ch/~stahel/regression/regr0_1.0-4.tar.gz")
@@ -84,7 +89,12 @@ d.dob <- data.frame(group = gl(2,10,20, labels=c("Ctl","Trt")),
 
 ## multinomial regression
 ## data(d.surveyenvir)
-t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
+dd <- d.surveyenvir
+class(dd$disturbance) <- "factor"
+t.rm <- multinom(disturbance~age+education+location, data=dd)
+t.rm <- multinom(disturbance~age+education+location, data=na.omit(dd))
+t.rm <- multinom(disturbance~age+education+location, data=dd, na.action=na.exclude)
+t.rr <- regr(disturbance~age+education+location, data=dd)
 
 ## ordered regression
 ##- t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing)
@@ -128,6 +138,7 @@ t.rw <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=t.d,
              weights = 5+1:nrow(t.d))
 plot(t.rw,ask=c.ask)
 plresx(t.r,var=names(t.d),ask=c.ask)
+plresx(t.r,var=,ask=c.ask, addcomp=T)
 
 ## adequate weights
 t.y <- fitted(t.r)
@@ -217,6 +228,8 @@ t.rs <- step(t.r, k=5)
 ##- d.babysurv.w <- t.d
 t.d <- d.babysurv.w
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
+t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial,
+            calcdisp=F)
 #t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 plot(t.r,cex=1.2, ask=c.ask)
 
@@ -411,6 +424,12 @@ t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
 plot(t.r)
 t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+
+str(d.kevlar)
+d.kevlar$Spool <- factor(d.kevlar$Spool)
+d.kevlar <- d.kevlar[d.kevlar$Stress>=24,]
+rregr <- regr(Surv(Failure,rep(1,87))~Stress+Spool, data=d.kevlar, 
+              family="weibull")
 
 bladder1 <- bladder[bladder$enum < 5, ]
 t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 

@@ -28,13 +28,13 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
 }
 
 \arguments{
-  \item{formula}{a formula, such as ‘y ~ grp’ or 'y~grp+grp2',
-    where ‘y’ is a numeric vector of data values to be split into groups
-    according to the grouping variable ‘grp’ (usually a factor)
+  \item{formula}{a formula, such as 'y ~ grp' or 'y~grp+grp2',
+    where 'y' is a numeric vector of data values to be split into groups
+    according to the grouping variable 'grp' (usually a factor)
     and, if given, according to the binary variable 'grp2'.
     'y~1+grp2' produces a single asymmetric mbox. 
 }
-  \item{data}{a data.frame from which the variables in ‘formula’
+  \item{data}{a data.frame from which the variables in 'formula'
           should be taken.
 }
   \item{width}{a vector giving the widths of the multibox plot

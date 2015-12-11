@@ -58,7 +58,13 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   }
   lcgetv$data <- eval(lcall$data, sys.parent()) ## !!! oct 15
   lav <- try(eval(lcgetv, parent.frame())) ## 
-  if (class(lav)=="try-error") stop("!regr! undefined variables in formula")
+  if (class(lav)=="try-error") {
+    lv <- all.vars(formula)
+    lvm <- setdiff(lv, names(ldata))
+    for (lvv in lvm)  if(exists(lvv)) lvm <- setdiff(lvm,lvv)
+    stop("!regr! undefined variables in formula:  ",
+         paste(lvm, collapse=", "))
+  }
   ##
   lcl <- lcall
   if (!is.null(lcl$weights)) {
@@ -96,7 +102,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
         lytype <- "binary"
     if (inherits(ly,"Surv"))  {
         lytype <- "survival"
-        require(survival)
     }
 ## strange variables
 ##-   l1v <- sapply(ldta, function(x) all(x==c(x[!is.na(x)],0)[1],na.rm=TRUE) )
@@ -114,7 +119,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
                    binco="binomial", order="cumlogit",
                    facto="multinomial", survi="ph", "unknown")
   if (lytype=="survival")
-      lfam <- c( attr(ly,"distribution"), lfam)[1]
+      lfam <- c( family, attr(ly,"distribution"), lfam)[1]
   else  if (substring(lfam,1,7)=="multinom") lfam <- "multinomial"
   ##
   lfitfun <-
@@ -167,7 +172,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
         lcl$contrasts <- NULL
       }
     if (contrasts[1]=="contr.wsum") lav <- contr.wsum(lav)
-    lcl$contrasts[1] <- "contr.sum"  ## modify: appply  contr.wfac  to model.frame 
+##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
   }
 ##- ## --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
@@ -239,9 +244,9 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lcall <- match.call()
   lmeth <- c(lcall$method,"")[1]
   lfn <- if (nonlinear) {
-    lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
+    lcall$contrasts <- NULL ## lcall[-match("contrasts",names(lcall),nomatch=0)]
     "nls" } else {
-    if (lmeth=="rlm") robust <- TRUE
+    if (lmeth=="lmrob") robust <- TRUE
     if (robust) {
       if (is.null(method)) method <- lcall$method
       if (is.null(method)) method <- c("lmrob","KS")
@@ -415,7 +420,7 @@ i.glm <- function(formula, data, family, fname,
   lcall <- match.call()
   lcall[[1]] <- as.name("glm")
   lcall$family <- lcall$fname
-  lcall$fname <- lcall$control <- lcall$vif <- NULL
+  lcall$calcdisp <- lcall$fname <- lcall$control <- lcall$vif <- NULL
   lcall$x <- TRUE
   ## ---------------
   lreg <- eval(lcall, envir=environment(formula))
@@ -498,7 +503,7 @@ i.multinomial <- function(formula, data, family, fname,
 ##  if (length(ltr)==0) ltr <- trace
 ##  require(nnet)   ## !?!
   lcall <- match.call()
-  lcall[[1]] <- quote(regr0::i.multinomfit)
+  lcall[[1]] <- quote(regr0:::i.multinomfit)
   lcall$fname <- lcall$family <- lcall$control <- lcall$vif <- NULL
   lcall$trace <- FALSE
   lreg <- eval(lcall, envir=environment(formula))
@@ -509,7 +514,6 @@ i.multinomial <- function(formula, data, family, fname,
   } else  lnaact <- NULL ##  summary does not work with  exclude
   lreg$call$formula <- formula
   lreg1 <- summary(lreg)
-  if (length(lnaact)) attr(lreg$na.action,"class") <- lnaact
   lreg$dispersion <- lreg$sigma <- 1
   lres <- lreg1$residuals
   lreg$residuals <- lres
@@ -531,6 +535,7 @@ i.multinomial <- function(formula, data, family, fname,
   ldr1 <- ldr1[-1,]}
   names(ldr1) <- c("df", "AIC", "Chisq","p.value") #if(calcdisp) "F" else
   lreg$testcoef <- lreg$drop1 <- ldr1
+  if (length(lnaact)) attr(lreg$na.action,"class") <- lnaact
 ## result of i.multinomial
   lreg
 }
@@ -545,9 +550,9 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  require(MASS)   ## !?!
   lcall <- match.call()
-  lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
-  lcall[[1]] <- as.name("polr") ## quote(regr0::i.polrfit)
-  lcall$fname <- lcall$control <- lcall$family <- lcall$vif <- NULL
+  lcall[[1]] <- quote(MASS::polr) ## quote(i.polrfit)
+  lcall$contrasts <- lcall$fname <- lcall$control <- lcall$family <-
+    lcall$vif <- NULL
   lcall$Hess <- TRUE
   lreg <- eval(lcall, envir=environment(formula))
 ##  lreg$call$formula <- formula
@@ -596,7 +601,7 @@ i.survreg <-
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  require(survival)  ## !?!
   lcall <- match.call()
-  lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
+#  lcall <- lcall[-match("contrasts",names(lcall),nomatch=0)]
   ## b. --- method
   if (fname=="ph") {
     lfitfun <- "coxph"
@@ -616,7 +621,7 @@ i.survreg <-
   lreg1 <- if (u.debug()) summary(lreg) else
            try(summary(lreg), silent=TRUE)
   if (class(lreg1)[1]=="try-error") {
-    warning(paste(":regr/i.survreg: summary did not work.",
+    warning(paste(":regr/i.survreg: summary did not work. ",
                   "I return the survreg object"))
 ##    lreg$call$data <- call$data
     class(lreg) <- c("orig",class(lreg))
@@ -659,7 +664,7 @@ i.survreg <-
 }
 
 ## -----------------------------------------------------------------------
-Tobit <- function(data, limit=0, transform=NULL, log=FALSE, ...)
+Tobit <- function(data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
 {
   ## Purpose:   create a Surv object for tobit regression
   ## ----------------------------------------------------------------------
@@ -669,6 +674,8 @@ Tobit <- function(data, limit=0, transform=NULL, log=FALSE, ...)
 ##  require(survival)  ## !?!
   ltrs <- as.character(substitute(transform))
   data <- pmax(data,limit)
+  lright <- !is.null(limhigh)
+  if (lright) data <- pmin(data, limhigh)
   if (log) {
       transform <- logst
       ltrs <- "logst"
@@ -677,15 +684,27 @@ Tobit <- function(data, limit=0, transform=NULL, log=FALSE, ...)
     if (is.character(transform)) transform <- get(transform)
     if (!is.function(transform))
       stop("!Tobit! argument 'transform' does not yield a function")
-    ldt <- transform(c(limit,data), ...)
+    ldt <- transform(c(limit,limhigh,data), ...)
     data <- ldt[-1]
     limit <- ldt[1]
+    if (lright) {
+      limhigh <- ldt[2]
+      data <- data[-1]
+    }
   }
-  if (sum(data==limit,na.rm=TRUE)<=1)
-    warning(":Tobit: <= 1 observation equal to `limit`")
-  rr <- Surv(data, data!=limit, type="left")
-  structure(rr, distribution="gaussian", transform=ltrs, limit=limit,
-            class=c(class(rr), "matrix"))
+  if (sum(data<=limit,na.rm=TRUE)==0)
+    warning(":Tobit: no observation <= `limit`")
+  if (lright&&sum(data>=limhigh,na.rm=TRUE)<=1)
+    warning(":Tobit: no observation >= `limhigh`")
+  if (lright) { 
+    rr <- survival::Surv(time = data, time2=data,
+                         event = (data<=limit) + (data<limhigh),
+                         type="interval")
+    rr[,2] <- rr[,1]
+    } else
+      rr <- survival::Surv(data, event = data>limit, type="left")
+  structure(rr, distribution="gaussian", transform=ltrs,
+            limit=c(limit,limhigh), class=c(class(rr), "matrix"))
 }
 
 ## -----------------------------------------------------------------------
@@ -727,8 +746,10 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 ## degrees of freedom
   ldfr <- lreg$df.residual
   if (length(ldfr)==0) ldfr <- lreg$df[2]
-  ltstq <- if (ltesttype=="F") qf(0.95,ldr1[,1],ldfr) else {
-    if (ltesttype=="Chisq") qchisq(0.95,ldr1[,1]) else NA }
+  ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
+    if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
+  ltstq1 <- ltstq[1]
+  ltstq <- ltstq[-1]
 ## coefficients
   lcoef <- lreg$coefficients
 ##-   ldt <- lreg$model
@@ -740,9 +761,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lasg <- attr(lmmt,"assign")
   if (class(lreg)[1]%in%c("polr","coxph")) lasg <- lasg[-1]
 ## terms with 1 coef
-##  lcont1 <- lcont <- lasg[!lasg%in%lasg[duplicated(lasg)]]
   lcont1 <- lcont <- lasg[!lasg%in%lasg[duplicated(lasg)]]
-##  which(table(lasg)==1)-1
 ## vif --> R2.x
   lr2 <- NA
   if (vif) {
@@ -768,14 +787,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
-## signif
-  ltb$signif <- lsg <- sqrt(ltb$testst/ltstq)
-##-   lprcol <- pmatch("Pr(",names(ldr1))
-##-   ldr1t <-  if (is.na(lprcol)) NA else ldr1[,lprcol]
-##      -qnorm(ldr1[,lprcol]/2)/qnorm(0.975)
-##-   lnt <- nrow(ldr1)
-## significance
-##-   ldr1t <- sqrt(pmax(0,ldr1[,4])/ltstq)
+  ## signif
+  ltb$signif <- lsg <- sqrt(pmax(0,ltb$testst)/ltstq)
 ## coefficients for terms with 1 df
   if (length(lcont)) {
     ltlb <- dimnames(ltb)[[1]]
@@ -791,7 +804,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
       sqrt(apply(lmmt[,names(lcf[lcont>0]),drop=FALSE],2,var)) / lsdy
     ## fill in
     ltb$coef[lcont1] <- lcf
-    lci <- lcf*(1+outer(sign(lcf)/lsg[lcont1], c(-1,1)))
+    ##    lci <- lcf*(1+outer(sign(lcf)/lsg[lcont1], c(-1,1)))
+    lci <- lcf*(1+outer(ltstq1*lcoeftab[lcont1,2], c(-1,1)))
        ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
     ltb[lcont1,c("ciLow","ciHigh")] <- lci
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
@@ -1154,40 +1168,40 @@ drop1.regr <-
   }
   if (length(scope)==0) {
     scope <- if (add) terms2order(object) else drop.scope(object)
-  } else
+  } else {
 ##-     if (!is.character(scope))
 ##-             scope <- attr(terms(update.formula(object, scope)),
 ##-                 "term.labels")
-    scope
-  if (length(scope)==0) {
-    warning(":drop1/add1.regr! no valid scope")
+    if (is.character(scope))
+      as.formula(paste("~",paste(scope, collapse="+"))) else scope
+  }
+  if (length(scope)==0) {  ## || !is.formula(scope) ## drop.scope is character
+    warning(":drop1/add1.regr: no valid scope")
     ldr1 <- data.frame(Df = NA, "Sum of Sq" = NA, RSS =NA, AIC = NA,
                       row.names = "<none>")
     return(ldr1)
   }
+  ##  lform <- update(formula(object), scope !!!)
+  ## !!! model.frame for finding the valid rows
   class(object) <- setdiff(class(object), "regr")
-  dr1 <- if (add) {
+##
+  dr1 <- if (add) { ## ------------ add
     if (class(object)[1]=="lmrob")
         stop("!add1.regr! 'add1' not (yet) available for 'lmrob' objects")
     ldata <- eval(object$call$data)
     li <- row.names(ldata)%in%RNAMES(object$residuals)
-##-     if (any(!li)) {
-##-       ldata <- ldata[li,]
-##-     }
     if (is.null(ldata[li,])) stop("!step.regr! no data found ")
     lvars <-unique(c(all.vars(formula(object)),
                      if (is.formula(scope)) all.vars(scope) else scope))
     lvars <- lvars[lvars%in%names(ldata)]
     linotna <- li & !apply(is.na(ldata[,lvars]),1,any)
     lnobs <- sum(linotna)
-##-     ldt <- ldata[!lina,]
-##-     ldt <- na.omit(ldata[,lvars,drop=FALSE])
-    lnrd <- sum(li) # NROW(object$residuals)
-    lfc <- object$funcall
+    lnrd <- sum(li)
+    lfc <- object$funcall ## the call to the effective R function
+    if (is.null(lfc)) lfc <- object$call
     if (lnobs!= lnrd) {
       warning(":add1.regr: refitting object to ",lnobs," / ",lnrd,
               " observations due to missing values")
-      lfc <- object$funcall
       if(!is.null(lsubs <- eval(lfc$subset))) {
         lnsubs <- rep(FALSE,length(linotna))
         lnsubs[lsubs] <- TRUE
@@ -1207,7 +1221,7 @@ drop1.regr <-
       object <- eval(lfc)
     }
     add1(object, scope=scope, scale=scale, test=test, k=k, ...)
-  } else {
+  } else {  ## ---------------------  drop
     if (class(object)[1]%in%c("lmrob")) ## to be expanded
        drop1Wald(object, test="F", ...) else {
     ldata <- object$allvars # eval(object$call$data)
@@ -2562,8 +2576,7 @@ compareTerms <-
   rr
 }
 ## ==========================================================================
-modelTable <-
-  function(models, seq=NULL)
+modelTable <-function(models, seq=NULL) ## !!! refit = FALSE
 {
   ## !!! Standardisierung und reestimation unterdrueckbar machen.
   ## Purpose:   collect several models into a table
@@ -2595,7 +2608,7 @@ modelTable <-
   for (li in t.mnm) {
     lr <- if (t.islist) models[[li]] else get(li,envir=parent.frame())
     lfitfun <- NULL
-    for (lc in c("lm","glm","multinom","polr","survreg"))
+    for (lc in c("lm","lmrob","glm","multinom","polr","survreg"))
       if (inherits(lr,lc)) lfitfun <- lc
     if (is.null(lfitfun))
       stop(paste("!modelTable! Model ",li," is not an adequate model"))
@@ -3118,8 +3131,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     50 * if (is.null(ldn)) 1 else !ldn%in%c("binomial","multinomial")
   }
   if (is.logical(smooth)) smooth <- i.smooth
-  lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else
-               smooth.par# 2
+  lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
 # simulated residuals
   lnsims <- smooth.sim
 #  if (lcondq) lnsims <- 0
@@ -4151,8 +4163,7 @@ plresx <-
 ##-       fitted(loess(y~x, weights=weights, span=par, iter=iter,
 ##-                    na.action=na.exclude))
   ldosm <- length(smooth)>0
-  lsmpar <- if (is.na(smooth.par)) 3*ln^log10(1/2)*(1+lglm) else
-               smooth.par# 2
+  lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
 ## simulated residuals
   lnsims <- smooth.sim
   if (length(lnsims)==0) lnsims <- 0
@@ -4333,7 +4344,7 @@ plresx <-
         lwsymbols, lwgt, lweights, liwgt, lsyinches,
         FALSE, smooth, smooth.par, smooth.iter, 1,
         lylim, ylimfac, ylimext,
-        reflinex=NULL, lnsims=0, axes=2,
+        reflinex=NULL, lnsims=0, simres=lsimres, axes=2,
                 condprobrange=condprobrange)
       axis(1,labels=ll,at=1:lnl)
       axis(2)
@@ -4369,6 +4380,7 @@ plresx <-
       if (lcmpj) {
         lrefx <- lcompx[,lv]
         if (se) lrefyw <- qnt*lcompse[,lv]
+        ## !!! comp + lsimres
     }
       i.plotlws(as.numeric(ldata[, lv]), rr, xlab = xlabs[lv], ylab = ylabs[lv],
         "", outer.margin, cex.title,
@@ -4524,8 +4536,10 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   lpin <- par("pin")
   lnm <- if (nv1==6 && nv2==6) c(6,6) else {
     if (lpin[1]>lpin[2]) c(6,8) else c(8,6) }
-  if (is.na(nrows)||nrows<1) nrows <- ceiling(nv1/((nv1-1)%/%lnm[1]+1))
-  if (is.na(ncols)||ncols<1) ncols <- ceiling(nv2/((nv2-1)%/%lnm[2]+1))
+  if (is.na(nrows)||nrows<1)
+    nrows <- min(nv2,ceiling(nv2/((nv2-1)%/%lnm[2]+1)))
+  if (is.na(ncols)||ncols<1)
+    ncols <- min(nv1,ceiling(nv1/((nv1-1)%/%lnm[1]+1)))
   if (is.null(xaxmar)) xaxmar <- 1+(nv1*nv2>1)
   if (any(is.na(xaxmar))) xaxmar <- 1+(nv1*nv2>1)
   xaxmar <- ifelse(xaxmar>1,3,1)
@@ -5212,6 +5226,30 @@ quinterpol <- function(x, probs = c(0.25,0.5,0.75), extend=TRUE)
   ldd <- cbind(ld[cbind(lii,li)],ld[cbind(lii,li+1)])
   lh <- ldd[,1]/(ldd[,1]-ldd[,2])
   lxe[li]*(1-lh) + lxe[li+1]*lh
+}
+## =======================================================================
+quantilew <- function(x, probs=c(0.25,0.5,0.75), weights=1, na.rm=FALSE)
+{
+  ## Purpose:   quantile with weights, crude version
+  ## -------------------------------------------------------------------------
+  ## Arguments:
+  ## -------------------------------------------------------------------------
+  ## Author: KSK Projekt, Date: 14 Dec 1999, 12:02
+  probs <- probs[!is.na(probs)]
+  if (length(weights)==1) return(quantile(x, probs))
+  if (length(weights)!=length(x))
+    stop("!quantilew! lengths of 'x' and 'weights' must be equal")
+  if (any(t.ina <- is.na(x))) {
+    if (!na.rm) stop("!quantilew! NAs not allowed while 'na.rm' is FALSE")
+    x <- x[!t.ina]
+    weights <- weights[!t.ina]
+  }
+  t.i <- order(x)
+  t.d <- x[t.i]
+  t.wg <- cumsum(weights[t.i])/sum(weights)
+  t.i1 <- apply(outer(t.wg,probs,"<"),2,sum)+1
+  t.i2 <- pmin(apply(outer(t.wg,probs,"<="),2,sum)+1,length(t.d))
+  (t.d[t.i1]+t.d[t.i2])/2
 }
 ## ===========================================================================
 getUserOption <- function (x, default = NULL)
