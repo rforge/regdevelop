@@ -266,7 +266,6 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
 ##      require(MASS)    ##  !?!
       lcall$method <- c(method,"MM")
       lcall$x.ret <- TRUE
-      lcall$robust <- NULL
     }
   } else  lcall$x <- TRUE
   if (lmeth=="rq"|lmeth=="quantreg") { # quantile regression
@@ -287,7 +286,8 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
 	     as.name(fn))
   }
   lcall[[1]] <- mkFn(lfn)
-  lcall$fname <- lcall$family <- lcall$vif <- lcall$nonlinear <- NULL
+  lcall$fname <- lcall$family <- lcall$vif <- lcall$nonlinear <-
+    lcall$robust <- NULL
   ## --------------------------
   lreg <- eval(lcall, envir=environment(formula))
   ## --------------------------
@@ -654,7 +654,8 @@ i.survreg <-
   if (termtable) {
     ltt <- i.termtable(lreg, lreg1$table, data, lcov, ltesttype="Chisq",
                        lsdy=1, vif=vif)
-    ## log(scale): signif<-NA
+    ## log(scale): signif<-NA. no! log(scale)==0 means
+    ##    exp.distr for weibull/gumbel
     lcmpn <- c("testcoef","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
@@ -776,8 +777,9 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   }
 ## prepare table
   lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
-  ltb <- data.frame(coef=NA, stcoef=NA, ciLow=NA, ciHigh=NA, signif=NA, R2.x=lr2,
-                    df=ldr1[,1], p.value=ldr1[,lpvcol], testst=ldr1[,lpvcol-1])
+  ltb <- data.frame(coef=NA, stcoef=NA, ciLow=NA, ciHigh=NA, signif=NA,
+                    R2.x=lr2, df=ldr1[,1], p.value=ldr1[,lpvcol],
+                    testst=ldr1[,lpvcol-1])
   row.names(ltb) <- row.names(ldr1)
 ## intercept
   if ("(Intercept)"==names(lcoef)[1]) {
@@ -811,11 +813,13 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
     ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
   }
-##-   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
-##-     ltsc <- lcoeftab[nrow(lcoeftab),]
-##-     ltb <- rbind(ltb,"log(scale)"=c(ltsc[1],NA,NA,NA,ltsc[3]/qnorm(0.975),
-##-                        NA,1,NA,NA))
-##-  }
+  if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
+    ltsc <- lcoeftab[nrow(lcoeftab),]
+    if (!u.true(lreg$dist=="weibull")) ltsc[2:4] <- NA
+    ltb <- rbind(ltb,"log(scale)"=
+                   c(ltsc[1],NA,ltsc[1]+c(-1,1)*qnorm(0.975)*ltsc[2],
+                     ltsc[3]/qnorm(0.975), NA,1,ltsc[4:3]))
+  }
 ## --- dummy coef
   lrg <- lreg
   class(lrg) <- "lm"
@@ -5296,7 +5300,8 @@ UserDefault <- UserOptions <-
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
        regr.contrasts=c(unordered="contr.sum", ordered="contr.poly"),
-       regr.testcoefcol=c("coef", "stcoef", "df", "R2.x", "signif", "p.value"),
+       regr.testcoefcol=c("coef",  "df", "ciLow","ciHigh","R2.x",
+         "signif", "p.value"),
        debug=0
        )
 ##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
