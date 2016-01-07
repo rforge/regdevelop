@@ -7,28 +7,33 @@
 }
 \usage{
 \method{print}{regr}(x, call=TRUE, correlation = FALSE,
-      dummy.coef = getUserOption("show.dummy.coef"),
-      testcoefcol = getUserOption("regr.testcoefcol"),
+      dummycoef = getUserOption("show.dummycoef"),
+      termcolumns = getUserOption("termcolumns"),
+      allcoefcolumns = getUserOption("allcoefcolumns"),
       digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
       residuals = FALSE, niterations = FALSE, ...)
 }
 \arguments{
   \item{x}{'regr' object}
+  \item{call}{logical: should the call to \code{regr} be shown?}
   \item{correlation}{logical: should correlation among estimated
     coefficients be shown?}
-  \item{call}{logical: should the call to \code{regr} be shown?}
-  \item{dummy.coef}{logical: should the dummy coefficients for the
+  \item{dummycoef}{logical: should the dummy coefficients for the
     factors be shown?}
-  \item{testcoefcol}{columns of the coefficient table to be printed.
+  \item{termcolumns}{columns of the term table to be printed.
     If \code{NULL}, all columns will be printed.}
+  \item{allcoefcolumns}{columns of the (dummy) coefficent tables to be
+    printed.} % See \code{\link{print.allcoef}}.
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
   \item{signif.stars}{logical: should significance asterisks be shown?
-    If >1, a legend will also be shown.}
+    A legend will also be shown after the term table.
+    To avoid the legend, set \code{signif.stars} false and include
+    \code{"p.symb"} in \code{allcoefcolumns}.}
   \item{residuals}{logical: should summary(residuals) be shown?}
   \item{niterations}{???}
-  \item{\dots}{further arguments, passed to the print methods used.}
+  \item{\dots }{further arguments, passed to the print methods used.}
 }
 \details{
   The \code{tit} attribute of \code{x} will be printed if available and
@@ -43,6 +48,9 @@
   r.blast <-
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)
-  print(r.blast, correlation=TRUE, symbolic.cor=TRUE, dummycoef=FALSE)
+  print(r.blast,
+    termcolumns = c("coef","ciLow","ciHigh","df","signif"),
+    allcoefcolumns = c("coef","ciLow","ciHigh"),
+    correlation=TRUE, symbolic.cor=TRUE)
 }
 \keyword{print}

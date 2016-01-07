@@ -32,7 +32,7 @@ r.blast <-
 
 with(r.blast,
      stopifnot(all.equal(
-     testcoef[-1,"signif"],
+     termtable[-1,"signif"],
                           c(3.40649491, -12.0192639, 8.1947910))
                 )
      )
@@ -61,6 +61,7 @@ r.rob <-
   regr(log10(tremor) ~ location+log10(distance)+log10(charge),
        data = d.blast, robust=TRUE)
 r.rob
+modelTable( list(ls=r.blast, robust=r.rob) )
 ## ========================================================================
 ## ordered regression (using polr)
 ## load('../data/d.surveyenvir.rda')
@@ -146,17 +147,19 @@ t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
 ##-        start = list(Vm = 200, K = 0.1))  # d.treated is found in example(nls)
 ##- plot(t.r)
 ## ===================================================================
-require(survival) ## for dataset ovarian
+data("ovarian", package="survival")
+require(survival) ## for dataset ovarian and >3 functions
 ##- t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
 ##-     dist = "weibull")
 ##- t.rss <- summary(t.rs)
 ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,
 ##-     data = ovarian, dist = "extreme") ## not the same
-r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
-            family="weibull")
+r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+               data = ovarian, family="weibull")
 plot(r.surv)
 r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 
+data(bladder, package="survival")
 bladder1 <- bladder[bladder$enum < 5, ]
 t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) +
                cluster(id), bladder1)

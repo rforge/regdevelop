@@ -1,7 +1,7 @@
 # source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
 # source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
 ## require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-attach("/u/stahel/regr0/misc/regr0.rda")
+## attach("/u/stahel/regr0/misc/regr0.rda")
 require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 # require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ##- options(digits=3)
@@ -73,7 +73,35 @@ t.r <- lm(formula = log10(tremor) ~ log10(charge) + I(log10(charge)^2)
           +location, data = d.blast)
 t.rr <- lm(formula = log10(tremor) ~ location + log10(distance) +
                 log10(charge) + location:log10(distance),
-            data = d.blast) ## works
+           data = d.blast) ## works
+## ------------------------------------------------------------
+t.x <- factor(c(1,1,1,2,3,3))
+contr.wsum(t.x)
+contr.wsum(data.frame(x=t.x))
+t.x2 <- factor(c("a","b","c","a","c","b"))
+t.d <- data.frame(fac=t.x, f2=t.x2, y=c(1,2,3,10,6,8))
+t.r <- regr(y~fac, t.d)
+t.r
+sum(table(t.x)*t.r$allcoef$fac)
+model.matrix(y~fac, t.d)
+model.matrix(y~fac, t.d, contrasts.arg=list(fac="contr.wsum"))
+
+t.x <- factor(c(1,1,1,1,1,2,2,2,3,3,3,3))
+t.x2 <- factor(c("a","b","c","a","a","a","b","c","a","b","c","a"))
+t.d <- data.frame(fac=t.x, f2=t.x2, y=c(1:5,10:12,6:3))
+model.matrix(y~fac*f2, t.d, contrasts.arg=list(fac="contr.wsum"))
+t.r <- regr(y~fac*f2, t.d, contrasts=c("contr.wsum","contr.poly"))
+t.ri <- regr(y~fac:f2, t.d, contrasts=c("contr.wsum","contr.poly"))
+t.rlm <- lm(y~fac:f2, t.d, contrasts=c("contr.wsum","contr.poly"))
+model.matrix(t.r)
+predict(t.r, newdata=rbind(t.d,c(3,NA)))
+fitted(t.r)
+t.rlm <- lm(y~fac, t.d)
+fitted(t.rlm)
+
+t.ri <- regr(formula = log10(tremor) ~ location*log10(distance)+ factor(charge),
+           data = d.blast)
+
 ## ------------------------------------------------------------
 ## Anorexia
 data(anorexia, package="MASS")
@@ -97,6 +125,9 @@ t.rm <- multinom(disturbance~age+education+location, data=dd, na.action=na.exclu
 t.rr <- regr(disturbance~age+education+location, data=dd)
 
 ## ordered regression
+dd <- d.surveyenvir
+t.rp <- polr(disturbance~age+education+location, data=dd)
+t.rr <- regr(disturbance~age+education+location, data=dd)
 ##- t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing)
 ##- plot(t.r)
 
@@ -181,13 +212,17 @@ t.r <- regr(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
              data=swiss)
 t.lm <- lm(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
              data=swiss)
+t.aov <- aov(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
+             data=swiss)
 dummy.coef(t.r)
 dummy.coef(t.lm)
+dummy.coef.regr(t.lm)
 t.r$allcoef
 ## -------------------------------------
 ## robust
-t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
-            robust=T)
+t.rr <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
+             robust=T)
+modelTable(list(t.r,t.rr))
 ## -------------------------------------
 plot(t.r)
 ## Baby Survival
@@ -419,10 +454,11 @@ t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx,
 t.rss <- summary(t.rs)
 ##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,  
 ##-     data = ovarian, dist = "extreme") ## not the same
-t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+t.r <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
             data = ovarian, family="weibull")
 plot(t.r)
-t.rc <- coxph(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+t.rc <- coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
+              data = ovarian)
 t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 
 str(d.kevlar)
@@ -430,6 +466,8 @@ d.kevlar$Spool <- factor(d.kevlar$Spool)
 d.kevlar <- d.kevlar[d.kevlar$Stress>=24,]
 rregr <- regr(Surv(Failure,rep(1,87))~Stress+Spool, data=d.kevlar, 
               family="weibull")
+t.sr <- survreg(Surv(Failure,rep(1,87))~Stress+Spool, data=d.kevlar, 
+              dist="weibull")
 
 bladder1 <- bladder[bladder$enum < 5, ]
 t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) + 
@@ -513,3 +551,8 @@ table(t.x)
 t.p <- ppoints(100)
 plot(quinterpol(t.x,t.p),t.p, type="l")
 lines(c(0,t.x), 0:length(t.x)/length(t.x) , type="s")
+
+
+showd(wagnerGrowth)
+t.rr <- regr(y~PA*Region, data=wagnerGrowth, contrast="contr.treatment")
+t.rl <- lmrob(y~PA*Region, data=wagnerGrowth)

@@ -14,8 +14,8 @@
 }
 \usage{
 regr(formula, data = NULL, tit = NULL, family = NULL,
-  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start=NULL,
-  robust = FALSE, method = NULL, init.reg = "f.ltsreg",
+  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start = NULL,
+  robust = FALSE, method = NULL, 
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   contrasts=getUserOption("regr.contrasts"),
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE, ...)
@@ -63,7 +63,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   quantile: \code{regr(..., method="quantreg", tau=0.9)}.
   Otherwise, if suitable, a method argument that is passed to the
   fitting procedure, see also Details.}
-  \item{init.reg}{ function used to initialize robust methods }
+%%  \item{init.reg}{ function used to initialize robust methods }
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can
     be used to generate the vector. }
@@ -92,26 +92,57 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   \code{regr} returns a list object of class \code{regr} and secondary class as
   produced by the fitting function. The components include generally
   those of the results of the fitting function and its summary.
-  Additional components are described here in a draft version.
-  \item{stres }{Standardized residuals}
-  \item{sigma }{estimated standard deviation for normal errors,\cr
-  sqrt(dispersion) for \code{glm}}
-  \item{testcoef}{Table for testing terms both for single and mulitple
+  The important additional components are:
+  \item{termtable}{data.frame,
+    table for testing terms both for single and mulitple
     degree terms (continuous or binary explanatory variables and
-    factors)}
-  \item{allcoef}{All coefficients. Estimated effects of factors are
-    given for all their levels.}
+    factors).
+    The columns are
+%%     \item{coef}{estimated coefficients for single degree terms}
+%%     \item{ciLow, ciHigh}{confidence interval}
+%%     \item{df}{degrees of freedom}
+%%     \item{testst}{test statistic}
+%%     \item{signif}{significance measure}
+%%     \item{p.value}{p value}
+%%     \item{p.symb}{significance "stars"}
+%%     \item{stcoef}{standardized coefficients}
+%%     \item{R2.x}{collinearity measure}
+%% \cr
+%%     -- \ {coef}: \ {estimated coefficients for single degree terms}\cr
+%%     -- \ {ciLow, ciHigh}: \ {confidence interval}\cr
+%%     -- \ {df}: \ {degrees of freedom}\cr
+%%     -- \ {testst}: \ {test statistic}\cr
+%%     -- \ {signif}: \ {significance measure}\cr
+%%     -- \ {p.value}: \ {p value}\cr
+%%     -- \ {p.symb}: \ {significance "stars"}\cr
+%%     -- \ {stcoef}: \ {standardized coefficients}\cr
+%%     -- \ {R2.x}: \ {collinearity measure}\cr
+    The \code{print} method for the whole \code{regr} object will
+    by default not show all of them.
+}
+  \item{allcoef}{All coefficients. This is a list with a component for
+    each term. Each component characterizes the coefficients similar to
+    the \code{termtable} just explained, but without the columns
+    \code{df, stcoef, R2.x}.
+    Note that the interpretation of the coefficients of dummy variables
+    depends on the contrasts used for the factor.
+    Tests need to be interpreted correspondingly, and with caution.}
+  \item{stres}{Standardized residuals}
+  \item{sigma}{estimated standard deviation for normal errors,\cr
+    \code{sqrt(dispersion)} for \code{glm}}
   \item{h}{leverage values}
-  \item{vartype}{types of the input variables (c for continuous,
-    b for binary, f for factor, o for ordered factor)}
+  \item{allvars}{the variables used for fitting the model}
   \item{binfac}{levels of binary factors}
-  \item{fitfun}{R function that has been called for fitting the model}
+  \item{fitfun, funcall}{R function and call that has been used for
+    fitting the model}
 }
 \details{
   Robust fitting is available for ordinary linear models, by setting
   \code{robust = TRUE}.
-  By default, the function \code{\link[robustbase]{lmrob}} from package \pkg{robustbase}
+  By default, the function \code{\link[robustbase]{lmrob}} from
+  package \pkg{robustbase}
   is called with the argument \code{setting="KS2011"}.
+  This default will be changed in future versions.
   Alternative methods can be obtained by setting the \code{method}
   argument. Choosing
   \code{method="rlm"}

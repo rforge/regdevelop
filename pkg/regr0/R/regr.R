@@ -3,7 +3,7 @@
 regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
                  calcdisp=NULL, suffmean=3,
                  nonlinear = FALSE, start=NULL,
-                 robust = FALSE, method=NULL, init.reg="f.ltsreg",
+                 robust = FALSE, method=NULL, ## init.reg="f.ltsreg",
                  subset=NULL, weights=NULL, na.action=nainf.exclude,
                  contrasts=getUserOption("regr.contrasts"),
                  model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE, ...)
@@ -61,7 +61,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   if (class(lav)=="try-error") {
     lv <- all.vars(formula)
     lvm <- setdiff(lv, names(ldata))
-    for (lvv in lvm)  if(exists(lvv)) lvm <- setdiff(lvm,lvv)
+    for (lvv in lvm)  if(exists(lvv)&&!is.function(get(lvv)))
+                        lvm <- setdiff(lvm,lvv)
     stop("!regr! undefined variables in formula:  ",
          paste(lvm, collapse=", "))
   }
@@ -331,7 +332,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lreg[lcomp] <- lreg1[lcomp]
   if (nonlinear) {
     lreg$coefficients <- lreg1$coefficients[,1]
-    lreg$testcoef <- lreg1$coefficients
+    lreg$termtable <- lreg1$coefficients
 #   lreg$r.squared <- 1-(lsig/lsdy)^2
   }
   ## degrees of freedom
@@ -354,7 +355,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
       lsdy <- sqrt(var(ly))
       ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype, lsdy=lsdy,
                          vif=vif, leverage=TRUE) 
-      lcmpn <- c("testcoef","allcoef","leverage")
+      lcmpn <- c("termtable","allcoef","leverage")
       lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
     }  else  class(lreg) <- c("orig",class(lreg))
   }
@@ -484,7 +485,7 @@ i.glm <- function(formula, data, family, fname,
   lreg$fitfun <- "glm"
   if (termtable) {
     ltt <- i.termtable(lreg, lcoeftab, data, lcov, ltesttype, lsdy=1, vif=vif)
-    lcmpn <- c("testcoef","allcoef","leverage")
+    lcmpn <- c("termtable","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
   ## result of i.glm
@@ -534,7 +535,7 @@ i.multinomial <- function(formula, data, family, fname,
   } else {
   ldr1 <- ldr1[-1,]}
   names(ldr1) <- c("df", "AIC", "Chisq","p.value") #if(calcdisp) "F" else
-  lreg$testcoef <- lreg$drop1 <- ldr1
+  lreg$termtable <- lreg$drop1 <- ldr1
   if (length(lnaact)) attr(lreg$na.action,"class") <- lnaact
 ## result of i.multinomial
   lreg
@@ -582,7 +583,7 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
   if (termtable) {
     ltt <- i.termtable(lreg, lreg1$coef, data, lcov, ltesttype="Chisq",
                        lsdy=1, vif=vif, leverage=TRUE)
-    lcmpn <- c("testcoef","allcoef","leverage")
+    lcmpn <- c("termtable","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
   lreg$dispersion <- 1
@@ -647,7 +648,7 @@ i.survreg <-
                 p.value=c(pchisq(lchi,ldf,lower.tail=FALSE),NA))
   dimnames(ltbd)[[1]] <- c("Model","Null")
   lreg$devtable <- ltbd
-  lcov <- lreg$var
+  lreg$covariance <- lcov <- lreg$var
   lsd <- sqrt(diag(lcov))
   lreg$correlation <- lcov/outer(lsd,lsd)
   lreg$fitfun <- lfitfun
@@ -656,7 +657,7 @@ i.survreg <-
                        lsdy=1, vif=vif)
     ## log(scale): signif<-NA. no! log(scale)==0 means
     ##    exp.distr for weibull/gumbel
-    lcmpn <- c("testcoef","allcoef","leverage")
+    lcmpn <- c("termtable","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
   lreg$distrname <- if (lfitfun=="coxph") "prop.hazard" else lreg$dist
@@ -718,7 +719,10 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   if(length(attr(terms(lreg),"term.labels"))==0)
     return(list(test=data.frame(coef=c(lreg$coef,NA)[1],stcoef=NA,signif=NA,
                   R2.x=NA,df=length(lreg$coef),p.value=NA)))
-## drop1
+  pvCutpoints <- c(0, 0.001, 0.01, 0.05, 0.1, 1)
+  pvSymbols <- c("***", "**", "*", ".", " ", "")
+  pvLegend <- paste(rbind(pvCutpoints,pvSymbols), collapse="  ")
+  ## drop1
   ldr1 <-
       if (class(lreg)[1]%in%c("lm","lmrob")) {
           if (u.debug()) 
@@ -737,25 +741,22 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
 ##-     lcft <- lsum$coef
 ##-     if (length(lcft)==0) lcft <- lsum$parameters ## nls
 ##-     return(list(test=lcft)) # !!! noch reparieren
-    return(list(testcoef=lcoeftab))
+    return(list(termtable=lcoeftab))
   }
   ldr1 <- ldr1[-1,]
   ldr1$RSS <- NULL # same ncol for lm and glm
   if (inherits(lreg,"rlm"))  ldr1[,4] <- ldr1[,2]/ldr1[,1] ## !!!
   if (inherits(lreg,"mlm")||inherits(lreg,"manova"))
-    return(list(testcoef=ldr1))  ## !!! needs much more
+    return(list(termtable=ldr1))  ## !!! needs much more
 ## degrees of freedom
-  ldfr <- lreg$df.residual
-  if (length(ldfr)==0) ldfr <- lreg$df[2]
+  ldfr <- df.residual(lreg)
   ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
     if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
   ltstq1 <- ltstq[1]
   ltstq <- ltstq[-1]
 ## coefficients
   lcoef <- lreg$coefficients
-##-   ldt <- lreg$model
-##-   if (is.null(ldt)) ldt <- ldata
-##  lmmt <- model.matrix(lreg$call$formula, data=ldt) ## or lreg$model ## needed for vif & la
+## model.matrix
   lmmt <- lreg[["x"]]
   if (length(lmmt)==0)
       lmmt <- model.matrix(lreg)
@@ -777,41 +778,47 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   }
 ## prepare table
   lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
-  ltb <- data.frame(coef=NA, stcoef=NA, ciLow=NA, ciHigh=NA, signif=NA,
-                    R2.x=lr2, df=ldr1[,1], p.value=ldr1[,lpvcol],
-                    testst=ldr1[,lpvcol-1])
+  lpv <- ldr1[,lpvcol]
+  ltb <- data.frame(coef=NA, se=NA, ciLow=NA, ciHigh=NA, 
+                    df=ldr1[,1], testst=ldr1[,lpvcol-1], signif=NA,
+                    p.value=lpv, p.symb="", stcoef=NA, R2.x=lr2,
+                    stringsAsFactors=FALSE)
   row.names(ltb) <- row.names(ldr1)
 ## intercept
   if ("(Intercept)"==names(lcoef)[1]) {
     ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
       lcoeftab[1,3]^2 # else lcoeftab[1,3]
-    ltb <- rbind("(Intercept)"=c(NA,NA,NA,NA,NA,NA,1,NA,ltstint),ltb)
+    ltb <- rbind(
+      "(Intercept)"=
+        data.frame(coef=NA, se=NA, ciLow=NA, ciHigh=NA, 
+                   df=1, testst=ltstint, signif=NA,
+                   p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+                   stringsAsFactors=FALSE),
+      ltb)
     lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
-  ## signif
-  ltb$signif <- lsg <- sqrt(pmax(0,ltb$testst)/ltstq)
-## coefficients for terms with 1 df
-  if (length(lcont)) {
+  ## p.symb and signif
+  ltb$signif <- sqrt(pmax(0,ltb$testst)/ltstq)
+  lipv <- as.numeric(cut(ltb$p.value[lcont>0], pvCutpoints))
+  ltb[lcont>0,"p.symb"] <- pvSymbols[lipv]
+## coefficients and statistics for terms with 1 df
+  if (length(lcont)) { ## lcont refers to assign
     ltlb <- dimnames(ltb)[[1]]
-    lclb <- ltlb[lcont1]
-##- ##-     licf <- pmatch(lclb,dimnames(lcoeftab)[[1]])
-##-     licf <- match(lcont, lasg)
-##-     if (any(is.na(licf))) warning(":regr: bug: coefficients not found")
-    ## !!! bug if some coefs have 0 df
+    lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of lreg1
     ljc <- match(lcont,lasg) # index of coefs for cont variables
     lcf <- lcoef[ljc]
+    ## fill in
+    ltb$coef[lcont1] <- lcf
+    ltb$se[lcont1] <- lse <- lcoeftab[lcont1,2]
+    lci <- lcf*(1+outer(ltstq1*lse, c(-1,1)))
+    ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
+    ltb[lcont1,c("ciLow","ciHigh")] <- lci
+    ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
     ## standardized coefficients
     lstcf <- lcf[lcont>0] *  # exclude intercept term
       sqrt(apply(lmmt[,names(lcf[lcont>0]),drop=FALSE],2,var)) / lsdy
-    ## fill in
-    ltb$coef[lcont1] <- lcf
-    ##    lci <- lcf*(1+outer(sign(lcf)/lsg[lcont1], c(-1,1)))
-    lci <- lcf*(1+outer(ltstq1*lcoeftab[lcont1,2], c(-1,1)))
-       ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
-    ltb[lcont1,c("ciLow","ciHigh")] <- lci
     ltb$stcoef[lcont1[lcont>0]] <- lstcf
-    ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
     ltsc <- lcoeftab[nrow(lcoeftab),]
@@ -820,20 +827,36 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
                    c(ltsc[1],NA,ltsc[1]+c(-1,1)*qnorm(0.975)*ltsc[2],
                      ltsc[3]/qnorm(0.975), NA,1,ltsc[4:3]))
   }
-## --- dummy coef
-  lrg <- lreg
-  class(lrg) <- "lm"
-  if (inherits(lreg,"polr")) lrg$coefficients <- c("(Intercept)" = NA, lcoef)
-  lallcf <- dummy.coef.regr(lrg) 
-##                try(dummy.coef(lrg), silent=TRUE)
-##-   if (class(lallcf)=="try-error") {
-##-     warning("dummy.coef did not work")
-##-     lallcf <- NULL
-##-   }
-  rr <- list(testcoef=ltb, allcoef=lallcf)
-  if (leverage) rr <- c(rr,list(leverage=hat(lmmt)))
+  attr(ltb, "legend") <- pvLegend
+## --- allcoef (dummy coef)
+  lallcf <- allcoef(lreg) 
+  if (inherits(lreg,"polr")) lreg$coefficients <- c("(Intercept)" = NA, lcoef)
+  rr <- list(termtable=ltb, allcoef=lallcf)
+  if (leverage) rr <- c(rr, leverage=list(hat(lmmt)))
   rr
 }
+## --------------------------------------------------------------------------
+ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
+  if (is.null(se))
+    if (NCOL(estimate)>1) {
+      se <- estimate[,2]
+      estimate <- estimate[,1]
+    } else
+      stop("!ciSignif! no standard errors found")
+  ltq <- qt(1-testlevel/2, df)
+  lci <- estimate*(1+outer(ltq*se, c(ciLow=-1,ciHigh=1)))
+  ltst <- estimate/se
+  lsgf <- ltst/ltq
+  lpv <- pt(-abs(ltst), df)
+  lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
+  lsst <- c("***", "**", "*", ".", " ")[lipv]
+##-     symnum(lpv, corr = FALSE, na = FALSE, 
+##-                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
+  ##-                  symbols = c("***", "**", "*", ".", " "))
+  data.frame(estimate=estimate, se=se, lci, testst=ltst,
+             signif=lsgf, p.value=lpv, p.symb=lsst)
+}
+  
 ## ==========================================================================
 contr.wsum <- 
   function (n, w = NULL, contrasts = TRUE, sparse = FALSE) 
@@ -846,7 +869,7 @@ contr.wsum <-
     return(df)
   }
   if (is.factor(n)) {
-    w <- table(n)
+    w <- c(table(n))
     n <- levels(n)
   }
   contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
@@ -855,7 +878,7 @@ contr.wsum <-
             " Returning unweighted contrasts for ", paste(n,collapse=", "))
     return(contr)
   }
-  if (length(w)!=nrow(contr) || any(is.na(w)) || any(w<0) || all(w==0)) {
+  if (length(w)!=nrow(contr) || anyNA(w) || any(w<0) || all(w==0)) {
     warning(":contr.wsum: weights 'w' not suitable.",
             " Returning unweighted contrasts")
     return(contr)
@@ -867,12 +890,13 @@ contr.wsum <-
     warning(":contr.wsum: last weight is zero.",
             " Returning unweighted contrasts") else {
   contr[n,] <- - w[-n]/w[n] }
-  contr
+  structure(contr, w=w)
 }
 ##  ===================================================================
 print.regr <- function (x, call=TRUE, correlation = FALSE,
-    dummy.coef = getUserOption("show.dummy.coef"),
-    testcoefcol = getUserOption("regr.testcoefcol"),
+    dummycoef = getUserOption("show.dummycoef"),
+    termcolumns = getUserOption("termcolumns"),
+    allcoefcolumns = getUserOption("allcoefcolumns"),
     digits = max(3, getUserOption("digits")-2), 
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
     residuals=FALSE, niterations=FALSE, ...)
@@ -889,7 +913,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
   if (inherits(x,"mlm")) return(invisible(print.mregr(x, ...)))
   ## preparation
 ##-   if (length(dummycoef)==0)
-##-     dummycoef <- c(getUserOption("show.dummy.coef"),TRUE)[1]
+##-     dummycoef <- c(getUserOption("show.dummycoef"),TRUE)[1]
   ## call, fitting fn, residuals
   if (call) {
     if(!is.null(x$call)) {
@@ -928,35 +952,38 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
       if((!is.finite(x$sigma))||x$sigma<=0)
         cat("\n!!! Error variance is 0 !!!")
   ## coef table
-  ltc <- x$testcoef
+  ltc <- x$termtable
   if (length(ltc)>0) {
     lltc <- TRUE
-    if(!is.null(testcoefcol)) {
-      if (all(testcoefcol=="")) lltc <- FALSE else {
-        ljp <- match(testcoefcol,colnames(ltc), nomatch=0)
+    if (signif.stars) termcolumns <- union(termcolumns, "p.symb")
+    if(!is.null(termcolumns)) {
+      if (all(termcolumns=="")) lltc <- FALSE else {
+        ljp <- match(termcolumns,colnames(ltc), nomatch=0)
         if (sum(ljp)!=0) 
-  ##        warning(":print.regr: no valid columns of  testcoef  selected") else
-        ltc <- ltc[,ljp,drop=FALSE]
+  ##        warning(":print.regr: no valid columns of  termtable  selected") else
+          ltc <- ltc[,ljp,drop=FALSE]
       }
     }
     if (lltc) {
       cat("\nTerms:\n")
-      ljrp <- pmatch(c("R2","p."),colnames(ltc))
-      lip <- notna(ljrp)
-      if (length(lip)) ltc[,lip] <- round(as.matrix(ltc[,lip]),max(3,digits))
+      ## round R2.x and p.value
+      ljrp <- notna(pmatch(c("R2","p.v"),colnames(ltc)))
+      if (length(ljrp)) ltc[,ljrp] <- round(as.matrix(ltc[,ljrp]),max(3,digits))
+##-     ljps <- match("p.symb",colnames(ltc), nomatch=0)
+##-       if (ljps && all(ltc[,ljps]=="")) ltc <- ltc[,-ljps]
       ltcf <- format(ltc)
-      lsigst <- signif.stars*( signif.stars && !is.na(ljrp[2]) &&
-                              any((pv <- ltc[,ljrp[2]]) < 0.1, na.rm=TRUE) )
-      if (lsigst) {
-        lsignif <- symnum(pv, corr = FALSE, na = FALSE, 
-                          cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
-                          symbols = c("***", "**", "*", ".", " "))
-        ltcf <- cbind(ltcf,format(lsignif))
-        names(ltcf)[ncol(ltcf)] <- " "
-    }
+##-       lsigst <- signif.stars*( signif.stars && !is.na(ljrp[2]) &&
+##-                               any((pv <- ltc[,ljrp[2]]) < 0.1, na.rm=TRUE) )
+##-       if (lsigst) {
+##-         lsignif <- symnum(pv, corr = FALSE, na = FALSE, 
+##-                           cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
+##-                           symbols = c("***", "**", "*", ".", " "))
+##-         ltcf <- cbind(ltcf,format(lsignif))
+##-         names(ltcf)[ncol(ltcf)] <- " "
+##-     }
       print(ltcf, quote=FALSE)
-      if (lsigst > 1) 
-        cat("---\nSignif. codes:  ", attr(lsignif, "legend"),"\n", sep = "")
+      if (signif.stars>=1) 
+        cat("---\nSignif. codes:  ", attr(x$termtable, "legend"),"\n", sep = "")
     } ## end if(lltc)
   ## --- error block
   } else {
@@ -1018,14 +1045,14 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     cat("\nCoefficients:\n")
     print(t(x$coefficients))
   } else {
-    if (length(ltc)&u.true(dummy.coef)) {        
-      lidf <- match("df",colnames(x$testcoef))
+    if (length(ltc)&u.true(dummycoef)) {        
+      lidf <- match("df",colnames(x$termtable))
       if (is.na(lidf)) {
         if (getOption("verbose"))
           warning(":print.regr: df of coef not available")
       } else { ## dummy coefficients
         mterms <-
-          unique(c(row.names(x$testcoef)[x$testcoef[,"df"]>1],
+          unique(c(row.names(x$termtable)[x$termtable[,"df"]>1],
                    names(attr(x$terms,"dataClasses")[-1]%in%
                          c("factor","ordered")) ))
         if (length(mterms)>0 & length(x$allcoef)>0) {
@@ -1033,7 +1060,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
             cat("\nCoefficients for factors:\n")
-            print(unclass(mt)) } ## avoid  print.dummy_coef 
+            print.allcoef(mt, digits=digits) }
         } ## else  cat("\n")
       }}
   }
@@ -1061,76 +1088,144 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
 ## ==========================================================================
 summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
-dummy.coef.regr <- function (object, use.na = FALSE, ...) 
+allcoef <- function (object, use.na = FALSE, se = 2,
+                      df = df.residual(object), ...) 
 {
-    if (length(object$xlevels)==0)  return(as.list(coef(object)))
-    Terms <- terms(object)
-    tl <- attr(Terms, "term.labels")
-    int <- attr(Terms, "intercept")
-    facs <- attr(Terms, "factors")[-1, , drop = FALSE]
-    Terms <- delete.response(Terms)
-    mf <- object$model
-    if (is.null(mf)) mf <- model.frame(object)
-    xtnm <- dimnames(facs)[[1]]  ## names
-    xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
-    xtnl <- pmax(sapply(xtlv,length),1)  ## number of levels
-    termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0]))
-    nl <- sum(termnl)
-    ## df.dummy: data frame of vars
-    args <- setNames(vector("list", length(xtnm)), xtnm)
-    for (i in xtnm)
-        args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else
-          factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
-    df.dummy <- as.data.frame(args) # do.call("data.frame", args)
-    names(df.dummy) <- xtnm
-    ## rnn: names of rows
-    pos <- 0
-    rn <- rep.int(tl, termnl)
-    rnn <- rep.int("", nl)
-    ## fill df.dummy
-    for (j in tl) {
-        i <- unlist(xtnm[facs[, j] > 0])
-        ifac <- i[xtnl[i] > 1]
-        if (length(ifac) == 0L) {
-            rnn[pos + 1] <- j
-        }
-        else if (length(ifac) == 1L) {
-            df.dummy[pos + 1L:termnl[j], ifac] <- xtlv[[ifac]]
-            rnn[pos + 1L:termnl[j]] <- as.character(xtlv[[ifac]])
-        }
-        else {
-            tmp <- expand.grid(xtlv[ifac])
-            df.dummy[pos + 1L:termnl[j], ifac] <- tmp
-            rnn[pos + 1L:termnl[j]] <- apply(as.matrix(tmp), 
-                1L, function(x) paste(x, collapse = ":"))
-        }
-        pos <- pos + termnl[j]
+  if (is.atomic(object)) stop("!allcoef! inadequate first argument")
+  xl <- object$xlevels
+  if (!length(xl)) 
+    return(as.list(coef(object)))
+  Terms <- terms(object)
+  tl <- attr(Terms, "term.labels")
+  ## result already available?
+  allc <- object$allcoef
+  if ((!is.null(allc))&&length(allc)==length(tl)&&
+      (is.matrix(allc[[length(allc)]])|!se)) return(allc)
+  int <- attr(Terms, "intercept")
+  facs <- attr(Terms, "factors")[-1, , drop = FALSE]
+  Terms <- delete.response(Terms)
+  mf <- object$model  ##! d.c used all.vars
+  if (is.null(mf)) mf <- model.frame(object)
+  xtnm <- dimnames(facs)[[1]]  ## names  ##! replaces vars
+  xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
+  xtnl <- pmax(sapply(xtlv,length),1)  ## number of levels
+  termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0])) ##! lterms
+  nl <- sum(termnl)
+## --- df.dummy: data frame of simple terms
+  args <- setNames(vector("list", length(xtnm)), xtnm)
+  for (i in xtnm)
+    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else
+      factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
+  df.dummy <- as.data.frame(args) # do.call("data.frame", args)
+  names(df.dummy) <- xtnm
+  ## rnn: names of rows
+  pos <- 0
+  rn <- rep.int(tl, termnl)
+  rnn <- rep.int("", nl)
+  ## fill df.dummy
+  for (j in tl) {
+    i <- unlist(xtnm[facs[, j] > 0])
+    ifac <- i[xtnl[i] > 1]
+    if (length(ifac) == 0L) {
+      rnn[pos + 1] <- j
     }
-    attr(df.dummy,"terms") <- attr(mf,"terms")
-    lcontr <- object$contrasts
-    lci <- sapply(df.dummy,is.factor)
-    lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?) 
-    mm <- model.matrix(Terms, df.dummy, lcontr)
-    if (any(is.na(mm))) {
-        warning("some terms will have NAs due to the limits of the method")
-        mm[is.na(mm)] <- NA
+    else if (length(ifac) == 1L) {
+      df.dummy[pos + 1L:termnl[j], ifac] <- xtlv[[ifac]]
+      rnn[pos + 1L:termnl[j]] <- as.character(xtlv[[ifac]])
     }
-    coef <- object$coefficients
-    if (!use.na) 
-        coef[is.na(coef)] <- 0
-    asgn <- attr(mm, "assign")
-    res <- setNames(vector("list", length(tl)), tl)
-    for (j in seq_along(tl)) {
-        keep <- asgn == j
-        ij <- rn == tl[j]
-        res[[j]] <- setNames(drop(mm[ij, keep, drop = FALSE] %*% 
-            coef[keep]), rnn[ij])
+    else {
+      tmp <- expand.grid(xtlv[ifac])
+      df.dummy[pos + 1L:termnl[j], ifac] <- tmp
+      rnn[pos + 1L:termnl[j]] <-
+        apply(as.matrix(tmp), 1L, function(x) paste(x, collapse = ":"))
     }
-    if (int > 0) {
-        res <- c(list(`(Intercept)` = coef[int]), res)
+    pos <- pos + termnl[j]
+  }
+  ## attributes
+  attr(df.dummy,"terms") <- attr(mf,"terms")
+  lcontr <- object$contrasts
+  lci <- sapply(df.dummy,is.factor)
+  lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?) 
+  mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xl) ## 
+  if (anyNA(mm)) {
+    warning("some terms will have NAs due to the limits of the method")
+    mm[is.na(mm)] <- NA
+  }
+  ## calculate dummy coefs
+  coef <- object$coefficients
+  if (!use.na) 
+    coef[is.na(coef)] <- 0
+  if (se) {
+    cov <- vcov(object)
+    if (is.null(cov)) {
+      warning(":allcoef: no covariance matrix of coefficients found.",
+              " Returning coefficients only")
+      se <- FALSE
     }
-    class(res) <- "dummy_coef"
-    res
+  }
+  asgn <- attr(mm, "assign")
+  names(asgn) <- colnames(mm)
+  res <- setNames(vector("list", length(tl)), tl)
+  for (j in seq_along(tl)) {
+    mmr <- rn == tl[j]  ## rows corresponding to the term
+    mmc <- names(which(asgn == j))  ## columns (logical fails for polr, vcov() too large)
+    mmpart <- mm[mmr, mmc, drop=FALSE] 
+    rrj <- setNames(drop(mmpart %*% coef[mmc]), rnn[mmr])
+    if (se) {
+      sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
+      rrj <- ciSignif(rrj, sej, df)
+    }
+    res[[j]] <- rrj
+  }
+  if (int > 0) {
+    res <- c(list(`(Intercept)` = coef[int]), res)
+  }
+  class(res) <- "allcoef"
+  res
+}
+## --------------------------------------------------------------------
+print.allcoef <- function(x, columns=userOptions("allcoefcolumns"),
+                          transpose=TRUE, ...) {
+  for (li in seq_along(x)) {
+    xi <- x[[li]]
+    if (is.null(dim(xi))) next
+    if ("coefsymb"%in%columns)
+      xi$coefsymb <-
+        if ("p.symb"%in%names(xi))
+          paste(format(xi[,1],...), xi[,"p.symb"]) else  xi[,1]
+    columns[columns=="coef"] <- "estimate"
+    xif <- format(xi[,intersect(columns,names(xi)), drop=FALSE],...)
+    xif <- if (ncol(xi)==1 || (nrow(xif)>1 & transpose)) t(xif) else xif
+    if (nrow(xif)==1) row.names(xif) <- " "  ## drop row name
+    if (ncol(xif)==1) colnames(xif) <- " "  ## drop col name
+    if (length(xif)==1) xif <- as.character(xif[1,1])
+    x[li] <- list(xif)
+  }
+  class(x) <- NULL
+  print.default(x, quote=FALSE, ...)
+}
+## -------------------------------------------------------------------------
+vcov.regr <- function(object, ...) {
+  cov <- object$covariance 
+  if (is.null(cov)) {
+    class(object) <- setdiff(class(object),"regr")
+    vcov(object)
+  }
+  cov
+}
+## --------------------------------------------------------------------
+df.residual.regr <- function(object, ...) {
+  df <- object$df.residual
+  if (is.null(df)) df <- object$df
+  if (length(df)>=2) df <- df[2]
+  if (is.null(df)) {
+    sry <- summary(object)
+    df <- sry$df
+    if (is.null(df))
+      df <- NROW(object$residual)-NROW(object$coefficients)
+  }
+  if (is.null(df)) df <- Inf
+  df
 }
 ## ====================================================================
 confint.regr <- function(fitted, ...)
@@ -1292,6 +1387,12 @@ drop1Wald <-
     if (is.null(cov)) cov <- object$covariance/object$sigma^2
     if (is.null(cov)) stop("!drop1Wald! no covariance matrix found")
     cf <- object$coefficients
+    jj <- match(names(cf),colnames(cov), nomatch=0)
+##-     if (!(any(jj==0)&&all(is.na(cf[jj==0]))))
+    if ((any(jj==0)&&any(!is.na(cf[jj==0]))))
+      stop("!drop1Wald! coefficient(s) not appearing in covariance matrix")
+    cf <- cf[jj]
+    asgn <- asgn[jj]
 ##-     y <- object$residuals + predict(object)
     for (i in 1:ns) {
         ii <- seq_along(asgn)[asgn == ndrop[i]]
@@ -2623,7 +2724,7 @@ modelTable <-function(models, seq=NULL) ## !!! refit = FALSE
     lt <- terms(lr)
     ltnm <- c( if(attr(lt,"intercept")) "(Intercept)", attr(lt, "term.labels"))
     t.cf[[li]] <-
-      lr$testcoef[match(ltnm,row.names(lr$testcoef),nomatch=0),
+      lr$termtable[match(ltnm,row.names(lr$termtable),nomatch=0),
                   c("coef","p.value")]
     t.trm[[li]] <- ltnm
 ##    t.trmc <- c(t.trmc, attr(terms(lr),"dataClasses"))
@@ -3079,7 +3180,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lyname <- colnames(lres)
   }
 ##-   if (length(lyname)==0) lyname <- paste("Y",1:lmres,sep="")
-  IR(any(is.na(lres)))
+  IR(anyNA(lres))
   ln <- nrow(lres)
   lrname <- paste("res(", lyname, ")")
 ##-   ldfres <- x$df.residual
@@ -3117,7 +3218,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lstres <- x$stres
   if (length(lstres)==0) {
     lstres <- if (all(lsigma>0) & !inherits(lres,"condquant")) {
-      if (length(lhat)==0||any(is.na(lhat))) sweep(lres,2,lsigma,"/") else
+      if (length(lhat)==0||anyNA(lhat)) sweep(lres,2,lsigma,"/") else
       lres/outer(ifelse(lhat>=1,1,sqrt(pmax(0,1-lhat))),lsigma)
     } else  lres
   }
@@ -3885,7 +3986,7 @@ simresiduals.default <- function(object, nrep, resgen=NULL)
   if (is.null(lfit)) lfit <- 0
   if (nrow(ldata)!=length(lres)) {
     li <- match(names(lres),row.names(ldata))
-    if (any(is.na(li))) {
+    if (anyNA(li)) {
       warning(":simresiduals: data not suitable -> No simulated residuals")
       return(NULL)
     }
@@ -4051,7 +4152,7 @@ plresx <-
   if (length(dim(ldata))!=2) stop("!plresx! unsuitable argument  data")
   if (nrow(ldata)!=nrow(lres)) {
     li <- match(row.names(lres),row.names(ldata))
-    if (length(li)==0||any(is.na(li)))
+    if (length(li)==0||anyNA(li))
       stop("!plresx! cannot match residuals and x`s")
     else {
       ldata <- ldata[li,]
@@ -4088,7 +4189,7 @@ plresx <-
         ldx <- ldx[,lj[lj>0],drop=FALSE]
         if (NROW(ldx)!=nrow(ldata)) {
           li <- match(row.names(ldata),row.names(ldx))
-          if (any(is.na(li))) {
+          if (anyNA(li)) {
             warning(":plresx: Incompatible data.frames. Specify argument `data`.")
             lj[] <- 0
           } else  ldx <- ldx[li,,drop=FALSE]
@@ -4505,7 +4606,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
       warning("argument  range.  not suitable. ignored")
     } else {
       lj <- match(colnames(range.),lvn)
-      if (any(is.na(lj))) {
+      if (anyNA(lj)) {
         warning("variables", colnames(range.)[is.na(lj)],"not found")
         if (any(!is.na(lj))) rg[,lj[!is.na(lj)]] <- range.[,!is.na(lj)]
       }
@@ -4545,10 +4646,10 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   if (is.na(ncols)||ncols<1)
     ncols <- min(nv1,ceiling(nv1/((nv1-1)%/%lnm[1]+1)))
   if (is.null(xaxmar)) xaxmar <- 1+(nv1*nv2>1)
-  if (any(is.na(xaxmar))) xaxmar <- 1+(nv1*nv2>1)
+  if (anyNA(xaxmar)) xaxmar <- 1+(nv1*nv2>1)
   xaxmar <- ifelse(xaxmar>1,3,1)
   if (is.null(yaxmar)) yaxmar <- 2+(nv1*nv2>1)
-  if (any(is.na(yaxmar))) yaxmar <- 2+(nv1*nv2>1)
+  if (anyNA(yaxmar)) yaxmar <- 2+(nv1*nv2>1)
   yaxmar <- ifelse(yaxmar>2,4,2)
   if (length(oma)!=4)
     oma <- c(2+(xaxmar==1), 2+(yaxmar==2),
@@ -5269,7 +5370,7 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
 ##-     lpos <- find("UserOptions")
 ##-     luopt <- get("UserOptions", pos=lpos)
     luopt <- if (exists("UserOptions", where=1)) get("UserOptions", pos=1) else
-         UserOptions            
+         UserOptions
     if ((!is.null(x)&&is.character(x))) ## asking for options
       return(if(length(x)==1) luopt[[x]] else luopt[x])
     if (!is.null(default)) {
@@ -5295,15 +5396,17 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
   }
 ## -----------------------------------------------------
 UserDefault <- UserOptions <- 
-  list(stamp=1, project="", step="", doc=TRUE, show.dummy.coef=TRUE,
+  list(stamp=1, project="", step="", doc=TRUE, show.dummycoef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
        regr.contrasts=c(unordered="contr.sum", ordered="contr.poly"),
-       regr.testcoefcol=c("coef",  "df", "ciLow","ciHigh","R2.x",
-         "signif", "p.value"),
+       termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
+         "signif", "p.value", "p.symb"),
+       allcoefcolumns="coefsymb",
        debug=0
        )
+
 ##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
 ##-     userOptions(default="unset")
 ## ===========================================================================
@@ -5441,7 +5544,7 @@ plcoord <-
 function(x, range=NULL, limfac=3.0, limext=0.1)
 {
   ## Purpose:    values for plot with limited "inner" plot range
-  lrg <- if (length(range)==0||any(is.na(range)))
+  lrg <- if (length(range)==0||anyNA(range))
     robrange(x, fac=limfac)  else  range(range)
   if (diff(lrg)==0) lrg <- c(-range,range)
   rr <- pmax(pmin(x,lrg[2]),lrg[1])
@@ -5488,6 +5591,7 @@ is.formula <- function(object)
 ## ============================================================
 nafalse <- function(x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 
+Surv <- survival::Surv
 u.true <- function(x) length(x)>0 && x[1]
 u.debug <- function() u.true(getUserOption("debug"))
 u.merge <- function(dd1, dd2 = NA, which=NULL, after=NULL,
@@ -5586,7 +5690,7 @@ warn <- function()
 
 BR <- browser
 DB <- function(on=TRUE) options(error=if(on) recover else NULL)
-options(show.dummy.coef=TRUE)
+options(show.dummycoef=TRUE)
 IR <- function(condition) { if (condition) {
   cat("INTERRUPT: ",as.character(substitute(condition)))
   traceback()
@@ -5601,6 +5705,8 @@ if (length(getUserOption("colors.ra"))==0)
   userOptions(colors.ra =
           c("black","gray","blue","cyan","darkgreen","green",
             "burlywood4","burlywood3","burlywood4"))
+##- c.uoAtlTcc <- termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
+##-          "signif")
 c.weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "Saturday", "Sunday")
 c.months <- c("January", "February", "March", "April", "May", "June",
@@ -5858,7 +5964,7 @@ function (formula, data, weights, start, ..., subset, na.action,
         warning("attempt to find suitable starting values may have failed")
         }
       coefs <- fit$coefficients
-      if (any(is.na(coefs))) {
+      if (anyNA(coefs)) {
         warning("design appears to be rank-deficient, so dropping some coefs")
         keep <- names(coefs)[!is.na(coefs)]
         coefs <- coefs[keep]

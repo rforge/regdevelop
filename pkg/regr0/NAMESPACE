@@ -5,7 +5,7 @@ importFrom("graphics", plot)
 
 importFrom("MASS", rlm, polr)
 importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
-importFrom("survival", coxph, survreg, Surv)
+importFrom("survival", coxph, survreg, Surv, strata, cluster)
 
 importFrom("robustbase", lmrob)
 
@@ -19,13 +19,14 @@ export(asinp,
        BR, DB, IR,
        UserOptions,
        add1.regr, ## add1.default, add1.mlm, ## see below
+       allcoef, 
        c.mon, c.months,
+##       ciSignif,
        colorpale, compareTerms, contr.wsum, condquant, c.weekdays,
        doc, "doc<-",
        drop1.regr, ## drop1.default, drop1.mlm, drop1.multinom,
        drop1Wald,
        dropdata, ## extractAIC.regr,
-       dummy.coef.regr,
        fitcomp,
        fitted.regr, fitted.polr,
        format.modelTable,
@@ -44,8 +45,7 @@ export(asinp,
        plot.regr, plot.xdistResscale,
        plres2x, plresx, plTA.polr, 
        predict.mlm, predict.polr, predict.regr,
-       print.modelTable, print.mregr,
-       print.regr,
+       print.allcoef, print.modelTable, print.mregr, print.regr,
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew,
        regr,
@@ -56,6 +56,7 @@ export(asinp,
        subset,
        summary.mregr, summary.regr,
        sumna, terms2order,
+       Surv, strata, cluster,
        tit, "tit<-",
        Tobit,
        ##u.merge,
