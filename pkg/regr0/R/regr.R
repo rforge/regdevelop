@@ -3851,14 +3851,14 @@ formTrsf <- function(formula, xtrsf) {
               newvars=lnew)
 }
   lsm <- if (u.debug())
-             loess(y~x, weights=weights, span=par, iter=iter,
+             loess(y~x, weights=weights, span=par, iterations=iter,
                    family=if (iter>0) "symmetric" else "gaussian",
                    na.action=na.exclude)  else
-  try(loess(y~x, weights=weights, span=par, iter=iter,
+  try(loess(y~x, weights=weights, span=par, iterations=iter,
             family=if (iter>0) "symmetric" else "gaussian",
             na.action=na.exclude), silent=TRUE)
   if (class(lsm)=="try-error") {
-    lsm <- loess(y~x, weights=weights, span=0.99, iter=iter,
+    lsm <- loess(y~x, weights=weights, span=0.99, iterations=iter,
                family=if (iter>0) "symmetric" else "gaussian",
                  na.action=na.exclude)
     warning(":i.smooth: span was too small. Using 0.99")
