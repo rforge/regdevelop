@@ -18,7 +18,8 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   robust = FALSE, method = NULL, 
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   contrasts=getUserOption("regr.contrasts"),
-  model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE, ...)
+  model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
+  testlevel = 0.05, ...)
 
 \method{summary}{regr}(object, ...)
 }
@@ -84,6 +85,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
     not be generated}
   \item{vif}{ a logical value indicating whether the collinearity
     measure R2.j ahould be calculated }
+  \item{testlevel}{level for significance testing and confidence intervals}
   \item{\dots}{ other argument to be passed to the fitting function }
   \item{object}{'summary.regr' simply returns its only argument object.}
 }

@@ -13,7 +13,8 @@ logst(data, calib=data, threshold=NULL, mult = 1)
   \item{calib}{a vector or matrix of data used to calibrate the
     transformation(s),
     i.e., to determine the constant \code{c} needed}
-  \item{threshold}{constant c that determines the transformation}
+  \item{threshold}{constant c that determines the transformation,
+    possibly a vector with a value for each variable.}
   \item{mult}{a tuning constant affecting the transformation of small
     values, see Details}
 }

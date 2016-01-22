@@ -6,7 +6,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
                  robust = FALSE, method=NULL, ## init.reg="f.ltsreg",
                  subset=NULL, weights=NULL, na.action=nainf.exclude,
                  contrasts=getUserOption("regr.contrasts"),
-                 model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE, ...)
+                 model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE,
+                 testlevel = 0.05, ...)
 {
   ## !!! dispersion: allow to be set.
   ## Purpose:    fit all kinds of regression models
@@ -29,16 +30,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   ldata <- as.data.frame(eval(data))
     lnobs <- nrow(ldata)
   if (lnobs==0) stop("!regr! no observations in data")
-  ## f. --- names of all variables to be used (as in lm)
-  ## get all vars
-##-  lcgetv <- match.call(expand.dots = FALSE)
-##-  lcgetv <- lcgetv[sapply(lcgetv,length)>0]
-##-  lj <- match(c("formula", "data"), 
-##-             names(lcgetv), 0L)
-##-  lcgetv <- lcgetv[c(1L, lj)]
-##-  lcgetv$formula <- lformula
-##-   lcgetv[[1L]] <- as.name("get_all_vars")
-  lcgetv <- call("get_all_vars", formula=lformula, data=lcall$data)
+  ## --- get all variables to be used (as in lm)
+##-   lcgetv <- call(quote("get_all_vars"), formula=lformula, data=lcall$data)
+  ## nonlinear: drop constants
+  lform <- lformula
   if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
     lcf <- setdiff(all.vars(formula),names(data))
     if(nonlinear=="lazy") {
@@ -53,12 +48,21 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     }
     lcall$start <- start <- start[names(start)%in%lcf]
     lfo <- setdiff(all.vars(formula),names(start))
-    lcgetv$formula <- as.formula(paste("~",paste(lfo,collapse="+")))
+    lform <- as.formula(paste("~",paste(lfo,collapse="+")))
     lcall$nonlinear <- nonlinear <- TRUE
   }
+  ## get variables
+  lcgetv <- call(quote("get_all_vars"), formula=lform, data=lcall$data)
+  ## !!!  get_all_vars , when repaired...
   lcgetv$data <- eval(lcall$data, sys.parent()) ## !!! oct 15
-  lav <- try(eval(lcgetv, parent.frame())) ## 
-  if (class(lav)=="try-error") {
+##-   lcgetv$formula <- lform[1:2]
+  lallvars <- try(eval(lcgetv, parent.frame())) ##
+##-   if (length(lform)>2) {
+##-     lcgetv$formula <- lform[-2]
+##-     lallvar2 <- try(eval(lcgetv, parent.frame())) ##
+##-   ## !!! simplify when  get_all_vars  is ok.
+  ## variables not found -- which ones?
+    if (class(lallvars)=="try-error") {
     lv <- all.vars(formula)
     lvm <- setdiff(lv, names(ldata))
     for (lvv in lvm)  if(exists(lvv)&&!is.function(get(lvv)))
@@ -66,34 +70,60 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     stop("!regr! undefined variables in formula:  ",
          paste(lvm, collapse=", "))
   }
-  ##
+  ## repair nemes of lallvars
+  if (anyNA(names(lallvars))) {
+    lnm <- all.vars(lform)
+    if (ldot <- match(".",lnm, nomatch=0))
+      lnm <- unique(c(lnm[-ldot], names(ldata)))
+    if (ncol(lallvars)==length(lnm)) names(lallvars) <- lnm  else
+    stop("!regr! bug: variables not correctly identified")
+  }
+  ## f. --- compose call of fitting function
   lcl <- lcall
   if (!is.null(lcl$weights)) {
     lwgt <- eval(substitute(weights), data)
-    lav <- cbind(lav, .weights.=lwgt)
+    lallvars <- cbind(lallvars, .weights.=lwgt)
     lcl$weights <- lwgt
   }
   if (!is.null(lcl$offset)) {
-    lav <- cbind(lav, .offset.=eval(substitute(offset), data))
-    lcl$weights <- as.name(".offset.")
+    lallvars <- cbind(lallvars, .offset.=eval(substitute(offset), data))
+    lcl$offset <- as.name(".offset.")
   }
   if (!is.null(lcl$subset)) {
     li <- eval(substitute(subset), data, environment())
-    lav <- lav[li,]
+    lallvars <- lallvars[li,, drop=FALSE]
     lcl$subset <- NULL
   }
   ## convert character to factor
-  for (lvn in 1:ncol(lav)) {
-    lv <- lav[[lvn]]
-    if (is.character(lv)|is.factor(lv)) lav[[lvn]] <- factor(lv)
+  for (lvn in 1:ncol(lallvars)) {
+    lv <- lallvars[[lvn]]
+    if (is.character(lv)|is.factor(lv)) lallvars[[lvn]] <- factor(lv)
+  }
+  ## g. --- check for variables with a single value
+  lcgetv[[1]] <- as.name("model.frame")
+  lcgetv$data <- lallvars
+  lcgetv$formula <-if (length(lform)>2) lform[-2] else lform
+  lmodelframe <- eval(lcgetv, parent.frame())
+  lv1 <- which( apply(lmodelframe, 2, function(x) all(x==x[1]) ) )
+  if (length(lv1)) {  ## adjust formula
+    lfac <- attr(terms(lmodelframe),"fac")
+    lt1 <- names(which(apply(lfac[lv1,,drop=F],2,any)))
+    warning("!regr! formula contains single valued variables: ",
+            paste(row.names(lfac)[lv1], collapse=". "),
+            "\n     I drop the following terms from the formula:\n    ",
+            paste(lt1, collapse=", "))
+    lfupd <- as.formula( paste( ".~ .- ",paste(lt1, collapse=" - ") ) )
+    lcl$formula <- update(lcl$formula, lfupd)
   }
   ## -------------------------------------------
   ## h. --- response type
   if (length(lformula)==2) { # nonlinear called with formula of type ~...
-    ly <- rep(0,NROW(lav))
+    ly <- rep(0,NROW(lallvars))
     lytype <- "numeric"
   } else {
-    lyf <- model.frame(lformula[1:2], lav)
+    lyf <- model.frame(lformula[1:2], lallvars)
+    ## I tried to generate model.frame for x and y together. This failed
+    ## because model.frame  needs adequate method (when y is matrix)
     ltrm <- attr(lyf, "terms")
     lytype <- substring(attr(ltrm, "dataClasses"),1,5)
     lysimple <- lytype!="nmatr" ## not a matrix
@@ -137,7 +167,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   if (lytype=="survival") {
     if (!inherits(ly,"Surv"))
       stop("!regr! bug: convert response to Surv object")
-    ## !!! hier machen! lav[,1] ersetzen durch Surv davon
+    ## !!! hier machen! lallvars[,1] ersetzen durch Surv davon
     lfitfun <- "survreg"
     if (is.null(family)) lfam <-attr(ly,"distribution")
   }
@@ -161,7 +191,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
   lcl$fname <- lfam
   lcl$na.action <- substitute(na.action)
-  lcl$data <- as.name("lav") ## environment(formula)
+  lcl$data <- as.name("lallvars") ## environment(formula)
   environment(lcl$formula) <- environment() ## !!!
 ##-  lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
@@ -172,7 +202,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
         old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
         lcl$contrasts <- NULL
       }
-    if (contrasts[1]=="contr.wsum") lav <- contr.wsum(lav)
+    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars)
 ##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
   }
 ##- ## --------------------------------------------
@@ -192,7 +222,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   lreg$response <- ly
   if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
   ## >>>>>>> .r32
-  lreg$allvars <- lav ## needed more than $model
+  lreg$allvars <- lallvars ## needed more than $model
   ## since $model contains transformed variables
   ## recover some arguments to effective function call
   lfc <- lreg$call
@@ -236,7 +266,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ## -----------------------------------------------------------------------
 i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
                  robust=FALSE, method=NULL, control=NULL, 
-                 vif=TRUE, termtable=TRUE, ...)
+                 vif=TRUE, termtable=TRUE, testlevel=0.05, ...)
 {
   ## Purpose:  internal: fit lm
   ## ----------------------------------------------------------------------
@@ -330,18 +360,19 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
              "df","cov.unscaled")
   lreg[lcomp] <- lreg1[lcomp]
-  if (nonlinear) {
-    lreg$coefficients <- lreg1$coefficients[,1]
-    lreg$termtable <- lreg1$coefficients
-#   lreg$r.squared <- 1-(lsig/lsdy)^2
-  }
   ## degrees of freedom
-  ldfr <- lreg$df.residual
-  if (length(ldfr)==0||is.na(ldfr))
-      lreg$df.residual <- ldfr <- lreg1$df[2] # rlm
   if (is.null(lreg$df)) # needed for rq
     lreg$df <- c(length(coef(lreg))-attr(terms(lreg),"intercept"),
                  length(resid(lreg))-length(coef(lreg)))
+  lreg$df.residual <- ldfr <- df.residual(lreg)
+  if (nonlinear) {
+    lcftab <- lreg1$coefficients
+    lreg$coefficients <- lcftab[,1]
+    ltq <- qt(1-testlevel/2, ldfr)
+    lci <- lcftab[,1]*(1+outer(ltq*lcftab[,2], c(ciLow=-1,ciHigh=1)))
+    lreg$termtable <- data.frame(coef=lcftab[,1],se=lcftab[,2],lci)
+#   lreg$r.squared <- 1-(lsig/lsdy)^2
+  }
   lreg$adj.r.squared <- 1-(1-lreg$r.squared)*(length(lreg$residuals)-1)/ldfr
   ## cov of estimates
   lcov <- lreg$cov.unscaled*lsig^2
@@ -504,7 +535,7 @@ i.multinomial <- function(formula, data, family, fname,
 ##  if (length(ltr)==0) ltr <- trace
 ##  require(nnet)   ## !?!
   lcall <- match.call()
-  lcall[[1]] <- quote(regr0:::i.multinomfit)
+  lcall[[1]] <- quote(regr0::i.multinomfit)
   lcall$fname <- lcall$family <- lcall$control <- lcall$vif <- NULL
   lcall$trace <- FALSE
   lreg <- eval(lcall, envir=environment(formula))
@@ -717,8 +748,11 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 15:37
   if(length(attr(terms(lreg),"term.labels"))==0)
-    return(list(test=data.frame(coef=c(lreg$coef,NA)[1],stcoef=NA,signif=NA,
-                  R2.x=NA,df=length(lreg$coef),p.value=NA)))
+    return(list(termtable = data.frame(
+      coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciHigh=NA, 
+      df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+      stringsAsFactors=FALSE)
+                ))
   pvCutpoints <- c(0, 0.001, 0.01, 0.05, 0.1, 1)
   pvSymbols <- c("***", "**", "*", ".", " ", "")
   pvLegend <- paste(rbind(pvCutpoints,pvSymbols), collapse="  ")
@@ -868,11 +902,14 @@ contr.wsum <-
         attr(df[,lj],"contrasts") <- contr.wsum(df[,lj])
     return(df)
   }
-  if (is.factor(n)) {
+  ## argument is a number or ...
+  if (is.factor(n)) { ## ... a factor
     w <- c(table(n))
     n <- levels(n)
   }
-  contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
+  if ((is.numeric(n)&&n==1) || (is.character(n)&&length(n)==1))
+             return(matrix(1,1,1)) else
+    contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
   if (is.null(w)) {
     warning(":contr.wsum: no weights provided.",
             " Returning unweighted contrasts for ", paste(n,collapse=", "))
@@ -2681,46 +2718,37 @@ compareTerms <-
   rr
 }
 ## ==========================================================================
-modelTable <-function(models, seq=NULL) ## !!! refit = FALSE
+modelTable <-function(models, seq=NULL) 
 {
-  ## !!! Standardisierung und reestimation unterdrueckbar machen.
   ## Purpose:   collect several models into a table
   ## -------------------------------------------------------------------------
   ## Arguments:
   ##   models   character vector of names of model objects
   ## -------------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  9 Aug 2000, 11:50
-  ## a version that tries to cope with non-regr results and different
-  ##   'data' is stored away
-
   t.islist <- is.list(models)
   if ((!t.islist)&&!(is.atomic(models)&is.character(models)))
     stop("!modelTable! Inadequate argument 'model'")
   t.nm <- length(models)
-  t.ls <- t.trm <- t.cf <- vector("list",t.nm)
-  t.nobs <- t.df <- t.sig <- t.fitfun <- rep(NA,t.nm)
   t.mnm <- if (t.islist) names(models) else models
   if (length(t.mnm)==0)  names(models) <- t.mnm <- paste("model",1:t.nm,sep=".")
-  names(t.ls) <- names(t.sig) <- names(t.trm) <- names(t.cf) <-
-    names(t.fitfun) <- names(t.nobs) <- names(t.df) <- t.mnm
-##-   t.data <- data
-##-   t.jdt <- !is.null(t.data)
-##-   if (t.jdt) warning(":modelTable: new evaluation of models on 'data'",
-##-                      " currently not implemented. Argument is ignored")
-  ##  t.vars <- names(data)
-  ##  t.trmc <- NULL ## term classes
+  t.ls <- t.trm <- t.cf <- setNames(vector("list",t.nm), t.mnm)
+  t.nobs <- t.df <- t.sig <- t.fitfun <- setNames(rep(NA,t.nm), t.mnm)
   ## -----------------------------------------------------------
   for (li in t.mnm) {
     lr <- if (t.islist) models[[li]] else get(li,envir=parent.frame())
-    lfitfun <- NULL
-    for (lc in c("lm","lmrob","glm","multinom","polr","survreg"))
-      if (inherits(lr,lc)) lfitfun <- lc
-    if (is.null(lfitfun))
-      stop(paste("!modelTable! Model ",li," is not an adequate model"))
-    t.fitfun[li] <- lfitfun
+##-     lfitfun <- NULL
+##-     for (lc in c("lm","lmrob","glm","multinom","polr","survreg"))
+##-       if (inherits(lr,lc)) lfitfun <- lc
+##-     if (is.null(lfitfun))
+##-       stop(paste("!modelTable! Model ",li," is not an adequate model"))
+    ##-     t.fitfun[li] <- lfitfun
+    if (!inherits(lr, "regr"))
+      stop("!modelTable! ... only programmed for 'regr' objects")
+    t.fitfun[li] <- t.ff <- lr$fitfun
     t.nobs[li] <- lnr <-
-      NROW(if(lfitfun=="survreg") lr$linear.predictors else lr$fitted.values)
-    t.df[li] <- ldf <- lnr-lr$df.residual
+      NROW(if(t.ff=="survreg") lr$linear.predictors else lr$fitted.values)
+    t.df[li] <- ldf <- lnr-df.residual(lr)
     lt <- terms(lr)
     ltnm <- c( if(attr(lt,"intercept")) "(Intercept)", attr(lt, "term.labels"))
     t.cf[[li]] <-
@@ -2728,19 +2756,17 @@ modelTable <-function(models, seq=NULL) ## !!! refit = FALSE
                   c("coef","p.value")]
     t.trm[[li]] <- ltnm
 ##    t.trmc <- c(t.trmc, attr(terms(lr),"dataClasses"))
-    lsig <- if (inherits(lr,"survreg")) lr$scale else summary(lr)$sigma
+    lsig <- if (t.ff=="survreg") lr$scale else summary(lr)$sigma
     t.sig[li] <- c(lsig,NA)[1]
-##-     t.dt <- c(t.dt, as.character(lr$call[3]))
   }
   if (length(unique(t.nobs))>1)
     warning(":modelTable: models have different numbers of observations")
+## --- collect
   t.tr <- unique(unlist(t.trm))
   ## --- coefs and p values
   t.nt <- length(t.tr)
-  t.coef <- matrix(NA,t.nt,t.nm)
-  dimnames(t.coef) <- list(t.tr,t.mnm)
-  t.pr <- t.coef
-  ## ---------------------------------------------
+  t.pr <- t.coef <- matrix(NA,t.nt,t.nm, dimnames=list(t.tr,t.mnm))
+  ## ---
   for (li in t.mnm) {
     t.t <- t.trm[[li]]
     if (length(t.t)) {
@@ -2751,9 +2777,8 @@ modelTable <-function(models, seq=NULL) ## !!! refit = FALSE
   }
   ## reorder
   if (length(seq)>0) {
-    t.i <- match(seq, t.tr)
-    t.t <- c(t.tr[t.i[!is.na(t.i)]],t.tr[!t.tr%in%seq])
-    if (any(!t.tr%in%t.t|!t.t%in%t.tr)) warning("bug. not all terms. ask wst")
+    li <- match(seq, t.tr)
+    t.t <- c(t.tr[notna(li)],t.tr[!t.tr%in%seq])
     t.coef <- t.coef[t.t,]
     t.pr <- t.pr[t.t,]
     t.sd <- t.sd[t.t]
@@ -4394,7 +4419,7 @@ plresx <-
 ##-     ff <- function(v2, v1, j2, j1, pch, clr, clrsmooth) {
 ##-             points(v2,v1, col=clr, pch=pch)
 ##-             lines(lowess(v2,v1), col=clrsmooth) }
-    lpanel <- function(xx, yy, jx, jy, pch, clr) {
+    lpanel <- function(xx, yy, jx, jy, pch, col) {
       lcmpx <- lcmpy <- NULL
       ltin <- terminmodel[jx]
       lvx <- vars[jx]
@@ -4518,7 +4543,7 @@ plresx <-
 plmatrix <-
 function(x, y=NULL, data=NULL, panel=l.panel,
          nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
-         pch=NULL, col=1, reference=0, ltyref=3,
+         pch=1, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r", xaxmar=NULL, yaxmar=NULL,
          vnames=NULL, main="", cex=NA, cex.points=NA, cex.lab=0.7, cex.text=1.3,
          cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keepmf=FALSE,
@@ -4530,32 +4555,33 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date: 23 Jul 93; minor bug-fix+comments:
   ## M.Maechler
-  l.panel <- function(x,y,indx,indy,pch=1,col=1,cex=cex.points,...) {
-    if (is.character(pch)) text(x,y,pch,col=col,cex=cex) else
-    points(x,y,pch=pch,col=col,cex=cex,...)
+  l.panel <- function(x, y, indx, indy, pch=1, col=1, cex=cex.points,...) {
+    if (is.character(x)) x <- factor(x)
+    if (is.factor(x))
+      plmboxes(y~x, data.frame(x=x,y=y), add=TRUE, ...) else {
+        if (is.character(y)) y <- factor(y)
+        if (is.factor(y)) y <- as.numeric(y)
+        if (is.character(pch)) text(x,y,pch,col=col,cex=cex) else
+        points(x,y,pch=pch,col=col,cex=cex,...)
+      }
   }
+  ##
   oldpar <- par(c("mfrow","mar","cex","mgp", "ask"))
   lmfg <- par("mfg")
   on.exit(if (!keepmf) par(oldpar))
 ##---------------------- preparations --------------------------
 ## data
   if (is.formula(x))  {
-    if (length(x)==2)
-    x <- model.frame(x,data, na.action=NULL)  else {
-      ld <- model.frame(x[c(1,3)],data, na.action=NULL)
-      lv <- setdiff(all.vars(x[1:2]),colnames(ld))
-      x <- cbind(ld, data[,all.vars(x[1:2]),drop=FALSE])
-                                        # works with lhs = cbind(...)
-      x <- x[,rev(!duplicated(rev(names(x))))]
-                                        # duplicates arise from ~. formulas
-    }
+    if (length(x)>2) { ## response last
+      ld <- model.frame(x, data, na.action=NULL)
+      ld1 <- as.data.frame(ld[,1])
+      if (ncol(ld1)>1 && any(colnames(ld[,1])=="")) ## rectify names
+        names(ld1) <- extractNames(names(ld[1]), names(ld1))
+      x <- cbind( ld[,-1], ld1 )
+    } else x <- ld
   }
-  if (is.data.frame(x)) {
-    for (jj in 1:length(x)) x[[jj]] <- as.numeric(x[[jj]])
-    x <- as.matrix(x)
-  } else x <- cbind(x)
-##  stop("!plmatrix! first argument must either be a formula or a data.frame or matrix")
-  nv1 <- dim(x)[2]
+  x <- cbind(x)
+  nv1 <- ncol(x)
   lv1 <- lv2 <- 0
   if (is.null(y)) {
     ldata <- x
@@ -4564,30 +4590,18 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   } else { # cbind y to data for easier preparations
     save <- FALSE
     if (is.formula(y))  {
-      ld <- model.frame(x[c(1,3)],data, na.action=NULL)
-      if (length(x)>2)
-        ld <- cbind(ld, model.frame(x[1:2],data, na.action=NULL))
-      x <- ld
+      ld <- model.frame(y,data, na.action=NULL)
+      if (length(y)>2)  ## response last
+        y <- cbind( ld[,-1], as.data.frame(ld[,1]) ) else y <- ld
     }
-    if (is.formula(y)) {
-      if (length(y)==2)
-        y <- model.frame(y,data, na.action=NULL)  else {
-          ld <- model.frame(y[c(1,3)],data, na.action=NULL)
-          ld <- cbind(ld, model.frame(y[1:2],data, na.action=NULL))
-          y <- ld
-        }
-    }
-    if (is.data.frame(y)) {
-      for (jj in 1:length(y)) y[[jj]] <- as.numeric(y[[jj]])
-      y <- as.matrix(y)
-    }
-    ldata <- cbind(x, as.matrix(y))
-    nv2 <- ncol(ldata)-nv1 ; lv2 <- nv1
+    ldata <- cbind(x, y)
+    nv2 <- NCOL(y)
+    lv2 <- nv1
   }
   nvv <- ncol(ldata)
   tnr <- nrow(ldata)
 ## variable labels
-  lvn <- dimnames(ldata)[[2]]
+  lvn <- colnames(ldata)
   if (is.null(lvn)) lvn <- paste("V",1:nvv)
   lvnm <- lvn
   if (!is.null(vnames)) {
@@ -4595,15 +4609,17 @@ function(x, y=NULL, data=NULL, panel=l.panel,
     lvnm[!is.na(vnames)] <- vnames[!is.na(vnames)]
   }
   vnames <- lvnm
-## plotting characters
-  if (length(pch)==0) pch <- 1
-  if (length(pch)>tnr) pch <- pch[1:tnr]
+  ## plotting characters, color
+  lpch <- eval(as.expression(substitute(pch)), data, parent.frame())
+  if (length(lpch)>tnr) lpch <- lpch[1:tnr]
+  lcol <- eval(as.expression(substitute(col)), data, parent.frame())
+  if (length(lcol)>tnr) lcol <- lcol[1:tnr]
 ## range
   rg <- matrix(nrow=2,ncol=nvv,dimnames=list(c("min","max"),lvn))
   if(is.matrix(range.)) {
     if (is.null(colnames(range.))) {
       if (ncol(range.)==ncol(rg)) rg[,] <- range.  else
-      warning("argument  range.  not suitable. ignored")
+      warning("argument  'range.'  not suitable. ignored")
     } else {
       lj <- match(colnames(range.),lvn)
       if (anyNA(lj)) {
@@ -4615,10 +4631,22 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   else
     if (length(range.)==2&&is.numeric(range.)) rg[,] <- matrix(range.,2,nvv)
 
-  lna <- apply(is.na(rg),2, any)
-  if (any(lna))
-    rg[,lna] <- apply(ldata[,lna,drop=FALSE],2,
-      if(robrange.) robrange else range, na.rm=TRUE, finite=TRUE)
+  lna <- which(apply(is.na(rg),2, any))
+  if (length(lna)){
+    ldt <- ldata[,lna,drop=FALSE]
+    lfac <- !sapply(ldt, is.numeric)
+    if (any(lfac)) { ## factors 
+      rg[,lna[lfac]] <-
+        rbind(0.2, apply(ldt[,lfac, drop=FALSE], 2,
+                         function(x) length(unique(x))+0.8 ) )
+      lna <- lna[!lfac]
+      ldt <- ldt[,!lfac,drop=FALSE]
+    }
+    if (any(lna))
+      rg[,lna] <-
+        apply(ldt, 2, 
+              if(robrange.) robrange else range, na.rm=TRUE, finite=TRUE)
+  }
   colnames(rg) <- lvn
 ## reference lines
   tjref <- (length(reference)>0)&&!(is.logical(reference)&&!reference)
@@ -4686,7 +4714,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
       j1 <- lv1 + jd1
     if (jd2<=nv2 & jd1<=nv1) {
       v1 <- ldata[,j1]
-      plot(v1,v2, type="n", xlab="", ylab="", axes=FALSE,
+      plot(NA,NA, type="n", xlab="", ylab="", axes=FALSE,
            xlim <- rg[,j1], ylim <- rg[,j2],
            xaxs=xaxs, yaxs=yaxs, log=log, cex=cex.points)
       usr <- par("usr")
@@ -4705,8 +4733,8 @@ function(x, y=NULL, data=NULL, panel=l.panel,
         if (jc==ncols||jd1==nv1) if (yaxmar==4) axis(4,xpd=TRUE)
       }
       box(bty=bty)
-      if (any(v1!=v2,na.rm=TRUE)) { # not diagonal
-        panel(v1,v2,jd1,jd2, pch, col, ...)
+      if (any(v1!=v2, na.rm=TRUE)) { # not diagonal
+        panel(v1,v2,jd1,jd2, pch=lpch, col=lcol, ...)
         if (tjref) abline(h=lref[j1],v=lref[j2],lty=ltyref)
       }
       else { uu <- par("usr") # diagonal: print variable name
@@ -4761,7 +4789,7 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   ## values for degenerate case
   lfac <- if (is.null(wfac)) width*2*IQR(x, na.rm=TRUE) else wfac*length(x)
                                         # was mad/dnorm(0)
-  lq <- NULL
+  lq <- lwid <- NULL
   lmed <- median(x, na.rm=TRUE)
   lwmed <- width
   lhtot <- diff(range(x, na.rm=TRUE))
@@ -4805,7 +4833,7 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   ## median
   lines(at+lwmed*c(-adj,1-adj), rep(lmed,2), col=colors[["med"]], lwd=3)
 ##
-  invisible(structure(lfac/length(x), attributes=list(q=lq,width=lwid)))
+  invisible(structure(lfac/length(x), q=lq, width=lwid))
 }
 ## ====================================================================
 plmboxes <- function(formula, data, width=1, at=NULL, 
@@ -4840,7 +4868,7 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   colors <- as.list(colors)
   if (any(names(colors)%nin%names(lcol)))
     warning(":plmboxes: argument 'colors' has unsuitable names") else
-    lcol[names(colors)] <- colors
+  lcol[names(colors)] <- colors
   ## data
   if (length(dim(data))!=2||nrow(data)==0)
     stop("!plmboxes! Argument 'data' has dimension   ",
@@ -4883,8 +4911,20 @@ plmboxes <- function(formula, data, width=1, at=NULL,
       if (is.logical(na))
           na.pos <- c(min(ly, na.rm=TRUE)*(1-0.3)-0.3*max(ly, na.rm=TRUE))
   if (length(na.pos)==1)
-      na.pos <- na.pos+ 0.03*diff(range(ly,na.rm=TRUE))*c(-1,1)
-  if (!add) {
+    na.pos <- na.pos+ 0.03*diff(range(ly,na.rm=TRUE))*c(-1,1)
+  lusr <- par("usr")
+  lrg <- if (add) lusr[3:4] else range(ly,na.pos, na.rm=TRUE)
+  if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
+    warning(":plmboxes: unsuitable argument 'ilim'")
+    ilim <- NULL
+  }
+  if (is.null(ilim)) ilim <- lrg
+  ljlim <- ilim[1]<lrg[1] | ilim[2]<lrg[2] ## inner range is actif
+  if (add) {
+    xlim <- lusr[1:2]
+    ylim <- lusr[3:4]
+  } else {
+    if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
     if (is.null(mar)) mar <-
       c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
     if (!is.na(mar[1])) {
@@ -4893,17 +4933,8 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     }
     if(is.null(xlim)) xlim <- 
       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
-    lrg <- range(ly,na.pos, na.rm=TRUE)
-    if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
-      warning(":plmboxes: unsuitable argument 'ilim'")
-      ilim <- NULL
-    }
-    if (is.null(ilim)) ilim <- lrg
-    ljlim <- ilim[1]<lrg[1] | ilim[2]<lrg[2] ## inner range is actif
-    if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
   ## ---------------------------------
     plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
-    lusr <- par("usr")
     if (axes) {
       axis(1,at=at,labels=llev,las=1+2*labelsvert)
       lat <- pretty(f.ylim(lrg, ilimext)) #, n=7,n.min=5
@@ -5062,11 +5093,11 @@ plfitpairs <- function(object, ssize=0.02, main=NULL) #, pch=NULL
     stop("!plfitpairs! ncol of fitted values != number of levels in y")
 ##  if (length(pch)<lny) pch <- 1:lny
   lmx <- max(lpr)
-  l.panel <- function(x,y,indx,indy,ly,clr, ssize) {
+  l.panel <- function(x,y,indx,indy,ly,col, ssize) {
     lix <- indx==ly
     liy <- indy==ly
     x[!(lix|liy)] <- NA
-    segments(x-ssize*lix,y-ssize*liy,x+ssize*lix,y+ssize*liy,col=clr)
+    segments(x-ssize*lix,y-ssize*liy,x+ssize*lix,y+ssize*liy,col=col)
     abline(1,-1,lty=3)
   }
   plmatrix(lpr, panel=l.panel, pch=ly, range.=c(0,lmx), main=main, ssize=ssize)
@@ -5527,12 +5558,12 @@ logst <- function(data, calib=data, threshold=NULL, mult=1)
     lnmpd <- names(ljdt) <- names(lthr) <- colnames(data)  else
     lnmpd <- as.character(1:lncol)
   if (ncol(data)==1) data <- data[,1]
-  attr(data,"threshold") <- lthr
+  attr(data,"threshold") <- unname(lthr)
   if (any(!ljdt)) {
     warning(":logst: no positive data",
             if(lncol>1) paste(" for variables ",lnmpd[!ljdt],
             ". These are not transformed") else ". No transformation")
-    attr(data,"transformed") <- c(ljdt)
+    attr(data,"transformed") <- unname(ljdt)
   }
   data
 }
@@ -5678,6 +5709,17 @@ i.main <- function(main, line=1-outer.margin, cex=NULL, adj=NULL,
 ## ==========================================================================
 ##- is.R <- function ()
 ##- exists("version") && !is.null(vl <- version$language) && vl == "R"
+extractNames <- function(x, orig=NULL) {
+  if (length(grep("cbind", x))) 
+    eval( parse(text=
+            paste('c("',
+            gsub(" *, *",'","', sub("cbind *\\((.*)\\)", "\\1", x)),
+                  '")', sep="") ) )  else  {
+                    if(is.null(orig)) NULL else
+                    paste("V",seq_along(orig), sep="")
+                  }
+}
+
 RNAMES <- function(x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 "%nin%" <- function(x,y) !x%in%y
@@ -6204,3 +6246,97 @@ factor2character <- function(x) {
     if (is.factor(x[,lj])) x[,lj] <- as.character(x[,lj])
   x
 }
+## ==================================================================
+## until repaired ...
+get_all_vars <- 
+function (formula, data = NULL, ...) 
+{
+    if (missing(formula)) {
+        if (!missing(data) && inherits(data, "data.frame") && 
+            length(attr(data, "terms"))) 
+            return(data)
+        formula <- as.formula(data)
+    }
+    else if (missing(data) && inherits(formula, "data.frame")) {
+        if (length(attr(formula, "terms"))) 
+            return(formula)
+        data <- formula
+        formula <- as.formula(data)
+    }
+    formula <- as.formula(formula)
+    if (missing(data)) 
+        data <- environment(formula)
+    else if (!is.data.frame(data) && !is.environment(data) && 
+        !is.null(attr(data, "class"))) 
+        data <- as.data.frame(data)
+    else if (is.array(data)) 
+        stop("'data' must be a data.frame, not a matrix or an array")
+    if (!inherits(formula, "terms")) 
+        formula <- terms(formula, data = data)
+    env <- environment(formula)
+    rownames <- .row_names_info(data, 0L)
+    varnames <- all.vars(formula)
+    inp <- parse(text = paste("list(", paste(varnames, collapse = ","), 
+        ")"), keep.source = FALSE)
+    variables <- setNames(eval(inp, data, env), varnames) ## !!!
+    if (is.null(rownames) && (resp <- attr(formula, "response")) > 
+        0) {
+        lhs <- variables[[resp]]
+        rownames <- if (is.matrix(lhs)) 
+            rownames(lhs)
+        else names(lhs)
+    }
+    extras <- substitute(list(...))
+    extranames <- names(extras[-1L])
+    extras <- setNames(eval(extras, data, env),extranames) ## !!!
+    x <- data.frame(c(variables, extras)) ## !!!
+    if (!is.null(rownames)) 
+        attr(x, "row.names") <- rownames
+    x
+}
+##- getallvars <- 
+##- function (formula, data = NULL, ...) 
+##- {
+##-     if (missing(formula)) {
+##-         if (!missing(data) && inherits(data, "data.frame") && 
+##-             length(attr(data, "terms"))) 
+##-             return(data)
+##-         formula <- as.formula(data)
+##-     }
+##-     else if (missing(data) && inherits(formula, "data.frame")) {
+##-         if (length(attr(formula, "terms"))) 
+##-             return(formula)
+##-         data <- formula
+##-         formula <- as.formula(data)
+##-     }
+##-     formula <- as.formula(formula)
+##-     if (missing(data)) 
+##-         data <- environment(formula)
+##-     else if (!is.data.frame(data) && !is.environment(data) && 
+##-         !is.null(attr(data, "class"))) 
+##-         data <- as.data.frame(data)
+##-     else if (is.array(data)) 
+##-         stop("'data' must be a data.frame, not a matrix or an array")
+##-     if (!inherits(formula, "terms")) 
+##-         formula <- terms(formula, data = data)
+##-     env <- environment(formula)
+##-     rownames <- .row_names_info(data, 0L)
+##-     varnames <- all.vars(formula)
+##-     inp <- parse(text = paste("list(", paste(varnames, collapse = ","), 
+##-         ")"), keep.source = FALSE)
+##-     variables <- setNames(eval(inp, data, env), varnames) ## !!!
+##-     if (is.null(rownames) && (resp <- attr(formula, "response")) > 
+##-         0) {
+##-         lhs <- variables[[resp]]
+##-         rownames <- if (is.matrix(lhs)) 
+##-             rownames(lhs)
+##-         else names(lhs)
+##-     }
+##-     extras <- substitute(list(...))
+##-     extranames <- names(extras[-1L])
+##-     extras <- setNames(eval(extras, data, env),extranames) ## !!!
+##-     x <- data.frame(c(variables, extras)) ## !!!
+##-     if (!is.null(rownames)) 
+##-         attr(x, "row.names") <- rownames
+##-     x
+##- }

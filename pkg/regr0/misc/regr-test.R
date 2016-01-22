@@ -14,19 +14,7 @@ d.kevlar <- read.table("http://stat.ethz.ch/Teaching/Datasets/WBL/kevlar49.dat",
                        header=T)  
 d.kevlar$Spool <- factor(d.kevlar$Spool)
 d.kevlar <- d.kevlar[d.kevlar$Stress>=24,]
-##- install.packages("regr0", repos="http://R-forge.R-project.org")
-##- install.packages("~/wwwcopy/regression/regr0_1.0-4.tar.gz")
-##- install.packages("http://stat.ethz.ch/~stahel/regression/regr0_1.0-4.tar.gz")
 
-
-##- source("/scratch/users/stahel/transfer/regr0/R/regr.R")
-##- source("/scratch/users/stahel/transfer/regr0/R/drop1.R")
-##- options(digits=3)
-##- load("/scratch/users/stahel/data/regdata")
-
-##- ldir <- "/u/stahel/R/Pkgs/regr0/man"
-##- for (lnm in c("datatype","simresiduals", "d.rehab","d.fossiles"))
-##-   prompt(lnm,paste(ldir,"/",lnm,".Rd",sep=""))
 ## ---------------------------------------------------------------
 ## --- regr.Rd examples
 # data(d.blast)
@@ -80,9 +68,9 @@ contr.wsum(t.x)
 contr.wsum(data.frame(x=t.x))
 t.x2 <- factor(c("a","b","c","a","c","b"))
 t.d <- data.frame(fac=t.x, f2=t.x2, y=c(1,2,3,10,6,8))
-t.r <- regr(y~fac, t.d)
+t.r <- regr(y~fac, t.d, contrasts="contr.wsum")
 t.r
-sum(table(t.x)*t.r$allcoef$fac)
+sum(table(t.x)*t.r$allcoef$fac[,"estimate"])
 model.matrix(y~fac, t.d)
 model.matrix(y~fac, t.d, contrasts.arg=list(fac="contr.wsum"))
 
@@ -98,6 +86,10 @@ predict(t.r, newdata=rbind(t.d,c(3,NA)))
 fitted(t.r)
 t.rlm <- lm(y~fac, t.d)
 fitted(t.rlm)
+
+t.d[,"fac"] <- "3"
+t.r <- regr(y~as.numeric(fac)*f2, t.d, contrasts=c("contr.wsum","contr.poly"))
+
 
 t.ri <- regr(formula = log10(tremor) ~ location*log10(distance)+ factor(charge),
            data = d.blast)
@@ -205,7 +197,7 @@ t.r2 <- update(t.r1, formula=.~.-log10(ladung))
 t.r3 <- update(t.r2, formula=.~.-Stelle)
 ##- t.mt <- modelTable(c("t.r","t.r1"))
 r.mt <- modelTable(list(large=t.r1,reduced=t.r2,small=t.r3))
-t.mt[,-2]
+r.mt[,-2]
 compareTerms(large=t.r1,reduced=t.r2,small=t.r3)
 
 t.r <- regr(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
@@ -220,6 +212,7 @@ dummy.coef.regr(t.lm)
 t.r$allcoef
 ## -------------------------------------
 ## robust
+t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng)
 t.rr <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
              robust=T)
 modelTable(list(t.r,t.rr))
@@ -519,6 +512,13 @@ t.r <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
 ##-           tau=0.7)
 ##- drop1(t.r, test="Chisq")
 ## -----------------------------------------------------------
+showd(d.fossiles)
+plmatrix(cbind(log10(Petal.Width),Petal.Length)~., data=iris)
+plmatrix(~Sepal.Length+Species, ~log10(Petal.Width)+Petal.Length, data=iris)
+plmatrix(~Sepal.Length+Species, ~log10(Petal.Width)+I(1:150), data=iris)
+plmatrix(cbind(log10(Petal.Width),Petal.Length)~., data=iris,
+         col=as.numeric(Species)+1)
+
 mframe(1,2)
 plmboxes(tremor~location, data=d.blast)
 plmboxes(tremor~location, data=d.blast, ilimext=0.1)

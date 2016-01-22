@@ -11,7 +11,7 @@
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   nrows = 0, ncols = nrows, save = TRUE,
-  robrange. = FALSE, range. = NULL, pch = NULL, col = 1, 
+  robrange. = FALSE, range. = NULL, pch = 1, col = 1, 
   reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
   xaxmar = NULL, yaxmar = NULL, vnames = NULL, main = "",
   cex = NA, cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
