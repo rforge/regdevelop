@@ -1,20 +1,7 @@
-# source('/u/stahel/R/regdevelop/pkg/regr0/R/regr.R')
-# source('/u/stahel/R/regdevelop/pkg/regr0/misc/regr.R')
-## require(regr0) # ,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 ## attach("/u/stahel/regr0/misc/regr0.rda")
 require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-# require(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-##- options(digits=3)
-load("/u/stahel/data/regdata")
-load("/u/stahel/R/regdevelop/pkg/regr0/data/d.blast.rda")
-load("/u/stahel/R/regdevelop/pkg/regr0/data/d.surveyenvir.rda")
-load("/u/stahel/R/regdevelop/pkg/regr0/data/d.rehab.rda")
-d.cheese <- read.table("/u/stahel/data/cheese.dat")
-d.kevlar <- read.table("http://stat.ethz.ch/Teaching/Datasets/WBL/kevlar49.dat",
-                       header=T)  
-d.kevlar$Spool <- factor(d.kevlar$Spool)
-d.kevlar <- d.kevlar[d.kevlar$Stress>=24,]
-
+##- save(list=ls(), file="data-regr0.rda")
+attach("data-regr0.rda")
 ## ---------------------------------------------------------------
 ## --- regr.Rd examples
 # data(d.blast)
@@ -62,6 +49,7 @@ t.r <- lm(formula = log10(tremor) ~ log10(charge) + I(log10(charge)^2)
 t.rr <- lm(formula = log10(tremor) ~ location + log10(distance) +
                 log10(charge) + location:log10(distance),
            data = d.blast) ## works
+
 ## ------------------------------------------------------------
 t.x <- factor(c(1,1,1,2,3,3))
 contr.wsum(t.x)
@@ -91,8 +79,15 @@ t.d[,"fac"] <- "3"
 t.r <- regr(y~as.numeric(fac)*f2, t.d, contrasts=c("contr.wsum","contr.poly"))
 
 
-t.ri <- regr(formula = log10(tremor) ~ location*log10(distance)+ factor(charge),
+t.ri <- regr(formula = log10(tremor) ~ factor(location)*log10(distance)+
+               factor(charge),
            data = d.blast)
+t.ri <- regr(formula = log10(tremor) ~ factor(location)*log10(distance)+
+               factor(charge),
+           data = d.blast, contrasts="contr.treatment")
+
+r.fc <- fitcomp(t.ri)
+plresx(t.ri)
 
 ## ------------------------------------------------------------
 ## Anorexia
@@ -373,7 +368,7 @@ t.y <- d.fossiles[,c(35,36,32)]        # Zielvariablen
 r.mregr <- regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+region+N,
                 data=d.fossiles)
 r.mregr
-plot(r.mregr, mfrow=c(3,3),ask=c.ask)
+plot(r.mregr, mfrow=c(3,3),ask=c.ask, lab=1)
 drop1.mlm(r.mregr)
 ### Residuenanalyse
 # plot.regr(r.mlm,mfrow=c(1,3),ask=c.ask)
@@ -518,6 +513,9 @@ plmatrix(~Sepal.Length+Species, ~log10(Petal.Width)+Petal.Length, data=iris)
 plmatrix(~Sepal.Length+Species, ~log10(Petal.Width)+I(1:150), data=iris)
 plmatrix(cbind(log10(Petal.Width),Petal.Length)~., data=iris,
          col=as.numeric(Species)+1)
+plmatrix(cbind(log10(Petal.Width),Petal.Length)~Species, data=iris,
+         col=as.numeric(Species)+1, xaxmar=1)
+plmatrix(log10(tremor)~as.factor(device), data=d.blast, col=location)
 
 mframe(1,2)
 plmboxes(tremor~location, data=d.blast)
@@ -543,8 +541,6 @@ plmboxes( I(Postwt-Prewt)~Treat + I(Prewt>t.wtmed) , data=d.anorexia,
 
 plot( I(Postwt-Prewt)~as.numeric(Treat), data=anorexia)
 
-plmboxes(Sepal.Length~Species, data=iris)
-
 set.seed(2)
 t.x <- sort(round(2*rchisq(20,2)))
 table(t.x)
@@ -556,3 +552,5 @@ lines(c(0,t.x), 0:length(t.x)/length(t.x) , type="s")
 showd(wagnerGrowth)
 t.rr <- regr(y~PA*Region, data=wagnerGrowth, contrast="contr.treatment")
 t.rl <- lmrob(y~PA*Region, data=wagnerGrowth)
+
+

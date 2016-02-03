@@ -186,6 +186,14 @@ add1(t.r)
 step(t.r)
 confint(t.r)
 ## =======================================================================
+## trouble with complicated formula
+t.loc <- d.blast$location
+t.ri <- regr(formula = log10(tremor) ~ factor(t.loc)*log10(distance)+
+               ordered(charge),
+           data = d.blast, contrasts="contr.treatment")
+r.fc <- fitcomp(t.ri)
+plresx(t.ri)
+
 ## -----------------------------------------------------
 ## last
 df <- data.frame(X=c(2,5,3,8), F=LETTERS[1:4], G=c(TRUE,FALSE,FALSE,TRUE))
@@ -195,3 +203,11 @@ t.x <- matrix(11:30,5)
 last(t.x,1)
 last(t.x,,1)
 last(t.x,1,drop=FALSE)
+## ----------------------------------------------------------
+plmatrix(cbind(log10(Petal.Width),Petal.Length)~Species, data=iris,
+         col=as.numeric(Species)+1, xaxmar=1)
+plmatrix(log10(tremor)~as.factor(device), data=d.blast, col=location)
+
+plmboxes(tremor~location, data=d.blast, ilim=c(0,20),ilimext=0.05)
+plmboxes(tremor~location, data=d.blast, at=c(1,3,4,7,NA,10,11,12),
+         width=c(1,0.5))

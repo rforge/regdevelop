@@ -13,9 +13,10 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   nrows = 0, ncols = nrows, save = TRUE,
   robrange. = FALSE, range. = NULL, pch = 1, col = 1, 
   reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
-  xaxmar = NULL, yaxmar = NULL, vnames = NULL, main = "",
-  cex = NA, cex.points = NA, cex.lab = 0.7, cex.text = 1.3, cex.title = 1,
-  bty = "o", oma = NULL, mar = rep(0.2, 4), keepmf = FALSE,
+  xaxmar = NULL, yaxmar = NULL, xlabmar=NULL, ylabmar=NULL,
+  vnames = NULL, main = "",
+  cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
+  bty = "o", oma = NULL, mar = rep(0.2, 4), keeppar = FALSE,
   axes = TRUE, ask=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -62,7 +63,7 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   \item{bty}{box type for each panel, see \code{\link{par}}}
   \item{oma}{width of outer margins, ee \code{\link{par}}}
   \item{mar}{margins for the panels}
-  \item{keepmf}{logical. If TRUE, the graphical settings
+  \item{keeppar}{logical. If TRUE, the graphical settings
     "mfrow", "mar", "cex", and "mgp" will be maintained, otherwise,
     the old values will be restored (default).}
   \item{axes}{logical. If TRUE, axes will be drawn and labels shown

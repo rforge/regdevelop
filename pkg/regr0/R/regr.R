@@ -2331,7 +2331,7 @@ linear.predictors <- function(object) {
 }
 linpred <- linear.predictors
 ## ===========================================================================
-fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
+fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL, 
                       xm=NULL, xfromdata=FALSE, noexpand=NULL, nxcomp=51)
 {
   ## Purpose:    components of a fit
@@ -2360,8 +2360,9 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
 ##-   lmeth <- object$call$method
 ##-   lnls <- length(lmeth)>0 && lmeth=="nls"
   lnls <- c(eval(object$call$nonlinear),FALSE)[1]
-##-   lvars <- unique(c(vars,all.vars(formula(object)[[3]])))
-  lvars <- all.vars(formula(object)[[3]])
+  ##-   lvars <- unique(c(vars,all.vars(formula(object)[[3]])))
+  lform <- formula(object)[-2]
+  lvars <- all.vars(lform)
   if (lnls)
     lvars <- lvars[match(lvars,names(coefficients(object)),nomatch=0)==0]
 ##-   lvmiss <- match(lvars,names(data),nomatch=0)==0
@@ -2376,13 +2377,17 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   for (lj in 1:length(ldata))
     if (is.character(ldata[[lj]])|is.factor(ldata[[lj]]))
       ldata[,lj] <- factor(ldata[,lj])
+  lformfac <- NULL
   if (!lnls) {
-    ltc <- attr(terms(object),"dataClasses")
-    for (lt in lvars)
-      if (lt%in%names(ltc)&&ltc[lt]=="factor") {
-        lv <- all.vars(formula(paste("~",lt)))
-        ldata[lv] <- lapply(ldata[lv],factor)
-      }
+    if (length(c(grep("factor *\\(", format(lform)),
+        grep("ordered *\\(", format(lform))))) {
+      warning(
+        ":fitcomp: Using 'factor(...)' or 'ordered(...)' in the formula ",
+        "is hazardous for fitcomp.\n",
+        "  : I try to continue.")
+      lformfac <- i.findformfac(lform)
+##          return(structure(list(comp=NULL), class="try-error") )
+    }
   }
   ## generate means  xm  if needed
   if (length(xm)>0) {
@@ -2396,11 +2401,15 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
     for (lj in 1:length(ldata)) {
       lv <- ldata[,lj]
       if (is.character(lv)) lv <- factor(lv)
-      xm[1,lj] <- if (is.factor(lv))
-        levels(lv)[which.max(table(as.numeric(lv)))[1]]
-      else   ## median(as.numeric(lv),na.rm=TRUE)
+      xm[1,lj] <-
+        if (is.factor(lv)) {
+          levels(lv)[
+          if (is.ordered(lv)) sort(as.numeric(lv))[lnhalf] else
+                     which.max(table(as.numeric(lv)))
+                   ]
+        } else   ## median(as.numeric(lv),na.rm=TRUE)
         sort(lv)[ceiling(length(lv)/2)]
-        ## median should be attained in some cases
+        ## median should be attained in >=1 cases
     }
   }
   if (is.null(attr(terms(object), "predvars"))) { # from  model.frame
@@ -2417,6 +2426,7 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
                    function(x) if (is.factor(x)) length(levels(x)) else 0)
     if(!is.null(noexpand) && is.numeric(noexpand))
       noexpand <- names(noexpand)[noexpand>0]
+    noexpand <- c(noexpand, lformfac) ## 
     lvconv <- names(ldata) %in% noexpand
     names(lvconv) <- names(ldata)
     if (any(lvconv)) lnxj[lvconv] <-
@@ -2428,11 +2438,11 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   lxm <- lx
   for (lv in names(lxm)) lxm[,lv] <- xm[,lv]
 ##  components
-  lcomp <- array(dim=c(nrow(lx),length(lvars),lny)) # [,lvars,drop=FALSE]
+  lcomp <- array(dim=c(nrow(lx), NCOL(ldata),lny)) # [,lvars,drop=FALSE]
   dimnames(lcomp) <- c(dimnames(lx),list(names(lprm)))
   lcse <- if (se) lcomp  else NULL
   ## 
-  for (lv in lvars) {
+  for (lv in names(ldata)) {
     if (xfromdata) {
       ld <- lxm
       ld[,lv] <- ldata[,lv]
@@ -2448,7 +2458,13 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
 ##-         lx[,lv] <- factor(c(1:lnl,rep(NA,lnxc-lnl)),labels=levels(ldv))
         lx[,lv] <- c(ldx,rep(NA,lnxc-lnl))
         ##
-        lpr <- predict(object, newdata=ld, se.fit = se) # lf.
+        lpr <- try( predict(object, newdata=ld, se.fit = se),
+                   silent=TRUE)
+        if (class(lpr)=="try-error") {
+          warning(":fitcomp: no fitcomp for variable  ", lv)
+          ## predict finds new levels of formfac variables
+          next
+        }
         if (se) {
           lc <- lpr$fit
           lcse[1:lnl,lv,] <- lpr$se.fit
@@ -2478,6 +2494,19 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
     }
   } else   lcomp <- sweep(lcomp,3,lprm)
   list(comp=lcomp, x=lx[,lvars,drop=FALSE], xm=xm[,lvars,drop=FALSE], se=lcse)
+}
+## ==========================================================================
+i.findformfac <- function(formula) {
+  ## find variable involved in explicit factor terms in formula
+  lfo <- format(formula)
+  lmf <- c(gregexpr("(factor *\\([^)]*\\))", lfo),
+           gregexpr("(ordered *\\([^)]*\\))", lfo) )
+  lf.substr <- function(text, l,k)
+    apply(cbind(l,k),1, function(lk) substr(text,lk[1],lk[2]))
+  lf.f <- function(x) 
+    if(x[1]!=-1) lf.substr(lfo,x,x+attr(x,"match.length"))
+  all.vars(as.formula(
+        paste("~",paste(unlist(lapply(lmf, lf.f)), collapse="+"))))
 }
 ## ==========================================================================
 predict.mlm <-
@@ -3054,7 +3083,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
          condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
-         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = FALSE, jitterbinary=TRUE,
+         markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = TRUE, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
          smooth.sim=19, nxsmooth=51, 
          multnrows = 0, multncols=0,
@@ -3463,7 +3492,7 @@ for (liplot in 1:length(lplsel)) {
       lio <- order(lf)
       for (lr in 1:lnsims) {
         ys <- smooth(lf, sqrt(abs(lsimstres[,lr])),
-                     weights=lweights, par=lsmpar, iter=smooth.iter)
+                     weights=lweights, par=lsmpar, iterations=smooth.iter)
         if (length(ys))
           lines(lf[lio], ys[lio]^2, lty=lty[4], lwd=lwd[4], col=colors[4])
       }
@@ -3798,8 +3827,9 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
             lig <- lsmgrp==lgrp
             lsms <- try(smooth(lxjo[lig], simres[lig,lr]^smooth.power,
                                weights=lwgo[lig], par=smooth.par,
-                               iter=smooth.iter)^(1/smooth.power) )
+                               iterations=smooth.iter) )
             if (class(lsms)!="try-error" & length(lsms)) {
+              lsms <- lsms^(1/smooth.power)
               if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
               lines(lxjo[lig], lsms, lty=lty[4], col=lsmcol2[lgrp],lwd=lwd[4])
             }
@@ -3809,7 +3839,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
         lig <- lsmgrp==lgrp
         lsm <- try(smooth(lxjo[lig], lyjo[lig]^smooth.power, weights=lwgo[lig],
-                      par=smooth.par, iter=smooth.iter)^(1/smooth.power))
+                      par=smooth.par, iterations=smooth.iter)^(1/smooth.power))
         if (class(lsm)!="try-error" & length(lsm)) {
           if (llimy)  # lsm[lsm<lylimj[1]|lsm>lylimj[2]] <- NA
             lsm <- plcoord(lsm, range=lylimj, limext=ylimext)
@@ -3856,7 +3886,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   NULL  ## return last yrange
 }
 ## ==========================================================================
-i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iter=50)
+i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iterations=50)
 {
   if (length(x)<8) return(NULL)
   lsm <- ## ----------------------------------------------------------------
@@ -3876,15 +3906,15 @@ formTrsf <- function(formula, xtrsf) {
               newvars=lnew)
 }
   lsm <- if (u.debug())
-             loess(y~x, weights=weights, span=par, iterations=iter,
-                   family=if (iter>0) "symmetric" else "gaussian",
+             loess(y~x, weights=weights, span=par, iterations=iterations,
+                   family=if (iterations>0) "symmetric" else "gaussian",
                    na.action=na.exclude)  else
-  try(loess(y~x, weights=weights, span=par, iterations=iter,
-            family=if (iter>0) "symmetric" else "gaussian",
+  try(loess(y~x, weights=weights, span=par, iterations=iterations,
+            family=if (iterations>0) "symmetric" else "gaussian",
             na.action=na.exclude), silent=TRUE)
   if (class(lsm)=="try-error") {
-    lsm <- loess(y~x, weights=weights, span=0.99, iterations=iter,
-               family=if (iter>0) "symmetric" else "gaussian",
+    lsm <- loess(y~x, weights=weights, span=0.99, iterations=iterations,
+               family=if (iterations>0) "symmetric" else "gaussian",
                  na.action=na.exclude)
     warning(":i.smooth: span was too small. Using 0.99")
   }
@@ -4544,9 +4574,10 @@ plmatrix <-
 function(x, y=NULL, data=NULL, panel=l.panel,
          nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
          pch=1, col=1, reference=0, ltyref=3,
-         log="", xaxs="r", yaxs="r", xaxmar=NULL, yaxmar=NULL,
+         log="", xaxs="r", yaxs="r",
+         xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          vnames=NULL, main="", cex=NA, cex.points=NA, cex.lab=0.7, cex.text=1.3,
-         cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keepmf=FALSE,
+         cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keeppar=FALSE,
          axes=TRUE, ask = NULL, ...)
 {
 ## Purpose:    pairs  with different plotting characters, marks and/or colors
@@ -4565,26 +4596,32 @@ function(x, y=NULL, data=NULL, panel=l.panel,
         points(x,y,pch=pch,col=col,cex=cex,...)
       }
   }
+  lf.axis <- function(k, axm, labm, at=at, j, ...) {
+    if (k %in% axm) axis(k)
+    if (k %in% labm)
+      mtext(vnames[j], side=k, line=(0.5+1.2*(k %in% axm)), at=at)
+  }
   ##
   oldpar <- par(c("mfrow","mar","cex","mgp", "ask"))
   lmfg <- par("mfg")
-  on.exit(if (!keepmf) par(oldpar))
+  on.exit(if (!keeppar) par(oldpar))
 ##---------------------- preparations --------------------------
 ## data
   if (is.formula(x))  {
+    ld <- model.frame(x, data, na.action=NULL)
     if (length(x)>2) { ## response last
-      ld <- model.frame(x, data, na.action=NULL)
       ld1 <- as.data.frame(ld[,1])
-      if (ncol(ld1)>1 && any(colnames(ld[,1])=="")) ## rectify names
-        names(ld1) <- extractNames(names(ld[1]), names(ld1))
-      x <- cbind( ld[,-1], ld1 )
-    } else x <- ld
-  }
-  x <- cbind(x)
+      if (NCOL(ld1)==1) names(ld1) <- names(ld)[1] else
+        if (colnames(ld1)[1]=="V1") ## rectify names
+          names(ld1) <- extractNames(names(ld[1]), names(ld1))
+      ld <- cbind( ld[,-1,drop=FALSE], ld1 )
+    }
+    x <- ld
+  } ## else ld <- x
+  ldata <- x <- cbind(x)
   nv1 <- ncol(x)
   lv1 <- lv2 <- 0
   if (is.null(y)) {
-    ldata <- x
     if (save) { nv1 <- nv1-1; lv2 <- 1 }
     nv2 <- nv1
   } else { # cbind y to data for easier preparations
@@ -4679,18 +4716,20 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   if (is.null(yaxmar)) yaxmar <- 2+(nv1*nv2>1)
   if (anyNA(yaxmar)) yaxmar <- 2+(nv1*nv2>1)
   yaxmar <- ifelse(yaxmar>2,4,2)
+  if (is.null(xlabmar)) xlabmar <- if (nv1*nv2==1) xaxmar else 4-xaxmar
+  if (is.null(ylabmar)) ylabmar <- if (nv1*nv2==1) yaxmar else 6-yaxmar
   if (length(oma)!=4)
-    oma <- c(2+(xaxmar==1), 2+(yaxmar==2),
-             1.5+(xaxmar==3)+cex.title*2*jmain,
-             2+(yaxmar==4))
+    oma <- c(2+(xaxmar==1)+(xlabmar==1), 2+(yaxmar==2)+(ylabmar==2),
+             1.5+(xaxmar==3)+(xlabmar==3)+cex.title*2*jmain,
+             2+(yaxmar==4)+(ylabmar==4))
 #    oma <- 2 + c(0,0,!is.null(main)&&main!="",1)
-  if (!keepmf) par(mfrow=c(nrows,ncols))
+  if (!keeppar) par(mfrow=c(nrows,ncols))
 ##-   if (!is.na(cex)) par(cex=cex)
 ##-   cex <- par("cex")
 ##-   cexl <- cex*cexlab
 ##-   cext <- cex*cextext
   par(oma=oma*cex.lab, mar=mar, mgp=cex.lab*c(1,0.5,0))
-  if (keepmf) par(mfg=lmfg, new=FALSE)
+  if (keeppar) par(mfg=lmfg, new=FALSE)
   if (!is.na(cex)) cex.points <- cex
   if (is.na(cex.points)) cex.points <- max(0.2,min(1,1.5-0.2*log(tnr)))
 ##
@@ -4717,20 +4756,13 @@ function(x, y=NULL, data=NULL, panel=l.panel,
       plot(NA,NA, type="n", xlab="", ylab="", axes=FALSE,
            xlim <- rg[,j1], ylim <- rg[,j2],
            xaxs=xaxs, yaxs=yaxs, log=log, cex=cex.points)
-      usr <- par("usr")
       if (axes) {
-        if ((jr==nrows||jd2==nv2)) {
-          if (xaxmar==1) axis(1)
-          mtext(vnames[j1], side=1, line=(0.5+1.2*(xaxmar==1))*cex.lab,
-                cex=cex.lab, at=mean(usr[1:2]))
-        }
-        if (jc==1) {
-          if (yaxmar==2) axis(2)
-          mtext(vnames[j2], side=2, line=(0.5+1.2*(yaxmar==2))*cex.lab,
-                cex=cex.lab, at=mean(usr[3:4]))
-        }
-        if (jr==1&&xaxmar==3) axis(3,xpd=TRUE)
-        if (jc==ncols||jd1==nv1) if (yaxmar==4) axis(4,xpd=TRUE)
+        usr <- par("usr")
+        at=c(mean(usr[1:2]),mean(usr[3:4]))
+        if (jr==nrows||jd2==nv2) lf.axis(1, xaxmar, xlabmar, at[1], j1)
+        if (jc==1) lf.axis(2, yaxmar, ylabmar, at[2], j2)
+        if (jr==1) lf.axis(3, xaxmar, xlabmar, at[1], j1)
+        if (jc==ncols||jd1==nv1) lf.axis(4, yaxmar, ylabmar, at[2], j2)
       }
       box(bty=bty)
       if (any(v1!=v2, na.rm=TRUE)) { # not diagonal
@@ -4744,7 +4776,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
     }
   }
   if (jmain) mtext(main,3,oma[3]*0.9-2*cex.title,outer=TRUE,cex=cex.title)
-##-   stamp(sure=FALSE,line=par("mgp")[1]+0.5)
+    ##-   stamp(sure=FALSE,line=par("mgp")[1]+0.5)
   stamp(sure=FALSE,line=oma[4]-1.8) # ??? why does it need so much space?
   }}
   "plmatrix: done"
@@ -4925,12 +4957,11 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     ylim <- lusr[3:4]
   } else {
     if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
-    if (is.null(mar)) mar <-
-      c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
-    if (!is.na(mar[1])) {
+    if (is.null(mar)) {
+      mar <- c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
       oldpar <- par(mar=mar)
       on.exit(par(oldpar))
-    }
+    } else par(mar=mar)
     if(is.null(xlim)) xlim <- 
       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
   ## ---------------------------------
