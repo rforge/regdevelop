@@ -1,7 +1,13 @@
 ## attach("/u/stahel/regr0/misc/regr0.rda")
 require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-##- save(list=ls(), file="data-regr0.rda")
+install.packages("regr0", repos="http://r-forge.r-project.org")
+
 attach("data-regr0.rda")
+## ---------------------------------------------------------------
+## regr0.rda erstellen
+source("regr.R")
+save.image("regr0.rda")
+q("no")
 ## ---------------------------------------------------------------
 ## --- regr.Rd examples
 # data(d.blast)
@@ -62,7 +68,7 @@ sum(table(t.x)*t.r$allcoef$fac[,"estimate"])
 model.matrix(y~fac, t.d)
 model.matrix(y~fac, t.d, contrasts.arg=list(fac="contr.wsum"))
 
-t.x <- factor(c(1,1,1,1,1,2,2,2,3,3,3,3))
+t.x <- ordered(c(NA,1,1,1,1,2,2,2,3,3,3,3))
 t.x2 <- factor(c("a","b","c","a","a","a","b","c","a","b","c","a"))
 t.d <- data.frame(fac=t.x, f2=t.x2, y=c(1:5,10:12,6:3))
 model.matrix(y~fac*f2, t.d, contrasts.arg=list(fac="contr.wsum"))
@@ -76,7 +82,8 @@ t.rlm <- lm(y~fac, t.d)
 fitted(t.rlm)
 
 t.d[,"fac"] <- "3"
-t.r <- regr(y~as.numeric(fac)*f2, t.d, contrasts=c("contr.wsum","contr.poly"))
+t.r <- regr(y~as.numeric(fac)*f2, t.d,
+            contrasts=c("contr.wsum","contr.poly"))
 
 
 t.ri <- regr(formula = log10(tremor) ~ factor(location)*log10(distance)+
@@ -87,7 +94,8 @@ t.ri <- regr(formula = log10(tremor) ~ factor(location)*log10(distance)+
            data = d.blast, contrasts="contr.treatment")
 
 r.fc <- fitcomp(t.ri)
-plresx(t.ri)
+plresx(r.blast, smooth.group=location)
+## plresx(r.blast, smooth.group=d.blast$location)  ## does not work  !!!
 
 ## ------------------------------------------------------------
 ## Anorexia
@@ -126,9 +134,9 @@ r.mregr <-
 plot(r.mregr)
 ## ------------------------------------------------
 c.ask <- F
-t.d <- data.frame(y = c(1,5,4,4,3,8,6,7),
-                   f1 = factor(c('a', 'b', 'b', 'c', 'a', 'a', 'c','a')),
-                   x1 = c(1,2,3,4,5,6,7,8), x2 = c(4,2,8,7,5,3,4,3))
+t.d <- data.frame(y = c(1,5,4,4,3,8,6,7,2,8),
+                   f1 = factor(c('a', 'b', 'b', 'c', 'a', 'a', 'c','a','a','b')),
+                   x1 = c(1,2,3,4,5,6,7,8,6,5), x2 = c(4,2,8,7,5,3,4,3,1,3))
 t.r <- regr(formula = y~x1, data=t.d)
 t.r <- regr(formula = y~f1+x1+x2, data=t.d)
 t.r <- regr(formula = y~f1+x1+x2+f1:x1, data=t.d)
@@ -553,4 +561,22 @@ showd(wagnerGrowth)
 t.rr <- regr(y~PA*Region, data=wagnerGrowth, contrast="contr.treatment")
 t.rl <- lmrob(y~PA*Region, data=wagnerGrowth)
 
+## ----------------------------------------------------------------
+t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
+plot(t.r)
+plot(t.r, smresid=T, xplot=F, plsel=c(tascale=3))
+plot(r.blast, smresid=F, xplot=F, plsel=c(ta=0, leverage=0))
 
+plot(t.r)
+
+t.rr <- regr(log10(tremor) ~ log10(distance) + location +
+                location:I(charge<=3.2), data=d.blast)
+t.rr1 <- regr(log10(tremor) ~ log10(distance) + location +
+                location:I(charge<=3.2), data=d.blast,
+              contrasts="contr.treatment")
+t.rr2 <- regr(log10(tremor) ~ log10(distance) + location +
+               location:I(charge>3.2), data=d.blast,
+              contrasts="contr.treatment")
+
+t.rr0 <- lm(log10(tremor) ~ log10(distance) + location +
+                location:I(charge<=3.2), data=d.blast)

@@ -36,7 +36,12 @@ with(r.blast,
                           c(3.40649491, -12.0192639, 8.1947910))
                 )
      )
- 
+
+plot(r.blast, smooth.group=location)
+t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
+plot(r.blast, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=0))
+
+
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
 r.bl3 <- step(r.bl2, trace=FALSE)

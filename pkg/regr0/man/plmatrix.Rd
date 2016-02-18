@@ -10,9 +10,9 @@
 }
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = l.panel,
-  nrows = 0, ncols = nrows, save = TRUE,
-  robrange. = FALSE, range. = NULL, pch = 1, col = 1, 
-  reference = 0, ltyref = 3, log = "", xaxs = "r", yaxs = "r",
+  nrows = 0, ncols = nrows, save = TRUE, robrange. = FALSE, range. = NULL,
+  pch = 1, col = 1, reference = 0, ltyref = 3,
+  log = "", xaxs = "r", yaxs = "r",
   xaxmar = NULL, yaxmar = NULL, xlabmar=NULL, ylabmar=NULL,
   vnames = NULL, main = "",
   cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
@@ -50,6 +50,8 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
     \code{"xy"}, on both axes.}
   \item{xaxs, yaxs}{styles for x and y axis, see \code{\link{par}}}
   \item{xaxmar, yaxmar}{in which margin should the x- [y-] axis be
+    tick-marked?}
+  \item{xlabmar, ylabmar}{in which margin should the x- [y-] axis be
     labelled?}
   \item{vnames}{labels for the variables}
   \item{main}{main title for the plot (to be repeated on each plot page)}

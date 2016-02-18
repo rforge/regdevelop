@@ -36,8 +36,10 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL)
 \examples{
 showd(iris)
 data(d.rehab)
-options(doc=1)
+userOptions(doc=1)
 showd(d.rehab, ncol=7)
+
+showd(cbind(1:100))
 }
 % R documentation directory.
 \keyword{utilities}

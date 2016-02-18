@@ -9,15 +9,16 @@
   component effects.
 }
 \usage{
-fitcomp(object, data = NULL, se = FALSE, xm = NULL, xfromdata = FALSE,
-  noexpand=NULL, nxcomp = 51)
+fitcomp(object, data = NULL, vars=NULL, se = FALSE, 
+  xm = NULL, xfromdata = FALSE, noexpand=NULL, nxcomp = 51)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{a model fit, result of a fitting function}
   \item{data}{data frame in which the variables are found}
-%%  \item{vars}{character vector of variable names which are used in
-%%    addition to all variables in the \code{formula} of \code{object} }
+  \item{vars}{character vector of names of variables for which
+    components are required. Only variables that appear in \code{data}
+    will be used.}
   \item{se}{if TRUE, standard errors will be returned}
   \item{xm}{named vector of values of the fixed (central) point from
     which the individual variables are varied in turn. \cr

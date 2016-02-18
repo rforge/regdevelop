@@ -69,7 +69,7 @@ In particular, the following models can be fitted by \T{regr}:
 \begin{itemize}
 \item 
   ordinary linear models, using Least Squares or robust estimation,
-  by calling \T{lm} or \T{rlm},
+  by calling \T{lm} or \T{lmrob} from the \T{robustbase} package,
 \item
   generalized linear models, by calling \T{glm},
 \item
@@ -83,6 +83,8 @@ In particular, the following models can be fitted by \T{regr}:
   \T{survreg} of package \T{survival},
 \item
   multivariate ordinary linear models, by calling \T{lm}
+\item
+  nonlinear models, by calling \T{nls}
 \end{itemize}
 
 This document presents the main features of the package \T{regr0}
@@ -91,13 +93,12 @@ It gives no details about the functions. They can be found in
 the help files.
 
 The package is available from \T{R-forge}, e.g. by calling\\
-\T{install.packages("regr0", repos="http://r-forge.r-project.org",
-  lib=...)}.\\
-The reason why it is not on CRAN and called \T{regr0} rather than 
+\T{install.packages("regr0", repos="http://r-forge.r-project.org")}.\\
+The reason why it is not on CRAN and why it is called \T{regr0} rather than 
 \T{regr} is that the author is still developing additional features and
 does not yet want to guarantee upward compatibility.
 It also means that comments and suggestions are very welcome:
-\T{stahel\@stat.math.ethz.ch}
+\T{stahel\@ stat.math.ethz.ch} %% !!! at
 
 \section{Numerical Output}
 The useful numerical output of fitting functions is usually obtained by
@@ -112,7 +113,7 @@ the error and coefficient of determination, if applicable.
 
 If there are factors (qualitative explanatory variables) in the model, 
 the coefficients are not always interpreted adequately, and the 
-respective standard errors, t and p values are (almost) useless and often
+respective standard errors, t and p values are of little use and often
 misinterpreted. 
 On the other hand, the information whether a factor has a significant
 effect is not available from the summary but has to be obtained by calling 
@@ -125,52 +126,113 @@ The function \T{regr} is meant to provide the results that are needed
 without having the user call different functions and select the 
 output that is safe to be interpreted.
 
-\subsection{Standard output for continuous explanatory variables}
 Here is a result of printing a \T{regr} object.
 \begin{verbatim}
+
+  Blasting for Tunnel Excavation 
+
 Call:
-regr(formula = log10(tremor) ~ location + log10(distance) + log10(charge), 
+regr(formula = logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
-Fitting function  lm
+Fitting function:  lm 
 
 Terms:
-                  coef stcoef signif  R2.x df p.value
-(Intercept)      2.964  0.000   13.6    NA  1       0
-location            NA     NA   10.5 0.052  7       0
-log10(distance) -1.518 -0.788  -12.0 0.277  1       0
-log10(charge)    0.636  0.410    8.2 0.053  1       0
+                  coef df  ciLow ciHigh  R2.x signif p.value p.symb
+(Intercept)      2.971  1  1.672  4.269    NA  13.37      NA       
+location            NA  7     NA     NA 0.102   3.48       0    ***
+log10(distance) -1.506  1 -1.394 -1.618 0.477 -12.13       0    ***
+log10(charge)    0.623  1  0.583  0.662 0.102   8.17       0       
+---
+Signif. codes:  0  ***  0.001  **  0.01  *  0.05  .  0.1     1  
+
+St.dev.error:  0.141   on 352 degrees of freedom
+Multiple R^2:  0.798    Adjusted R-squared: 0.793 
+F-statistic:    155   on 9 and 352 d.f.,  p.value: 1.55e-116 
 
 Coefficients for factors:
 $location
-    loc1     loc2     loc3     loc4     loc5     loc6     loc7     loc8 
- 0.00000  0.15306  0.13169 -0.16185 -0.03211  0.07161 -0.00889  0.00372 
-
-St.dev.error:  0.143   on 352 degrees of freedom
-Multiple R^2:  0.795   Adjusted R-squared: 0.79 
-F-statistic:    152   on 9 and 352 d.f.,  p.value:    0 
+  loc1        loc2        loc3        loc4        loc5        loc6       
+  -0.0174      0.1334 ***  0.1125 *** -0.1829 *** -0.0511 *    0.0530 *  
+  loc7        loc8       
+  -0.0315     -0.0160    
 \end{verbatim}
 
-The ``Terms:'' table characterizes the effects of the individual terms in the
-model. For continuous explanatory variables (the last 2 lines in the
+\subsection{Standard output for continuous explanatory variables}
+The ``Terms:'' table characterizes the effects of the individual terms in
+the model. For continuous explanatory variables (the last 2 lines in the
 example) it shows:
 \begin{description}
 \item[\T{coef},] the estimated value of the coefficient;
+\item[\T{df},] degrees of freedom, $=1$ for continuous variables;
+\item[\T{ciLow, ciHigh},] the limits of the confidence interval;
+\item[\T{R2.x},] the coefficient of determination for regressing 
+  the explanatory variable in question on the other terms in the model.
+  This is one of the wellknown collinearity diagnostics.
+\item[\T{signif},] a significance measure that is $>1$ for estimated
+  coefficients differing significantly from 0, see below for its
+  definition;
+\item[\T{p.value},] the p value for testing if the coefficient could be
+  zero. 
+\item[\T{p.symb},] the usual significance symbols.
+\end{description}
+In fact, 2 more columns are contained in \T{rr\$termtable}, but they are
+not printed by default:
+\begin{description}
+\item[\T{se},] the standard errors of the estimated coefficients; 
 \item[\T{stcoef},] the estimated standardized coefficient,
   defined as \T{coef} times the standard deviation of the explanatory
   variable, divided by the standard deviation of the response (if
   the response is continuous as assumed here), see below for its use;
-\item[\T{signif},] a significance measure that is $>1$ for estimated
-  coefficients differing significantly from 0, see below for its
-  definition;
-\item[\T{R2.x},] the coefficient of determination for regressing 
-  the explanatory variable in question on the other terms in the model.
-  This is one of the wellknown collinearity diagnostics.
-\item[\T{df},] degrees of freedom, always 1 for such variables;
-\item[\T{p.value},] the p value for testing if the coefficient could be
-  zero. 
 \end{description}
+\Tit{User options.}
+The default for the columns to be printed is set by an option stored 
+in the \T{UserOptions} list and controled by the function 
+\T{userOption} in the same way that the usual options are
+controled by the function \T{options}.
 
-\subsection{Standardized Coefficients}
+\Tit{Significance}
+The usual \T{summary} output of fitting functions includes the 
+t (or z) values of the coefficients as a column in the coefficients 
+table. 
+They are simply the ratios of the two preceding columns. 
+Nevertheless, they provide a kind of strength of the significance of the
+coefficients. The p value may also serve as such a measure, but it is less 
+intuitive as it turns tiny for important variables, making comparisons
+somewhat more difficult than t values. 
+The significance of t values depends on the degrees of freedom, but
+informed users will know that critical values are around 2, and they will
+therefore informally compare t values to 2. 
+Based on these considerations, we introduce a new measure of significance
+here. 
+
+The new significance measure is defined as
+\[
+  \T{signif} = \T{t value}\;/\; \T{critical value}
+\]
+where \T{critical value} is the critical value $q_{df}$ of the 
+t distribution and depends on the degrees of freedom of the residuals. 
+%%- The definition is applicable for continuous explanatory
+%%- variables as well as for binary factors.
+%%- For other factors, we will extend this definition below.
+
+\Tit{Confidence Intervals.}
+The standard errors provided by the usual \T{summary} tables allow for
+calculating confidence intervals for continuous explanatory variables,
+by the formula $\T{coef} \;\pm\; q_{df}\cdot\T{std.error}$.
+By default, they are shown in the Terms table. 
+If the table gets too wide, the confidence limits may be suppressed.
+They can then be calculated as
+%%- The formula based on \T{signif} is
+\[
+  \T{coef}\cdot\;(1\pm\;1/\T{signif}\;)
+\]
+Numerically, this is slightly more complicated, but the formula shows
+an additional interpretation of \T{signif} in terms of the 
+confidence interval:
+If the input variable were scaled such that the confidence interval had 
+half width 1, then the estimate would be \T{signif} units away from zero.
+
+\Tit{Standardized Coefficients}
 The standardized coefficients are meant to allow for a comparison of the 
 importance of explanatory variables that have different variances.
 Each of them shows the effect on the response of increasing ``its'' 
@@ -187,58 +249,13 @@ standard deviation is impossible, since an increase can only occur from 0
 to 1, and therefore, the standardized coeffient is somewhat 
 counter-intuitive in this case.
 
-\subsection{Significance}
-The usual \T{summary} output of fitting functions includes the 
-t values of the coefficients as a column in the coefficients table. 
-They are simply the ratios of the two preceding columns. 
-Nevertheless, they provide a kind of strength of the significance of the
-coefficients. The p value may also serve as such a measure, but it is less 
-intuitive as it turns tiny for important variables, making comparisons
-somewhat more difficult than t values. 
-The significance of t values depends on the degrees of freedom, but
-informed users will know that critical values are around 2, and they will
-therefore informally compare t values to 2. 
-Based on these considerations, we introduce a new measure of significance
-here. 
-
-The new significance measure is defined as
-\[
-  \T{signif} = \T{t value}\;/\; \T{critical value}
-\]
-where \T{critical value} is the critical value $q_{df}$of the t distribution 
-and depends on the 
-degrees of freedom. The definition is applicable for continuous explanatory
-variables as well as for binary factors.
-For other factors, we will extend this definition below.
-
-\subsection{Confidence Intervals.}
-The standard errors provided by the usual \T{summary} tables allow for
-calculating confidence intervals for continuous explanatory variables,
-by the formula $\T{coef} \;\pm\; q_{df}\cdot\T{std.error}$.
-The formula based on \T{signif} is
-\[
-  \T{coef}\cdot\;(1\pm\;1/\T{signif}\;)
-\]
-Numerically, this is slightly more complicated, but there is an additional
-interpretation of \T{signif} in terms of the confidence interval:
-If the input variable were scaled such that the confidence interval had 
-half width 1, then the estimate would be \T{signif} units away from zero.
-
 \subsection{Factors}
 For factors with more than two levels, (\T{location} in the example), there
 are several coefficients to be estimated. 
 Their values depend on the scheme for generating the 
 dummy variables characterizing the factor, which is determined 
 by the \T{contrasts} option (or argument) in use.
-Whereas the usual option %\Hneed{40mm}
-\T{contrasts=\penalty-100%
-"contr.treatment"} gives coefficients
-with a clear interpretation (difference of level $k$ to level 1 for $k>1$),
-other contrasts may be mixed up with them or be very difficult to
-interpret.
-In the \T{regr} output, the estimated coefficients for all levels of the
-factor -- independently of the coding except for an additive constant --
-are shown after the Terms table, but tests for them are not provided. 
+We come back to this point below (``Contrasts'').
 
 Note that for factors with only two levels, the problem does not arise,
 since the single 
@@ -263,6 +280,45 @@ the relationship with the ``variance inflation factor'',
 \T{R2.x}$=1/(1-\mbox{vif})$ to the generalized vif. 
 [More explanation planned.]
 
+\Tit{All coefficients for factors.}
+The usual contrast option \T{contrasts=\penalty-100%
+"contr.treatment"} gives the coefficients of the dummy variables 
+a clear interpretation: 
+they estimate the difference of the response between level $k$ and 
+level 1 for $k>1$.
+Another popular setting is \T{contrasts=\penalty-100%
+"contr.sum"}, for which the $k$th coefficient estimates the effect 
+of the $k$th level in such a way that the sum of all coefficients is 0.
+For this setting, the last of these effects is not given in the
+vector of coefficients, \T{rr\$coef}.
+
+In order to avoid ambiguities, the \T{regr} output lists the 
+estimated effects for all levels of the factors after the term table.
+Even though the interpretation of significance and confidence intervals of
+the individual effects of the levels is delicate, \T{regr} provides a full 
+table, similar to the term table explained above, for each factor.
+By default, the estimated effects ar shown, together with the
+``star symbols'' for their significance.
+
+\Tit{Contrasts.}
+An advantage of \T{contr.sum} over the usual \T{contr.treatment}
+contrasts is that it avoids the (often unconscientious choice of a
+reference level -- the first level -- and allows, for each level, 
+to assess immediately how large its effect is as compared to an overall
+average effect.
+An even more important advantage appears when interactions between factors
+are included in the model: 
+The main effects of one factor, including its significance, 
+may still be interpreted (with caution) as average effects over the
+levels of the other factor.
+The \T{contr.sum} setting is not well adapted to unbalanced factors, since
+the unweighted sum of coefficients is forced to be 0.
+This leads to large standard errors when one of the levels has a low 
+frequency. 
+The \T{regr0} package provides the option \T{contr.wsum} for which the
+sum of coefficients weighted with the frequencies of the levels is zero.
+This type of contrasts is the default in \T{regr0}.
+
 \subsection{Model summary}
 The last paragraph of the output gives the summary statistics.
 For ordinary linear models, the estimated standard deviation or the error
@@ -278,9 +334,9 @@ added.
 \subsection{Model Comparisons}
 When model development is part of the statistical analysis, it is useful to
 compare the terms that occur in different models under consideration.
-There is a function called \T{modelTable} collects coefficients, p values,
-and other useful information, and a \T{format} and \T{print} method for
-showing the information in a useful way.
+There is a function called \T{modelTable} that collects coefficients, 
+p values, and other useful information, and a \T{format} and \T{print} 
+method for showing the information in a useful way.
 
 \subsection{Model Selection}
 The well-known functions \T{drop1} and \T{add1} are adapted by 
@@ -308,15 +364,15 @@ The Tukey-Anscombe plot showing residuals against fitted values,
 which is certainly the most important single diagnostic tool for assessing
 model assumptions;
 \item
-The normal quantile-quantile plot, which makes sense only for ordinary
-linear models and in some cases for generalized linear models. 
-It is not essential since skewness and outliers can also be seen in the
-Tukey-Anscombe plot if they are relevant;
-\item
 The Scale plot, which shows square-root transformed absolute values of
 residuals against 
 fitted values and helps to spot unequal variances (if these depend on the
 expected value of the response).
+\item
+The normal quantile-quantile plot, which makes sense only for ordinary
+linear models and in some cases for generalized linear models. 
+It is not essential since skewness and outliers can also be seen in the
+Tukey-Anscombe plot if they are relevant;
 \item
 The leverage plot, displaying residuals against leverage values.
 This plot is useful to detect influential observations.
@@ -453,7 +509,8 @@ be easy enough to work with and helps avoiding an additional display.
 Of course, some users may disagree.
 
 \subsection{Scale Plot}
-The absolute values of the residuals are plotted against the fitted values
+The absolute values of the \emph{standardized} residuals are plotted
+against the fitted values 
 in order to see more clearly than in the Tukey-Anscombe plot whether the 
 scatter of residuals depends on the expected values.
 The plot shown when plotting \T{lm} objects uses square roots of absolute
@@ -463,9 +520,31 @@ it may confuse unexperienced users. While square roots are therefore
 avoided for plotting, they are still used to calculate the smooth that is
 added to the plot.
 
+When the smooth line in the Tukey-Anscombe plot indicates a curved
+relationship, the residuals contain a bias, and deviations from a straight
+line in the scale plot are not necessarily an indication of
+heteroscedasticity. On the other hand, clear differences in the scatter
+around the smooth line in the Tukey-Anscombe plot may not show up in 
+the scale plot as a consequence of the bias.
+Therefore, \T{plot.regr} uses modified residuals to generate the scale
+plot: The difference between the residual and the smooth fit in the
+TA plot is this modified residual, of which the absolute value is used.
+
+\subsection{QQ-Plot}
+The QQ-normal plot of residuals only makes sense in the ordinary linear or
+nonlinear regression. It is therefore avoided by default for other models 
+(unlike in standard R).
+Furthermore, this plot only makes sense if quantities with the same normal
+distribution are used to generate it. 
+Therefore, standardized residuals should be used.
+The preceding reasoning for using modified residuals also applies.
+In fact, these modified residuals are modified again to reflect the
+potentially different scales: they are divided by the value of the smooth
+in the scale plot before they are used for the QQ-plot.
+
 \subsection{Weights}
 If weights are given by the user, they should usually reflect different
-variances of the random errors $E_i$, and the residuals, divided by the
+variances of the random errors $E_i$, and the residuals, multiplied by the
 square root of the weights, should have constant variance.
 The standardized absolute residuals are therefore plotted against the weights.
 If the size of these residuals is not constant but depends on the weight, 

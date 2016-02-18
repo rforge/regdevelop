@@ -15,9 +15,9 @@
 \usage{
 \method{plot}{regr}(x, data=NULL, plotselect = NULL, sequence=FALSE,
          xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
-         condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
+         smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
-         markprop=NULL, lab=NULL, cex.lab=0.7, mbox = FALSE, jitterbinary=TRUE,
+         markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = TRUE, x.smooth = smooth,
          smooth.par=NA, smooth.iter=NULL, smooth.sim=19, nxsmooth=51,
          multnrows = 0, multncols=0,
@@ -50,6 +50,8 @@
     \code{glm} objects, type \code{cond.quant} is possible for
     (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
     an explanation.}
+  \item{smresid}{logical: Should residuals from smooth be used for
+    'tascale' and 'qq' plots?}
   \item{condprobrange}{if conditional probabilities are shown by
     vertical bars:
     show only those that are contained in \code{condprobrange}
@@ -179,7 +181,15 @@
      \eqn{Y=\widehat y+r=} constant. It has slope \code{-1}.
      It is useful to judge whether any curvature shown by the smooth
      might disappear after a nonlinear, monotone transformation of the
-     response. 
+     response.
+
+   If \code{smresid} is true, the 'tascale' plot uses modified
+   residuals: differences between the ordinary residuals and the smooth
+   appearing in the 'ta' plot.
+   Analogously, the 'qq' plot is then based on yet another modification
+   of these modified residuals: they are scaled by the smoothed scale
+   shown in the 'tascale' plot, after these scales have been
+   standardized to have a median of 0.674 (=\code{qnorm(0.75)}).
 }
 \value{
 none

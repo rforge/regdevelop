@@ -251,12 +251,13 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
     lreg$leverage <- lhat <- hat(lmm)
     if (length(lhat)==0) warning(":regr: no leverages available")
   }
-  if (length(lhat)==NROW(lreg$stres))
-    lreg$stres <- lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
+  if (length(lhat)==NROW(lreg$stres))  lreg$stres <-
+      lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
-  if (class(lreg)[1]=="survreg") lreg$n.obs <- length(lreg$linear.predictor)
   ## misc
+  if (class(lreg)[1]=="survreg")
+    lreg$n.obs <- length(lreg$linear.predictor)
   if (is.null(x) || !x) lreg$x <- NULL
   class(lreg) <- if (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
@@ -878,7 +879,7 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
     } else
       stop("!ciSignif! no standard errors found")
   ltq <- qt(1-testlevel/2, df)
-  lci <- estimate*(1+outer(ltq*se, c(ciLow=-1,ciHigh=1)))
+  lci <- estimate+outer(ltq*se, c(ciLow=-1,ciHigh=1))
   ltst <- estimate/se
   lsgf <- ltst/ltq
   lpv <- pt(-abs(ltst), df)
@@ -898,7 +899,7 @@ contr.wsum <-
   if (is.data.frame(n)) {
     df <- n
     for (lj in 1:ncol(df)) 
-      if(class(df[,lj])=="factor") ## avoid ordered factors (for the time being)
+      if(class(df[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
         attr(df[,lj],"contrasts") <- contr.wsum(df[,lj])
     return(df)
   }
@@ -1203,17 +1204,22 @@ allcoef <- function (object, use.na = FALSE, se = 2,
   asgn <- attr(mm, "assign")
   names(asgn) <- colnames(mm)
   res <- setNames(vector("list", length(tl)), tl)
+  ljfail <- NULL
   for (j in seq_along(tl)) {
     mmr <- rn == tl[j]  ## rows corresponding to the term
-    mmc <- names(which(asgn == j))  ## columns (logical fails for polr, vcov() too large)
-    mmpart <- mm[mmr, mmc, drop=FALSE] 
+    mmc <- which(asgn == j)  ## columns (logical fails for polr, vcov() too large)
+    mmpart <- mm[mmr, mmc, drop=FALSE]
     rrj <- setNames(drop(mmpart %*% coef[mmc]), rnn[mmr])
     if (se) {
+##-      if (any(is.na(licov))) ljfail <- c(ljfail,j)  else {
       sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
       rrj <- ciSignif(rrj, sej, df)
     }
     res[[j]] <- rrj
   }
+  if (length(ljfail))
+    warning(":allcoef: error calculating se for terms ",
+            paste(ljfail, collapse=", "))
   if (int > 0) {
     res <- c(list(`(Intercept)` = coef[int]), res)
   }
@@ -1222,20 +1228,27 @@ allcoef <- function (object, use.na = FALSE, se = 2,
 }
 ## --------------------------------------------------------------------
 print.allcoef <- function(x, columns=userOptions("allcoefcolumns"),
-                          transpose=TRUE, ...) {
+                          transpose=FALSE, ...) {
+  columns[columns=="coef"] <- "estimate"
+  csymb <- "coefsymb"%in%columns
+  if ("all"%in%columns)  columns <-
+      if(csymb)
+        c("coefsymb", "se", "ciLow", "ciHigh", "testst",
+          "signif", "p.value") else
+        c("estimate", "se", "ciLow", "ciHigh", "testst",
+          "signif", "p.value")
   for (li in seq_along(x)) {
     xi <- x[[li]]
     if (is.null(dim(xi))) next
-    if ("coefsymb"%in%columns)
+    if (csymb)
       xi$coefsymb <-
         if ("p.symb"%in%names(xi))
-          paste(format(xi[,1],...), xi[,"p.symb"]) else  xi[,1]
-    columns[columns=="coef"] <- "estimate"
+          paste(format(xi[,1],...), format(xi[,"p.symb"])) else  xi[,1]
     xif <- format(xi[,intersect(columns,names(xi)), drop=FALSE],...)
-    xif <- if (ncol(xi)==1 || (nrow(xif)>1 & transpose)) t(xif) else xif
+    xif <- if (ncol(xif)==1 || (nrow(xif)>1 & transpose)) t(xif) else xif
     if (nrow(xif)==1) row.names(xif) <- " "  ## drop row name
     if (ncol(xif)==1) colnames(xif) <- " "  ## drop col name
-    if (length(xif)==1) xif <- as.character(xif[1,1])
+    if (prod(dim(xif))==1) xif <- as.character(xif[1,1])
     x[li] <- list(xif)
   }
   class(x) <- NULL
@@ -2331,8 +2344,8 @@ linear.predictors <- function(object) {
 }
 linpred <- linear.predictors
 ## ===========================================================================
-fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL, 
-                      xm=NULL, xfromdata=FALSE, noexpand=NULL, nxcomp=51)
+fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE, 
+                    xm=NULL, xfromdata=FALSE, noexpand=NULL, nxcomp=51)
 {
   ## Purpose:    components of a fit
   ## ----------------------------------------------------------------------
@@ -2401,6 +2414,7 @@ fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL,
     for (lj in 1:length(ldata)) {
       lv <- ldata[,lj]
       if (is.character(lv)) lv <- factor(lv)
+      lnhalf <- ceiling(sum(!is.na(lv))/2)
       xm[1,lj] <-
         if (is.factor(lv)) {
           levels(lv)[
@@ -2408,7 +2422,7 @@ fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL,
                      which.max(table(as.numeric(lv)))
                    ]
         } else   ## median(as.numeric(lv),na.rm=TRUE)
-        sort(lv)[ceiling(length(lv)/2)]
+        sort(lv)[lnhalf]
         ## median should be attained in >=1 cases
     }
   }
@@ -2435,14 +2449,21 @@ fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL,
     lx <- ldata[1,,drop=FALSE][1:lnxc,,drop=FALSE]
     row.names(lx) <- 1:lnxc
   }
+  ##  lxm: data.frame of suitable dimension filled with "median"
   lxm <- lx
   for (lv in names(lxm)) lxm[,lv] <- xm[,lv]
+  ##
+  lvcomp <- names(ldata)
+  if (!is.null(vars)) lvcomp <- intersect(lvcomp, vars)
+  if (is.null(lvcomp)) {
+    warning(":fitcomp: no variables found. Result is NULL")
+    return(NULL)
+  }
 ##  components
-  lcomp <- array(dim=c(nrow(lx), NCOL(ldata),lny)) # [,lvars,drop=FALSE]
-  dimnames(lcomp) <- c(dimnames(lx),list(names(lprm)))
+  lcomp <- array(dim=c(nrow(lx), length(lvcomp), lny)) 
+  dimnames(lcomp) <- list(dimnames(lx)[[1]], lvcomp, names(lprm))
   lcse <- if (se) lcomp  else NULL
-  ## 
-  for (lv in names(ldata)) {
+  for (lv in lvcomp) {
     if (xfromdata) {
       ld <- lxm
       ld[,lv] <- ldata[,lv]
@@ -2471,7 +2492,7 @@ fitcomp <- function(object, data=NULL, se=FALSE, # vars=NULL,
         } else lc <- lpr
         lcomp[1:lnl,lv,] <- lc
         next # end for loop
-      } else { # ---
+      } else { # continuous var
         ld <- lxm
         lx[,lv] <- ld[,lv] <-
           seq(min(ldv,na.rm=TRUE),max(ldv,na.rm=TRUE),length=lnxc)
@@ -2501,12 +2522,10 @@ i.findformfac <- function(formula) {
   lfo <- format(formula)
   lmf <- c(gregexpr("(factor *\\([^)]*\\))", lfo),
            gregexpr("(ordered *\\([^)]*\\))", lfo) )
-  lf.substr <- function(text, l,k)
-    apply(cbind(l,k),1, function(lk) substr(text,lk[1],lk[2]))
-  lf.f <- function(x) 
-    if(x[1]!=-1) lf.substr(lfo,x,x+attr(x,"match.length"))
+  lf <- function(x) 
+    if(x[1]!=-1) substring(lfo, x, x+attr(x,"match.length"))
   all.vars(as.formula(
-        paste("~",paste(unlist(lapply(lmf, lf.f)), collapse="+"))))
+        paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
 }
 ## ==========================================================================
 predict.mlm <-
@@ -3081,7 +3100,7 @@ plot.xdistResscale <- function(x, lwd=2, cex=2, xlab="distance in x space",
 plot.regr <-
 function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
-         condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
+         smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = TRUE, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
@@ -3171,41 +3190,13 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lform <- formula(x)
 ## weights
   lweights <- x$weights
-  lwgt <- length(lweights)>1 && any(lweights!=lweights[1],na.rm=TRUE) # are there weights?
+  lIwgt <- length(lweights)>1 && any(lweights!=lweights[1],na.rm=TRUE) # are there weights?
 ## weights used for plotting ?
-  lwsymbols <- is.logical(wsymbols)&&wsymbols
-  if (lwsymbols&!lwgt) {
+  lIwsymb <- is.logical(wsymbols)&&wsymbols
+  if (lIwsymb&!lIwgt) {
     warning(":plot.regr: I do not find weights in model object.")
-    lwsymbols <- FALSE }
-  if (length(wsymbols)==0||is.na(wsymbols)) lwsymbols <- lwgt
-## plot selection
-  lplsel <- c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA,
-              leverage = 2, resmatrix = 1, qqmult = 3)
-  if (length(plotselect)>0) {
-    lpls <- TRUE
-    lplnm <- names(plotselect)
-    if (length(lplnm)==0) {
-      if (length(plotselect)==length(lplsel))
-        lplnm <- names(lplsel)
-      else {
-        warning(":plot.regr: Inadequate argument plotselect")
-        lpls <- FALSE}
-    }
-    if (lpls) {
-      if ("default"%in%lplnm) {
-        lplnm <- setdiff(lplnm, "default")
-        lplsel[] <- if (plotselect["default"]==0) 0 else
-        pmin(lplsel,plotselect["default"])
-      }
-      lina <- is.na(match(lplnm,names(lplsel)))
-      if (any(lina)) {
-        warning(":plot.regr: Inadequate elements in plotselect: ",
-              paste(names(plotselect)[lina], collapse=", "))
-        lplnm <- lplnm[!lina] }
-      lplsel[lplnm] <- plotselect[lplnm]
-    }
-  }
-  lseq <- NA
+    lIwsymb <- FALSE }
+  if (length(wsymbols)==0||is.na(wsymbols)) lIwsymb <- lIwgt
 ## -----------------------------------
 ## prepare objects needed for plotting
   rtype <- "response"
@@ -3218,8 +3209,10 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
 ##-       lres <- if (lpolr) residuals.polr(x) else residuals.survreg(x)
 ##-       lcondq <- NCOL(lres)>1
 ##-     }
-  lres <- if (substring(rtype,1,4)=="cond")  residuals.polr(x)
-    else residuals(x, type=rtype)
+  lres <- if (substring(rtype,1,4)=="cond")  {
+    x$stres <- NULL
+    residuals.polr(x)
+  } else residuals(x, type=rtype)
   lcondq <- inherits(lres,"condquant")
   if (NCOL(lres)==1) lres <- cbind(lres)  ## do not destroy class attr
   if (var(lres[,1],na.rm=TRUE)==0)
@@ -3259,37 +3252,80 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     lsigma <- if (lfcount) 0 else sqrt(apply(lres^2,2,sum)/ldfres)
 ##  lsigma <- x$sigma
 ## weights
-  if (lwgt) {
+  if (lIwgt) {
     if (length(lweights)!=ln) {
       warning(":plot.regr: 'weights' has inadequate length. It is not used.")
-      lwgt <- lwsymbols <- FALSE }
+      lIwgt <- lIwsymb <- FALSE }
   } else lweights <- NULL
 ## hat
   lhat <- x$leverage
   if(length(lhat)==0&&length(x$qr)>0) lhat <- hat(x$qr)
-##-   if (lwgt) lhat <- lhat/lweights use almost-unweighted h for plotting
-## standardized residuals
+##-   if (lIwgt) lhat <- lhat/lweights use almost-unweighted h for plotting
+  ## standardized residuals
   lstres <- x$stres
   if (length(lstres)==0) {
-    lstres <- if (all(lsigma>0) & !inherits(lres,"condquant")) {
-      if (length(lhat)==0||anyNA(lhat)) sweep(lres,2,lsigma,"/") else
-      lres/outer(ifelse(lhat>=1,1,sqrt(pmax(0,1-lhat))),lsigma)
-    } else  lres
+    lstres <- if (inherits(lres,"condquant")) {
+      if (length(lhat)==0||anyNA(lhat))
+        cbind(lres[,1:4]/lsigma, lres[,5:6]) else lres
+    } else { 
+      if (length(lhat)==0||anyNA(lhat))
+        lres/outer(ifelse(lhat>=1,1,sqrt(pmax(0,1-lhat))),lsigma)
+      else  lres
+    }
   }
   lstres <- cbind(lstres)
-##-     if (lwgt) lstres <- lstres*sqrt(lweights) ## !!! check
-  lrabs <- abs(lstres)
-  lstrname <- paste("st", lrname, sep = ".")
+##-     if (lIwgt) lstres <- lstres*sqrt(lweights) ## !!! check
+  lrabs <- if (inherits(lres,"condquant"))  ## probability unchanged by abs
+             abs(lstres[,1:5]) else abs(lstres)
+  lstrname <- paste("st.", lrname, sep = "")
+  lraname <- paste("|st.",lrname,"|", sep = "")
+## Mahalanobis dist  
   if (lmult) {
     lresmd <- x$resmd
     if (is.null(lresmd)) lresmd <- mahalanobis(lres,0,var(lres))
   }
-## smooth
+## ----------------
+## plot selection
+  lplsel <- c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA,
+              leverage = 2, resmatrix = 1, qqmult = 3)
+  if (length(plotselect)>0) {
+    lpls <- TRUE
+    lplnm <- names(plotselect)
+    if (length(lplnm)==0) {
+      if (length(plotselect)==length(lplsel))
+        lplnm <- names(lplsel)
+      else {
+        warning(":plot.regr: Inadequate argument plotselect")
+        lpls <- FALSE}
+    }
+    if (lpls) {
+      if ("default"%in%lplnm) {
+        lplnm <- setdiff(lplnm, "default")
+        lplsel[] <- if (plotselect["default"]==0) 0 else
+        pmin(lplsel,plotselect["default"])
+      }
+      lina <- is.na(match(lplnm,names(lplsel)))
+      if (any(lina)) {
+        warning(":plot.regr: Inadequate elements in plotselect: ",
+              paste(names(plotselect)[lina], collapse=", "))
+        lplnm <- lplnm[!lina] }
+      lplsel[lplnm] <- plotselect[lplnm]
+    }
+  }
+  if (!lmult) lplsel[c("resmatrix","qqmult")] <- 0
+  if (is.na(lplsel["yfit"])) lplsel["yfit"] <- 0
+  if (is.na(lplsel["ta"]))  lplsel["ta"] <- 3*(lplsel["yfit"]==0)
+  if (is.na(lplsel["weights"])) lplsel["weights"] <- 3*(lfgauss&lIwgt)
+  if (is.na(lplsel["tascale"])) lplsel["tascale"] <- 3*(!lfcount)
+  if (is.na(lplsel["qq"])) lplsel["qq"] <- 3*lfgauss # how about gamma? !!!
+  lseq <- NA
+## ----------
+  ## smooth
   if (is.null(smooth.iter)||is.na(smooth.iter)) smooth.iter <- {
     ldn <- x$distrname
     50 * if (is.null(ldn)) 1 else !ldn%in%c("binomial","multinomial")
   }
-  if (is.logical(smooth)) smooth <- i.smooth
+  if (is.logical(smooth)) smooth <- smoothRegr
   lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
 # simulated residuals
   lnsims <- smooth.sim
@@ -3305,7 +3341,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     lnsims <- 0
   }
   if (lmult) lnsims <- 0 # not yet programmed for mlm
-  lsimres <- NULL
+  lsimabs <- lsimstres <- lsimres <- NULL
   if (lnsims>0) {
       lsimr <- if(u.debug())  simresiduals(x, lnsims)  else
       try(simresiduals(x, lnsims),silent=TRUE)
@@ -3315,8 +3351,26 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     else {
       lsimres <- lsimr
       lsimstres <- attr(lsimr,"stres")
+      lsimabs <- if (is.null(lsimstres)) NULL else abs(lsimstres)
     }
     if (length(lsimres)==0) lnsims <- 0
+    }
+  ## residuals from smooth
+  lfsmsm <- lfsmooth <- NULL
+  if (smresid) {
+    lfsmooth <- smoothMM(lf, lres, lsimres,
+                         weights=lweights, resid=TRUE, par=lsmpar)
+    if (any(lplsel[c("tascale","qq")]>0)) {
+      lressm <- sapply(lfsmooth, function(x) x$resid[,1])
+      lstrname <- paste("st.sm.", lrname, sep = "")
+      if (inherits(lres, "condquant"))  {
+            lrabs[,1:4] <-
+              abs(lressm[,1]*lrabs[,1:4]/lres[,1:4])
+         } else  lrabs <- abs(lressm*lrabs/lres)
+      lraname <- paste("|st.sm.",lrname,"|", sep="")
+      lfsmsm <- smoothMM(lf, lrabs, lsimabs, power=0.5, 
+                         weights=lweights, resid="ratio", par=lsmpar)
+    }
   }
 ## plot range
   if (is.logical(reslim)&&!is.na(reslim))
@@ -3373,17 +3427,17 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     }
 }
   ## llabna will contain NA where weights should determine symbol
-  llabna <- if (lwgt&markprop==0) rep(NA, length=ln) else llab 
+  llabna <- if (lIwgt&markprop==0) rep(NA, length=ln) else llab 
 ## weights to be used for symbols
 ## plot symbols
   if (length(symbol.size)==0||is.na(symbol.size)) symbol.size <- 3/ln^0.3
-  if (lwsymbols) {
+  if (lIwsymb) {
     liwgt <- is.na(llabna) ## labels precede weights: which weights are used?
     if (any(liwgt)) {
       lweights <- lweights/mean(lweights,na.rm=TRUE)
       lsyinches <- 0.02*symbol.size*par("pin")[1] # *max(lweights,na.rm=TRUE)
       llab[liwgt] <- ifelse(is.character(llab),"",0) ## could be NA?
-    } else lwgt <- FALSE
+    } else lIwgt <- FALSE
   }
   ltxt <- is.character(llab) # &&any(nchar(llab)>1)
   lpty <- ifelse(ltxt,"n","p")
@@ -3428,7 +3482,6 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   outer.margin <- par("oma")[3]>0
 ## --------------------------------------------------------------------------
   ## start plots
-  if (!lmult) lplsel[c("resmatrix","qqmult")] <- 0
   lplsel <- lplsel[is.na(lplsel)|lplsel>0]
   if (length(lplsel))
 for (liplot in 1:length(lplsel)) {
@@ -3453,54 +3506,49 @@ for (liplot in 1:length(lplsel)) {
         if (ylim) apply(ly,2,robrange, fac=ylimfac) else  NULL
       i.plotlws(lf,ly, lfname,lyname,main,outer.margin,cex.title,
                 colors,lty,lwd,lpch, col,
-                lpty, llabna,cex.lab,ltxt, lwsymbols,lwgt,lweights,liwgt,
+                lpty, llabna,cex.lab,ltxt, lIwsymb,lIwgt,lweights,liwgt,
                 lsyinches, lpllevel>1,smooth,lsmpar,smooth.iter,
                 ylim=ylim, ylimext=ylimext, yaxp=yaxp,
-                reflinex=0,refliney=1,lnsims=lnsims, simres=lsimr,
+                reflinex=0,refliney=1,nsims=lnsims, simres=lsimr,
                 condprobrange=condprobrange)
-  } } }
+    } }
+  }
 ## ---
   if(lpls=="ta") {
-    if (is.na(lpllevel)) lpllevel <- 3*(lplsel["yfit"]==0)
-    if (is.na(lpllevel)) lpllevel <- 3
     if (lpllevel>0) {
+      ## refline centerpoint
       lrx <- rbind(apply(lf,2,mean,na.rm=TRUE))
       lry <- rbind(rep(-1,lmres))
+      ldosm <- lpllevel>1
+##-       if (ldosm)
+##-         lfsmooth <- smoothMM(lf, lres, lsimres, weights=lIwgt, par=lsmpar)
       i.plotlws(lf,lres, lfname,lrname,main,outer.margin,cex.title,
                 colors,lty,lwd,lpch, col, lpty, llabna,cex.lab,ltxt,
-                lwsymbols,lwgt,lweights,liwgt,lsyinches,
-                lpllevel>1,smooth,lsmpar,smooth.iter,
+                lIwsymb,lIwgt,lweights,liwgt,lsyinches,
+                ldosm, lfsmooth, lsmpar,smooth.iter,
                 ylim=reslim, ylimext=reslimext,
                 reflinex=lrx,refliney=lry,
-                lnsims=lnsims, simres=lsimres,
+                nsims=lnsims, simres=lsimres,
                 condprobrange=condprobrange)
     }
   }
 ## ---
   if(lpls=="tascale"&&!lcondq) {
-    if (is.na(lpllevel)) lpllevel <- 3*(!lfcount)
-    if (lpllevel>0)
-      i.plotlws(lf,lrabs, lfname, paste("|",lstrname,"|"),
-        main, outer.margin, cex.title,
+    if (lpllevel>0) {
+      ## residuals from smooth
+      i.plotlws(lf, lrabs, lfname, lraname, main, outer.margin, cex.title,
         colors,lty,lwd,lpch, col, lpty, llabna,cex.lab,ltxt,
-        FALSE,FALSE, # lplwgt=F,wgt=F,
-        lweights,liwgt,lsyinches, lpllevel>1, smooth,lsmpar,smooth.iter,
-        smooth.power=0.5,
-        ylim=c(0,max(abs(streslim))), yaxs="i",
+        FALSE,FALSE, # lplIwgt=F,wgt=F,
+                lweights,liwgt,lsyinches,
+                lpllevel>1, lfsmsm, lsmpar, smooth.iter, smooth.power=0.5,
+                nsims=if (is.null(lsimabs)) 0 else ncol(lsimabs),
+                simres=lsimabs,
+                ylim=c(0,max(abs(streslim))), yaxs="i",
                 condprobrange=c(0.01,0))
-    if (lpllevel>2&lnsims>0&&length(lsimstres)>0) {
-      lio <- order(lf)
-      for (lr in 1:lnsims) {
-        ys <- smooth(lf, sqrt(abs(lsimstres[,lr])),
-                     weights=lweights, par=lsmpar, iterations=smooth.iter)
-        if (length(ys))
-          lines(lf[lio], ys[lio]^2, lty=lty[4], lwd=lwd[4], col=colors[4])
-      }
     }
   }
 ## --- plot abs. res vs. weights
   if(lpls=="weights") {
-  if (is.na(lpllevel)) lpllevel <- 3*(lfgauss&lwgt)
 ##  lplweights <- (is.logical(weights) && weights) | (length(weights)>1)
   if (lpllevel>0) { # plot on weights
     lwgts <- if (length(weights)>1) {
@@ -3526,15 +3574,18 @@ for (liplot in 1:length(lplsel)) {
   } } }
 ## --- normal plot
   if(lpls=="qq") {
-    if (is.na(lpllevel)) lpllevel <- 3*(lfgauss) # how about gamma? !!!
-    for (lj in 1:lmres)
-    if (lpllevel>0) {
+    if (lpllevel>0) 
+    for (lj in 1:lmres) {
 ##-       qqnorm(lstres[,lj], ylab = lstrname[lj], main="", col=colors[1])
       llr <- if(lcondq)
-        lstres[,"random"]/lsigma  else  lstres[,lj]
+               lstres[,"random"]  else  lstres[,lj]
+      if (smresid) {
+        llra <- lfsmsm[[lj]]$resid[,1]
+        llr <- sign(llr) * llra *qnorm(0.75)/median(llra)
+      }
       lxy <- qqnorm(llr, ylab = lstrname[lj], main="", type="n")
       abline(0,1,lty = lty[2], col=colors[2])
-      if (lpllevel>2&lnsims>0) {
+      if (lpllevel>2 & lnsims>0) {
         lxx <- qnorm(ppoints(ln))
         lsimstr <- attr(simresiduals(x, nrep=lnsims, resgen=rnorm), "stres")
         for (lr in 1:lnsims) {
@@ -3567,12 +3618,12 @@ for (liplot in 1:length(lplsel)) {
         li <- order(lhat, decreasing=TRUE)[1:(ln*markprop/2)]
         llabh[li] <- llabels[li]
       }
-      lhattit <- paste("leverages", if(lwgt) "(unweighted)")
+      lhattit <- paste("leverages", if(lIwgt) "(unweighted)")
       for (lj in 1:lmres) {
         i.plotlws(lhat, lstres[,lj], lhattit, lstrname[lj],
               main,outer.margin,cex.title,
               colors,lty,lwd,lpch, col, lpty, llabh,cex.lab,ltxt,
-              lwsymbols,lwgt, lweights,liwgt,lsyinches,
+              lIwsymb,lIwgt, lweights,liwgt,lsyinches,
               FALSE, ylim=streslim, ylimext=reslimext, yaxp=stresaxp,
                 condprobrange=condprobrange)
   ##  line with constant Cook distance
@@ -3589,7 +3640,7 @@ for (liplot in 1:length(lplsel)) {
   if(lpls=="resmatrix") { ## residual matrix for multivariate regr
     if (lmult) plmatrix(lres, pch=lab, main=main)
   }
-  if(lpls=="qqmult") { ## qq plot of Mahalanobis lenghts for multivariate regr
+  if(lpls=="qqmult")  ## qq plot of Mahalanobis lenghts for multivariate regr
   if ((!is.na(lpllevel))&&lpllevel>0) {
     lxx <- sqrt(qchisq(ppoints(lresmd),ncol(lres)))
     lor <- order(lresmd)
@@ -3605,7 +3656,7 @@ for (liplot in 1:length(lplsel)) {
     i.main(main)
     stamp(sure=FALSE)
     par(lop)
-  }}
+  }
 } ## end lplsel
 ## ----------------------------------------------------------------
 ## plot residuals vs. explanatory variables by calling plresx
@@ -3630,8 +3681,8 @@ for (liplot in 1:length(lplsel)) {
   if (lxpl || is.na(lseq) || lseq) {
     plresx(x, data=data, resid=lres, vars=xvars, sequence=lseq,
            se=x.se, partial.resid=TRUE, addcomp = addcomp,
-           glm.restype = glm.restype, # weights = lwgts,
-           wsymbols=lwsymbols, symbol.size=symbol.size,
+           glm.restype = glm.restype, # weights = lIwgts,
+           wsymbols=lIwsymb, symbol.size=symbol.size,
            markprop=NULL, lab=llabna, cex.lab=cex.lab,
            mbox=mbox, jitterbinary = jitterbinary,
            smooth=x.smooth, smooth.par=lsmpar, smooth.iter=smooth.iter,
@@ -3650,10 +3701,10 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   cex.title=1.2, colors=1:9, lty=1:6, lwd=1, pch=1, col=1,
   pty="p", lab="+", cex.lab=1, # cex.lab[2] is cex for points
   txt=FALSE,  plwgt=FALSE, wgt=1, weights=NULL, iwgt=NULL, syinches=0.1,
-  do.smooth=TRUE, smooth=i.smooth, smooth.par=NULL, smooth.iter=10,
-  smooth.power=1, # smooth.groups = NULL,
+  do.smooth=TRUE, smooth=smoothRegr, smooth.par=NULL, smooth.iter=10,
+  smooth.power=1, 
   ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
-  reflinex=NULL, refliney=NULL, reflineyw=NULL, lnsims=0, simres=NULL,
+  reflinex=NULL, refliney=NULL, reflineyw=NULL, nsims=0, simres=NULL,
   smooth.group = NULL, smooth.col=colors[3:4], smooth.pale=0.2,
   smooth.legend = TRUE,
   condprobrange=c(0.05,0.8), new=TRUE, axes=1:2, ...)
@@ -3669,7 +3720,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   lx <- cbind(x)
   ly <- cbind(y)
   lcq <- inherits(y,"condquant")
-#  if (lcq) lnsims <- 0
+#  if (lcq) nsims <- 0
   lnc <- if (lcq) 1 else ncol(ly)
   lnr <- nrow(lx)
   cex.pch <- if (length(cex.lab)>1) cex.lab[2] else
@@ -3697,6 +3748,28 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   lrfyw <- length(reflineyw)>0
   ldjrflx <- ncol(reflinex)==lnc
   ldjrfly <- ncol(refliney)==lnc
+  ## ---
+  if (do.smooth) {
+    lsmooth <- if(is.list(smooth)) smooth else
+    smoothMM(x, y, if (nsims) simres, wgt,
+             group=smooth.group, power=smooth.power,
+             smooth=smooth, par=smooth.par, iterations=smooth.iter)
+    if (length(smooth.col)==0) smooth.col <- colors[3:4] 
+    lsmcol1 <- smooth.col[1]
+    lsmcol2 <- smooth.col[length(smooth.col)]
+    if (length(lsmooth$group)) { # groups
+      lsmgrp <- lsmooth$group
+      lsmglab <- levels(lsmgrp)
+      lsmgrp <- as.numeric(lsmgrp)
+      lngrp <- length(lsmglab)
+      if (NROW(smooth.col)<lngrp) smooth.col <- colors
+      lsmcol1 <- rep(smooth.col, length=lngrp)
+      lsmcol2 <- if(NCOL(smooth.col)>1)
+                   rep(smooth.col[,2], length=lngrp)  else
+      colorpale(lsmcol1, pale=smooth.pale)
+    }
+  }
+## -----------------------------------------------------------------------
 ## do plot(s)
   ljx <- ljrflx <- ljrfly <- 1
   for (lj in 1:lnc) {
@@ -3797,63 +3870,30 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       }
     }
     ## smooth
-    if(do.smooth) { 
-      lna <- (is.na(lxj)|is.na(lyj))
-      lxj[lna] <- NA
-      lio <- order(lxj)[1:sum(!lna)]
-      lxjo <- lxj[lio] # sorted without NA
-      lwgo <- weights[lio]
-      lyjo <- lyj[lio]
-      lsmgrp <- rep(1,length(lio))
-      lngrp <- 1
-      if (length(smooth.col)==0) smooth.col <- colors[3:4] 
-      lsmcol1 <- smooth.col[1]
-      lsmcol2 <- smooth.col[length(smooth.col)]
-      if (length(smooth.group)) { # groups
-        lsmgrp <- factor(smooth.group[lio])
-        lsmglab <- levels(lsmgrp)
-        lsmgrp <- as.numeric(lsmgrp)
-        lngrp <- length(lsmglab)
-        if (NROW(smooth.col)<lngrp) smooth.col <- colors
-        lsmcol1 <- rep(smooth.col, length=lngrp)
-        lsmcol2 <- if(NCOL(smooth.col)>1)
-                       rep(smooth.col[,2], length=lngrp)  else
-        colorpale(lsmcol1, pale=smooth.pale)
-      }
-      if (lnsims>0) {
-        simres <- simres[lio,]
-        for (lr in 1:lnsims) {
-          for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
-            lig <- lsmgrp==lgrp
-            lsms <- try(smooth(lxjo[lig], simres[lig,lr]^smooth.power,
-                               weights=lwgo[lig], par=smooth.par,
-                               iterations=smooth.iter) )
-            if (class(lsms)!="try-error" & length(lsms)) {
-              lsms <- lsms^(1/smooth.power)
-              if (llimy)  lsms[lsms<lylimj[1]|lsms>lylimj[2]] <- NA
-              lines(lxjo[lig], lsms, lty=lty[4], col=lsmcol2[lgrp],lwd=lwd[4])
-            }
-          }
+    if(do.smooth) {
+      lsm <- lsmooth[[lj]]
+      ## plot smooths
+      lsmx <- lsm$x
+      if (is.null(dim(lsmx))) dim(lsmx) <- c(length(lsmx),1)
+      lsmy <- lsm$y
+      ## groups
+      lgrp <- as.numeric(lsm$group)
+      if (is.null(lgrp)) {
+        lgrp <- rep(1, NROW(lsmx))
+        lngrp <- 1
+      } else lngrp <- length(levels(lgrp))
+      if (llimy)  lsmy[lsmy<lylimj[1]|lsmy>lylimj[2]] <- NA
+      if (nsims>0) {
+        for (lgrp in 1:lngrp) {
+          lig <- lgrp==lgrp
+          matlines(lsmx[lig,1], lsmy[lig,-1], col=lsmcol2[lgrp],
+                   lty=lty[4], lwd=lwd[4])
         }
       }
-      for (lgrp in 1:lngrp) {  ## smooth within groups (if >1)
-        lig <- lsmgrp==lgrp
-        lsm <- try(smooth(lxjo[lig], lyjo[lig]^smooth.power, weights=lwgo[lig],
-                      par=smooth.par, iterations=smooth.iter)^(1/smooth.power))
-        if (class(lsm)!="try-error" & length(lsm)) {
-          if (llimy)  # lsm[lsm<lylimj[1]|lsm>lylimj[2]] <- NA
-            lsm <- plcoord(lsm, range=lylimj, limext=ylimext)
-          lines(lxjo[lig], lsm, lty=lty[3], col=lsmcol1[lgrp],lwd=lwd[3])
-        }
-    }
-      if (lngrp>1) { ## legend for smooths
-        if (length(smooth.legend)) {
-          if (is.logical(smooth.legend))
-            smooth.legend <- if (smooth.legend) "topright" else NULL
-          if (length(smooth.legend))
-            legend(smooth.legend, legend=lsmglab, lty=rep(lty[4],lngrp),
-                   col=lsmcol1, lwd=3, bg="white")
-        }
+      for (lgrp in 1:lngrp) {
+        lig <- lgrp==lgrp
+        lines(lsmx[lig,1], lsmy[lig,1], col=lsmcol1[lgrp],
+              lty=lty[3], lwd=lwd[3])
       }
     }
     ##- points
@@ -3881,30 +3921,29 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
     ljrflx <- ljrflx+ldjrflx
     ljrfly <- ljrfly+ldjrfly
   }
+  if (do.smooth) {
+    if (lngrp>1) { ## legend for smooths
+        if (length(smooth.legend)) {
+          if (is.logical(smooth.legend))
+            smooth.legend <- if (smooth.legend) "topright" else NULL
+          if (length(smooth.legend))
+            legend(smooth.legend, legend=lsmglab, lty=rep(lty[4],lngrp),
+                   col=lsmcol1, lwd=3, bg="white")
+        }
+      }
+  }
     i.main(main, cex = cex.title, outer.margin=outer.margin)
     if (new) stamp(sure=FALSE)
   NULL  ## return last yrange
 }
 ## ==========================================================================
-i.smooth <- function(x,y,weights,par=5*length(x)^log10(1/2), iterations=50)
+smoothRegr <-
+  function(x, y, weights=1, par=5*length(x)^log10(1/2), iterations=50)
 {
   if (length(x)<8) return(NULL)
-  lsm <- ## ----------------------------------------------------------------
-formTrsf <- function(formula, xtrsf) {
-    ## recode formula to avoid evaluation of transformed variables
-    ## xtrsf:  labels of transformed variables as used in data.frame
-    ## formula:  --> all occurencies of elements of  xtrsf  will be
-    ##   replaced by  .Xt1, .Xt2, ...
-    lform <- as.character(formula)
-    lf3 <- last(lform)
-    lxtr <- xtrsf[io <- order(nchar(xtrsf),decreasing=TRUE)]
-    lnew <- paste(".Xt",1:length(lxtr),sep="")
-    lno <- lnew[io]
-    for (li in seq_along(lxtr))
-        lf3 <- gsub(lxtr[li], lno[li], lf3, fixed=TRUE)
-    structure( as.formula(paste(if(length(lform)==3) lform[2], "~", lf3)),
-              newvars=lnew)
-}
+  iterations <- max(iterations, 1)
+## ----------------------------------------------------------------
+  weights <- rep(weights, length=length(x))
   lsm <- if (u.debug())
              loess(y~x, weights=weights, span=par, iterations=iterations,
                    family=if (iterations>0) "symmetric" else "gaussian",
@@ -3916,11 +3955,11 @@ formTrsf <- function(formula, xtrsf) {
     lsm <- loess(y~x, weights=weights, span=0.99, iterations=iterations,
                family=if (iterations>0) "symmetric" else "gaussian",
                  na.action=na.exclude)
-    warning(":i.smooth: span was too small. Using 0.99")
+    warning(":smoothRegr: span was too small. Using 0.99")
   }
   fitted(lsm)
 }
-## i.smoothrob <- function(x,y,weights,par=3*length(x)^log10(1/2),iter=50)
+## smoothRegrrob <- function(x,y,weights,par=3*length(x)^log10(1/2),iter=50)
 ## ==========================================================================
 simresiduals <- function(object, ...)  UseMethod("simresiduals")
   ## Purpose:   simulate residuals according to regression model
@@ -4184,20 +4223,20 @@ plresx <-
     lpch <- if (length(pch)) pch else 3 # was ifelse(ln>200,".","+")
   } else lpch <- if (length(pch)) pch else 3
 ## weights
-  lwgt <- if (length(weights)==1) as.logical(weights) else NA
+  lIwgt <- if (length(weights)==1) as.logical(weights) else NA
   lweights <- if (length(weights)<=1) x$weights else {
     if (length(weights)>ln) {
       if(length(lnaaction)>0 && max(lnaaction)<=length(weights))
         weights[-lnaaction] } else weights
   }
-  if (is.na(lwgt)) lwgt <- length(lweights)>1
-  if (lwgt&& length(lweights)!=nrow(lres)) {
+  if (is.na(lIwgt)) lIwgt <- length(lweights)>1
+  if (lIwgt&& length(lweights)!=nrow(lres)) {
       warning(":plresx: no suitable weights found")
-      lwgt <- FALSE
+      lIwgt <- FALSE
   }
-  lwsymbols <- lwgt&any(liwgt)
-  if (!is.null(wsymbols)) if ((lws <- wsymbols[1])&!lwsymbols)
-      warning(":plresx: no weights available") else lwsymbols <- lws
+  lIwsymb <- lIwgt&any(liwgt)
+  if (!is.null(wsymbols)) if ((lws <- wsymbols[1])&!lIwsymb)
+      warning(":plresx: no weights available") else lIwsymb <- lws
 ## color vector
   if (length(col)>ln) if(length(lnaaction)>0 && max(lnaaction)<=length(col))
     col <- col[-lnaaction]
@@ -4209,10 +4248,15 @@ plresx <-
     li <- match(row.names(lres),row.names(ldata))
     if (length(li)==0||anyNA(li))
       stop("!plresx! cannot match residuals and x`s")
-    else {
-      ldata <- ldata[li,]
-    }
+    ldata <- ldata[li,]
   }
+  lsmgrp <- eval(substitute(smooth.group), ldata)
+  if (length(lsmgrp)!=0 && length(lsmgrp)!=nrow(ldata)) {
+#    if (length(lsmgrp)!=length(li)) {
+      warning(":plresx: argument 'smooth.group' has wrong length. Not applied.")
+      lsmgrp <- NULL
+#    } else lsmgrp <- lsmgrp[li]
+  } ## sort out!!!
 ## Prepare vars
   lvmod <- all.vars(formula(x)[[3]])
   if (!lnnls) lvmod <- setdiff(lvmod, names(eval(x$call$start)))
@@ -4299,26 +4343,26 @@ plresx <-
     warning(":plresx: I did not find any x variables")
     return() }
 ## terminmodel
-  terminmodel <- match(vars,lvmod,nomatch=0)>0
+  terminmodel <- vars%in%lvmod ## match(vars,lvmod,nomatch=0)>0
 ##  reference lines
   if (is.null(reflines)) reflines <- !inherits(x,"coxph")
 ## weight symbols
-  if (lwgt) {
+  if (lIwgt) {
     lweights <- lweights/mean(lweights)
     if (length(symbol.size)==0||is.na(symbol.size)) symbol.size <- 3/ln^0.3
     lsyinches <- 0.02*symbol.size*par("pin")[1] # *max(lweights,na.rm=TRUE)
-    if (lwsymbols) llab[liwgt] <- NA # ifelse(is.character(llab),"",0)
+    if (lIwsymb) llab[liwgt] <- NA # ifelse(is.character(llab),"",0)
   } else  {
     lweights <- NULL
 #    llab[liwgt] <- lpch
   }
-  lipts <- !(lwsymbols&liwgt) ## points to be shown by  lab
+  lipts <- !(lIwsymb&liwgt) ## points to be shown by  lab
 ## smooth
   if (is.null(smooth.iter)||is.na(smooth.iter)) smooth.iter <- {
     ldn <- x$distrname
     50 * if (is.null(ldn)) 1 else !ldn%in%c("binomial","multinomial")
   }
-  if (is.logical(smooth)) smooth <- if (smooth)  i.smooth  else NULL
+  if (is.logical(smooth)) smooth <- if (smooth)  smoothRegr  else NULL
 ##-     function(x,y,weights,par,iter)
 ##-       fitted(loess(y~x, weights=weights, span=par, iter=iter,
 ##-                    na.action=na.exclude))
@@ -4408,8 +4452,8 @@ plresx <-
       par("mfg")[4]*par("pin")[1]/(par("cin")[1]*nchar(main))))
 ## -----------------------------------
 ## machinery
-  ldfres <- x$df
-  if(length(ldfres)>1) ldfres <- ldfres[2]
+  ldfres <- df.residual(x)
+##-   if(length(ldfres)>1) ldfres <- ldfres[2]
   qnt <- if (length(ldfres)==0) 2 else qt(0.975,ldfres)
 ##-   if (sum(terminmodel)>0) {
 ##-     comps <- fitcomp(x, ldt, vars=tin, xfromdata=addcomp, se=se)
@@ -4427,7 +4471,7 @@ plresx <-
 ##-   x$call$data <- as.name("ldata")
 
 ## reflines: fitcomp!
-  if (sum(terminmodel)>0 && reflines &&lnnls) {
+  if (any(terminmodel) && reflines &&lnnls) {
     lcmp <- fitcomp(x, xfromdata=FALSE, se=se, noexpand=is.fac)
 ##-     lcmp <- try(fitcomp(x, xfromdata=FALSE, se=se))
 ##-     if (class(lcmp)=="try-error") {
@@ -4459,13 +4503,13 @@ plresx <-
         if (lcnt) lcmpx <- lcompx[,lvx]
       }
       i.plotlws(xx,yy, "","","", TRUE, cex.title, colors, lty, lwd, lpch, col,
-                lpty, llab,cex.lab,ltxt, lwsymbols,lwgt,lweights,liwgt,lsyinches,
+                lpty, llab,cex.lab,ltxt, lIwsymb,lIwgt,lweights,liwgt,lsyinches,
                 ldosm&lcnt,smooth,lsmpar,smooth.iter,
 ##-                 ylim=lylim,
                 yaxp=yaxp,
-                lnsims=lnsims, simres=lsimres, new=FALSE,
+                nsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy,
-                smooth.group=smooth.group, smooth.col=smooth.col,
+                smooth.group=lsmgrp, smooth.col=smooth.col,
                 smooth.pale=smooth.pale)
     }
     plmatrix(ldata[,vars,drop=FALSE],lres, panel=lpanel, pch=llab, range.=lylim,
@@ -4501,10 +4545,10 @@ plresx <-
       i.plotlws(xx, rr, xlab = xlabs[lv], ylab = ylabs[lv],
         "", outer.margin, cex.title,
         colors, lty, lwd, lpch, col, lpty, llab, cex.lab, ltxt,
-        lwsymbols, lwgt, lweights, liwgt, lsyinches,
+        lIwsymb, lIwgt, lweights, liwgt, lsyinches,
         FALSE, smooth, smooth.par, smooth.iter, 1,
         lylim, ylimfac, ylimext,
-        reflinex=NULL, lnsims=0, simres=lsimres, axes=2,
+        reflinex=NULL, nsims=0, simres=lsimres, axes=2,
                 condprobrange=condprobrange)
       axis(1,labels=ll,at=1:lnl)
       axis(2)
@@ -4545,11 +4589,11 @@ plresx <-
       i.plotlws(as.numeric(ldata[, lv]), rr, xlab = xlabs[lv], ylab = ylabs[lv],
         "", outer.margin, cex.title,
         colors, lty, lwd, lpch, col, lpty, llab, cex.lab, ltxt,
-        lwsymbols, lwgt, lweights, liwgt, lsyinches,
+        lIwsymb, lIwgt, lweights, liwgt, lsyinches,
         ldosm, smooth, smooth.par, smooth.iter, smooth.power=1,
         ylim=if(llimy) lylim else NULL, ylimfac=ylimfac, ylimext=ylimext,
         yaxp=yaxp, reflinex=lrefx, refliney=lci, lrefyw, lnsims, lsimres,
-        smooth.group=smooth.group, smooth.col=smooth.col,
+        smooth.group=lsmgrp, smooth.col=smooth.col,
         smooth.pale=smooth.pale, smooth.legend=smooth.legend,
         condprobrange=condprobrange)
     }
@@ -4569,6 +4613,88 @@ plresx <-
   invisible(nvars)
 }
 ## =======================================================================
+smoothMM <- function(x, y, y2=NULL, weights=1, group=NULL, power=1, resid=FALSE,
+                     smooth=smoothRegr, par=5*NROW(x)^log10(1/2),
+                     iterations=50)
+{
+  ## Purpose:   smooth for multiple x and y
+  ##   smoothM  would be enough if only univariate regression was considered
+  if (is.null(dim(x))) dim(x) <- c(length(x),1)
+  if (is.null(dim(y))) dim(y) <- c(length(y),1)
+  if (!(ly2null <- is.null(y2))) {
+    if (is.null(dim(y2))) dim(y2) <- c(length(y2),1)
+    if (length(dim(y2))==2) dim(y2) <- c(dim(y2),1)
+    if (nrow(x)!=dim(y2)[1] | ncol(x)!=dim(y2)[3])
+      stop("!smoothMM! incompatible dimensions of 'y2'")
+  }
+  rr <- vector("list", ncol(x))
+  for (lj in 1:ncol(x))
+    rr[[lj]] <-
+      smoothM(x[,lj], if(ly2null) y[,lj] else cbind(y[,lj], y2[,,lj]),
+              weights=weights, group=group, power=power, resid=resid,
+              smooth=smooth, par=par, iterations=iterations)
+  names(rr) <- colnames(x)
+  rr
+}
+## ========================================================================
+smoothM <- function(x, y, weights=1, group=NULL, power=1, resid=FALSE,
+                 smooth=smoothRegr, par=5*length(x)^log10(1/2), iterations=50)
+{
+  ## Purpose:   smooth for multiple y
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date:  9 Feb 2016, 14:57
+  lnx <- length(x)
+  ly <- cbind(y)
+  if (nrow(ly)!=lnx) stop("!i.sm! Incompatible dimensions of 'x' and 'y'")
+  if (length(weights)<=1) weights <- rep(1, lnx)
+  if (length(weights)!=lnx)
+    stop("!i.sm! Incompatible dimensions of 'x' and 'weights'")
+  if (ljnogrp <- length(group)<=1) group <- rep(1, lnx)
+  if (length(group)!=lnx)
+    stop("!i.sm! Incompatible dimensions of 'x' and 'group'")
+  lgrp <- factor(group)
+  if (is.character(resid))
+    resid <- match(resid, c("difference","ratio"))
+  if (is.na(resid)) {
+    warning(":smoothM: argument 'resid' yields NA. No residuals calculated")
+    resid <- FALSE
+  }
+  ## preep: sort
+  lnna <- apply(is.finite(cbind(x,y)), 1,all)
+  x[!lnna] <- NA
+  lio <- order(as.numeric(lgrp),x)[1:sum(lnna)]
+  lxo <- x[lio] # sorted without NA
+  lgrp <- lgrp[lio]
+  lgrpn <- as.numeric(lgrp)
+  lwgts <- weights[lio]
+  ly <- ly[lio,,drop=F]
+  ## production
+  lysm <- array(NA, dim=dim(ly), dimnames=dimnames(ly))
+  for (lgr in seq_along(levels(lgrp))) {  ## smooth within groups (if >1)
+    lig <- lgrpn==lgr
+    for (j in 1:ncol(ly)) {
+      lsm <- smoothRegr(lxo[lig], ly[lig,j]^power, weights=lwgts[lig],
+                        par=par, iterations=iterations)
+      if (length(lsm)) lysm[lig,j] <- lsm^(1/power)
+##-       lsm <- loess(ly[lig,j]^power ~ lxo[lig], weights=lwgts[lig], span=par, 
+##-                    family=if (iterations>0) "symmetric" else "gaussian",
+##-                    iterations=iterations)
+##-       if (class(lsm)!="try-error")
+##-         lysm[lig,j] <- lsm$fitted^(1/power)
+    }
+  }
+  rr <- list(x = lxo, y = lysm, group = if(!ljnogrp) factor(lgrp) else NULL,
+             index = lio)
+  if (resid>0) {
+    lres <- matrix(NA, lnx, ncol(ly), dimnames=list(names(x),colnames(y)))
+    lres[lio,] <- if (resid==2) ly/ifelse(is.na(lysm), 1, lysm) else
+      ly-ifelse(is.na(lysm), 0, lysm)
+    rr$resid <- lres
+  }
+  rr
+}
 ## =======================================================================
 plmatrix <-
 function(x, y=NULL, data=NULL, panel=l.panel,
@@ -4576,8 +4702,9 @@ function(x, y=NULL, data=NULL, panel=l.panel,
          pch=1, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r",
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
-         vnames=NULL, main="", cex=NA, cex.points=NA, cex.lab=0.7, cex.text=1.3,
-         cex.title=1, bty="o", oma=NULL, mar=rep(0.2,4), keeppar=FALSE,
+         vnames=NULL, main="", cex=NA, 
+         cex.points=NA, cex.lab=1, cex.text=1.3, cex.title=1,
+         bty="o", oma=NULL, mar=rep(0.2,4), keeppar=FALSE,
          axes=TRUE, ask = NULL, ...)
 {
 ## Purpose:    pairs  with different plotting characters, marks and/or colors
