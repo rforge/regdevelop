@@ -5,8 +5,8 @@ install.packages("regr0", repos="http://r-forge.r-project.org")
 attach("data-regr0.rda")
 ## ---------------------------------------------------------------
 ## regr0.rda erstellen
-source("regr.R")
-save.image("regr0.rda")
+source("~/regr0/misc/regr.R")
+save.image("~/regr0/misc/regr0.rda")
 q("no")
 ## ---------------------------------------------------------------
 ## --- regr.Rd examples
@@ -580,3 +580,17 @@ t.rr2 <- regr(log10(tremor) ~ log10(distance) + location +
 
 t.rr0 <- lm(log10(tremor) ~ log10(distance) + location +
                 location:I(charge<=3.2), data=d.blast)
+
+
+library(MASS)
+library(regr0)
+ 
+r.glm <- glm(type ~ ., data=Pima.tr2, family=binomial)
+summary(r.glm)
+cof <- summary(r.glm)$coefficients
+cbind(cof[,1], cof[,1] +  qnorm(0.025) * cof[,2], cof[,1] - qnorm(0.025) * cof[,2])
+ library(MASS)
+library(regr0)
+ 
+ r.reg <- regr(type ~ ., data=Pima.tr2)
+r.reg$termtable

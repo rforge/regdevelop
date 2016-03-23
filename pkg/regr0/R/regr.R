@@ -202,7 +202,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
         old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
         lcl$contrasts <- NULL
       }
-    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars)
+    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, ly)
 ##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
   }
 ##- ## --------------------------------------------
@@ -787,7 +787,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ldfr <- df.residual(lreg)
   ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
     if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
-  ltstq1 <- ltstq[1]
+  ltstq1 <- sqrt(ltstq[1])
   ltstq <- ltstq[-1]
 ## coefficients
   lcoef <- lreg$coefficients
@@ -795,10 +795,10 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lmmt <- lreg[["x"]]
   if (length(lmmt)==0)
       lmmt <- model.matrix(lreg)
-  lasg <- attr(lmmt,"assign")
+  lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
   if (class(lreg)[1]%in%c("polr","coxph")) lasg <- lasg[-1]
 ## terms with 1 coef
-  lcont1 <- lcont <- lasg[!lasg%in%lasg[duplicated(lasg)]]
+  lcont1 <- lcont <- lasg[licasg <- !lasg%in%lasg[duplicated(lasg)]]
 ## vif --> R2.x
   lr2 <- NA
   if (vif) {
@@ -833,10 +833,12 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
+  BR()
   ## p.symb and signif
   ltb$signif <- sqrt(pmax(0,ltb$testst)/ltstq)
-  lipv <- as.numeric(cut(ltb$p.value[lcont>0], pvCutpoints))
-  ltb[lcont>0,"p.symb"] <- pvSymbols[lipv]
+  lic <- lcont[lcont>0]
+  lipv <- as.numeric(cut(ltb$p.value, pvCutpoints))
+  ltb[,"p.symb"] <- pvSymbols[lipv]
 ## coefficients and statistics for terms with 1 df
   if (length(lcont)) { ## lcont refers to assign
     ltlb <- dimnames(ltb)[[1]]
@@ -845,8 +847,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     lcf <- lcoef[ljc]
     ## fill in
     ltb$coef[lcont1] <- lcf
-    ltb$se[lcont1] <- lse <- lcoeftab[lcont1,2]
-    lci <- lcf*(1+outer(ltstq1*lse, c(-1,1)))
+    ltb$se[lcont1] <- lse <- lcoeftab[licasg,2]
+    lci <- lcf+outer(ltstq1*lse, c(-1,1))
     ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
     ltb[lcont1,c("ciLow","ciHigh")] <- lci
     ltb[lcont1,"signif"] <- sign(lcf)*ltb[lcont1,"signif"]
@@ -894,9 +896,10 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
   
 ## ==========================================================================
 contr.wsum <- 
-  function (n, w = NULL, contrasts = TRUE, sparse = FALSE) 
+  function (n, y=NULL, w = NULL, contrasts = TRUE, sparse = FALSE) 
 {  ## provide weighted sum contrasts
   if (is.data.frame(n)) {
+    if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all),]
     df <- n
     for (lj in 1:ncol(df)) 
       if(class(df[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
@@ -913,7 +916,7 @@ contr.wsum <-
     contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
   if (is.null(w)) {
     warning(":contr.wsum: no weights provided.",
-            " Returning unweighted contrasts for ", paste(n,collapse=", "))
+            " Returning unweighted sum contrasts for\n  ", paste(n,collapse=", "))
     return(contr)
   }
   if (length(w)!=nrow(contr) || anyNA(w) || any(w<0) || all(w==0)) {
@@ -1126,7 +1129,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
 ## ==========================================================================
 summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
-allcoef <- function (object, use.na = FALSE, se = 2,
+allcoef <- function (object, use.na = TRUE, se = 2,
                       df = df.residual(object), ...) 
 {
   if (is.atomic(object)) stop("!allcoef! inadequate first argument")
@@ -1211,9 +1214,13 @@ allcoef <- function (object, use.na = FALSE, se = 2,
     mmpart <- mm[mmr, mmc, drop=FALSE]
     rrj <- setNames(drop(mmpart %*% coef[mmc]), rnn[mmr])
     if (se) {
+      if (any(is.na(rrj)))
+        warning(":allcoef: missing coef for term '", tl[j],
+                "'. no standard errors etc") else {
 ##-      if (any(is.na(licov))) ljfail <- c(ljfail,j)  else {
-      sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
-      rrj <- ciSignif(rrj, sej, df)
+          sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
+          rrj <- ciSignif(rrj, sej, df)
+        }
     }
     res[[j]] <- rrj
   }
@@ -1229,6 +1236,7 @@ allcoef <- function (object, use.na = FALSE, se = 2,
 ## --------------------------------------------------------------------
 print.allcoef <- function(x, columns=userOptions("allcoefcolumns"),
                           transpose=FALSE, ...) {
+  if (is.null(columns)) columns <- "coefsymb"
   columns[columns=="coef"] <- "estimate"
   csymb <- "coefsymb"%in%columns
   if ("all"%in%columns)  columns <-
@@ -5579,7 +5587,7 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     lold <- luopt[names(lop)]
     for (li in names(lop))
       luopt[li] <- list(lop[[li]])
-    assign("UserOptions", luopt,pos=1)
+    assign("UserOptions", luopt, pos=1)
         ## assignInMyNamespace does not work
     invisible(lold)
   }
@@ -5589,7 +5597,7 @@ UserDefault <- UserOptions <-
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
-       regr.contrasts=c(unordered="contr.sum", ordered="contr.poly"),
+       regr.contrasts=c(unordered="contr.wsum", ordered="contr.poly"),
        termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
          "signif", "p.value", "p.symb"),
        allcoefcolumns="coefsymb",
