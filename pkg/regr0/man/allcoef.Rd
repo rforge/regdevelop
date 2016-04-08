@@ -9,7 +9,7 @@ all coefficients of a model fit
 A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
-allcoef(object, use.na = FALSE, se = 2, df = df.residual(object), ...)
+allcoef(object, use.na = TRUE, se = 2, df = df.residual(object), ...)
 \method{print}{allcoef}(x, columns=userOptions("allcoefcolumns"),
                         transpose=FALSE, ...)
 }

@@ -18,13 +18,12 @@ plmboxes(formula, data, width=1, at=NULL,
     refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsvert=FALSE, mar=NULL,
-    widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
-    colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
-
+    widthfac=NULL, colors=NULL, lwd=NULL, ...)
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
     h0=NULL, adj=0.5, extquant=TRUE, ilim=NULL, ilimext=0.05, 
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
-    colors=c(box="lightblue2",med="blue",na="gray90"))
+    colors=c(box="lightblue2",med="blue",na="gray90"),
+    lwd=c(med=3, range=2))
 }
 
 \arguments{
@@ -95,35 +94,46 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
 }
 \item{mar}{plot margins. Default tries to be suitable.
 }
-\item{widthfac}{named vector with elements
+\item{widthfac}{named vector used to modify the following settings:
 
-  'max': determes the maximal width of the boxes.
+  max=2: determes the maximal width of the boxes.
   Boxes that should be wider are censored and marked as such.
 
-  'med', 'medmin': determines the width of the mark for the data median.
+  med=1.3, medmin=0.3: determine the width of the mark for the data median.
   The width is 'med' times the maximal width of the boxes,
   but at least 'medmin'.
 
-  'outl': length of the marks for outliers.
+  outl=NA: length of the marks for outliers.
 
-  'sep': width of the gap between the "half" mbox plots in case of
+  sep=0.003: width of the gap between the "half" mbox plots in case of
   asymmetric mboxes (only needed for 'plmboxes').
 
-  The argument needs to contain only the elements that should be
-  different from the default values.
+  For 'plmboxes', the argument needs to contain only the elements that
+  should be different from the default values.
 }
 \item{colors}{named vector or list selecting the colors to be used, with named
   elements:
 
-  'box': color with which the central box(es) (those corresponding to
-  probabilieties between 0.25 and 0.75) will be filled.
+  box="lightblue2": color with which the central box(es)
+  (those corresponding to probabilieties between 0.25 and 0.75)
+  will be filled.
 
-  'med': color of the mark for the median.
+  med="blue": color of the mark for the median.
 
-  'na': color with which the box for NA values will be filled.
+  na="grey90": color with which the box for NA values will be filled.
     
-  The argument needs to contain only the elements that should be
-  different from the default values.
+  For 'plmboxes', the argument needs to contain only the elements that
+  should be different from the default values.
+}
+\item{lwd}{named vector or list selecting the line width to be used,
+  with named elements:
+
+  med=3: line width for the mark showing the median
+
+  range=2: line width for the line along the range of the data
+    
+  For 'plmboxes', the argument needs to contain only the elements that
+  should be different from the default values.
 }
   \item{\dots}{additional arguments passed to 'plot'
 }

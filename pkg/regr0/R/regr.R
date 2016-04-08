@@ -833,7 +833,6 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
-  BR()
   ## p.symb and signif
   ltb$signif <- sqrt(pmax(0,ltb$testst)/ltstq)
   lic <- lcont[lcont>0]
@@ -899,7 +898,7 @@ contr.wsum <-
   function (n, y=NULL, w = NULL, contrasts = TRUE, sparse = FALSE) 
 {  ## provide weighted sum contrasts
   if (is.data.frame(n)) {
-    if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all),]
+    if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all),, drop=FALSE]
     df <- n
     for (lj in 1:ncol(df)) 
       if(class(df[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
@@ -4921,7 +4920,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   width=1, wfac=NULL, h0=NULL, adj=0.5, extquant=TRUE, 
   ilim=NULL, ilimext=0.05, widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
-  colors=c(box="lightblue2",med="blue",na="gray90"))
+  colors=c(box="lightblue2",med="blue",na="gray90"), lwd=c(med=3, range=2))
 {
   ## Purpose:   multi-boxplot
   ## ----------------------------------------------------------------------
@@ -4991,14 +4990,15 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
       }
   }
   lines(c(at,at), # +linepos*0.01*diff(par("usr")[1:2])*(0.5-adj),
-        lrg, lwd=2)
+        lrg, lwd=lwd["range"])
   if (outliers&&length(loutl)) {
       lat <- rep(at,length(loutl))
       segments(lat-lwoutl*adj, loutl, lat+lwoutl*(1-adj), loutl)
   }
 }
   ## median
-  lines(at+lwmed*c(-adj,1-adj), rep(lmed,2), col=colors[["med"]], lwd=3)
+  lines(at+lwmed*c(-adj,1-adj), rep(lmed,2), col=colors[["med"]],
+        lwd=lwd["med"])
 ##
   invisible(structure(lfac/length(x), q=lq, width=lwid))
 }
@@ -5008,8 +5008,7 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL, 
     labelsvert=FALSE, mar=NULL,
-    widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003),
-    colors=c(box="lightblue2",med="blue",na="gray90",refline="magenta"),...)
+    widthfac=NULL, colors=NULL, lwd=NULL, ...)
 {
   ## Purpose:    multibox plot
   ## ----------------------------------------------------------------------
@@ -5023,19 +5022,23 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   formula <- as.formula(formula)
   if (length(formula)<3) stop("!plmboxes! formula must have left hand side")  
   ## widths
-  lwfac <- c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003)
-  if (is.null(names(widthfac)))
-      names(widthfac) <- names(lwfac)[1:length(widthfac)]
-  if (any(names(widthfac)%nin%names(lwfac)))
-    warning(":plmboxes: argument 'widthfac' has unsuitable names") else
-    lwfac[names(widthfac)] <- widthfac
+##-   lwfac <- c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003)
+##-   if (is.null(names(widthfac)))
+##-       names(widthfac) <- names(lwfac)[1:length(widthfac)]
+##-   if (any(names(widthfac)%nin%names(lwfac)))
+##-     warning(":plmboxes: argument 'widthfac' has unsuitable names") else
+##-     lwfac[names(widthfac)] <- widthfac
+  lwfac <- modarg(widthfac, c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003))
   ## colors
-  lcol <- list(box="lightblue",med="blue",na="gray90",refline="magenta")
-  if (is.null(names(colors))) names(colors) <- names(lcol)[1:length(colors)]
-  colors <- as.list(colors)
-  if (any(names(colors)%nin%names(lcol)))
-    warning(":plmboxes: argument 'colors' has unsuitable names") else
-  lcol[names(colors)] <- colors
+##-   lcol <- list(box="lightblue",med="blue",na="gray90",refline="magenta")
+##-   if (is.null(names(colors))) names(colors) <- names(lcol)[1:length(colors)]
+##-   colors <- as.list(colors)
+##-   if (any(names(colors)%nin%names(lcol)))
+##-     warning(":plmboxes: argument 'colors' has unsuitable names") else
+##-   lcol[names(colors)] <- colors
+  lcol <- modarg(colors,
+                 c(box="lightblue",med="blue",na="gray90",refline="magenta") )
+  llwd <- modarg(lwd, c(med=3, range=2))
   ## data
   if (length(dim(data))!=2||nrow(data)==0)
     stop("!plmboxes! Argument 'data' has dimension   ",
@@ -5135,7 +5138,7 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
            adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE,
            ilim=if(ljlim) ilim, ilimext=ilimext, 
-           widthfac=lwfac, colors=lcol)
+           widthfac=lwfac, colors=lcol, lwd=llwd)
     if (llr) ## second half of asymmetrix  mbox
       if (length(llir <- llist[[li+lng]]))
         plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
@@ -5607,6 +5610,25 @@ UserDefault <- UserOptions <-
 ##- if (!exists("UserOptions")) UserOptions <- UserDefault  else
 ##-     userOptions(default="unset")
 ## ===========================================================================
+modarg <- function(arg=NULL, default) {
+  if (is.null(arg)) return(default)
+  if (is.null(names(arg))) {
+    if (length(arg)>length(default)) {
+      warning(":modarg: argument too long. I use default")
+      return(default)
+    }
+    names(arg) <- names(default)[1:length(arg)]
+  }
+  if (any(i <- names(arg)%nin%names(default))) {
+    warning(":modarg: argument has unsuitable names: ", names(arg)[i])
+    arg <- arg[!i]
+  }
+  if (length(arg)==0) return(default)
+  if (is.list(default)) arg <- as.list(arg)
+  default[names(arg)] <- arg
+  default
+}
+## ---------------------------------------------------------
 last <-
 function(data,n = NULL, ncol=NULL, drop=is.matrix(data))
 {
