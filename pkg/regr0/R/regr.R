@@ -97,7 +97,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   ## convert character to factor
   for (lvn in 1:ncol(lallvars)) {
     lv <- lallvars[[lvn]]
-    if (is.character(lv)|is.factor(lv)) lallvars[[lvn]] <- factor(lv)
+    if (is.character(lv)|is.factor(lv)) lallvars[[lvn]] <- factor.na(lv)
   }
   ## g. --- check for variables with a single value
   lcgetv[[1]] <- as.name("model.frame")
@@ -754,6 +754,16 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
       df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
       stringsAsFactors=FALSE)
                 ))
+## degrees of freedom
+  ldfr <- df.residual(lreg)
+  if (ldfr<1) {
+    warning(":regr/i.termtable: no degrees of freedom left.")
+    return(list(termtable = data.frame(
+      coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciHigh=NA, 
+      df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+      stringsAsFactors=FALSE)
+                ))
+  }    
   pvCutpoints <- c(0, 0.001, 0.01, 0.05, 0.1, 1)
   pvSymbols <- c("***", "**", "*", ".", " ", "")
   pvLegend <- paste(rbind(pvCutpoints,pvSymbols), collapse="  ")
@@ -783,8 +793,6 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   if (inherits(lreg,"rlm"))  ldr1[,4] <- ldr1[,2]/ldr1[,1] ## !!!
   if (inherits(lreg,"mlm")||inherits(lreg,"manova"))
     return(list(termtable=ldr1))  ## !!! needs much more
-## degrees of freedom
-  ldfr <- df.residual(lreg)
   ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
     if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
   ltstq1 <- sqrt(ltstq[1])
@@ -798,7 +806,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
   if (class(lreg)[1]%in%c("polr","coxph")) lasg <- lasg[-1]
 ## terms with 1 coef
-  lcont1 <- lcont <- lasg[licasg <- !lasg%in%lasg[duplicated(lasg)]]
+  lcont1 <- lcont <- lasg[licasg <- which(!lasg%in%lasg[duplicated(lasg)])]
 ## vif --> R2.x
   lr2 <- NA
   if (vif) {
@@ -1128,7 +1136,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
 ## ==========================================================================
 summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
-allcoef <- function (object, use.na = TRUE, se = 2,
+allcoef <- function (object, se = 2, # use.na = TRUE, 
                       df = df.residual(object), ...) 
 {
   if (is.atomic(object)) stop("!allcoef! inadequate first argument")
@@ -1192,9 +1200,9 @@ allcoef <- function (object, use.na = TRUE, se = 2,
     mm[is.na(mm)] <- NA
   }
   ## calculate dummy coefs
-  coef <- object$coefficients
-  if (!use.na) 
-    coef[is.na(coef)] <- 0
+  coef <- cf <- object$coefficients
+##-   if (!use.na) 
+##-     coef[is.na(coef)] <- 0
   if (se) {
     cov <- vcov(object)
     if (is.null(cov)) {
@@ -1209,7 +1217,7 @@ allcoef <- function (object, use.na = TRUE, se = 2,
   ljfail <- NULL
   for (j in seq_along(tl)) {
     mmr <- rn == tl[j]  ## rows corresponding to the term
-    mmc <- which(asgn == j)  ## columns (logical fails for polr, vcov() too large)
+    mmc <- which(asgn == j & !is.na(cf))  ## columns (logical fails for polr, vcov() too large)
     mmpart <- mm[mmr, mmc, drop=FALSE]
     rrj <- setNames(drop(mmpart %*% coef[mmc]), rnn[mmr])
     if (se) {
@@ -1416,7 +1424,7 @@ add1.regr <-
 ## ==========================================================================
 drop1Wald <-
   function (object, scope=NULL, scale = 0, test = c("none", "Chisq", "F"),
-            k = 2) 
+            k = 2, ...) 
 {
     x <- model.matrix(object)
     offset <- model.offset(model.frame(object))
@@ -4722,7 +4730,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   ## M.Maechler
   l.panel <- function(x, y, indx, indy, pch=1, col=1, cex=cex.points,...) {
     if (is.character(x)) x <- factor(x)
-    if (is.factor(x))
+    if (is.factor(x)&&!is.factor(y))
       plmboxes(y~x, data.frame(x=x,y=y), add=TRUE, ...) else {
         if (is.character(y)) y <- factor(y)
         if (is.factor(y)) y <- as.numeric(y)
@@ -4899,7 +4907,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
         if (jc==ncols||jd1==nv1) lf.axis(4, yaxmar, ylabmar, at[2], j2)
       }
       box(bty=bty)
-      if (any(v1!=v2, na.rm=TRUE)) { # not diagonal
+      if (is.character(all.equal(v1,v2))) { # not diagonal
         panel(v1,v2,jd1,jd2, pch=lpch, col=lcol, ...)
         if (tjref) abline(h=lref[j1],v=lref[j2],lty=ltyref)
       }
@@ -4920,16 +4928,13 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   width=1, wfac=NULL, h0=NULL, adj=0.5, extquant=TRUE, 
   ilim=NULL, ilimext=0.05, widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
-  colors=c(box="lightblue2",med="blue",na="gray90"), lwd=c(med=3, range=2))
+  colors=c(box="lightblue2",med="blue",na="gray90"), lwd=c(med=3, range=2),
+  warn=options("warn") )
 {
   ## Purpose:   multi-boxplot
   ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 14 Dec 2013, 10:09
-##-   if (is.null(col))
-##-     col <- "gray70"
-  f.box <- function(wid, quant, col) {
+  f.box <- function(wid, quant, col, lwmax) {
     if (wid>lwmax) {
       polygon(at+lwmax*lpos, quant, col="black")
       if (is.na(col)||col==0) col="white"
@@ -4937,11 +4942,13 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
     }  else 
     if(wid>0) polygon(at+wid*lpos, quant, col=col)
   }
-  
-  if (length(x)==0) {
-    warning(":plmbox: no data")
-    return()
-  }
+
+  lq <- lwid <- NULL
+  lfac <- 0
+  lx <- x[!is.na(x)]
+  if (length(lx)==0) {
+    if (warn>=0) warning(":plmbox: no non-missing data")
+  } else {
   stopifnot(length(width)==1,length(wfac)<=1)
   if (is.null(probs))
       probs <- if (sum(!is.na(x))<20) c(0.1,0.5,1)/2 else
@@ -4953,53 +4960,56 @@ plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   if (length(box.col)==1)
     box.col <- ifelse(0.25<=last(lprobs,-1) & lprobs[-1]<=0.75, box.col, NA)
   ## values for degenerate case
-  lfac <- if (is.null(wfac)) width*2*IQR(x, na.rm=TRUE) else wfac*length(x)
+  lxsd <- IQR(lx)
+  lfac <- if (is.null(wfac)) width*2*lxsd else wfac*length(lx)
                                         # was mad/dnorm(0)
-  lq <- lwid <- NULL
-  lmed <- median(x, na.rm=TRUE)
+  lmed <- median(lx)
   lwmed <- width
-  lhtot <- diff(range(x, na.rm=TRUE))
-  if (lhtot>0) { ## non-degenerate
-  if (is.null(h0)) h0 <- lhtot*0.02
-  lrg <- range(x, na.rm=TRUE)
-  lqy <- lq <- quinterpol(x, probs=lprobs, extend=extquant)
-  if (length(ilim)) {
+  lrg <- range(lx)
+  lrgd <- diff(lrg)
+  loutl <- lx
+  lwoutl <- widthfac["outl"]
+  if (lrgd > 0) { ## non-degenerate
+    if (is.null(h0))
+      h0 <- if (lxsd==0) lrgd*0.02  else lxsd*0.01
+    lqy <- lq <- quinterpol(lx, probs=lprobs, extend=extquant)
+    if (length(ilim)) {
       lrg <- plcoord(lrg, range=ilim, limext=ilimext)
       lqy <- plcoord(lqy, range=ilim, limext=ilimext)
-  }
-  loutl <- x[x<min(lq)|x>max(lq)]
+    }
+    loutl <- lx[lx<min(lq)|lx>max(lq)]
   ## ---
-  lwid <- lfac*diff(lprobs)/pmax(diff(lq),h0)
-  lwmax <- widthfac["max"]*lfac*0.5/IQR(x, na.rm=TRUE)
-  lwmed <- max(widthfac["med"]*min(lwmax,max(nainf.exclude(lwid))),
-               widthfac["medmin"],na.rm=TRUE)
-  lpos <- c(-adj,-adj,1-adj,1-adj)
-  lwoutl <- widthfac["outl"]
-  if (is.na(lwoutl)) lwoutl <- 0.1*lwmax
+    lwid <- lfac*diff(lprobs)/pmax(diff(lq),h0)
+##    lxsd <- IQR(x, na.rm=TRUE)
+    lwmax <- widthfac["max"]*lfac*0.5/ifelse(lxsd>0, lxsd, 1)
+    lwmed <- max(widthfac["med"]*min(lwmax,max(nainf.exclude(lwid))),
+                 widthfac["medmin"],na.rm=TRUE)
+    lpos <- c(-adj,-adj,1-adj,1-adj)
+    if (is.na(lwoutl)) lwoutl <- 0.1*lwmax
   ## ---
-  for (li in 1:(length(lprobs)-1)) 
-      f.box(lwid[li], lqy[li+c(0,1,1,0)], box.col[li])
-  if (!is.null(na.pos)) {
-      lmna <- mean(is.na(x))
-      if (lmna) {
-          ldna <- diff(na.pos)
-          if (length(ldna)==0 || is.na(ldna) || ldna==0)
-              stop("!plmbox! argument 'na.pos' not suitable")
-          lwidna <- lfac*lmna/abs(ldna)
-          f.box(lwidna, na.pos[c(1,2,2,1)], colors[["na"]])
-      }
-  }
-  lines(c(at,at), # +linepos*0.01*diff(par("usr")[1:2])*(0.5-adj),
-        lrg, lwd=lwd["range"])
-  if (outliers&&length(loutl)) {
-      lat <- rep(at,length(loutl))
-      segments(lat-lwoutl*adj, loutl, lat+lwoutl*(1-adj), loutl)
-  }
-}
+    for (li in 1:(length(lprobs)-1)) 
+      f.box(lwid[li], lqy[li+c(0,1,1,0)], box.col[li], lwmax)
+  }  ## else  warning(":plmbox: degenerate group. no  mbox")
   ## median
   lines(at+lwmed*c(-adj,1-adj), rep(lmed,2), col=colors[["med"]],
         lwd=lwd["med"])
-##
+  lines(c(at,at), # +linepos*0.01*diff(par("usr")[1:2])*(0.5-adj),
+        lrg, lwd=lwd["range"])
+  if (outliers&&length(loutl)) {
+    lat <- rep(at,length(loutl))
+    segments(lat-lwoutl*adj, loutl, lat+lwoutl*(1-adj), loutl)
+  }
+}
+  if (!is.null(na.pos)) {
+    lmna <- mean(is.na(x))
+    if (lmna) {
+      ldna <- diff(na.pos)
+      if (length(ldna)==0 || is.na(ldna) || ldna==0)
+        stop("!plmbox! argument 'na.pos' not suitable")
+      lwidna <- lfac*lmna/abs(ldna)
+      f.box(lwidna, na.pos[c(1,2,2,1)], colors[["na"]], lwmax)
+    }
+  }
   invisible(structure(lfac/length(x), q=lq, width=lwid))
 }
 ## ====================================================================
@@ -5008,34 +5018,19 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL, 
     labelsvert=FALSE, mar=NULL,
-    widthfac=NULL, colors=NULL, lwd=NULL, ...)
+    widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, ...)
 {
   ## Purpose:    multibox plot
   ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 14 Dec 2013, 23:38
-##  widthfac <- 1
   f.ylim <- function(ylm, ext)
     c((1+ext)*ylm[1]-ext*ylm[2], (1+ext)*ylm[2]-ext*ylm[1])
 
   formula <- as.formula(formula)
   if (length(formula)<3) stop("!plmboxes! formula must have left hand side")  
   ## widths
-##-   lwfac <- c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003)
-##-   if (is.null(names(widthfac)))
-##-       names(widthfac) <- names(lwfac)[1:length(widthfac)]
-##-   if (any(names(widthfac)%nin%names(lwfac)))
-##-     warning(":plmboxes: argument 'widthfac' has unsuitable names") else
-##-     lwfac[names(widthfac)] <- widthfac
   lwfac <- modarg(widthfac, c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003))
-  ## colors
-##-   lcol <- list(box="lightblue",med="blue",na="gray90",refline="magenta")
-##-   if (is.null(names(colors))) names(colors) <- names(lcol)[1:length(colors)]
-##-   colors <- as.list(colors)
-##-   if (any(names(colors)%nin%names(lcol)))
-##-     warning(":plmboxes: argument 'colors' has unsuitable names") else
-##-   lcol[names(colors)] <- colors
+  ## colors, widths
   lcol <- modarg(colors,
                  c(box="lightblue",med="blue",na="gray90",refline="magenta") )
   llwd <- modarg(lwd, c(med=3, range=2))
@@ -5059,6 +5054,10 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   lsd <- mean(sapply(llist,mad,na.rm=TRUE),na.rm=TRUE)
   width <- rep(width, length=lng)
   lfac <- width*lsd/(max(lnn)*(1+llr))
+  if (is.null(minheight)) {
+    lscales <- sapply(llist, IQR, na.rm=TRUE)
+    minheight <- median(lscales)*0.02
+  }
   ## labels
   if (is.null(xlab)||is.na(xlab)) {
       xlab <- as.character(formula[[3]])
@@ -5076,13 +5075,14 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   if (is.null(probs))
       probs <- if (sum(!is.na(ly))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
                c(0.05,0.1,0.25,0.50,0.75,1)/2
-  ## graphics
+  ## box for NA's?
   if (is.null(na)||is.na(na)||(is.logical(na)&&!na)) na.pos <- NULL else 
       if (is.logical(na))
           na.pos <- c(min(ly, na.rm=TRUE)*(1-0.3)-0.3*max(ly, na.rm=TRUE))
   if (length(na.pos)==1)
     na.pos <- na.pos+ 0.03*diff(range(ly,na.rm=TRUE))*c(-1,1)
   lusr <- par("usr")
+  ## plot range
   lrg <- if (add) lusr[3:4] else range(ly,na.pos, na.rm=TRUE)
   if (!is.null(ilim)) if (length(ilim)!=2 || ilim[1]>=ilim[2]) {
     warning(":plmboxes: unsuitable argument 'ilim'")
@@ -5094,14 +5094,17 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     xlim <- lusr[1:2]
     ylim <- lusr[3:4]
   } else {
+    if(is.null(xlim)) xlim <- 
+      range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
     if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
+    ## margins
     if (is.null(mar)) {
       mar <- c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
       oldpar <- par(mar=mar)
       on.exit(par(oldpar))
     } else par(mar=mar)
-    if(is.null(xlim)) xlim <- 
-      range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
+##-     if(is.null(xlim)) xlim <- 
+##-       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
   ## ---------------------------------
     plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
     if (axes) {
@@ -5117,7 +5120,7 @@ plmboxes <- function(formula, data, width=1, at=NULL,
         lines(lusr[c(1,2,2,1,1)],ilim[c(1,1,2,2,1)])
       } else box()
     }
-    mtext(xlab,1,par("mar")[1]-1)
+    mtext(xlab, 1, par("mar")[1]-1)
   } # if (!add)
   ## ---
   if (!is.null(refline))
@@ -5136,15 +5139,16 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     if (is.na(at[li])) next
     if (length(lli <- llist[[li]])) 
     plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
+##           adj=0.5*(1+llr), na.pos=na.pos, minheight=minheight, extquant=TRUE,
            adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE,
            ilim=if(ljlim) ilim, ilimext=ilimext, 
-           widthfac=lwfac, colors=lcol, lwd=llwd)
+           widthfac=lwfac, colors=lcol, lwd=llwd, warn=-1)
     if (llr) ## second half of asymmetrix  mbox
       if (length(llir <- llist[[li+lng]]))
         plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
                adj=0, na.pos=na.pos, extquant=TRUE,
                ilim=ilim, ilimext=ilimext, 
-               widthfac=lwfac, colors=lcol)
+               widthfac=lwfac, colors=lcol, warn=-1)
   }
   invisible(at)
 }
@@ -5636,7 +5640,6 @@ function(data,n = NULL, ncol=NULL, drop=is.matrix(data))
   if (is.null(ldim)) {
     if (is.null(n)) n <- 1
     ldt <- length(data)
-    if (is.null(n)) n <- ldt
     return(data[sign(n)*((ldt-abs(n)+1):ldt)])
   }
   if (length(ldim)!=2)
@@ -5647,6 +5650,17 @@ function(data,n = NULL, ncol=NULL, drop=is.matrix(data))
   data[sign(n)*((ldim[1]-abs(n)+1):ldim[1]),
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
+## ==============================================================
+factor.na <- function(x, ...)
+{
+  lfac <- factor(x, ...)
+  lna <- is.na(lfac)
+  if (any(lna)) {
+    levels(lfac) <- c(levels(lfac),".NA.")
+    lfac[lna] <- ".NA."
+  }
+  lfac
+}    
 ## ==============================================================
 nainf.exclude <- function (object, ...)
   ## na.omit, modified to omit also Inf and NaN values

@@ -23,7 +23,7 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
     h0=NULL, adj=0.5, extquant=TRUE, ilim=NULL, ilimext=0.05, 
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
     colors=c(box="lightblue2",med="blue",na="gray90"),
-    lwd=c(med=3, range=2))
+    lwd=c(med=3, range=2), warn=options("warn"))
 }
 
 \arguments{
@@ -144,8 +144,9 @@ Specific arguments for 'plmbox':
 \item{wfac}{factor by which the widths of the boxes must be multiplied.
   If given, it overrides 'width'
 }
-\item{h0}{minimal class width for the boxes (in case two quantiled are
-  identical)
+\item{minheight}{minimal class width ("height") for the boxes (in case
+  two quantiled are [almost] identical). The default is 0.02 times
+  the (median of the within group) IQR.
 }
 \item{adj}{adjustment of the boxes. 'adj=0' leads to boxes aligned on
   the left, 'adj=1', on the right, 'adj=0.5', centered. Other values of
@@ -154,6 +155,7 @@ Specific arguments for 'plmbox':
 \item{extquant}{logical, passed to \code{\link{quinterpol}}:
   Should the quantiles be extrapolated beyond the range of the data?
 }
+\item{warn}{level of warning for the case when there is no non-missing data}
 }
 \details{A multibox plot is a generalization (and modification) of the
   ordinary box plot that draws more details of the distribution in the
