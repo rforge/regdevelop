@@ -195,6 +195,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   environment(lcl$formula) <- environment() ## !!!
 ##-  lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
+  if (lfitname=="i.survreg") lcl$yy <- ly
   old.opt <- NULL
   if(is.atomic(contrasts)&&length(contrasts)) {
     if(!is.character(contrasts))
@@ -624,7 +625,7 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
 }
 ## -----------------------------------------------------------------------
 i.survreg <-
-  function(formula, data, family, fname="ph", method, control,
+  function(formula, data, family, yy, fname="ph", method, control,
            vif=TRUE, termtable=TRUE, ...)
 {
   ## Purpose:  internal: fit ordered y
@@ -645,11 +646,14 @@ i.survreg <-
     lcall$dist <- fname
     lcall$method <- lcall$control <- NULL
   }
-  lcall$fname <- lcall$family <- lcall$vif <- NULL
+  lyy <- yy ## lreg$y
+  lcall$yy <- lcall$fname <- lcall$family <- lcall$vif <- NULL
   lcall$x <- TRUE
   ## ---
   lreg <- eval(lcall, envir=environment(formula))
   ## ---
+  class(lreg$y) <- "Surv"
+  attr(lreg$y, "type") <- attr(lyy, "type")
 ##  lreg$call$formula <- formula
   lreg1 <- if (u.debug()) summary(lreg) else
            try(summary(lreg), silent=TRUE)
@@ -684,6 +688,28 @@ i.survreg <-
   lsd <- sqrt(diag(lcov))
   lreg$correlation <- lcov/outer(lsd,lsd)
   lreg$fitfun <- lfitfun
+  lres <- residuals(lreg)
+  ly <- lreg$y
+##-   lreg$n.censored <-
+##-     if (attr(ly,"type")%in%c("right","left"))
+##-       table(ly[,2])[2] else  sum(ly[,2]!=1)    #interval
+  ltype <- attr(ly,"type")
+  ##-  lreg$n.censored <- sum(lres[,"prob"]>0, na.rm=TRUE)
+  ltb <- table(ly[,2])
+  lfit <- lres[,"fit"]
+  llimit <- attr(ly,"limit")
+  lreg$n.censored <- NA
+  if (ltype=="left") {
+    lreg$n.censored <- structure(ltb[2], names="left")
+    if (length(llimit))
+      lreg$n.fitout <- structure(sum(lfit<llimit, na.rm=TRUE), names="left")
+  } else {
+    if (ltype=="right") {
+      lreg$n.censored <- structure(ltb[1], names="right")
+    if (length(llimit))
+    lreg$n.fitout <- structure(sum(lfit>llimit, na.rm=TRUE), names="right")
+    } 
+  }
   if (termtable) {
     ltt <- i.termtable(lreg, lreg1$table, data, lcov, ltesttype="Chisq",
                        lsdy=1, vif=vif)
@@ -693,6 +719,7 @@ i.survreg <-
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
   lreg$distrname <- if (lfitfun=="coxph") "prop.hazard" else lreg$dist
+  lreg$residuals <- lres
   ## result of i.survreg
   lreg
 }
@@ -1069,9 +1096,16 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     }
   ## deviances
   if (length(x$deviance)>0) {
-    if (length(x$devtable)>0) {
-  #    cat("\n")
-      print(x$devtable)
+    if (length(x$devtable)) print(x$devtable)
+    if (length(x$n.censored)) {
+      lnc <- 100*x$n.censored/x$n.obs
+      cat(paste("\ncensored         ",
+        paste(paste(names(lnc), "=", round(lnc,1), "%"), collapse=" ;  ")))
+    }
+    if (length(x$n.fitout)) {
+      lnf <- 100*x$n.fitout/x$n.obs
+      cat(paste("\nfit outside limit",
+        paste(paste(names(lnf), "=", round(lnf,1), "%"), collapse=" ;  ")))
     }
     cat("\nDistribution: ",x$distrname)
     if (length(x$dispersion))
@@ -4786,6 +4820,11 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   if (!is.null(vnames)) {
     vnames <- rep(vnames,length=nvv)
     lvnm[!is.na(vnames)] <- vnames[!is.na(vnames)]
+  }
+  lvsurv <- sapply(ldata, function(x) inherits(x, "Surv") )
+  if (any(lvsurv)) {
+    lf.surv <- function(dt) structure(dt[,1], pch=dt[,2]+1)
+    ldata[lvsurv] <- lapply(ldata[lvsurv], lf.surv)
   }
   vnames <- lvnm
   ## plotting characters, color

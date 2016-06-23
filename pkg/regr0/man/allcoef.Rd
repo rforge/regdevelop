@@ -9,7 +9,7 @@ all coefficients of a model fit
 A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
-allcoef(object, use.na = TRUE, se = 2, df = df.residual(object), ...)
+allcoef(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
 \method{print}{allcoef}(x, columns=userOptions("allcoefcolumns"),
                         transpose=FALSE, ...)
 }
@@ -18,8 +18,8 @@ allcoef(object, use.na = TRUE, se = 2, df = df.residual(object), ...)
   \item{object}{a model fit, produced, e.g., by a call to \code{lm} or
     \code{regr}
 }
-  \item{use.na}{as in \code{\link{dummy.coef}}
-}
+%%-   \item{use.na}{as in \code{\link{dummy.coef}}
+%%- }
   \item{se}{logical: Should inference statistics be generated?
 }
   \item{df}{degrees of freedom for t-test

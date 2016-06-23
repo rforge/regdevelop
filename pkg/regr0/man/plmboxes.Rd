@@ -18,9 +18,9 @@ plmboxes(formula, data, width=1, at=NULL,
     refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsvert=FALSE, mar=NULL,
-    widthfac=NULL, colors=NULL, lwd=NULL, ...)
+    widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, ...)
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
-    h0=NULL, adj=0.5, extquant=TRUE, ilim=NULL, ilimext=0.05, 
+    minheight=NULL, adj=0.5, extquant=TRUE, ilim=NULL, ilimext=0.05, 
     widthfac=c(max=2, med=1.3, medmin=0.3, outl=NA),
     colors=c(box="lightblue2",med="blue",na="gray90"),
     lwd=c(med=3, range=2), warn=options("warn"))
