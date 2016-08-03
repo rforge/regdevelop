@@ -18,7 +18,7 @@
          smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
-         smooth = TRUE, x.smooth = smooth,
+         smooth = 2, x.smooth = smooth,
          smooth.par=NA, smooth.iter=NULL, smooth.sim=19, nxsmooth=51,
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
@@ -77,8 +77,9 @@
     \code{\link{plmboxes}} be used?}
   \item{jitterbinary}{logical: should variables with only 2 distinct values be
     treated as factors, i.e., jittered?}
-  \item{smooth}{if TRUE, smooths are added to the plots where
-    appropriate. If it is a function, it is assumed to define the smooths.
+  \item{smooth}{if TRUE (or 1), smooths are added to the plots where
+    appropriate. If \code{==2}, smmooths to positive and negative
+    residuals-from-smooth are also shown.
   }
   \item{x.smooth}{like \code{smooth}, for the latter plots}
 %%  \item{smooth.rob}{if TRUE, smooth will be done robustly.
@@ -190,7 +191,12 @@
    of these modified residuals: they are scaled by the smoothed scale
    shown in the 'tascale' plot, after these scales have been
    standardized to have a median of 0.674 (=\code{qnorm(0.75)}).
-}
+
+   The smoothing function used by default is \code{\link{smoothRegr}},
+   which calls \code{\link{loess}}. This can be changed by setting
+   \code{userOptions(smoothFunction=<func>)}, which must have the same
+   arguments as \code{smoothRegr}.
+ }
 \value{
 none
 }

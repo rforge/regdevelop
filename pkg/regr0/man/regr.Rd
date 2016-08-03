@@ -19,7 +19,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   contrasts=getUserOption("regr.contrasts"),
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
-  testlevel = 0.05, ...)
+  factorNA = TRUE, testlevel = 0.05, ...)
 
 \method{summary}{regr}(object, ...)
 }
@@ -85,6 +85,8 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
     not be generated}
   \item{vif}{ a logical value indicating whether the collinearity
     measure R2.j ahould be calculated }
+  \item{factorNA}{ a logical value indicating whether missing values in
+    factors should be re-coded by a respective level }
   \item{testlevel}{level for significance testing and confidence intervals}
   \item{\dots}{ other argument to be passed to the fitting function }
   \item{object}{'summary.regr' simply returns its only argument object.}
@@ -191,8 +193,7 @@ t.r <- regr(dist.unordered~age+education+location, data=d.surveyenvir)
 ## This example fails in the installation phase...
 require(MASS) ## should not be needed
 data(housing, package="MASS")
-t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq,
-            data = housing)
+t.r <- regr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 plot(t.r)
 
 ## multivariate regression

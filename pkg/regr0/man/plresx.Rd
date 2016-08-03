@@ -15,7 +15,7 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             weights = NULL, wsymbols=NULL, symbol.size=NULL,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
-            smooth = TRUE, smooth.par=NA, smooth.iter=NULL,
+            smooth = 2, smooth.par=NA, smooth.iter=NULL,
             smooth.sim=19, nxsmooth=51, smooth.group=NULL,
             smooth.col=NULL, smooth.pale = 0.2, smooth.legend=TRUE, 
             multnrows = 0, multncols = 0, 
@@ -68,8 +68,8 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
   \item{jitterbinary}{logical: should variables with only 2 distinct values be
     treated as factors, i.e., jittered?}
   \item{smooth}{if TRUE, a smooth line will be fitted to each plot.
-    By default, \code{\link{loess}} is used. Alternatively,
-    another smoothing function can be given as argument \code{smooth}}
+    If \code{==2}, smmooths to positive and negative
+    residuals-from-smooth are also shown.}
   \item{smooth.par}{parameter driving the smooth: argument \code{span}
     if \code{loess} is used, which defaults to
     \code{3*nobs^log10(1/2)*(1+glm)}, where \code{glm==1} for glm models}
@@ -147,6 +147,11 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
     obtained by varying the explanatory variable, keeping all the other
     variables at their "central value" (the mean of continuous variables
     and the mode of factors).
+
+   The smoothing function used by default is \code{\link{smoothRegr}},
+   which calls \code{\link{loess}}. This can be changed by setting
+   \code{userOptions(smoothFunction=<func>)}, which must have the same
+   arguments as \code{smoothRegr}.
 }
 }
 \value{

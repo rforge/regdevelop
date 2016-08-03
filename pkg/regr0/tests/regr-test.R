@@ -21,6 +21,8 @@ r.r3 <- regr(y~f1+x1+x2+f1:x2, data=t.d)
 
 r.r4 <- regr(y~1, data=t.d)
 
+## DB()
+names(t.d)
 r.r5 <- regr(formula = y~f1+x1+x2, data=t.d, weights=0:7)
 
 ##- plot(r.r2,plotselect=
@@ -34,8 +36,9 @@ with(r.blast,
      stopifnot(all.equal(
      termtable[-1,"signif"],
                           c(3.40649491, -12.0192639, 8.1947910))
-                )
+               )
      )
+stopifnot(length(residuals(r.blast))==nrow(d.blast))
 
 plot(r.blast, smooth.group=location)
 t.r <- regr(tremor ~ distance + charge + location, data=d.blast)

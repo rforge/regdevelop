@@ -1,11 +1,31 @@
 importFrom("stats",
-           ## S3 Generics for which we define methods:
-           add1, drop1, extractAIC, fitted, predict, residuals)
-importFrom("graphics", plot)
+                      ## S3 Generics for which we define methods:
+           "add1", "drop1", "extractAIC", "fitted", "predict", "residuals",
+             ".checkMFClasses", ".getXlevels", "IQR",
+             "add.scope", "aggregate", "anova", "as.dist", "as.formula",
+             "binomial", "coef", "coefficients", "confint", "contr.sum",
+             "dcauchy", "delete.response", "deviance", "df.residual",
+             "dist", "dlogis", "dnorm", "drop.scope", "factor.scope",
+             "formula", "glm.fit", "hat", "lm", "lm.fit", "loess", "mad",
+             "mahalanobis", "median", "model.frame", "model.matrix",
+             "model.offset", "model.response", "model.weights",
+             "na.exclude", "na.omit", "na.pass", "napredict", "naresid",
+             "nobs", "optim", "pcauchy", "pchisq", "pf", "plogis",
+             "pnorm", "ppoints", "pt", "pweibull", "qchisq", "qf",
+             "qlogis", "qnorm", "qqnorm", "qt", "quantile", "rbinom",
+             "resid", "rnorm", "rpois", "runif", "sd", "setNames",
+             "symnum", "terms", "update", "update.formula", "var",
+             "vcov")
+  importFrom("utils", "getS3method", "recover")
+  importFrom("graphics", "plot", "abline", "axis", "box", "frame", "legend",
+             "lines", "matlines", "mtext", "par", "points", "polygon",
+             "segments", "symbols", "text")
+  importFrom("grDevices", "col2rgb", "dev.list", "grey", "palette",
+             "rgb")
 
 importFrom("MASS", rlm, polr)
 importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
-importFrom("survival", coxph, survreg, Surv, strata, cluster)
+importFrom("survival", "coxph", "survreg", "Surv", "strata", "cluster")
 
 importFrom("robustbase", lmrob)
 
@@ -27,7 +47,7 @@ export(asinp,
        drop1.regr, ## drop1.default, drop1.mlm, drop1.multinom,
        drop1Wald,
        dropdata, ## extractAIC.regr,
-       fitcomp,
+       factorNA, fitcomp,
        fitted.regr, fitted.polr,
        format.modelTable,
        getmeth,
@@ -44,11 +64,12 @@ export(asinp,
        notna,
        plcoord, plfitpairs, plmatrix,
        plot.regr, plot.xdistResscale,
+       plmbox, plmboxes, 
        plres2x, plresx, plTA.polr, 
        predict.mlm, predict.polr, predict.regr,
        print.allcoef, print.modelTable, print.mregr, print.regr,
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
-       quantilew,
+       quantilew, quinterpol,
        regr,
        residuals.coxph, residuals.polr, residuals.survreg,
        ## RNAMES,
@@ -66,9 +87,8 @@ export(asinp,
        getUserOption, UserDefault, UserOptions, ## <- ??
        ## u.true,
        ## vif.regr,
-       warn, xdistResdiff,
-       xdistResscale,
-       plmbox, plmboxes, quinterpol
+       warn,
+       xdistResdiff, xdistResscale, xNA
        )
 
 S3method(add1, default)

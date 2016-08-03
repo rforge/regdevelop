@@ -442,6 +442,7 @@ r.mod1 <- regr(y~sex+polit,data=t.d,family="gaussian")
 drop1(r.mod1)
 ## ---------------------------------------
 require(survival)
+data(ovarian, package="survival")
 # d.ovarian <- ovarian
 t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx,
                 data = ovarian, dist = "weibull")
