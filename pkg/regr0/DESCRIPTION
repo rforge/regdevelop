@@ -1,7 +1,7 @@
 Package: regr0
 Type: Package
 Title: Building regression models
-Version: 1.0-4
+Version: 1.0-5
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
 Imports: stats, graphics, MASS, nnet, survival, robustbase, quantreg
