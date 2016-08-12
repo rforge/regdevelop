@@ -14,7 +14,9 @@
 \arguments{
   \item{object}{the result of \code{polr} or of
     \code{glm(,family=binomial)} with binary data.}
-  \item{na.action}{treatment of NAs}
+  \item{na.action}{a list with component \code{na.action}, which
+    determines the na.action for the residual component of \code{object}
+  }
   \item{...}{unused}
 }
 \details{

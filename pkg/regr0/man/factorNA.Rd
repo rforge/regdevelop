@@ -1,5 +1,6 @@
 \name{factorNA}
 \alias{factorNA}
+%% \alias{xNA}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 For a factor, onvert NA to a separate level 

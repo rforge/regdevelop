@@ -493,7 +493,7 @@ i.glm <- function(formula, data, family, fname,
   lreg$sigma <- sqrt(ldisp)
   ## ---
   if (ldisp>0) {
-      lstr <- residuals(lreg,"pearson")/sqrt(ldisp)
+      lstr <- residuals(lreg, type="pearson")/sqrt(ldisp)
       lnaa <- lreg$na.action
       if (class(lnaa)=="exclude") lstr <- lstr[-lnaa]
       lreg$stres <- lstr
@@ -593,6 +593,7 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
   lcall$contrasts <- lcall$fname <- lcall$control <- lcall$family <-
     lcall$vif <- NULL
   lcall$Hess <- TRUE
+## ---
   lreg <- eval(lcall, envir=environment(formula))
 ##  lreg$call$formula <- formula
   lreg$w <- data$.weights.
@@ -625,6 +626,8 @@ i.polr <- function(formula, data, family, fname, weights = NULL,
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
   lreg$dispersion <- 1
+  lreg$residuals <- residuals(lreg)
+  lreg$linear.predictors <- fitted.polr(lreg, type="link")
   ## result of i.polr
   lreg
 }
@@ -675,17 +678,21 @@ i.survreg <-
   ## lreg$scale
   if (lfitfun=="survreg") {
     attr(lreg$scale,"fixed") <- length(lcall$scale)>0
+    ldf <- sum(lreg$df) - lreg$idf
+    ldfr <- length(lreg$linear.predictors)-sum(lreg$df)
   }
   if (lfitfun=="coxph") {
     lreg1$table <- lreg1$coefficients
-    lreg$df.residual <- length(lreg$residual)-length(lreg$coefficients)
+    ldf <- length(lreg$coefficients)
+    ldfr <- length(lreg$residual)-ldf-1
   }
+  lreg$df <- c(model=ldf, residual=ldfr)
+  lreg$df.residual <- ldfr
   lreg$aic <- extractAIC(lreg)
   lreg$deviance <- -2*lreg$loglik
   lchi <- 2*diff(lreg1$loglik)
-  ldf <- sum(lreg$df) - lreg$idf
   ltbd <- cbind(deviance=c(lchi,-2*lreg1$loglik[2]),
-                df=c(ldf, lreg$df.residual+lreg$df),
+                df=c(ldf, ldf+ldfr),
                 p.value=c(pchisq(lchi,ldf,lower.tail=FALSE),NA))
   dimnames(ltbd)[[1]] <- c("Model","Null")
   lreg$devtable <- ltbd
@@ -1801,14 +1808,16 @@ terms2order <- function(object, squared = TRUE, interactions = TRUE)
 }
 ## ==========================================================================
 fitted.regr <-
-  function (object, ...)
+  function (object, type=NULL, ...)
 {
-  class(object) <- setdiff(class(object), "regr")
-  if (pmatch("fitted",names(object),nomatch=0))
-    return(fitted(object, ...))
-  lres <- residuals(object)
+  if (is.null(type)&&pmatch("fitted",names(object),nomatch=0))
+    return( naresid(object$na.action, object$fitted) )
+  lres <- object$residuals
   if (inherits(lres, "condquant"))
-    structure(lres[,"fit"], names=row.names(lres))  else predict(object, ...)
+    structure(lres[,"fit"], names=row.names(lres))  else  {
+      class(object) <- setdiff(class(object), "regr")
+      predict(object, type=type, ...)
+    }
 }
 ## ==========================================================================
 predict.regr <-
@@ -1897,7 +1906,7 @@ vif.regr <- function(mod, cov, mmat)
         cov <- cov[-1, -1]
         assign <- assign[-1]
     }
-    else if (mod$fitfun!="polr")
+    else if (mod$fitfun%nin%c("polr","coxph","survreg"))
       warning("No intercept: vifs may not be sensible.")
     sd <- 1/sqrt(diag(cov))
     if (any(!is.finite(sd))) {
@@ -2174,8 +2183,8 @@ fitted.polr <- function(object, type="link", na.action=object, ...) {
       if (xint > 0)  X <- X[, -xint, drop = FALSE]
       lfit <- drop(X %*% object$coefficients)
     }
-  } else
-    object$fitted
+  } else 
+    lfit <- object$fitted
   if (type=="class")
     lfit <- factor(max.col(lfit), levels = seq_along(object$lev),
             labels = object$lev)
@@ -2257,7 +2266,7 @@ condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
   lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
   lprand <- lp[,1]+(lp[,2]-lp[,1])*
       runif(nrow(lp),(1-randomrange)/2,(1+randomrange)/2)
-##  <<<<<<< .mine
+  ##  <<<<<<< .mine
   lr <- cbind(cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
               uppq=fq(lpp[,3]), random=fq(lprand))*sig,
               prob=lp[,2]-lp[,1])
@@ -2274,7 +2283,24 @@ condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
 ##  >>>>>>> .r32
 }
 ## ===================================================================
-residuals.coxph <- function(object, type="CoxSnellMod", ...)
+residuals.regr <- function(object, type=NA, na.action=object, ...)
+{
+  if (!is.na(pmatch(type,"condquant"))) {
+    lres <-
+      if (object$fitfun%in%c("polr","glm"))
+        residuals.polr(object, type=type, na.action=na.action, ...)  else {
+          if (object$fitfun=="coxph")
+            residuals.coxph(object, type=type, na.action=na.action, ...) else
+          residuals.survreg(object, type=type, na.action=na.action, ...)
+        }
+    return(lres)
+  }
+  if (is.na(type)) return( naresid(na.action$na.action, object$residuals) )
+  class(object) <- setdiff(class(object), "regr")
+  residuals(object, type=type)
+}
+## ===================================================================
+residuals.coxph <- function(object, type="CoxSnellMod", na.action=object, ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
@@ -2297,11 +2323,11 @@ residuals.coxph <- function(object, type="CoxSnellMod", ...)
     lrr[li,] <- lr
   }
   lrr <- cbind(lrr, fit=object$linear.predictor)
-  class(lrr) <- "condquant"
-  naresid(object$na.action, lrr)
+##  class(lrr) <- "condquant"
+  structure( naresid(na.action$na.action, lrr), class=c("condquant", "matrix"))
 }
 ## ===================================================================
-residuals.survreg <- function(object, type="response", ...)
+residuals.survreg <- function(object, type="response", na.action=object, ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
@@ -2340,13 +2366,17 @@ residuals.survreg <- function(object, type="response", ...)
       lrr[li,] <- lr
   }
   lrr <- cbind(lrr, fit=lfit)
-  class(lrr) <- "condquant"
-  structure( naresid(object$na.action, lrr), class=c("condquant", "matrix"))
+##  class(lrr) <- "condquant"
+  structure( naresid(na.action$na.action, lrr), class=c("condquant", "matrix"))
 }
+## ==============================================================
 nobs.survreg <- function(object, use.fallback = TRUE) {
   lnobs <- length(object$linear.predictors)
   if (lnobs==0) lnobs <- NROW(residuals(object))
   lnobs
+}
+nobs.coxph <- function(object, use.fallback = TRUE) {
+  object$n
 }
 ## ===================================================================
 residuals.polr <- function(object, na.action=object, ...)
@@ -2393,8 +2423,8 @@ residuals.polr <- function(object, na.action=object, ...)
 ##-   lr <- cbind(median=qlogis(lpp[,1]),lowq=qlogis(lpp[,2]),
 ##-               uppq=qlogis(lpp[,3]), random=qlogis(lprand), fit=lfit,y=ly)
   dimnames(lr)[[1]] <- row.names(ldt)
-  class(lr) <- c("condquant", "matrix") 
-  naresid(na.action$na.action, lr)
+##-   class(lr) <- c("condquant", "matrix") 
+  structure( naresid(na.action$na.action, lr), class=c("condquant", "matrix"))
 }
 ## ===========================================================================
 linear.predictors <- function(object) {
@@ -2428,20 +2458,12 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
     data <- object$allvars
     if (length(data)==0)
       data <- eval(object$call$data)
-##-     datanm <- as.character(object$call)[3]
-##-     if (is.na(datanm)) stop("no data found")
-##-     data <- eval(parse(text=datanm))
   }
-##-   lmeth <- object$call$method
-##-   lnls <- length(lmeth)>0 && lmeth=="nls"
   lnls <- c(eval(object$call$nonlinear),FALSE)[1]
-  ##-   lvars <- unique(c(vars,all.vars(formula(object)[[3]])))
   lform <- formula(object)[-2]
   lvars <- all.vars(lform)
   if (lnls)
     lvars <- lvars[match(lvars,names(coefficients(object)),nomatch=0)==0]
-##-   lvmiss <- match(lvars,names(data),nomatch=0)==0
-##-   if (any(lvmiss))
   lvmiss <- setdiff(lvars,names(data))
   if (length(lvmiss)) 
     stop(paste("!fitcomp! variable(s)", paste(lvmiss,collapse=", "),
@@ -2492,7 +2514,8 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
     lterms <- attr(lm(formula(object), data=data, method="model.frame"),"terms")
     attr(object$terms,"predvars") <- attr(lterms,"predvars")
   }
-  lprm <- c(predict(object, newdata=xm)) # lf.
+  ltype <- if (object$fitfun=="coxph") "lp"  else NULL
+  lprm <- c(predict(object, newdata=xm, type=ltype)) # lf.
   lny <- length(lprm)
 ##  expand to matrix
   if (xfromdata) {
@@ -3261,26 +3284,20 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (length(wsymbols)==0||is.na(wsymbols)) lIwsymb <- lIwgt
 ## -----------------------------------
 ## prepare objects needed for plotting
-  rtype <- "response"
+  rtype <- NA
   if (lglm) rtype <- glm.restype
-  if (inherits(x,"coxph")) rtype <- "martingale"
-##-   if (lsurv) rtype <- "condquant"
-##-   lcondq <- !is.na(pmatch(rtype,"condquant"))
-##-   if(!lcondq)
-##-     lres <- residuals(x, type=rtype) else {
-##-       lres <- if (lpolr) residuals.polr(x) else residuals.survreg(x)
-##-       lcondq <- NCOL(lres)>1
-##-     }
-  lres <- if (substring(rtype,1,4)=="cond")  {
-    x$stres <- NULL
-    residuals.polr(x)
-  } else residuals(x, type=rtype)
+  lres <- residuals(x, type=rtype)
   lcondq <- inherits(lres,"condquant")
-  if (NCOL(lres)==1) lres <- cbind(lres)  ## do not destroy class attr
-  if (var(lres[,1],na.rm=TRUE)==0)
+  lmres <- if (lcondq) 1 else {
+    lres <- cbind(lres)
+    ncol(lres)
+  }
+  lres0 <- all( apply(lres[,1:lmres, drop=FALSE],2, function(x) all(x==x[1]) ) )
+  if (lres0)
     stop("!plot.regr! all residuals are equal -> no residual plots")
-  lmres <- if (lcondq) 1 else ncol(lres)
   lmult <- lmres>1
+  if (is.null(x$stres)) x$stres <- lres
+  ## ---
   lyname <- deparse(lform[[2]])
     if (nchar(lyname)>10) lyname <- "Y"
   if (lmult) {
@@ -3289,7 +3306,6 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lyname <- colnames(lres)
   }
 ##-   if (length(lyname)==0) lyname <- paste("Y",1:lmres,sep="")
-  IR(anyNA(lres))
   ln <- nrow(lres)
   lrname <- paste("res(", lyname, ")")
 ##-   ldfres <- x$df.residual
@@ -3324,7 +3340,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if(length(lhat)==0&&length(x$qr)>0) lhat <- hat(x$qr)
 ##-   if (lIwgt) lhat <- lhat/lweights use almost-unweighted h for plotting
   ## standardized residuals
-  lstres <- x$stres
+  lstres <- if (lcondq) NULL else x$stres
   if (length(lstres)==0) {
     lstres <- if (lcondq) {
       if (length(lhat)==0||anyNA(lhat))
@@ -3422,7 +3438,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lfsmsm <- lfsmooth <- NULL
   if (smresid) {
     lfsmooth <-
-      smoothMM(lf, if(lcondq) lres[,1] else lres, lsimres, 
+      smoothMM(lf, if(lcondq) lres[,1, drop=FALSE] else lres, lsimres, 
                weights=lweights, band=smooth>1, resid=TRUE, par=lsmpar)
     if (any(lplsel[c("tascale","qq")]>0)) {
       if (lcondq)  { ## only 1 component in lfsmooth
@@ -3581,7 +3597,7 @@ for (liplot in 1:length(lplsel)) {
                 condprobrange=condprobrange)
     } }
   }
-## ---
+  ## ---
   if(lpls=="ta") {
     if (lpllevel>0) {
       ## refline centerpoint
@@ -3821,6 +3837,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   ldjrfly <- ncol(refliney)==lnc
   ## ---
   if (do.smooth) {
+    ljsmgrp <- !is.null(smooth.group)
     lsmooth <- if(is.list(smooth)) smooth else
       smoothMM(x, y, if (nsims) simres, wgt,
                group=smooth.group, power=smooth.power, band=do.smooth>1, 
@@ -3830,8 +3847,8 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
     lsmcol1 <- smooth.col[1]
     lsmcol2 <- smooth.col[length(smooth.col)]
     ## smooth groups
-    if (length(lsmooth$group)) {
-      lsmgrp <- lsmooth$group
+    if (ljsmgrp) {
+      lsmgrp <- lsmooth[[1]]$group
       lsmglab <- levels(lsmgrp)
       lsmgrp <- as.numeric(lsmgrp)
       lngrp <- length(lsmglab)
@@ -3954,7 +3971,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       if (length(lgrp)==0) {
         lgrp <- rep(1, NROW(lsmx))
         lngrp <- 1
-      } else lngrp <- length(levels(lgrp))
+      } else lngrp <- length(unique(lgrp))
       if (llimy)  lsmy[lsmy<lylimj[1]|lsmy>lylimj[2]] <- NA
       if (nsims>0) {
         for (lgr in 1:lngrp) {
@@ -4036,10 +4053,10 @@ smoothRegr <-
             family=if (iterations>0) "symmetric" else "gaussian",
             na.action=na.exclude), silent=TRUE)
   if (class(lsm)=="try-error") {
+    warning(":smoothRegr: span was too small. Using 0.99")
     lsm <- loess(y~x, weights=weights, span=0.99, iterations=iterations,
                family=if (iterations>0) "symmetric" else "gaussian",
                  na.action=na.exclude)
-    warning(":smoothRegr: span was too small. Using 0.99")
   }
   fitted(lsm)
 }
@@ -4811,7 +4828,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
          pch=1, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r",
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
-         vnames=NULL, main="", cex=NA, 
+         vnames=NULL, main="", xlab=NULL, ylab=NULL, cex=NA, 
          cex.points=NA, cex.lab=1, cex.text=1.3, cex.title=1,
          bty="o", oma=NULL, mar=rep(0.2,4), keeppar=FALSE,
          axes=TRUE, ask = NULL, ...)
@@ -4832,10 +4849,10 @@ function(x, y=NULL, data=NULL, panel=l.panel,
         points(x,y,pch=pch,col=col,cex=cex,...)
       }
   }
-  lf.axis <- function(k, axm, labm, at=at, j, ...) {
+  lf.axis <- function(k, axm, labm, at=at, txt, ...) {
     if (k %in% axm) axis(k)
     if (k %in% labm)
-      mtext(vnames[j], side=k, line=(0.5+1.2*(k %in% axm)), at=at)
+      mtext(txt, side=k, line=(0.5+1.2*(k %in% axm)), at=at)
   }
   ##
   oldpar <- par(c("mfrow","mar","cex","mgp", "ask"))
@@ -4887,6 +4904,10 @@ function(x, y=NULL, data=NULL, panel=l.panel,
     ldata[lvsurv] <- lapply(ldata[lvsurv], lf.surv)
   }
   vnames <- lvnm
+  lxlab <-
+    if (is.null(xlab)) vnames[lv1+1:nv1] else rep(xlab, length=nv1)
+  lylab <-
+    if (is.null(ylab)) vnames[lv2+1:nv2] else rep(ylab, length=nv2)
   ## plotting characters, color
   lpch <- eval(as.expression(substitute(pch)), data, parent.frame())
   if (length(lpch)>tnr) lpch <- lpch[1:tnr]
@@ -4968,7 +4989,7 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 ##-   if (!is.na(cex)) par(cex=cex)
 ##-   cex <- par("cex")
 ##-   cexl <- cex*cexlab
-##-   cext <- cex*cextext
+  ##-   cext <- cex*cextext
   par(oma=oma*cex.lab, mar=mar, mgp=cex.lab*c(1,0.5,0))
   if (keeppar) par(mfg=lmfg, new=FALSE)
   if (!is.na(cex)) cex.points <- cex
@@ -5000,10 +5021,12 @@ function(x, y=NULL, data=NULL, panel=l.panel,
       if (axes) {
         usr <- par("usr")
         at=c(mean(usr[1:2]),mean(usr[3:4]))
-        if (jr==nrows||jd2==nv2) lf.axis(1, xaxmar, xlabmar, at[1], j1)
-        if (jc==1) lf.axis(2, yaxmar, ylabmar, at[2], j2)
-        if (jr==1) lf.axis(3, xaxmar, xlabmar, at[1], j1)
-        if (jc==ncols||jd1==nv1) lf.axis(4, yaxmar, ylabmar, at[2], j2)
+        if (jr==nrows||jd2==nv2)
+          lf.axis(1, xaxmar, xlabmar, at[1], lxlab[j1-lv1])
+        if (jc==1) lf.axis(2, yaxmar, ylabmar, at[2], lylab[j2-lv2])
+        if (jr==1) lf.axis(3, xaxmar, xlabmar, at[1], lxlab[j1-lv1])
+        if (jc==ncols||jd1==nv1)
+          lf.axis(4, yaxmar, ylabmar, at[2], lylab[j2-lv2])
       }
       box(bty=bty)
       if (is.character(all.equal(v1,v2))) { # not diagonal
@@ -6596,8 +6619,9 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
 ## ================================================================
 colorpale <- function(col=NA, pale=0.3, ...)
   {
-    if (is.na(col)) {
-      col <- palette()[2]
+    lcolna <- is.na(col)
+    if (any(lcolna)) {
+      col[lcolna] <- palette()[2]
       warning(":colorpale: Argument 'col' is NA. I assume  ", col)
     }
     crgb <- t(col2rgb(col)/255)

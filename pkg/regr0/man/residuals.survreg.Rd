@@ -12,7 +12,8 @@
   See Details for an explanation.
 }
 \usage{
-\method{residuals}{survreg}(object, type = "response", ...)
+\method{residuals}{survreg}(object, type = "response", na.action=object, ...)
+\method{residuals}{coxph}(object, type = "CoxSnellMod", na.action=object, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,12 +21,16 @@
 }
   \item{type}{type of residuals required
 }
+  \item{na.action}{a list with component \code{na.action}, which
+    determines the na.action for the residual component of \code{object}
+}
   \item{\dots}{unused
 }
 }
 \details{
 For censored observations, the conditional distribution of the survival
-time, given the censoring, is used to calculate quantiles ...\cr
+time, given the censoring, is used to calculate quantiles, see
+\code{\link{condquant}}
 }
 \value{
   matrix with class \code{condquant}

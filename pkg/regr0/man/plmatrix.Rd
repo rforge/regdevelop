@@ -14,7 +14,7 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   pch = 1, col = 1, reference = 0, ltyref = 3,
   log = "", xaxs = "r", yaxs = "r",
   xaxmar = NULL, yaxmar = NULL, xlabmar=NULL, ylabmar=NULL,
-  vnames = NULL, main = "",
+  vnames = NULL, main = "", xlab = NULL, ylab = NULL,
   cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, mar = rep(0.2, 4), keeppar = FALSE,
   axes = TRUE, ask=NULL, ...)
@@ -54,7 +54,11 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   \item{xlabmar, ylabmar}{in which margin should the x- [y-] axis be
     labelled?}
   \item{vnames}{labels for the variables}
-  \item{main}{main title for the plot (to be repeated on each plot page)}
+  \item{main}{main title for the plot (to be repeated on each plot
+    page)}
+  \item{xlab, ylab}{vectors of labels for x- and y-axes, a string for
+    each variable. This will override the \code{vnames} argument for the
+    axis labels, but not for the diagonal panels.}
   \item{cex, cex.points}{character expansion for showing the
     observations (both arguments are equivalent, cex has priority).
   }
