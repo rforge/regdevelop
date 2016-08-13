@@ -1,5 +1,6 @@
 library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
-# source('../R/regr.R')
+## source('../R/regr.R')
+## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 options(digits=3)
 # load("/u/stahel/data/regdata")
 ##- load("../data/d.blast.rda")
@@ -35,7 +36,8 @@ r.blast <-
 with(r.blast,
      stopifnot(all.equal(
      termtable[-1,"signif"],
-                          c(3.40649491, -12.0192639, 8.1947910))
+                          c(3.40649491, -12.0192639, 8.1947910) )
+##                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
      )
 stopifnot(length(residuals(r.blast))==nrow(d.blast))

@@ -457,6 +457,7 @@ plot(t.r)
 t.rc <- coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
               data = ovarian)
 t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+t.ri <- regr(formula = Surv(futime, fustat) ~ ecog.ps * rx, data = ovarian)
 
 str(d.kevlar)
 d.kevlar$Spool <- factor(d.kevlar$Spool)

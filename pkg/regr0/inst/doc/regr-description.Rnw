@@ -37,7 +37,7 @@
 %% ================================================================
 
 \begin{document}
-\input{regr-description-concordance}
+\SweaveOpts{concordance=TRUE}
 
 \title{\vspace*{-10mm}
 The R-Function \T{regr} and Package \T{regr0} for an Augmented 
@@ -144,41 +144,14 @@ without having the user call different functions and select the
 output that is safe to be interpreted.
 
 Here is a result of printing a \T{regr} object.
-\begin{Schunk}
-\begin{Sinput}
-> require(regr0)
-> data(d.blast)
-> r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
-+     data = d.blast)
-> r.blast
-\end{Sinput}
-\begin{Soutput}
-  Blasting for Tunnel Excavation 
+<<regrout>>=
+require(regr0)
 
-Call:
-regr(formula = logst(tremor) ~ location + log10(distance) + log10(charge), 
+data(d.blast)
+r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
-Fitting function:  lm 
-
-Terms:
-                  coef stcoef df signif p.symb
-(Intercept)      2.971     NA  1  13.37     NA
-location            NA     NA  7   3.48    ***
-log10(distance) -1.506 -0.790  1 -12.13    ***
-log10(charge)    0.623  0.406  1   8.17    ***
----
-Signif. codes:  0  ***  0.001  **  0.01  *  0.05  .  0.1     1  
-
-St.dev.error:  0.141   on 352 degrees of freedom
-Multiple R^2:  0.798    Adjusted R-squared: 0.793 
-F-statistic:    155   on 9 and 352 d.f.,  p.value: 1.55e-116 
-
-Coefficients for factors:
-$location
-  loc1     loc2     loc3     loc4     loc5     loc6     loc7     loc8    
-  2.07 *** 2.22 *** 2.20 *** 1.90 *** 2.04 *** 2.14 *** 2.06 *** 2.07 ***
-\end{Soutput}
-\end{Schunk}
+r.blast
+@ 
 
 \subsection{Standard output for continuous explanatory variables}
 The ``Terms:'' table characterizes the effects of the individual terms in
@@ -261,45 +234,12 @@ Standardized coefficients are meant to allow for a comparison of the
 importance of explanatory variables that have different variances.
 They are also stored in \T{rr\$termtable} as the column \T{stcoef}.
 
-\begin{Schunk}
-\begin{Sinput}
-> names(r.blast$termtable)
-\end{Sinput}
-\begin{Soutput}
- [1] "coef"    "se"      "ciLow"   "ciHigh"  "df"      "testst"  "signif" 
- [8] "p.value" "p.symb"  "stcoef"  "R2.x"   
-\end{Soutput}
-\begin{Sinput}
-> userOptions(termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
-> r.blast
-\end{Sinput}
-\begin{Soutput}
-  Blasting for Tunnel Excavation 
+<<termtable>>=
+names(r.blast$termtable)
+userOptions(termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
 
-Call:
-regr(formula = logst(tremor) ~ location + log10(distance) + log10(charge), 
-    data = d.blast)
-Fitting function:  lm 
-
-Terms:
-                  coef stcoef df signif p.symb
-(Intercept)      2.971     NA  1  13.37     NA
-location            NA     NA  7   3.48    ***
-log10(distance) -1.506 -0.790  1 -12.13    ***
-log10(charge)    0.623  0.406  1   8.17    ***
----
-Signif. codes:  0  ***  0.001  **  0.01  *  0.05  .  0.1     1  
-
-St.dev.error:  0.141   on 352 degrees of freedom
-Multiple R^2:  0.798    Adjusted R-squared: 0.793 
-F-statistic:    155   on 9 and 352 d.f.,  p.value: 1.55e-116 
-
-Coefficients for factors:
-$location
-  loc1     loc2     loc3     loc4     loc5     loc6     loc7     loc8    
-  2.07 *** 2.22 *** 2.20 *** 1.90 *** 2.04 *** 2.14 *** 2.06 *** 2.07 ***
-\end{Soutput}
-\end{Schunk}
+r.blast
+@ 
 Each of them shows the effect on the response of increasing ``its'' 
 carrier $X^{(j)}$ by one standard deviation, as a multiple 
 of the response's standard deviation. 
@@ -404,33 +344,13 @@ There is a function called \T{modelTable} that collects coefficients,
 p values, and other useful information, and a \T{format} and \T{print} 
 method for showing the information in a useful way.
 
-\begin{Schunk}
-\begin{Sinput}
-> names(d.blast)
-\end{Sinput}
-\begin{Soutput}
-[1] "no"       "datetime" "device"   "charge"   "distance" "tremor"  
-[7] "location"
-\end{Soutput}
-\begin{Sinput}
-> r.blast2 <- 
-+   regr(logst(tremor) ~ ( location + log10(distance) + log10(charge) )^2,
-+        data=d.blast)
-> modelTable(c("r.blast","r.blast2"))             
-\end{Sinput}
-\begin{Soutput}
-                               r.blast       r.blast2    
-(Intercept)                     2.9706        2.8048     
-location                          +++   ***     +++   ***
-log10(distance)                -1.5062  ***  -1.3548  ***
-log10(charge)                   0.6226  ***   0.7507  .  
-location:log10(distance)           -            +++   ***
-location:log10(charge)             -            +++   .  
-log10(distance):log10(charge)      -         -0.1085  .  
-.sigma.                         0.1409        0.1358     
-.df.                              10            25       
-\end{Soutput}
-\end{Schunk}
+<<modeltable>>=
+names(d.blast)
+r.blast2 <- 
+  regr(logst(tremor) ~ ( location + log10(distance) + log10(charge) )^2,
+       data=d.blast)
+modelTable(c("r.blast","r.blast2"))             
+@ 
 
 \subsection{Model Selection}
 The well-known functions \T{drop1} and \T{add1} are adapted by 
@@ -446,48 +366,12 @@ and both \T{drpp1} and \T{add1} calculate F tests in addition to AIC.
 Since \T{drop1} and \T{add1} methods are available, \T{step} can be used to
 select a model automatically.
 
-\begin{Schunk}
-\begin{Sinput}
-> add1(r.blast)
-\end{Sinput}
-\begin{Soutput}
-Single term additions
+<<add1>>=
+add1(r.blast)
 
-Model:
-logst(tremor) ~ location + log10(distance) + log10(charge)
-                              Df Sum of Sq  RSS   AIC F value  Pr(>F)    
-<none>                                     6.99 -1409                    
-I(log10(distance)^2)           1     0.003 6.98 -1407    0.15   0.700    
-I(log10(charge)^2)             1     0.143 6.84 -1415    7.35   0.007 ** 
-location:log10(distance)       7     0.726 6.26 -1435    5.72 2.8e-06 ***
-location:log10(charge)         7     0.112 6.87 -1401    0.80   0.585    
-log10(distance):log10(charge)  1     0.000 6.99 -1407    0.01   0.929    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-\end{Soutput}
-\begin{Sinput}
-> r.step <- step(r.blast, k=5)
-\end{Sinput}
-\begin{Soutput}
-Start:  AIC=-1379
-logst(tremor) ~ location + log10(distance) + log10(charge)
-
-                  Df Sum of Sq   RSS   AIC F value Pr(>F)    
-<none>                          6.99 -1379                   
-- location         7      3.42 10.41 -1270    24.6 <2e-16 ***
-- log10(charge)    1      5.12 12.11 -1185   258.1 <2e-16 ***
-- log10(distance)  1     11.30 18.29 -1036   569.5 <2e-16 ***
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-\end{Soutput}
-\begin{Sinput}
-> formula(r.step)
-\end{Sinput}
-\begin{Soutput}
-logst(tremor) ~ location + log10(distance) + log10(charge)
-<environment: 0x6f32798>
-\end{Soutput}
-\end{Schunk}
+r.step <- step(r.blast, k=5)
+formula(r.step)
+@ 
 
 The usual stopping rule for stepwise model selection relies on the AIC
 criterion. Note that there is a funny argument for this choice:

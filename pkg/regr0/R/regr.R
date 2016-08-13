@@ -1,6 +1,6 @@
 ##  regr.R  Functions that are useful for regression, W. Stahel,
 ## ==========================================================================
-regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
+regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
                  calcdisp=NULL, suffmean=3,
                  nonlinear = FALSE, start=NULL,
                  robust = FALSE, method=NULL, ## init.reg="f.ltsreg",
@@ -146,15 +146,18 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
 ##-   }
   }
   ## k. --- family and fitting function
-  lfam <- as.character(substitute(family))[1]
-  if (is.null(lfam)||is.na(lfam)) 
+  lfam <- if (is.null(family)) NULL else as.character(substitute(family))[1]
+  if (is.null(lfam)) lfam <- dist
+  lcl$dist <- NULL
+  if (lytype=="survival")
+    lfam <- c( lfam, attr(ly,"distribution"))[1]
+  if (is.null(lfam) || is.na(lfam)) 
     lfam <- switch(substring(lytype,1,5),
                    numer="normal", nmatr="normal", binar="binomial",
                    binco="binomial", order="cumlogit",
                    facto="multinomial", survi="ph", "unknown")
-  if (lytype=="survival")
-      lfam <- c( family, attr(ly,"distribution"), lfam)[1]
-  else  if (substring(lfam,1,7)=="multinom") lfam <- "multinomial"
+##-       lfam <- c( family, attr(ly,"distribution"), lfam)[1]
+  if (substring(lfam,1,7)=="multinom") lfam <- "multinomial"
   ##
   lfitfun <-
       switch( lfam,
@@ -172,7 +175,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
       stop("!regr! bug: convert response to Surv object")
     ## !!! hier machen! lallvars[,1] ersetzen durch Surv davon
     lfitfun <- "survreg"
-    if (is.null(family)) lfam <-attr(ly,"distribution")
+    if (is.null(lfam)) lfam <-attr(ly,"distribution")  ## was  fanily
   }
   else  if (lfitfun=="glm")
     lcl$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcl$control)
@@ -199,7 +202,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, # dist=NULL,
   environment(lcl$formula) <- environment() ## !!!
 ##-  lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
-  if (lfitname=="i.survreg") lcl$yy <- ly
+  if (lfitname=="i.survreg") {
+    lcl$yy <- ly
+    lcl$model <- TRUE  ## model needed, see below
+  }
   old.opt <- NULL
   if(is.atomic(contrasts)&&length(contrasts)) {
     if(!is.character(contrasts))
@@ -834,7 +840,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     return(list(termtable=ldr1))  ## !!! needs much more
   ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
     if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
-  ltstq1 <- sqrt(ltstq[1])
+  ltstq1 <- sqrt(ltstq[1]) ## 1 degree of freedom
   ltstq <- ltstq[-1]
 ## coefficients
   lcoef <- lreg$coefficients
@@ -845,8 +851,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
   if (class(lreg)[1]%in%c("polr","coxph")) lasg <- lasg[-1]
 ## terms with 1 coef
-  lcont1 <- lcont <- lasg[licasg <- which(!lasg%in%lasg[duplicated(lasg)])]
-## vif --> R2.x
+  lcont <- lasg[licasg <- which(!lasg%in%lasg[duplicated(lasg)])]
+  ## vif --> R2.x
   lr2 <- NA
   if (vif) {
     lvift <-     ## lterms: n of levels for each term
@@ -866,8 +872,9 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
                     p.value=lpv, p.symb="", stcoef=NA, R2.x=lr2,
                     stringsAsFactors=FALSE)
   row.names(ltb) <- row.names(ldr1)
-## intercept
-  if ("(Intercept)"==names(lcoef)[1]) {
+  ## intercept
+  ljint <- "(Intercept)"==names(lcoef)[1]
+  if (ljint) {
     ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
       lcoeftab[1,3]^2 # else lcoeftab[1,3]
     ltb <- rbind(
@@ -877,14 +884,11 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
                    p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
                    stringsAsFactors=FALSE),
       ltb)
-    lcont1 <- lcont+1  # row number in dr1
     ltstq <- c(qf(0.95,1,ldfr), ltstq)
   }
-  ## p.symb and signif
+  lcont1 <- lcont+ljint  # row number in dr1
+## p.symb and signif
   ltb$signif <- sqrt(pmax(0,ltb$testst)/ltstq)
-  lic <- lcont[lcont>0]
-  lipv <- as.numeric(cut(ltb$p.value, pvCutpoints))
-  ltb[,"p.symb"] <- pvSymbols[lipv]
 ## coefficients and statistics for terms with 1 df
   if (length(lcont)) { ## lcont refers to assign
     ltlb <- dimnames(ltb)[[1]]
@@ -905,11 +909,15 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
     ltsc <- lcoeftab[nrow(lcoeftab),]
+    lcont1 <- c(lcont1, nrow(lcoeftab))
     if (!u.true(lreg$dist=="weibull")) ltsc[2:4] <- NA
     ltb <- rbind(ltb,"log(scale)"=
-                   c(ltsc[1],NA,ltsc[1]+c(-1,1)*qnorm(0.975)*ltsc[2],
-                     ltsc[3]/qnorm(0.975), NA,1,ltsc[4:3]))
+                   c(ltsc[1],ltsc[2],ltsc[1]+c(-1,1)*qnorm(0.975)*ltsc[2],
+                     1, ltsc[3], ltsc[3]/qnorm(0.975), ltsc[4], NA, NA, NA))
   }
+## p-symbol
+  lipv <- as.numeric(cut(ltb$p.value, pvCutpoints))
+  ltb[,"p.symb"] <- pvSymbols[lipv]
   attr(ltb, "legend") <- pvLegend
 ## --- allcoef (dummy coef)
   lallcf <- allcoef(lreg) 
@@ -1577,8 +1585,8 @@ step.default <- stats::step
 ## step.default <- get("step", pos="package:stats")
 #### !!! sollte das anders heissen? step.default <- stats::step  ???
 
-step.regr <- function (object, scope, scale = 0,
-  direction = c("both", "backward","forward"), trace = 1, keep = NULL,
+step.regr <- function (object, scope=terms2order(object), scale = 0,
+  direction = c("both", "backward","forward"), trace = FALSE, keep = NULL,
   steps = 1000, k = 2, ...)
 {
   ## Purpose:

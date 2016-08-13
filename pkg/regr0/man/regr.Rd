@@ -13,7 +13,7 @@
   respective print and plot methods.
 }
 \usage{
-regr(formula, data = NULL, tit = NULL, family = NULL,
+regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
   calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start = NULL,
   robust = FALSE, method = NULL, 
   subset = NULL, weights = NULL, na.action = nainf.exclude,
@@ -46,6 +46,9 @@ regr(formula, data = NULL, tit = NULL, family = NULL,
     naming a family function, a family function or the result of a call
     to a family function.  (See 'family' for details of family
     functions.) }
+  \item{dist}{only used for survival regression if \code{family} is
+  \code{NULL} (the default), introduced for compatibility with the
+    call to \code{survreg} }
   \item{calcdisp}{ a logical value indicating whether, for
     \code{family=binomial} and \code{family=poisson}, dispersion
     should be calculated \code{(TRUE)} or set to 1 \code{(FALSE)} }
