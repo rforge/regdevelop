@@ -165,8 +165,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
              Gamma="glm",
              cumlogit="polr", multinomial="multinomial",
              weibull="survreg", lognormal="survreg", loggaussian="survreg",
-             loglogistic="survreg", extreme="survreg", ph="survreg",
-             prop.hazard="survreg",
+             loglogis="survreg", loglogistic="survreg", extreme="survreg",
+             ph="survreg", prop.hazard="survreg",
              "unknown")
   if (lfitfun=="unknown") stop("!regr! Fitting function not identified")
   ## additional checks
@@ -692,7 +692,6 @@ i.survreg <-
     ldf <- length(lreg$coefficients)
     ldfr <- length(lreg$residual)-ldf-1
   }
-  lreg$df <- c(model=ldf, residual=ldfr)
   lreg$df.residual <- ldfr
   lreg$aic <- extractAIC(lreg)
   lreg$deviance <- -2*lreg$loglik
@@ -706,7 +705,7 @@ i.survreg <-
   lsd <- sqrt(diag(lcov))
   lreg$correlation <- lcov/outer(lsd,lsd)
   lreg$fitfun <- lfitfun
-  lres <- residuals(lreg)
+  lres <- residuals.regr(lreg)
   ly <- lreg$y
 ##-   lreg$n.censored <-
 ##-     if (attr(ly,"type")%in%c("right","left"))
@@ -736,6 +735,8 @@ i.survreg <-
     lcmpn <- c("termtable","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
+  lreg$df <- c(model=ldf, residual=ldfr) ## !!! lreg has df = ldf+object$idf !
+    ## do not modify before calling i.termtable
   lreg$distrname <- if (lfitfun=="coxph") "prop.hazard" else lreg$dist
   lreg$residuals <- lres
   ## result of i.survreg
@@ -823,7 +824,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
               drop1(lreg, test=ltesttype, scope=terms(lreg)) else
               try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
                   silent=TRUE)
-          }
+        }
   if (class(ldr1)[1]=="try-error") {
     warning(paste(":regr: drop1 did not work. I return the table produced by ",
                   lreg$fitfun))
@@ -938,7 +939,7 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
   lci <- estimate+outer(ltq*se, c(ciLow=-1,ciHigh=1))
   ltst <- estimate/se
   lsgf <- ltst/ltq
-  lpv <- pt(-abs(ltst), df)
+  lpv <- 2*pt(-abs(ltst), df)
   lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
   lsst <- c("***", "**", "*", ".", " ")[lipv]
 ##-     symnum(lpv, corr = FALSE, na = FALSE, 
@@ -1217,7 +1218,7 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
 ## --- df.dummy: data frame of simple terms
   args <- setNames(vector("list", length(xtnm)), xtnm)
   for (i in xtnm)
-    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else
+    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else 
       factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
   df.dummy <- as.data.frame(args) # do.call("data.frame", args)
   names(df.dummy) <- xtnm
@@ -1273,7 +1274,7 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
   ljfail <- NULL
   for (j in seq_along(tl)) {
     mmr <- rn == tl[j]  ## rows corresponding to the term
-    mmc <- names(asgn == j & !is.na(coef))  ## columns (logical fails for polr, vcov() too large) !!! was  which
+    mmc <- names(asgn)[asgn == j & !is.na(coef)]  ## columns (logical fails for polr, vcov() too large) !!! was  which
     mmpart <- mm[mmr, mmc, drop=FALSE]
     rrj <- setNames(drop(mmpart %*% coef[mmc]), rnn[mmr])
     if (se) {
@@ -1489,8 +1490,7 @@ drop1Wald <-
     asgn <- attr(x, "assign")
     tl <- attr(object$terms, "term.labels")
     if (is.null(scope)) 
-        scope <- drop.scope(object)
-    else {
+        scope <- drop.scope(object)  else {
         if (!is.character(scope)) 
             scope <- attr(terms(update.formula(object, scope)), 
                 "term.labels")
@@ -1500,14 +1500,15 @@ drop1Wald <-
     ndrop <- match(scope, tl)
     ns <- length(scope)
     rdf <- object$df.residual
-    chisq <- object$sigma^2 * rdf
+    lsig <- c(object$sigma, object$scale)[1]
+    chisq <- lsig^2 * rdf
     ## sum(weighted.residuals(object)^2, na.rm = TRUE)
     ## deviance.lm(object)
     dfs <- numeric(ns)
     RSS <- numeric(ns)
     cov <- object$cov.unscaled
-    if (is.null(cov)) cov <- object$covariance/object$sigma^2
-    if (is.null(cov)) stop("!drop1Wald! no covariance matrix found")
+    if (is.null(cov)) cov <- object$covariance/lsig^2
+    if (length(cov)==0) stop("!drop1Wald! no covariance matrix found")
     cf <- object$coefficients
     jj <- match(names(cf),colnames(cov), nomatch=0)
 ##-     if (!(any(jj==0)&&all(is.na(cf[jj==0]))))
@@ -1532,7 +1533,7 @@ drop1Wald <-
 ##-         RSS[i] <- deviance(z)
     }
     scope <- c("<none>", scope)
-    dfs <- c(object$rank, dfs)
+    dfs <- c(c(object$rank,object$df)[1], dfs)
     RSS <- chisq + c(0, RSS)
     if (scale > 0) 
         aic <- RSS/scale - n + k * dfs
@@ -2264,10 +2265,10 @@ condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
 ##-                )
   if (length(x)==0) stop("!condquant! bug: no data")
   fp <- switch(dist, normal=pnorm, gaussian=pnorm, unif=function (x) x,
-               logis=plogis, revgumbel=prevgumbel)
+               logis=plogis, logistic=plogis, revgumbel=prevgumbel)
   if (is.null(fp)) stop(paste("!condquant! distribution ", dist, " not known"))
   fq <- switch(dist, normal=qnorm, gaussian=qnorm, unif=function (x) x,
-               logis=qlogis, revgumbel=qrevgumbel)
+               logis=qlogis, logistic=qlogis, revgumbel=qrevgumbel)
 ##  if (NCOL(x)>=2) stop("!condquant! x must have 2 columns")
   lx <- t(apply(rbind(x),1,sort))
   lp <- fp(lx/sig)
@@ -2291,29 +2292,46 @@ condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
 ##  >>>>>>> .r32
 }
 ## ===================================================================
-residuals.regr <- function(object, type=NA, na.action=object, ...)
+residuals.regr <- function(object, type=NULL, ...)
 {
-  if (!is.na(pmatch(type,"condquant"))) {
-    lres <-
-      if (object$fitfun%in%c("polr","glm"))
-        residuals.polr(object, type=type, na.action=na.action, ...)  else {
-          if (object$fitfun=="coxph")
-            residuals.coxph(object, type=type, na.action=na.action, ...) else
-          residuals.survreg(object, type=type, na.action=na.action, ...)
-        }
-    return(lres)
-  }
-  if (is.na(type)) return( naresid(na.action$na.action, object$residuals) )
+##-   if (!is.na(pmatch(type,"condquant"))) {
+##-     ## this seems to apply only if residuals.regr is called explicitly
+  lcall <- match.call()
+  lcall$type <- if (is.null(type)||is.na(type)) NULL else type
+  lff <- object$fitfun
+  if (lff=="glm" && !is.null(type) && substr(type,1,4)=="cond") lff <- "polr"
+  lcall[[1]] <-
+    switch(lff,
+           "polr" = quote(regr0:::residuals.polr),
+           "survreg" = quote(regr0:::residuals.regrsurv),
+           "coxph" = quote(regr0:::residuals.regrcoxph),
+           quote(residuals))
+##-   lres <-
+##-       if (object$fitfun%in%c("polr","glm"))
+##-         residuals.polr(object, type=type, na.action=na.action, ...)  else {
+##-           if (object$fitfun=="coxph")
+##-             residuals.regrcoxph(object, type=type, na.action=na.action, ...) else
+##-           residuals.regrsurv(object, type=type, na.action=na.action, ...)
+##-         }
+##- ##-     return(lres)
+##- ##-   }
+##-   if (is.null(type)) return( naresid(na.action$na.action, object$residuals) )
   class(object) <- setdiff(class(object), "regr")
-  residuals(object, type=type)
+  lcall$object <- object
+  structure( eval(lcall, envir=parent.frame()), type=type)
 }
 ## ===================================================================
-residuals.coxph <- function(object, type="CoxSnellMod", na.action=object, ...)
+residuals.regrcoxph <- function(object, type=NULL, na.action=object, ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: Aug 2010
+  if(is.null(type)||is.na(type)) type <- "CoxSnellMod"
+  if (type!="CoxSnellMod") 
+    return(structure( survival:::residuals.coxph(object, type=type, ...),
+                     type=type) )
   lres <- object$residuals
+  if (inherits(lres, "condquant")) return(lres)
   ly <- object$y
   lst <- ly[,2]  # status
   li <- lst!=1
@@ -2332,30 +2350,36 @@ residuals.coxph <- function(object, type="CoxSnellMod", na.action=object, ...)
   }
   lrr <- cbind(lrr, fit=object$linear.predictor)
 ##  class(lrr) <- "condquant"
-  structure( naresid(na.action$na.action, lrr), class=c("condquant", "matrix"))
+  structure( naresid(na.action$na.action, lrr),
+            class=c("condquant", "matrix"), type=type)
 }
 ## ===================================================================
-residuals.survreg <- function(object, type="response", na.action=object, ...)
+residuals.regrsurv <- function(object, type=NULL, na.action=object, ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 24 Oct 2008, 10:16
+  if(is.null(type)||is.na(type)) type <- "condquant"
+  if (type!="condquant") 
+    return(structure( survival:::residuals.survreg(object, type, ...),
+                     type=type) )
   ly <- object$y  ## log for weibull
   lsig <- object$sigma
+  if (length(lsig)==0) lsig <- summary(object)$scale
+  if (length(lsig)==0) {
+    warning("!residuals.regrsurv! no sigma found. Setting =1")
+    lsig <- 1
+  }
+  lfit <- object$linear.predictors
+##  lres <- ly[,1]-lfit
+  lres <- ly[,1]-lfit
   ldist <- if (length(object$dist)>0) object$dist  else  "normal"
   li <- match(ldist, c("weibull","lognormal","loglogistic"))
   if (!is.na(li)) ldist <- c("revgumbel","normal","logistic")[li]
   ## for user-defined survreg.distributions with transformation,
   ##   this is not enough.
-  if (length(lsig)==0) lsig <- summary(object)$scale
-  if (length(lsig)==0) {
-    warning("!residuals.survreg! no sigma found. Setting =1")
-    lsig <- 1
-  }
-  lfit <- object$linear.predictors
-  lres <- ly[,1]-lfit
   ## fill matrix with values adequate for non-censored obs
   lrr <- matrix(lres,length(lres),5)
   dimnames(lrr) <- list(row.names(ly),c("median","lowq","uppq","random","prob"))
@@ -2374,8 +2398,9 @@ residuals.survreg <- function(object, type="response", na.action=object, ...)
       lrr[li,] <- lr
   }
   lrr <- cbind(lrr, fit=lfit)
-##  class(lrr) <- "condquant"
-  structure( naresid(na.action$na.action, lrr), class=c("condquant", "matrix"))
+  ##  class(lrr) <- "condquant"
+  structure( naresid(na.action$na.action, lrr),
+            class=c("condquant", "matrix"), type=type)
 }
 ## ==============================================================
 nobs.survreg <- function(object, use.fallback = TRUE) {
@@ -3292,7 +3317,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (length(wsymbols)==0||is.na(wsymbols)) lIwsymb <- lIwgt
 ## -----------------------------------
 ## prepare objects needed for plotting
-  rtype <- NA
+  rtype <- NULL
   if (lglm) rtype <- glm.restype
   lres <- residuals(x, type=rtype)
   lcondq <- inherits(lres,"condquant")
@@ -4305,18 +4330,13 @@ plresx <-
   if (is.null(lfam)) lfam <- x$family$family
   if (is.null(lfam) || lfam=="" || is.na(lfam)) lfam <- "gaussian"
   lfgauss <- lfam == "gaussian"
-  lglm <- !lfgauss
+  lglm <- inherits(x, "glm")
   lpolr <- inherits(x,"polr")
   lnnls <- !inherits(x, "nls")
 ## residuals
-  rtype <- "response"
+  rtype <- NULL
   if (lglm) rtype <- glm.restype
-  lres <- if (length(resid)) resid else residuals(x, type=rtype)
-##-   if(is.na(pmatch(rtype,"condquant")))
-##-     lres <- residuals(x, type=rtype) else {
-##-       lres <- residuals.polr(x)
-##-       lpolr <- NCOL(lres)>1
-##-     }
+  lres <- residuals(x, type=rtype)
   lcondq <- inherits(lres,"condquant")
   if (NCOL(lres)==1) lres <- cbind(lres)  ## do not destroy class attr
   lmres <- if (lcondq) 1 else ncol(lres)
@@ -4484,6 +4504,7 @@ plresx <-
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
   if (lcondq) lnsims <- 0
   if (lmult) lnsims <- 0
+  BR()
   if (length(lnsims)>1) {
     lnsims <- ncol(smooth.sim)
     if (length(lnsims)==0) {

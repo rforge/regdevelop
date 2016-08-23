@@ -14,8 +14,8 @@ step(object, ...)
 \method{step}{default}(object, scope, scale = 0,
   direction = c("both", "backward", "forward"), trace = 1, keep = NULL,
   steps = 1000, k = 2, ...) 
-\method{step}{regr}(object, scope, scale = 0,
-  direction = c("both", "backward", "forward"), trace = 1, keep = NULL,
+\method{step}{regr}(object, scope = terms2order(object), scale = 0,
+  direction = c("both", "backward", "forward"), trace = FALSE, keep = NULL,
   steps = 1000, k = 2, ...)
 }
 %- maybe also 'usage' for other objects documented here.
