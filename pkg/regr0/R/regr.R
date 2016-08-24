@@ -146,17 +146,16 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
 ##-   }
   }
   ## k. --- family and fitting function
-  lfam <- if (is.null(family)) NULL else as.character(substitute(family))[1]
-  if (is.null(lfam)) lfam <- dist
+  lfam <- if (u.nuna(family)) NULL else as.character(substitute(family))[1]
+  if (u.nuna(lfam)) lfam <- dist
   lcl$dist <- NULL
   if (lytype=="survival")
     lfam <- c( lfam, attr(ly,"distribution"))[1]
-  if (is.null(lfam) || is.na(lfam)) 
+  if (u.nuna(lfam)) 
     lfam <- switch(substring(lytype,1,5),
                    numer="normal", nmatr="normal", binar="binomial",
                    binco="binomial", order="cumlogit",
                    facto="multinomial", survi="ph", "unknown")
-##-       lfam <- c( family, attr(ly,"distribution"), lfam)[1]
   if (substring(lfam,1,7)=="multinom") lfam <- "multinomial"
   ##
   lfitfun <-
@@ -175,7 +174,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
       stop("!regr! bug: convert response to Surv object")
     ## !!! hier machen! lallvars[,1] ersetzen durch Surv davon
     lfitfun <- "survreg"
-    if (is.null(lfam)) lfam <-attr(ly,"distribution")  ## was  fanily
   }
   else  if (lfitfun=="glm")
     lcl$control <- list(calcdisp=calcdisp, suffmean=suffmean,lcl$control)
@@ -678,8 +676,9 @@ i.survreg <-
     class(lreg) <- c("orig",class(lreg))
     return(lreg)
   }   ## ---
-  lcf <- lreg1$coefficients
+  lreg$resid.orig <- lreg$residuals
   lreg$stres <- NULL
+  lcf <- lreg1$coefficients
   ## --- deviances
   ## lreg$scale
   if (lfitfun=="survreg") {
@@ -2326,10 +2325,12 @@ residuals.regrcoxph <- function(object, type=NULL, na.action=object, ...)
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: Aug 2010
-  if(is.null(type)||is.na(type)) type <- "CoxSnellMod"
-  if (type!="CoxSnellMod") 
+  if(u.nuna(type)) type <- "CoxSnellMod"
+  if (type!="CoxSnellMod") {
+    object$residuals <- object$resid.orig
     return(structure( survival:::residuals.coxph(object, type=type, ...),
                      type=type) )
+  }
   lres <- object$residuals
   if (inherits(lres, "condquant")) return(lres)
   ly <- object$y
@@ -2361,7 +2362,7 @@ residuals.regrsurv <- function(object, type=NULL, na.action=object, ...)
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 24 Oct 2008, 10:16
-  if(is.null(type)||is.na(type)) type <- "condquant"
+  if(u.nuna(type)) type <- "condquant"
   if (type!="condquant") 
     return(structure( survival:::residuals.survreg(object, type, ...),
                      type=type) )
@@ -4504,7 +4505,6 @@ plresx <-
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
   if (lcondq) lnsims <- 0
   if (lmult) lnsims <- 0
-  BR()
   if (length(lnsims)>1) {
     lnsims <- ncol(smooth.sim)
     if (length(lnsims)==0) {
@@ -5245,9 +5245,9 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     xlim <- lusr[1:2]
     ylim <- lusr[3:4]
   } else {
-    if(is.null(xlim)) xlim <- 
+    if(u.nuna(xlim)) xlim <- ## better: NAs -> default value
       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
-    if(is.null(ylim)) ylim <- f.ylim(ilim,ilimext)
+    if(u.nuna(ylim)) ylim <- f.ylim(ilim,ilimext)
     ## margins
     if (is.null(mar)) {
       mar <- c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
@@ -6147,12 +6147,16 @@ BR <- browser
 DB <- function(on=TRUE) options(error=if(on) recover else NULL, warn=on)
 
 options(show.dummycoef=TRUE)
-IR <- function(condition) { if (condition) {
-  cat("INTERRUPT: ",as.character(substitute(condition)))
-  traceback()
-  browser()
+IR <- function(condition) {
+  if (condition) {
+    cat("INTERRUPT: ",as.character(substitute(condition)))
+    traceback()
+    browser()
+  }
 }
-}
+
+u.nuna <- function(x)  length(x)==0 || any(is.na(x))
+
 ## ===========================================================================
 if (length(getUserOption("colors"))==0)
   userOptions(colors = c("black","firebrick3","deepskyblue3","springgreen3",

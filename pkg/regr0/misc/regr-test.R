@@ -40,6 +40,9 @@ dd$random <- c(NA,NA,rnorm(nrow(dd)-2))
 t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+random, data=dd)
 r.st <- step(t.r)
 
+dd$loc <- as.numeric(dd$location)
+t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+factor(loc), data=dd)
+
 ## environment problem
 f.rr <- function(fo) {
   ldt <- d.blast[1:20,]
@@ -56,6 +59,13 @@ t.rr <- lm(formula = log10(tremor) ~ location + log10(distance) +
                 log10(charge) + location:log10(distance),
            data = d.blast) ## works
 
+t.rc <-
+  regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast,
+       contrasts=c("contr.treatment","contr.poly") )
+t.rlm <-
+  lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast,
+       contrast=c("contr.treatment","contr.poly"), x=T )
+summary(t.rlm)
 ## ------------------------------------------------------------
 t.x <- factor(c(1,1,1,2,3,3))
 contr.wsum(t.x)
@@ -285,7 +295,7 @@ t.rglm <- glm(Time~Type1+Type2,data=t.d,family=Gamma)
 # summary(t.r)  ## !!! avoid deviance table
 ## !!! Gamma gibt warnings: untersuchen
 t.r <- regr(Time~Type1+Type2,data=t.d,family=Gamma)
-t.r <- regr(Time~Type1+Type2,data=t.d,family=Gamma(link=identity))  ## !!! warning
+r.gami <- regr(Time~Type1+Type2,data=t.d,family=Gamma(link=identity))  ## !!! warning
 
 ## ===========================================================
 ##- multinom
@@ -472,7 +482,8 @@ t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) +
                cluster(id), bladder1) 
 t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1) 
 t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
-showd(residuals(t.r))
+##- showd(residuals(t.r, type="martingale"))
+showd(residuals(t.r, type="response"))
 
 ## 
 t.d <- d.cheese

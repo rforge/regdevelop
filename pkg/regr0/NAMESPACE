@@ -102,6 +102,8 @@ S3method(drop1, multinom)
 S3method(drop1, regr)
 
 S3method(summary, regr)# trivial: returns it unchanged
+S3method(plot, regr)
+S3method(print, regr)
 
 S3method("[", modelTable)
 

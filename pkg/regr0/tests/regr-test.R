@@ -1,12 +1,9 @@
 library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
 ## source('../R/regr.R')
 ## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+## attach("../misc/regr0.rda")
+## attach("../misc/data-regr0.rda")
 options(digits=3)
-# load("/u/stahel/data/regdata")
-##- load("../data/d.blast.rda")
-##- load("../data/d.surveyenvir.rda")
-##- load("../data/d.rehab.rda")
-##- load("../data/d.fossiles.rda")
 
 options(verbose=1)
 ## ========================================================================
@@ -168,6 +165,7 @@ r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
                data = ovarian, family="weibull")
 plot(r.surv)
 r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+length(residuals(r.coxph, type="martingale"))
 
 data(bladder, package="survival")
 bladder1 <- bladder[bladder$enum < 5, ]
