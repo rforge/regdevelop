@@ -69,10 +69,14 @@ xdistResscale(x, perc = c(3, 10, 90), trim = 1/6)
 }
 \author{Werner A. Stahel, ETH Zurich}
 
+\seealso{
+  \code{\link{plot.xdistResdiff}}
+  }
+
 \examples{
 data(d.blast)
 rr <- regr(tremor~distance+charge, data=d.blast)
-## an inadequate model!
+## an inadequate model!x
 xdistResdiff(rr)
 xdrd <- xdistResdiff(rr, out="all")
 showd(xdrd[,1:10])

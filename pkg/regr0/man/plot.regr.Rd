@@ -133,7 +133,11 @@
   \item{mf}{vector of 2 elements, indicating the number of rows and
     columns of panels on each plot page.
     Defaults to \code{c(2,2)}, except for multivariate models, where
-    it adjusts to the number of target variables}
+    it adjusts to the number of target variables.
+    \code{mf=c(1,1)} or \code{mf=1} asks for a single frame per page.
+    \code{mf=NA} or \code{mf=0} leaves the framing (and \code{oma})
+    unchanged.
+  }
   \item{mfcol}{if TRUE, the panel will be filled columnwise}
   \item{mar, mgp, oma, cex}{see \code{\link{par}}}
   \item{ask}{Should R ask before erasing the screen?

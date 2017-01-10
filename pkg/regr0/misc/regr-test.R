@@ -1,8 +1,8 @@
 ## attach("/u/stahel/regr0/misc/regr0.rda")
-require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
-install.packages("regr0", repos="http://r-forge.r-project.org")
-
-attach("data-regr0.rda")
+## require(regr0,lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+## install.packages("regr0", repos="http://R-Forge.R-project.org")
+require(regr0)
+attach("../misc/data-regr0.rda")
 ## ---------------------------------------------------------------
 ## regr0.rda erstellen
 source("~/regr0/misc/regr.R")
@@ -107,6 +107,11 @@ r.fc <- fitcomp(t.ri)
 plresx(r.blast, smooth.group=location)
 ## plresx(r.blast, smooth.group=d.blast$location)  ## does not work  !!!
 
+
+d.hail <- read.table("~/data/hail.dat")
+r.hail <- regr(logst(EGR) ~ logst(E0) * SEED + TB + TB:logst(E0) + H0,
+               data=d.hail)
+t.pr <- predict(r.hail, newdata=d.hail[1:3,])
 ## ------------------------------------------------------------
 ## Anorexia
 data(anorexia, package="MASS")
@@ -463,11 +468,17 @@ t.rss <- summary(t.rs)
 ##-     data = ovarian, dist = "extreme") ## not the same
 t.r <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
             data = ovarian, family="weibull")
+t.r <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
+            data = ovarian, dist="weibull")
 plot(t.r)
-t.rc <- coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
+t.rcx <- coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
               data = ovarian)
-t.r <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+t.rc <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 t.ri <- regr(formula = Surv(futime, fustat) ~ ecog.ps * rx, data = ovarian)
+
+str(residuals(t.rc))
+str(residuals(t.rc, type="martingale"))
+str(residuals(t.r, type="devian"))
 
 str(d.kevlar)
 d.kevlar$Spool <- factor(d.kevlar$Spool)
@@ -546,6 +557,8 @@ plmboxes(tremor~location, data=d.blast, ilim=c(0,15))
 plmboxes(tremor~location+I(charge>5), data=d.blast)
 plmboxes(tremor~1+location, data=d.blast)
 plmboxes(tremor~location, data=d.blast, at=c(1,3,4,7,NA,10,11,12),width=c(1,0.5))
+
+plmboxes(residuals(r.blast)~location, data=d.blast)
 
 plmboxes(len~dose+supp, data=ToothGrowth, colors=c(med="red"),
          probs=c(0.1,0.25))

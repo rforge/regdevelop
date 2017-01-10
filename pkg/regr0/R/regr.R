@@ -1860,7 +1860,7 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
 ##-   } else {
     ldt <- newdata
     ## analyze variables
-  if (!is.null(ldt))
+  if (!is.null(ldt)) {
     for (lvn in names(ldt)) {
       lv <- ldt[[lvn]]
       ## binary factors
@@ -1868,6 +1868,7 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
         ldt[[lvn]] <- match(lv,object$binlevels[[lvn]])-1
       else  if (is.factor(lv))   ldt[[lvn]] <- factor(lv)
     }
+  }
   if (is.null(ldt))
     predict(object, type=type, scale=object$sigma,
             dispersion=object$dispersion^2, ... )  else
@@ -3569,19 +3570,22 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
       ask <- interactive() && last(c("",names(dev.list())))%in%c("X11cairo")
   }
   lnewplot <- FALSE
+  ## multiple frame
   if (is.null(mf)) mf <- if (lmult) {
     if (lmres<=4) c(lmres, min(3,lmres)) else {
       lnewplot <- TRUE
       lmr1 <- ceiling(sqrt(lmres))
       c((lmres-1)%/%lmr1+1, lmr1)
     }} else c(2,2)
+  if (length(mf)==1 && mf==1) mf <- c(1,1)
   loma <- if (length(oma)==4) oma else c(0,0,oma[c(1,1)])
   loldpar <- NULL
-  if (length(mf)==2) {
-    loldpar <- if (mfcol)
+  loldpar <- if (length(mf)==2) {
+    if (mfcol)
       par(ask = ask, mfcol=mf, oma = loma, cex=cex, mar=mar, mgp=mgp)  else
       par(ask = ask, mfrow=mf, oma = loma, cex=cex, mar=mar, mgp=mgp)
   } else par(ask = ask, cex=cex, mar=mar, mgp=mgp)
+  ## colors
   colors <- if (length(colors)==0)
           c("black","gray","blue","cyan","darkgreen","green",
             "burlywood4","burlywood3","burlywood4")
@@ -3589,6 +3593,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     rep(colors,length=9)
   if (is.na(colors[4])) colors[4] <- colorpale(colors[4])
   if (is.na(colors[6])) colors[4] <- colorpale(colors[6])
+  ## title
   lftext <- paste(as.character(lform)[c(2,1,3)],collapse="")
   if (length(main)==0) main <- lftext
   if (is.logical(main)) main <- if (main) lftext else ""
@@ -3957,8 +3962,8 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
       lrfxj <- reflinex[,ljrflx]
       lrfyj <- refliney[,ljrfly]
       if(length(lrfxj)==1) { # given as abline: intercept, slope
-        lrfxj <- lusr[1:2]
         lrfyj <- lrfxj+lrfyj*lusr[1:2]
+        lrfxj <- lusr[1:2]
       }
       if (lrfyw) {
         lrfylj <- lrfyj-reflineyw[,ljrfly]*lrfxj
