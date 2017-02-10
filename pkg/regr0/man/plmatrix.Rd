@@ -1,5 +1,6 @@
 \name{plmatrix}
 \alias{plmatrix}
+\alias{panelDefault}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Scatterplot Matrix}
 \description{
@@ -7,9 +8,12 @@
   do not necessarily coincide with those shown vertically. If desired,
   the matrix is divided into several blocks such that it fills more than
   1 plot page.
+
+  code{panelDefault} is the function to be applied for each subplot,
+  unless a different function is provided. 
 }
 \usage{
-plmatrix(x, y = NULL, data = NULL, panel = l.panel,
+plmatrix(x, y = NULL, data = NULL, panel = panelDefault,
   nrows = 0, ncols = nrows, save = TRUE, robrange. = FALSE, range. = NULL,
   pch = 1, col = 1, reference = 0, ltyref = 3,
   log = "", xaxs = "r", yaxs = "r",
@@ -18,6 +22,9 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, mar = rep(0.2, 4), keeppar = FALSE,
   axes = TRUE, ask=NULL, ...)
+
+panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
+  size=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,7 +37,9 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   \item{panel}{a function that generates the marks of the individual
     panels, see Details.
     Defaults essentially to \code{\link{points}} or \code{\link{text}}
-    depending on the argument \code{pch}}
+    depending on the argument \code{pch},
+    or to \code{\link{plmboxes}} if  x  is a factor and  y  is not.
+  }
   \item{nrows}{number of rows of panels on a page}
   \item{ncols}{number of columns of panels on a page}
   \item{save}{if y is not provided and \code{save==TRUE},
@@ -77,24 +86,25 @@ plmatrix(x, y = NULL, data = NULL, panel = l.panel,
   \item{ask}{Should R ask before erasing the screen?
     The default is 'getOption('ask'), followed by TRUE for certain
     graphical devices.}
-  \item{\dots}{further arguments passed to the \code{panel} function}
+  \item{\dots}{further arguments passed to the \code{panel} function
+    and possibly further to functions called by the panel function}
+  Arguments for \code{panelDefault}
+  \item{xx}{values of the horizontal variable}
+  \item{yy}{values of the vertical variable}
+  \item{indx}{index of the variable shown horizontally, among the
+    \code{y} variables}
+  \item{indy}{index of the variable shown horizontally, among the
+    \code{y} variables}
+  \item{pch, col}{plotting character and color, as usual}
+  \item{size}{size of sunflowers for plotting two factors}
 }
 \details{
-  If \code{x} or \code{y} is a data.frame, it is converted to a
-  numerical matrix.
-
-  The \code{panel} function can be user written. It needs \eqn{>=6} arguments,
-  which are given:
-  \itemize{
-  \item the values of the horizontal variable,
-  \item the values of the vertical variable,
-  \item the index of the variable shown horizontally, among the
-     \code{y} variables,
-  \item the index of the variable shown vertically, among the
-     \code{x} variables,
-  \item argument \code{pch}, and
-  \item argument \code{col}
-  }
+  The \code{panel} function can be user written. It needs \eqn{>=6}
+  arguments which must correspond to the arguments of
+  \code{panelDefault}, see above. If some arguments are not used,
+  just introduce them as arguments to the function anyway in order to
+  avoid (unnecessary) error messages and stops.
+  The names \code{pch} and \code{col} must appear among the argument names.
 
   Since large scatterplot matrices lead to tiny panels, \code{plmatrix}
   splits the matrix into blocks of at most \code{nrows} rows and

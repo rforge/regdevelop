@@ -34,9 +34,9 @@
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{
-  \code{\link{xdistResdiff}}
-  }
+%% \seealso{
+%%   \code{\link{xdistResdiff}}
+%%   }
 
 \examples{
 data(d.blast)

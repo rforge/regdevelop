@@ -29,7 +29,7 @@
          ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
          mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
          oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
-         ...)
+         hatlim=c(0.99,0.5), ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -143,6 +143,8 @@
   \item{ask}{Should R ask before erasing the screen?
     The default is 'getOption('ask'), followed by TRUE for certain
     graphical devices.}
+  \item{hatlim}{bound for leverages to be used in standardizing
+    residuals and calculation of standardized residuals from smooth}
   \item{\dots}{further arguments to be passed to \code{plot}}
 }
 \details{

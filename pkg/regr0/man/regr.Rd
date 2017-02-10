@@ -19,7 +19,7 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
   subset = NULL, weights = NULL, na.action = nainf.exclude,
   contrasts=getUserOption("regr.contrasts"),
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
-  factorNA = TRUE, testlevel = 0.05, ...)
+  factorNA = TRUE, testlevel = 0.05, hatlim=c(0.99,0.5), ...)
 
 \method{summary}{regr}(object, ...)
 }
@@ -91,8 +91,11 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
   \item{factorNA}{ a logical value indicating whether missing values in
     factors should be re-coded by a respective level }
   \item{testlevel}{level for significance testing and confidence intervals}
+  \item{hatlim}{bound for leverages to be used in standardizing
+    residuals and calculation of standardized residuals from smooth}
   \item{\dots}{ other argument to be passed to the fitting function }
-  \item{object}{'summary.regr' simply returns its only argument object.}
+  \item{object}{'summary.regr' simply returns its only argument
+    \code{object}.}
 }
 % \details{}
 \value{

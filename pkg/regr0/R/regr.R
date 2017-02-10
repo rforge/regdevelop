@@ -7,7 +7,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
                  subset=NULL, weights=NULL, na.action=nainf.exclude,
                  contrasts=getUserOption("regr.contrasts"),
                  model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE,
-                 factorNA = TRUE, testlevel = 0.05, ...)
+                 factorNA = TRUE, testlevel = 0.05, hatlim=c(0.99,0.5),...)
 {
   ## !!! dispersion: allow to be set.
   ## Purpose:    fit all kinds of regression models
@@ -262,7 +262,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     if (length(lhat)==0) warning(":regr: no leverages available")
   }
   if (length(lhat)==NROW(lreg$stres))  lreg$stres <-
-      lreg$stres/ifelse(lhat>=1,1,sqrt(pmax(1e-10,1-lhat))) else
+      lreg$stres/sqrt(1-pmin(hatlim[1],lhat)) else
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
   ## misc
@@ -271,7 +271,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (is.null(x) || !x) lreg$x <- NULL
   class(lreg) <- if (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
-## result of regr
+  ## result of regr
   lreg
 }
 ## -----------------------------------------------------------------------
@@ -2301,7 +2301,7 @@ residuals.regr <- function(object, type=NULL, ...)
   lff <- object$fitfun
   if (lff=="glm" && !is.null(type) && substr(type,1,4)=="cond") lff <- "polr"
   lcall[[1]] <-
-    switch(lff,
+    switch(as.character(lff),
            "polr" = quote(regr0:::residuals.polr),
            "survreg" = quote(regr0:::residuals.regrsurv),
            "coxph" = quote(regr0:::residuals.regrcoxph),
@@ -3234,6 +3234,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
          mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
          oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
+         hatlim=c(0.99,0.5),
          ...)
 {
 ## Purpose:  more plots for residual analysis
@@ -3378,16 +3379,17 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lstres <- if (lcondq) NULL else x$stres
   if (length(lstres)==0) {
     lstres <- if (lcondq) {
-      if (length(lhat)==0||anyNA(lhat))
-        cbind(lres[,1:4]/lsigma, lres[,5:6]) else lres
+    ##  if (length(lhat)==0||anyNA(lhat))
+        cbind(lres[,1:4]/lsigma, lres[,5:6]) ## else lres
     } else { 
-      if (length(lhat)==0||anyNA(lhat))
-        lres/outer(ifelse(lhat>=1,1,sqrt(pmax(0,1-lhat))),lsigma)
+      if (length(lhat)!=0&&!anyNA(lhat))
+        lres/outer(sqrt(1-pmin(hatlim[1],lhat)),lsigma)
       else  lres
     }
   }
   lstres <- cbind(lstres)
-  lrstratio <- if(lcondq) lstres[,1]/lres[,1] else lstres/lres
+  lrstratio <- if(lcondq) 1 / lsigma ## lstres[,1]/lres[,1]
+               else 1 / outer(sqrt(1-pmin(hatlim[2],lhat)),lsigma)
   lrstratio[!is.finite(lrstratio)] <- 1
 ##-     if (lIwgt) lstres <- lstres*sqrt(lweights) ## !!! check
   lrabs <- if (lcondq)  abs(lstres[,"random"]) else abs(lstres)
@@ -3698,7 +3700,7 @@ for (liplot in 1:length(lplsel)) {
         ylim=c(0,1.05*robrange(lraw)[2]),yaxs="i",
                 condprobrange=condprobrange)
   } } }
-## --- normal plot
+## --- normal plot qq plot
   if(lpls=="qq") {
     if (lpllevel>0) 
     for (lj in 1:lmres) {
@@ -4857,7 +4859,7 @@ smoothM <-
 }
 ## =======================================================================
 plmatrix <-
-function(x, y=NULL, data=NULL, panel=l.panel,
+function(x, y=NULL, data=NULL, panel=panelDefault,
          nrows=0, ncols=nrows, save=TRUE, robrange.=FALSE, range.=NULL,
          pch=1, col=1, reference=0, ltyref=3,
          log="", xaxs="r", yaxs="r",
@@ -4873,16 +4875,6 @@ function(x, y=NULL, data=NULL, panel=l.panel,
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date: 23 Jul 93; minor bug-fix+comments:
   ## M.Maechler
-  l.panel <- function(x, y, indx, indy, pch=1, col=1, cex=cex.points,...) {
-    if (is.character(x)) x <- factor(x)
-    if (is.factor(x)&&!is.factor(y))
-      plmboxes(y~x, data.frame(x=x,y=y), add=TRUE, ...) else {
-        if (is.character(y)) y <- factor(y)
-        if (is.factor(y)) y <- as.numeric(y)
-        if (is.character(pch)) text(x,y,pch,col=col,cex=cex) else
-        points(x,y,pch=pch,col=col,cex=cex,...)
-      }
-  }
   lf.axis <- function(k, axm, labm, at=at, txt, ...) {
     if (k %in% axm) axis(k)
     if (k %in% labm)
@@ -5080,6 +5072,27 @@ function(x, y=NULL, data=NULL, panel=l.panel,
   "plmatrix: done"
 }
 
+## ====================================================================
+panelDefault <- function(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
+                         size=NULL, ...) {
+  if (is.character(xx)) xx <- factor(xx)
+  if (is.character(yy)) yy <- factor(yy)
+  if (is.factor(xx)) {
+    if (is.factor(yy)) { 
+      lsize <- if (is.null(size))
+                 min(par("pin"))/(4*max(length(levels(xx)),length(levels(yy))))
+               else size
+      sunflowerplot(yy~xx, add=T, col=col, size=lsize)
+      }
+    else
+      plmboxes(yy~xx, data.frame(xx=xx,yy=yy), add=TRUE, ...)
+  }
+  else {
+    if (is.factor(yy)) yy <- as.numeric(yy)
+    if (is.character(pch)) text(xx,yy,pch,col=col,cex=cex)
+    else points(xx,yy,pch=pch,col=col,cex=cex,...)
+  }
+}
 ## ====================================================================
 plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   width=1, wfac=NULL, minheight= NULL, adj=0.5, extquant=TRUE, 
