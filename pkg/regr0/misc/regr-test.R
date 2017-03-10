@@ -36,6 +36,7 @@ t.xd <- xdistResdiff(t.r, nsim=1000)
 plot(t.xd)
 
 dd <- d.blast
+set.seed(0)
 dd$random <- c(NA,NA,rnorm(nrow(dd)-2))
 t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+random, data=dd)
 r.st <- step(t.r)
@@ -235,6 +236,7 @@ t.rr <- regr(log10(ersch)~Stelle+log10(dist)+log10(ladung), data=d.spreng,
              robust=T)
 modelTable(list(t.r,t.rr))
 ## -------------------------------------
+## logistic regr
 plot(t.r)
 ## Baby Survival
 ##- t.d <- read.table("/u/stahel/data/babysurvival.dat",sep=",",header=T)
@@ -512,9 +514,9 @@ t.rp <- predict(t.r)
 t.rr <- residuals(t.r)
 
 add1(t.r)
+confint(t.r)
 step(t.r)
 ## margEffTobit(t.r)
-confint(t.r)
 
 t.rr <- residuals(t.r)
 t.i <- which(t.rr[,"prob"]>0)
@@ -620,3 +622,10 @@ library(regr0)
  
  r.reg <- regr(type ~ ., data=Pima.tr2)
 r.reg$termtable
+
+## ==============================================================
+
+t.m <- matrix(1:100,nrow=25)
+showd(t.m)
+colnames(t.m) <- letters[1:4]
+showd(t.m)

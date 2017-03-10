@@ -43,6 +43,9 @@ plot(r.blast, smooth.group=location)
 t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
 plot(r.blast, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=0))
 
+dd <- cbind( d.blast, indicator= factor(1==1:nrow(d.blast)) )
+t.rr <- regr(tremor ~ distance + charge + location + indicator, data=dd)
+plot(t.rr, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=2))
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
@@ -61,6 +64,8 @@ plresx(r.blast, vars=~distance,
        smooth.col=c("blue","red","darkgreen","purple","brown",
          "orange","cyan","black"),
        smooth.legend="bottomright")
+
+
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
 data(d.blast)
@@ -189,10 +194,15 @@ plot(t.r)
 t.rf <- fitted(t.r)
 t.rp <- predict(t.r)
 t.rr <- residuals(t.r)
+t.ci <- confint(t.r)
+stopifnot(round(t.ci["quant",1],3)==-0.223)
 
 add1(t.r)
-step(t.r)
-confint(t.r)
+##- set.seed(0)
+##- dd$random <- rnorm(nrow(dd))
+##- t.r2 <- regr(Tobit(durable) ~ age + quant + random, data=dd)
+t.rst <- step(t.r)
+stopifnot(round(t.rst$anova[3,"Deviance"],3)==0.835)
 ## =======================================================================
 ## trouble with complicated formula
 t.loc <- d.blast$location

@@ -692,7 +692,7 @@ i.survreg <-
     ldfr <- length(lreg$residual)-ldf-1
   }
   lreg$df.residual <- ldfr
-  lreg$aic <- extractAIC(lreg)
+  lreg$aic <- extractAIC(lreg)[2]
   lreg$deviance <- -2*lreg$loglik
   lchi <- 2*diff(lreg1$loglik)
   ltbd <- cbind(deviance=c(lchi,-2*lreg1$loglik[2]),
@@ -734,7 +734,7 @@ i.survreg <-
     lcmpn <- c("termtable","allcoef","leverage")
     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
-  lreg$df <- c(model=ldf, residual=ldfr) ## !!! lreg has df = ldf+object$idf !
+  ## lreg$df <- c(model=ldf, residual=ldfr, original=lreg$df) ## !!! lreg has df = ldf+object$idf !
     ## do not modify before calling i.termtable
   lreg$distrname <- if (lfitfun=="coxph") "prop.hazard" else lreg$dist
   lreg$residuals <- lres
@@ -755,7 +755,7 @@ Tobit <- function(data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
   data <- pmax(data,limit)
   lright <- !is.null(limhigh)
   if (lright) data <- pmin(data, limhigh)
-  if (log) {
+  if (log[1]) { ## model.frame  evaluates  log  in  data ! Whence [1]
       transform <- logst
       ltrs <- "logst"
   }
@@ -823,7 +823,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
               drop1(lreg, test=ltesttype, scope=terms(lreg)) else
               try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
                   silent=TRUE)
-        }
+                           }
   if (class(ldr1)[1]=="try-error") {
     warning(paste(":regr: drop1 did not work. I return the table produced by ",
                   lreg$fitfun))
@@ -1139,7 +1139,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           if ((!is.null(attr(x$scale,"fixed")))&&
               attr(x$scale,"fixed"))
              "fixed at ", format(x$scale))
-    cat("\nAIC: ", format(x$aic, digits = max(4, digits + 1)), "\n", sep = "")
+    cat("\nAIC: ", format(x$aic, digits = max(4, digits + 1)), "\n", sep = "  ")
     if (niterations&&length(x$iter)>0)
       cat("Number of iterations:", x$iter, "\n")
   }
@@ -1404,13 +1404,19 @@ drop1.regr <-
   ##  lform <- update(formula(object), scope !!!)
   ## !!! model.frame for finding the valid rows
   class(object) <- setdiff(class(object), "regr")
+  fcall <- object$funcall
+  if (!is.null(fcall)) object$call <- fcall
+##-   dfm <-  object$df
+  ##-   object$df <- dfm[setdiff(names(dfm),"residual")] ## survreg !
+##-   if (inherits(object, c("survreg","coxph")))
+##-     object$df <- object$df["original"]
 ##
   dr1 <- if (add) { ## ------------ add
     if (class(object)[1]=="lmrob")
         stop("!add1.regr! 'add1' not (yet) available for 'lmrob' objects")
     ldata <- eval(object$call$data)
     li <- row.names(ldata)%in%RNAMES(object$residuals)
-    if (is.null(ldata[li,])) stop("!step.regr! no data found ")
+    if (is.null(ldata[li,])) stop("!drop1.regr! no data found ")
     lvars <-unique(c(all.vars(formula(object)),
                      if (is.formula(scope)) all.vars(scope) else scope))
     lvars <- lvars[lvars%in%names(ldata)]
@@ -1451,7 +1457,8 @@ drop1.regr <-
     if (any(lina)) ldata[lina,] <- NA
     object$call$data <- ldata
     drop1(object, scope=scope, scale=scale, test=test, k=k, ...)
-  }}
+    }
+  }
 ##-   rnm <- row.names(dr1)
 ##-   row.names(dr1) <- paste(ifelse(substring(rnm,1,1)=="<","",
 ##-                                  if (add) "+ " else "- "),rnm,sep="")
@@ -1487,9 +1494,12 @@ drop1Wald <-
     offset <- model.offset(model.frame(object))
     n <- nrow(x)
     asgn <- attr(x, "assign")
-    tl <- attr(object$terms, "term.labels")
+    lterms <- terms(object)
+    tl <- attr(lterms, "term.labels")
+    attr(lterms, "order") <-  rep(1,length(tl))
     if (is.null(scope)) 
-        scope <- drop.scope(object)  else {
+      scope <- tl # drop.scope(lterms)
+    else {
         if (!is.character(scope)) 
             scope <- attr(terms(update.formula(object, scope)), 
                 "term.labels")
@@ -1509,17 +1519,20 @@ drop1Wald <-
     if (is.null(cov)) cov <- object$covariance/lsig^2
     if (length(cov)==0) stop("!drop1Wald! no covariance matrix found")
     cf <- object$coefficients
-    jj <- match(names(cf),colnames(cov), nomatch=0)
-##-     if (!(any(jj==0)&&all(is.na(cf[jj==0]))))
-    if ((any(jj==0)&&any(!is.na(cf[jj==0]))))
-      stop("!drop1Wald! coefficient(s) not appearing in covariance matrix")
-    cf <- cf[jj]
+    ##- jj <- match(names(cf),colnames(cov), nomatch=0)
+    ##-     if (!(any(jj==0)&&all(is.na(cf[jj==0]))))
+    jj <- match(colnames(cov),names(cf), nomatch=0)
+    if (any(jj==0))
+      warning(":drop1Wald: coefficient(s) and cov. matrix may not correspond")
+    coef <- cf[jj]
     asgn <- asgn[jj]
+    if (any(names(coef[!is.na(coef)])%nin%names(coef)))
+      stop("!drop1Wald! coefficient(s) not appearing in covariance matrix")
 ##-     y <- object$residuals + predict(object)
     for (i in 1:ns) {
-        ii <- seq_along(asgn)[asgn == ndrop[i]]
-        RSS[i] <- if (length(ii)==1) cf[ii]^2/cov[ii,ii] else
-          cf[ii]%*%solve(cov[ii,ii])%*%cf[ii]
+        ii <- which(asgn==ndrop[i]) ## seq_along(asgn)[asgn == ndrop[i]]
+        RSS[i] <- if (length(ii)==1) coef[ii]^2/cov[ii,ii] else
+          coef[ii]%*%solve(cov[ii,ii])%*%coef[ii]  ## !!! REPLACE THIS
         dfs[i] <- length(ii)
 ##-         if (all.cols) 
 ##-             jj <- setdiff(seq(ncol(x)), ii)
@@ -1685,103 +1698,94 @@ step.regr <- function (object, scope=terms2order(object), scale = 0,
         stop("AIC is not defined for this model, so `step` cannot proceed")
     nm <- 1
     if (trace) {
-        cat("Start:  AIC=", format(round(bAIC, 2)), "\n", cut.string(deparse(formula(fit))),
-            "\n\n", sep = "")
-        utils::flush.console()
+      cat("Start:  AIC=", format(round(bAIC, 2)), "\n",
+          cut.string(deparse(formula(fit))), "\n\n", sep = "")
+      utils::flush.console()
     }
-    models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n -
-        edf, change = "", AIC = bAIC)
-    if (!is.null(keep))
-        keep.list[[nm]] <- keep(fit, bAIC)
-    usingCp <- FALSE
-    while (steps > 0) {
-        steps <- steps - 1
-        AIC <- bAIC
-        ffac <- attr(Terms, "factors")
-        scope <- factor.scope(ffac, list(add = fadd, drop = fdrop))
-        aod <- NULL
-        change <- NULL
-        if (backward && length(scope$drop)) {
-            aod <- drop1(fit, scope$drop, scale = scale, trace = trace,
-                k = k, ...)
-            rn <- row.names(aod)
-            row.names(aod) <- c(rn[1L], paste("-", rn[-1L], sep = " "))
-            if (any(aod$Df == 0, na.rm = TRUE)) {
-                zdf <- aod$Df == 0 & !is.na(aod$Df)
-                change <- rev(rownames(aod)[zdf])[1L]
-            }
-        }
-        ## forward
-        if (is.null(change)) {
-          if (forward && length(scope$add)) {
-            aodf <- add1(fit, scope$add, scale = scale, trace = trace,
-                         k = k, ...)
-            rn <- row.names(aodf)
-            row.names(aodf) <- c(rn[1L], paste("+", rn[-1L], sep = " "))
-            aod <- if (is.null(aod)) aodf
-            else {
-              names(aodf) <- names(aod)
-              rbind(aod, aodf[-1, , drop = FALSE])
-            }
-            }
-          attr(aod, "heading") <- NULL
-          nzdf <- if (!is.null(aod$Df))
-            aod$Df != 0 | is.na(aod$Df)
-          aod <- aod[nzdf, ]
-          if (is.null(aod) || ncol(aod) == 0)
-            break
-          nc <- match(c("Cp", "AIC"), names(aod))
-          nc <- nc[!is.na(nc)][1L]
-          o <- order(aod[, nc])
-          if (trace)
-            print(aod[o, ])
-          if (o[1L] == 1)
-            break
-          change <- rownames(aod)[o[1L]]
-        }
-        ## update
-        usingCp <- match("Cp", names(aod), 0L) > 0L
-        fit <- update(fit, paste("~ .", change), evaluate = FALSE)
-        fit <- eval.parent(fit)
-        nnew <- nobs(fit, use.fallback = TRUE)
-        if (all(is.finite(c(n, nnew))) && nnew != n) {
-          warning(":step.regr: number of rows in use has changed: \n  ",
-                    nnew," observations instead of ", n)
-          n <- nnew
-        }
-        Terms <- terms(fit)
-        bAIC <- extractAIC(fit, scale, k = k, ...)
-        edf <- bAIC[1L]
-        bAIC <- bAIC[2L]
-        ## output
-        if (trace) {
-            cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
-                cut.string(deparse(formula(fit))), "\n\n", sep = "")
-            utils::flush.console()
-        }
-        if (bAIC >= AIC + 1e-07)
-            break
-        nm <- nm + 1
-        models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n -
-            edf, change = change, AIC = bAIC)
-        if (!is.null(keep))
-            keep.list[[nm]] <- keep(fit, bAIC)
+  models[[nm]] <-
+    list(deviance = mydeviance(fit), df.resid = n - edf, change = "",
+         AIC = bAIC)
+  if (!is.null(keep))
+    keep.list[[nm]] <- keep(fit, bAIC)
+  usingCp <- FALSE
+  ## ------------------------
+  while (steps > 0) {
+    steps <- steps - 1
+    AIC <- bAIC
+    ffac <- attr(Terms, "factors")
+    scope <- factor.scope(ffac, list(add = fadd, drop = fdrop))
+    aod <- NULL
+    change <- NULL
+    ## backward
+    if (backward && length(scope$drop)) {
+      aod <- drop1(fit, scope$drop, scale = scale, trace = trace,
+                   k = k, sorted=FALSE, ...)
+      rn <- row.names(aod)
+      row.names(aod) <- c(rn[1L], paste("-", rn[-1L], sep = " "))
+      if (any(aod$Df == 0, na.rm = TRUE)) {
+        zdf <- aod$Df == 0 & !is.na(aod$Df)
+        change <- rev(rownames(aod)[zdf])[1L]
+      }
     }
+    ## forward
+    if (is.null(change)) {
+      if (forward && length(scope$add)) {
+        aodf <- add1(fit, scope$add, scale = scale, trace = trace,
+                     k = k, ...)
+        rn <- row.names(aodf)
+        row.names(aodf) <- c(rn[1L], paste("+", rn[-1L], sep = " "))
+        aod <- if (is.null(aod)) aodf  else {
+          names(aodf) <- names(aod)
+          rbind(aod, aodf[-1, , drop = FALSE])
+        }
+      }
+    }
+    ## backward or forward
+    attr(aod, "heading") <- NULL
+    nzdf <- if (!is.null(aod$Df))
+              aod$Df != 0 | is.na(aod$Df)
+    aod <- aod[nzdf, ]
+    if (is.null(aod) || ncol(aod) == 0)
+      break
+    nc <- match(c("Cp", "AIC"), names(aod))
+    nc <- nc[!is.na(nc)][1L]
+    o <- order(aod[, nc])
+    if (trace)
+      print(aod[o, ])
+    if (o[1L] == 1)  break
+    change <- rownames(aod)[o[1L]]
+    ## update
+    usingCp <- match("Cp", names(aod), 0L) > 0L
+    ##    if (is.null(change))  break  else {
+    fit <- update(fit, paste("~ .", change), evaluate = FALSE)
+    fit <- eval.parent(fit)
+    nnew <- nobs(fit, use.fallback = TRUE)
+    if (all(is.finite(c(n, nnew))) && nnew != n) {
+      warning(":step.regr: number of rows in use has changed: \n  ",
+              nnew," observations instead of ", n)
+      n <- nnew
+    }
+    Terms <- terms(fit)
+    bAIC <- extractAIC(fit, scale, k = k, ...)
+    edf <- bAIC[1L]
+    bAIC <- bAIC[2L]
+    ## output
+    if (trace) {
+      cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
+          cut.string(deparse(formula(fit))), "\n\n", sep = "")
+      utils::flush.console()
+    }
+    ##        if (bAIC >= AIC + 1e-07)
+    ##  else   break
+    nm <- nm + 1
+    models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n - edf,
+                         change = change, AIC = bAIC)
     if (!is.null(keep))
-        fit$keep <- re.arrange(keep.list[seq(nm)])
-    ## !!!
-##-     if (lnotna) {
-##-       lv <- all.vars(fit$call$formula)
-##-       linan <- apply(is.na(ldata[,lv,drop=FALSE]),1,sum)>0
-##-       if (any(lina!=linan))
-##-           warning(":step.regr: ",# sum(lina),
-##-               "observations deleted (or added) because of missing values.\n",
-##-               "  You may want to refit the resulting model and/or",
-##-               "call step again on it.")
-##-     }
-##-     fit$call$data <- lcdata
-    ## !!!
-    step.results(models = models[seq(nm)], fit, object, usingCp)
+      keep.list[[nm]] <- keep(fit, bAIC)
+  }
+  if (!is.null(keep))
+    fit$keep <- re.arrange(keep.list[seq(nm)])
+  step.results(models = models[seq(nm)], fit, object, usingCp)
 }
 ## ==========================================================================
 terms2order <- function(object, squared = TRUE, interactions = TRUE)
@@ -4631,13 +4635,13 @@ plresx <-
 ##-     ff <- function(v2, v1, j2, j1, pch, clr, clrsmooth) {
 ##-             points(v2,v1, col=clr, pch=pch)
 ##-             lines(lowess(v2,v1), col=clrsmooth) }
-    lpanel <- function(xx, yy, jx, jy, pch, col) {
+    lpanel <- function(xx, yy, indx, indy, pch, col) {
       lcmpx <- lcmpy <- NULL
-      ltin <- terminmodel[jx]
-      lvx <- vars[jx]
+      ltin <- terminmodel[indx]
+      lvx <- vars[indx]
       lcnt <- !is.fac[lvx]
       if (ltin) {
-        lcmpy <- lcompy[,lvx,jy]
+        lcmpy <- lcompy[,lvx,indy]
         if (lcnt) lcmpx <- lcompx[,lvx]
       }
       i.plotlws(xx,yy, "","","", TRUE, cex.title, colors, lty, lwd, lpch, col,
@@ -4948,7 +4952,8 @@ function(x, y=NULL, data=NULL, panel=panelDefault,
     } else {
       lj <- match(colnames(range.),lvn)
       if (anyNA(lj)) {
-        warning("variables", colnames(range.)[is.na(lj)],"not found")
+        warning("variables", paste(colnames(range.)[is.na(lj)],collapse=", "),
+                "  not found")
         if (any(!is.na(lj))) rg[,lj[!is.na(lj)]] <- range.[,!is.na(lj)]
       }
     }
@@ -5056,7 +5061,7 @@ function(x, y=NULL, data=NULL, panel=panelDefault,
       }
       box(bty=bty)
       if (is.character(all.equal(v1,v2))) { # not diagonal
-        panel(v1,v2,jd1,jd2, pch=lpch, col=lcol, ...)
+        panel(v1,v2, indx=jd1,indy=jd2, pch=lpch, col=lcol, ...)
         if (tjref) abline(h=lref[j1],v=lref[j2],lty=ltyref)
       }
       else { uu <- par("usr") # diagonal: print variable name
@@ -5093,6 +5098,10 @@ panelDefault <- function(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
     else points(xx,yy,pch=pch,col=col,cex=cex,...)
   }
 }
+## ====================================================================
+panel.smooth <-
+  function(x, y, indx, indy, pch=par("pch"), col=par("col"), cex=1, ...)
+  graphics::panel.smooth(x, y, pch=pch, col=col, cex=cex, ...)
 ## ====================================================================
 plmbox <- function(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL,
   width=1, wfac=NULL, minheight= NULL, adj=0.5, extquant=TRUE, 
@@ -5560,6 +5569,7 @@ showd <- function(data, first=3, nrow.=4, ncol.=NULL)
   ldata <- cbind(data)
   l.nr <- nrow(ldata)
   l.nc <- ncol(ldata)
+  if (is.null(colnames(ldata))) colnames(ldata) <- paste("c",1:l.nc,sep=".")
   ## select columns
   l.ic <- if (length(ncol.)==0) 1:l.nc  else {
     if (length(ncol.)==1) {
