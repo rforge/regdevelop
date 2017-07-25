@@ -30,8 +30,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   ldata <- as.data.frame(eval(data))
     lnobs <- nrow(ldata)
   if (lnobs==0) stop("!regr! no observations in data")
-  ## --- get all variables to be used (as in lm)
-##-   lcgetv <- call(quote("get_all_vars"), formula=lformula, data=lcall$data)
   ## nonlinear: drop constants
   lform <- lformula
   if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
@@ -55,12 +53,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lcgetv <- call(quote("get_all_vars"), formula=lform, data=lcall$data)
   ## !!!  get_all_vars , when repaired...
   lcgetv$data <- eval(lcall$data, sys.parent()) ## !!! oct 15
-##-   lcgetv$formula <- lform[1:2]
   lallvars <- try(eval(lcgetv, parent.frame())) ##
-##-   if (length(lform)>2) {
-##-     lcgetv$formula <- lform[-2]
-##-     lallvar2 <- try(eval(lcgetv, parent.frame())) ##
-##-   ## !!! simplify when  get_all_vars  is ok.
   ## variables not found -- which ones?
     if (class(lallvars)=="try-error") {
     lv <- all.vars(formula)
@@ -78,6 +71,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     if (ncol(lallvars)==length(lnm)) names(lallvars) <- lnm  else
     stop("!regr! bug: variables not correctly identified")
   }
+  ## --------------------------------------
   ## f. --- compose call of fitting function
   lcl <- lcall
   if (!is.null(lcl$weights)) {
@@ -95,12 +89,12 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     lcl$subset <- NULL
   }
   ## convert character to factor, drop unused levels, generate .NA. level
-  lfacna <- is.character(factorNA) || (is.logical(factorNA)&factorNA)
+  lfacna <- is.character(factorNA) || (is.logical(factorNA)&&factorNA)
   lfnalabel <- if(is.character(factorNA)) factorNA else ".NA."
   for (lvn in 1:ncol(lallvars)) {
     lv <- lallvars[[lvn]]
     if (is.character(lv)|is.factor(lv))
-      lallvars[[lvn]] <- if (lfacna) factorNA(lv) else factor(lv, lfnalabel)
+      lallvars[[lvn]] <- if (lfacna) factorNA(lv, lfnalabel) else factor(lv)
   }
   ## g. --- check for variables with a single value
   lcgetv[[1]] <- as.name("model.frame")
@@ -207,13 +201,15 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   old.opt <- NULL
   if(is.atomic(contrasts)&&length(contrasts)) {
     if(!is.character(contrasts))
-      warning("!regr! invalid contrasts argument") else {
-        old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
-        lcl$contrasts <- NULL
-      }
+      warning("!regr! invalid contrasts argument")
+    else {
+      old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
+      lcl$contrasts <- NULL
+    }
     if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, ly)
 ##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
   }
+##  BR("beforecall")
 ##- ## --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
   lreg <- eval(lcl)
@@ -221,17 +217,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (length(old.opt)) options(old.opt)
   lreg$na.action <- attr(ldata, "na.action")
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
-##  <<<<<<< .mine
-#  lreg$Y <- data.frame(ly) # ly is a model.frame
-#  if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])  
-#  lreg$Y <- lyy
-## =======  !?!
+  lreg$response <- ly
   lyy <- as.matrix(ly) # ly is a model.frame
   if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])
   lreg$Y <- lyy
-  lreg$response <- ly
-  if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
-  ## >>>>>>> .r32
   lreg$allvars <- lallvars ## needed more than $model
   ## since $model contains transformed variables
   ## recover some arguments to effective function call
@@ -252,7 +241,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lterms <- if (nonlinear) NULL else terms(lreg)
   if ((!nonlinear) && is.null(attr(lterms, "predvars")))  ## needed for survreg
     attr(lreg$terms,"predvars") <- attr(attr(lreg$model,"terms"),"predvars")
-  lresnm <- colnames(lreg$residuals)
   ## r. --- leverages, standardized res
   lhat <- lreg$leverage
   if (length(lhat)==0 && !nonlinear) {
@@ -266,6 +254,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
   ## misc
+  if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
   if (class(lreg)[1]=="survreg")
     lreg$n.obs <- length(lreg$linear.predictor)
   if (is.null(x) || !x) lreg$x <- NULL
@@ -1194,24 +1183,36 @@ summary.regr <- function(object, ...)  object ## dispersion=NULL,
 allcoef <- function (object, se = 2, # use.na = TRUE, 
                       df = df.residual(object), ...) 
 {
-  if (is.atomic(object)) stop("!allcoef! inadequate first argument")
-  xl <- object$xlevels
-  if (!length(xl)) 
-    return(as.list(coef(object)))
-  Terms <- terms(object)
+  contr.id <- function(n, contrasts = NULL) diag(n)
+    ## used for dataClass "nmatrix"
+
+  if (is.atomic(object)||is.null(terms(object)))
+      stop("!allcoef! inadequate first argument")
+ ##  xl <- object$xlevels
+  Terms <- delete.response(terms(object))
   tl <- attr(Terms, "term.labels")
+  dcl <- attr(Terms,"dataClasses")[-1]
+  if (all(dcl=="numeric")) 
+    return(as.list(coef(object)))
   ## result already available?
   allc <- object$allcoef
   if ((!is.null(allc))&&length(allc)==length(tl)&&
-      (is.matrix(allc[[length(allc)]])|!se)) return(allc)
+      (is.matrix(allc[[length(allc)]])|!se)) return(allc) ## !!! check!
   int <- attr(Terms, "intercept")
-  facs <- attr(Terms, "factors")[-1, , drop = FALSE]
-  Terms <- delete.response(Terms)
+  facs <- attr(Terms, "factors")
   mf <- object$model  ##! d.c used all.vars
   if (is.null(mf)) mf <- model.frame(object)
   xtnm <- dimnames(facs)[[1]]  ## names  ##! replaces vars
   xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
-  xtnl <- pmax(sapply(xtlv,length),1)  ## number of levels
+  lcontr <- object$contrasts
+  imat <- substr(dcl,1,7)=="nmatrix" ## resulting from bs()
+  if (any(imat)) {
+    xtlv[imat] <-
+        lapply(as.list(dcl[imat]),
+               function(x) as.character(1:as.numeric(substr(x,9,12))))
+    lcontr <- c(lcontr, structure(rep("contr.id",length(tl)), names=tl)[imat])
+  }
+  xtnl <- pmax(sapply(xtlv,length),1) ## number of levels
   termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0])) ##! lterms
   nl <- sum(termnl)
 ## --- df.dummy: data frame of simple terms
@@ -1246,10 +1247,9 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
   }
   ## attributes
   attr(df.dummy,"terms") <- attr(mf,"terms")
-  lcontr <- object$contrasts
   lci <- sapply(df.dummy,is.factor)
-  lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?) 
-  mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xl) ## 
+  lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?)
+  mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xtlv) ## 
   if (anyNA(mm)) {
     warning("some terms will have NAs due to the limits of the method")
     mm[is.na(mm)] <- NA
@@ -1842,7 +1842,7 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
 ##-   lnls <- length(lmeth)>0 && lmeth=="nls"
   if (length(type)==0)
     type <- if (inherits(object,"glm")) "link" else
-  if (inherits(object, "polr")) "link" else "response"
+    if (inherits(object, "polr")) "link" else "response"
   ## !!!
   if (object$fitfun=="rlm")
     if (!is.matrix(object[["x"]]))
@@ -1862,22 +1862,48 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
 ##-     lpred <- predict(object, type=type, se.fit=se.fit,
 ##-                   dispersion=lscale^2, terms=terms, na.action = na.action )
 ##-   } else {
-    ldt <- newdata
+  ldt <- newdata
+  if (is.null(ldt)) return(
+    predict(object, type=type, scale=object$sigma,
+            dispersion=object$dispersion^2, ... ) )
     ## analyze variables
-  if (!is.null(ldt)) {
-    for (lvn in names(ldt)) {
-      lv <- ldt[[lvn]]
-      ## binary factors
-      if (is.factor(lv)&&match(lvn,names(object$binlevels),nomatch=0)>0)
-        ldt[[lvn]] <- match(lv,object$binlevels[[lvn]])-1
-      else  if (is.factor(lv))   ldt[[lvn]] <- factor(lv)
+##  if (!is.null(ldt)) {
+    ## terms with logst -> need original thresholds
+  ltl <- attr(terms(object),"term.labels")
+  ltll <- grep("logst\\(",ltl)
+  lvlogst <- NULL
+  if (length(ltll)) {
+    lvlogst <- unique( gsub(".*logst\\((.*)\\).*","\\1", ltl[ltll]) )
+    lmodel <- model.frame(object)
+    lform <- as.character(as.expression(formula(object)))
+  }
+  for (lvn in names(ldt)) {
+    lv <- ldt[[lvn]]
+    ## factors
+    if (is.factor(lv))  ldt[[lvn]] <- 
+      if (match(lvn,names(object$binlevels),nomatch=0)>0) ## binary
+        match(lv,object$binlevels[[lvn]])-1
+      else  factor(lv)
+    ## logst
+    if (lvn %in% lvlogst) {
+      lt <- ltl[grep(lvn, ltl)[1]]
+      lvv <- lmodel[[lt]]
+      lth <- attr(lvv, "threshold")
+      if (is.null(lth))
+        stop("!predict.regr! variable in term ",lt,
+             "  not found in model.frame or threshold not available. \n",
+             "  Prediction with 'logst' would fail.",
+             "  Store transformed variable in data.frame")
+      lth <- round(lth,5) ## get it from there,
+        ## since it may have been set by the call to regr
+      lform <- gsub(paste("logst *\\(",lvn,"\\)",sep=" *"),
+                   paste("logst(",lvn,", threshold=",lth,")",sep=""), lform)
     }
   }
-  if (is.null(ldt))
-    predict(object, type=type, scale=object$sigma,
-            dispersion=object$dispersion^2, ... )  else
-    predict(object, newdata=ldt, type=type, scale=object$sigma,
-            dispersion=object$dispersion^2, ... )
+  if (length(lvlogst))
+    object$terms <- terms(as.formula(lform), data=object$data)
+  predict(object, newdata=ldt, type=type, scale=object$sigma,
+          dispersion=object$dispersion^2, ... )
 }
 ## ==========================================================================
 ##- extractAIC.regr <- function (fit, scale = 0, k = 2, ...)

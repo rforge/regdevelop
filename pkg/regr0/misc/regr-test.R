@@ -5,14 +5,15 @@ require(regr0)
 attach("../misc/data-regr0.rda")
 ## ---------------------------------------------------------------
 ## regr0.rda erstellen
-source("~/regr0/misc/regr.R")
-save.image("~/regr0/misc/regr0.rda")
-q("no")
+##- source("~/regr0/misc/regr.R")
+##- save.image("~/regr0/misc/regr0.rda")
+##- q("no")
 ## ---------------------------------------------------------------
 ## --- regr.Rd examples
 # data(d.blast)
 options(verbose=1)
 
+data(d.blast)
 ( r.blast <-
   regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
 plot(r.blast)
@@ -43,6 +44,12 @@ r.st <- step(t.r)
 
 dd$loc <- as.numeric(dd$location)
 t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+factor(loc), data=dd)
+
+dd$logical <- dd$location=="loc2"
+t.r <- regr(log10(tremor)~log10(distance)+log10(charge)+logical, data=dd)
+t.r1 <- regr(log10(tremor)~log10(distance)+log10(charge)+as.numeric(logical), data=dd)
+t.lm <- lm(log10(tremor)~log10(distance)+log10(charge)+logical, data=dd)
+t.lm1 <- lm(log10(tremor)~log10(distance)+log10(charge)+as.numeric(logical), data=dd)
 
 ## environment problem
 f.rr <- function(fo) {
@@ -112,7 +119,7 @@ plresx(r.blast, smooth.group=location)
 d.hail <- read.table("~/data/hail.dat")
 r.hail <- regr(logst(EGR) ~ logst(E0) * SEED + TB + TB:logst(E0) + H0,
                data=d.hail)
-t.pr <- predict(r.hail, newdata=d.hail[1:3,])
+t.pr <- predict(r.hail, newdata=d.hail[1:5,])
 ## ------------------------------------------------------------
 ## Anorexia
 data(anorexia, package="MASS")
@@ -139,6 +146,10 @@ t.rr <- regr(disturbance~age+education+location, data=dd)
 dd <- d.surveyenvir
 t.rp <- polr(disturbance~age+education+location, data=dd)
 t.rr <- regr(disturbance~age+education+location, data=dd)
+
+t.rpp <- polr(disturbance~age+education+location, data=dd, method="probit")
+t.rrp <- regr(disturbance~age+education+location, data=dd, method="probit")
+
 ##- t.r <- regr(Sat ~ Infl + Type + Cont, weights = housing$Freq, data = housing)
 ##- plot(t.r)
 

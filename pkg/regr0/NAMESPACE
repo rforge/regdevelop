@@ -19,7 +19,7 @@ importFrom("stats",
 importFrom("utils", getS3method, recover)
 importFrom("graphics", plot, abline, axis, box, frame, legend,
            lines, matlines, mtext, par, points, polygon,
-           segments, symbols, text)
+           segments, sunflowerplot, symbols, text)
 importFrom("grDevices", col2rgb, dev.list, grey, palette,
            rgb)
 

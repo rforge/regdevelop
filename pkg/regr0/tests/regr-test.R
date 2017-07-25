@@ -65,6 +65,11 @@ plresx(r.blast, vars=~distance,
          "orange","cyan","black"),
        smooth.legend="bottomright")
 
+data(d.hail)
+r.hail <- regr(logst(EGR) ~ logst(E0) * factor(SEED) + TB + TB:logst(E0) + H0,
+               data=d.hail)
+t.pr <- predict(r.hail, newdata=d.hail[1:5,])
+stopifnot( all(abs(t.pr-fitted(r.hail)[1:5])<0.0001)  )
 
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
