@@ -1,0 +1,143 @@
+
+\documentclass[11pt]{article}
+\usepackage{texab}
+\usepackage{a4}
+
+\def\note#1{\\ *** \emph{#1}\\}
+\def\T{\texttt}
+\def\code{\texttt}
+
+\begin{document}
+
+\section{Programming notes}
+\Itm
+regr: handling of data, subset, weights, ...
+is subtile: weights may need to be evaluated before subset is taken.\\
+The elimination of unused levels might be deferred to model.frame using the
+argument \T{drop.unused.levels} -- 
+but some fitting functions (at least \T{survreg}) do not pass the argument
+on to it.\\
+The component \T{\$allvars} of the \T{regr} result is good enough for 
+\T{add1}. Therefore, the data argument is copied to the \T{\$funcall}
+component of the result.
+
+\Itm % nov 15
+Binary factors: have a different name in drop1 than in coef.
+\Arrow Use attr(\$x, "assign") and attr(\$terms,"term.labels")
+
+\Itm
+Factors created in the formula statement are difficult to handle
+by plresx. They get a flag as \T{is.fac==2}, and fitcomp needs to know
+that.
+(Consider such strange terms as \T{factor(2*stelle), factor(pmin(a,b))})
+
+%% =======================================================================
+\section{The Function \T{regr}}
+\Tit{Arguments to regr}
+\Itm
+\T{family} % and \T{dist}
+\T{normal = gaussian, binomial, poisson, gamma, cumlogit, multinomial,
+weibull, lognormal, logistic, loglogistic, extreme, t}\\
+\note{add cumloglog, ... for polr}
+depends on type of response, which may be
+\T{numeric, nmatrix, binary, bincount, ordered, factor}
+\note{bincount defined by function Bincount}
+\T{survival}: default ``family'' is \T{ph}, but others are available,
+\T{"weibull"},...\\
+Attribute \T{distribution} of y sets default for \T{family}\\
+\T{Tobit} entails \T{family="gaussian"} as a default
+
+\Itm
+\T{method} !!! changed
+\T{lm, rlm, nls, glm, polr, multinom, survreg, coxph}
+\note{coxph needs definition of residuals}
+
+\Tit{Value of regr}
+Term table:
+Coefficients for terms with a single coefficient.
+Zero degrees of freedom in some case of interactions: continuous times
+factor (obtained in survreg)
+
+
+%% =================================================================
+\section{drop1, add1, step}
+\Tit{NAs and subset}
+NAs 
+\Itm in resppmse \Arrow shorter object\$residual
+\Itm in starting model \Arrow same
+\Itm in add1 scope 
+
+\Tit{step}
+is modified. Why???
+
+\Tit{drop1 and survreg}
+\T{object\$df} is \T{length(coef)+1} instead of
+\T{length(coef)-intercept}
+%% =================================================================
+\section{Residuals}
+\Tit{Component Effects}
+with interactions ?
+
+\Tit{Fuzzy Residuals}
+conditional distribution
+
+%% =================================================================
+\section{Residual Plots}
+\Tit{QQ-plots}
+not for glm. adequate distribution! (make sure for Gamma, weibull, ...!)
+
+Conditional: show segments ony if conditional probability in range given by 
+\T{condprobrange}
+
+%% =================================================================
+\section{Smooths}
+Functions:
+
+\code{smoothMM} calls \code{smoothM} calls \code{smooth}, 
+which is \code{smoothRegr} by default.
+\code{smoothMM} is called from \code{i.plotlws} or, in the case of
+resdiduals from smooth (for qq and TAscale), by \code{plot.regr}.
+\Itm
+\code{smoothRegr} is essentially \code{loess}, with suitable parameter and
+error handling. Returns NULL if less than 8 observations are provided
+\Itm
+\code{smoothMM}: smooth for multiple x and y, needed for multivariate
+regression.
+Yields a list of lists
+\Itm
+\code{smoothM}: smooth for multiple y, generating smooths by group. 
+Yields a list.
+
+
+%% =================================================================
+\section{Documentation of Output}
+tit and doc.
+
+stamp
+
+%% ==================================================================
+\section{Miscellaneous}
+\Itm
+bookkeeping in lm
+
+\$x = model.matrix, includes\\
+  colnames= names of coef\\
+  attr(,"assign") zuordnung zu term.labels, die aber nicht da sind\\
+  attr(,"contrasts") for factors
+
+\Itm
+options ... mgp, 
+
+\Itm
+draw unimportant, extended items (reference lines, smooths) first
+
+
+
+\end{document}
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,7 +1,7 @@
-\name{residuals.survreg}
+\name{residuals.regrsurv}
 \Rdversion{1.1}
-\alias{residuals.survreg}
-\alias{residuals.coxph}
+\alias{residuals.regrsurv}
+\alias{residuals.regrcoxph}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Residuals of a regression for survival data
 }
@@ -12,14 +12,16 @@
   See Details for an explanation.
 }
 \usage{
-\method{residuals}{survreg}(object, type = "response", na.action=object, ...)
-\method{residuals}{coxph}(object, type = "CoxSnellMod", na.action=object, ...)
+\method{residuals}{regrsurv}(object, type = NULL, na.action=object, ...)
+\method{residuals}{regrcoxph}(object, type = NULL, na.action=object, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{an object inheriting from classes Survreg or coxph
 }
-  \item{type}{type of residuals required
+  \item{type}{type of residuals required; \code{NULL} will become
+    \code{"response"} for \code{residuals.regrsurv} and
+    \code{"CoxSnellMod"} for \code{residuals.coxph}
 }
   \item{na.action}{a list with component \code{na.action}, which
     determines the na.action for the residual component of \code{object}
@@ -43,8 +45,6 @@ time, given the censoring, is used to calculate quantiles, see
 \references{See http://stat.ethz.ch/~stahel/regression
 }
 \author{Werner A. Stahel, ETH Zurich
-}
-\note{BUG: \code{residuals.coxph} is not yet implemented in this way.
 }
 
 \seealso{\code{\link{condquant}}, \code{\link{plot.regr}}

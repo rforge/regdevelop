@@ -36,7 +36,8 @@ modarg(arg = NULL, default)
 modarg(2, list(a=4, b="bb", c=NA))
 modarg(c(b=2, d=6), c(a="4", b="bb", c=NA))
 ## This leads to a warning
+
+## modarg(c(b=2, d=6), c(a="4", b="bb", c=NA))
+## modarg(1:6, c(a="4", b="bb", c=NA))
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{utilities}

@@ -11,7 +11,7 @@
   for extracting the \code{link} type of predictions.
 }
 \usage{
-\method{fitted}{regr}(object, ...)
+\method{fitted}{regr}(object, type = NULL, ...)
 \method{fitted}{polr}(object, type = "link", na.action = object, ...)
 }
 \arguments{
@@ -33,12 +33,13 @@
   by \code{fitted.regr}; not used in \code{fitted.polr}}
 }
 \value{
-  Vector of fitted values
+  Vector (or matrix) of fitted values
 }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
 \examples{
-require(MASS) # -> dataset 'housing' and polr() :
-house.plr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
+data(housing, package="MASS") 
+house.plr <- MASS::polr(Sat ~ Infl + Type + Cont, weights = Freq,
+  data = housing)
 house.fit <- fitted(house.plr, type="link") # only possible with regr version
 summary( house.fit )
 }

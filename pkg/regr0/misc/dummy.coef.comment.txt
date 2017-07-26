@@ -1,0 +1,37 @@
+The function  dummy.coef.lm  fails in more complex cases, notably when terms
+include variables that are transformed in the  formula  of the model.
+
+r.lm <- lm(Fertility ~ cut(Agriculture, breaks=4) + Infant.Mortality,
+             data=swiss)
+dummy.coef(r.lm)
+
+Error in model.frame.default(Terms, dummy, na.action = function(x) x,  : 
+  factor cut(Agriculture, breaks = 4) has new level (0.9995,1]
+
+The problem is that ii works with  all.vars , which returns untransformed
+variables. This is fixed by using  model.frame  instead -- which is needed
+later in the function anyway.
+
+The function  dummy.coef.fix  does this.
+
+dummy.coef.fix(r.lm)
+
+Thus,  dummy.coef.lm  should be replaced by  dummt.coef.fix .
+
+In the function, there is a warning
+warning("some terms will have NAs due to the limits of the method")
+I wonder why this is a "limit' (->limitation) of the method.
+If some interaction coefficients are undetermined because the respective
+combination of levels is not available, NA is the appropriate result.
+Are there other cases?
+
+I have extended the function to include confidence intervals and t-tests
+and call the extended function  allcoef .
+The latter are what is shown by summary.lm, except that for the (dumy)
+variable that is eliminated by the  contrasts . For treatment contrasts,
+the added information is trivial (0 with 0 standard error), but for
+sum (or weighted sum) contrasts, it is not, and for other contrasts, it may
+still recover more useful information. The extended function is called
+allcoef .
+
+Werner Stahel, Jan 4, 2016
