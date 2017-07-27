@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2016.4.14)  13 MAR 2017 09:09
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (TeX Live 2015) (preloaded format=pdflatex 2016.4.14)  27 JUL 2017 10:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**\nonstopmode\input{regr-description.tex}
+**\input ./regr-description.tex
 (./regr-description.tex
 (/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
@@ -677,75 +677,42 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 635.
 LaTeX Info: Redefining \[ on input line 2739.
 LaTeX Info: Redefining \] on input line 2740.
 )
-(/u/sfs/tex/tex/latex/texab.sty
-Sem.f.Statistik LaTeX Abkuerzungen $Id: texab.sty,v 1.75 2011/02/11 10:18:52 sf
-s Exp $
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/amsfonts/amssymb.sty
-Package: amssymb 2013/01/14 v3.01 AMS font symbols
-
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/amsfonts/amsfonts.sty
-Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
-\symAMSa=\mathgroup4
-\symAMSb=\mathgroup5
-LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
-(Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
-))
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/relsize/relsize.sty
-Package: relsize 2013/03/29 ver 4.1
-)
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/base/exscale.sty
-Package: exscale 2014/09/29 v2.1h Standard LaTeX package exscale
-LaTeX Font Info:    Redeclaring symbol font `largesymbols' on input line 57.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `normal'
-(Font)                  OMX/cmex/m/n --> OMX/cmex/m/n on input line 57.
-LaTeX Font Info:    Overwriting symbol font `largesymbols' in version `bold'
-(Font)                  OMX/cmex/m/n --> OMX/cmex/m/n on input line 57.
-\big@size=\dimen135
-)
-\Lvneed=\skip46
-\LLongpage=\skip47
-\Lenlarge=\skip48
-\Litemskip=\skip49
-\Litemwidth=\skip50
-\Lparskip=\skip51
-\centering@tex=\skip52
-\c@lisNr=\count110
-)
-(./regr-description.aux)
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-desc.sty)
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description.aux)
 \openout1 = `regr-description.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 39.
-LaTeX Font Info:    ... okay on input line 39.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 39.
-LaTeX Font Info:    Try loading font information for TS1+cmr on input line 39.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 24.
+LaTeX Font Info:    ... okay on input line 24.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 24.
+LaTeX Font Info:    Try loading font information for TS1+cmr on input line 24.
 
 (/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
-LaTeX Font Info:    ... okay on input line 39.
+LaTeX Font Info:    ... okay on input line 24.
 
 (/scratch/local/app/teTeX/08.15/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count111
-\scratchdimen=\dimen136
+\scratchcounter=\count110
+\scratchdimen=\dimen135
 \scratchbox=\box29
-\nofMPsegments=\count112
-\nofMParguments=\count113
+\nofMPsegments=\count111
+\nofMParguments=\count112
 \everyMPshowfont=\toks23
-\MPscratchCnt=\count114
-\MPscratchDim=\dimen137
-\MPnumerator=\count115
-\makeMPintoPDFobject=\count116
+\MPscratchCnt=\count113
+\MPscratchDim=\dimen136
+\MPnumerator=\count114
+\makeMPintoPDFobject=\count115
 \everyMPtoPDFconversion=\toks24
 )
 (/scratch/local/app/teTeX/08.15/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
@@ -825,31 +792,20 @@ e
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-(./regr-description-concordance.tex)
-LaTeX Font Info:    Try loading font information for T1+aett on input line 48.
 
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/ae/t1aett.fd
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description-concor
+dance.tex)
+LaTeX Font Info:    Try loading font information for T1+aett on input line 33.
+ (/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/ae/t1aett.fd
 File: t1aett.fd 1997/11/16 Font definitions for T1/aett.
 )
-LaTeX Font Info:    External font `cmex7' loaded for size
-(Font)              <6> on input line 48.
-LaTeX Font Info:    Try loading font information for U+msa on input line 48.
-
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/amsfonts/umsa.fd
-File: umsa.fd 2013/01/14 v3.01 AMS symbols A
-)
-LaTeX Font Info:    Try loading font information for U+msb on input line 48.
-
-(/scratch/local/app/teTeX/08.15/texmf-dist/tex/latex/amsfonts/umsb.fd
-File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-)
-LaTeX Font Info:    Try loading font information for TS1+aer on input line 90.
-LaTeX Font Info:    No file TS1aer.fd. on input line 90.
+LaTeX Font Info:    Try loading font information for TS1+aer on input line 75.
+LaTeX Font Info:    No file TS1aer.fd. on input line 75.
 
 
 LaTeX Font Warning: Font shape `TS1/aer/m/n' undefined
 (Font)              using `TS1/cmr/m/n' instead
-(Font)              for symbol `textbullet' on input line 90.
+(Font)              for symbol `textbullet' on input line 75.
 
 [1
 
@@ -857,10 +813,10 @@ LaTeX Font Warning: Font shape `TS1/aer/m/n' undefined
 [2]
 
 LaTeX Font Warning: Font shape `T1/aett/bx/n' undefined
-(Font)              using `T1/aett/m/n' instead on input line 187.
+(Font)              using `T1/aett/m/n' instead on input line 170.
 
 [3] [4] [5] [6] [7] [8]
-Overfull \hbox (0.27869pt too wide) in paragraph at lines 544--547
+Overfull \hbox (0.27869pt too wide) in paragraph at lines 526--529
 \T1/aer/m/n/10.95 bel, if avail-able from \T1/aett/bx/n/10.95 op-tions\T1/aer/m
 /n/10.95 . (This \T1/aett/bx/n/10.95 stamp \T1/aer/m/n/10.95 can be sup-pressed
  by set-ting \T1/aett/bx/n/10.95 userOp-tions(stamp=FALSE)\T1/aer/m/n/10.95 .) 
@@ -871,87 +827,75 @@ Overfull \hbox (0.27869pt too wide) in paragraph at lines 544--547
 File: regr-description-taplot.pdf Graphic file (type pdf)
 
 <use regr-description-taplot.pdf>
-Package pdftex.def Info: regr-description-taplot.pdf used on input line 563.
+Package pdftex.def Info: regr-description-taplot.pdf used on input line 545.
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
- [9] [10 <./regr-description-taplot.pdf>]
-[11] [12] <regr-description-xdist.pdf, id=64, 650.43pt x 433.62pt>
+ [9 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description-ta
+plot.pdf>] [10] [11]
+<regr-description-xdist.pdf, id=59, 650.43pt x 433.62pt>
 File: regr-description-xdist.pdf Graphic file (type pdf)
 
 <use regr-description-xdist.pdf>
-Package pdftex.def Info: regr-description-xdist.pdf used on input line 774.
+Package pdftex.def Info: regr-description-xdist.pdf used on input line 756.
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
- [13 <./regr-description-xdist.pdf>] [14]
-<regr-description-taordered.pdf, id=78, 650.43pt x 433.62pt>
+ [12] [13 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-descript
+ion-xdist.pdf>]
+<regr-description-taordered.pdf, id=75, 650.43pt x 433.62pt>
 File: regr-description-taordered.pdf Graphic file (type pdf)
 
 <use regr-description-taordered.pdf>
-Package pdftex.def Info: regr-description-taordered.pdf used on input line 875.
+Package pdftex.def Info: regr-description-taordered.pdf used on input line 857.
 
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
- [15 <./regr-description-taordered.pdf>]
+ [14] [15 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-descript
+ion-taordered.pdf>]
 <regr-description-plmatrix.pdf, id=87, 650.43pt x 433.62pt>
 File: regr-description-plmatrix.pdf Graphic file (type pdf)
 
 <use regr-description-plmatrix.pdf>
-Package pdftex.def Info: regr-description-plmatrix.pdf used on input line 958.
+Package pdftex.def Info: regr-description-plmatrix.pdf used on input line 940.
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
- [16]
-<regr-description-mboxes.pdf, id=91, 650.43pt x 433.62pt>
+
+<regr-description-mboxes.pdf, id=88, 650.43pt x 433.62pt>
 File: regr-description-mboxes.pdf Graphic file (type pdf)
 
 <use regr-description-mboxes.pdf>
-Package pdftex.def Info: regr-description-mboxes.pdf used on input line 981.
+Package pdftex.def Info: regr-description-mboxes.pdf used on input line 963.
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
+ [16]
 
-
-LaTeX Warning: Reference `fig:mboxes' on page 17 undefined on input line 988.
+LaTeX Warning: Reference `fig:mboxes' on page 17 undefined on input line 970.
 
 <regr-description-mboxes2.pdf, id=92, 650.43pt x 433.62pt>
 File: regr-description-mboxes2.pdf Graphic file (type pdf)
 
 <use regr-description-mboxes2.pdf>
-Package pdftex.def Info: regr-description-mboxes2.pdf used on input line 996.
+Package pdftex.def Info: regr-description-mboxes2.pdf used on input line 978.
 (pdftex.def)             Requested size: 483.69684pt x 322.47498pt.
- [17 <./regr-description-plmatrix.pdf>]
-[18 <./regr-description-mboxes.pdf>] [19 <./regr-description-mboxes2.pdf>]
-Underfull \hbox (badness 10000) in paragraph at lines 1080--1083
+ [17 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description-p
+lmatrix.pdf>] [18 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-
+description-mboxes.pdf>] [19 </scratch/users/stahel/R/regdevelop/pkg/regr0/vign
+ettes/regr-description-mboxes2.pdf>]
+Underfull \hbox (badness 10000) in paragraph at lines 1062--1065
 
  []
 
-
-Underfull \hbox (badness 10000) detected at line 1098
-[]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 1101
-[]
- []
-
-
-Underfull \hbox (badness 10000) detected at line 1104
-[]
- []
-
-[20] (./regr-description.aux)
+[20]
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 5098 strings out of 493027
- 66494 string characters out of 6130911
- 131577 words of memory out of 5000000
- 8462 multiletter control sequences out of 15000+600000
- 45130 words of font info for 103 fonts, out of 8000000 for 9000
+ 4377 strings out of 493027
+ 60516 string characters out of 6130911
+ 125834 words of memory out of 5000000
+ 7764 multiletter control sequences out of 15000+600000
+ 43487 words of font info for 95 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 39i,7n,31p,304b,292s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 38i,7n,31p,293b,294s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/scratch/local/app/teTeX/08.15/texmf-dist/fonts/enc/dvips/cm-super/cm-super-
 ts1.enc}</scratch/local/app/teTeX/08.15/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmbx10.pfb></scratch/local/app/teTeX/08.15/texmf-dist/fonts/type1/public/ams
@@ -972,7 +916,7 @@ ratch/local/app/teTeX/08.15/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb
 m/cmtt10.pfb></scratch/local/app/teTeX/08.15/texmf-dist/fonts/type1/public/amsf
 onts/cm/cmtt12.pfb></scratch/local/app/teTeX/08.15/texmf-dist/fonts/type1/publi
 c/cm-super/sfrm1095.pfb>
-Output written on regr-description.pdf (20 pages, 426891 bytes).
+Output written on regr-description.pdf (20 pages, 426011 bytes).
 PDF statistics:
  178 PDF objects out of 1000 (max. 8388607)
  124 compressed objects within 2 object streams

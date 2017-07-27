@@ -7,7 +7,6 @@
                      '(("inputenc" "utf8") ("geometry" "a4paper" "text={14.5cm,22cm}")))
    (TeX-run-style-hooks
     "latex2e"
-    "regr-description-concordance"
     "article"
     "art11"
     "graphicx"
@@ -17,23 +16,10 @@
     "color"
     "booktabs"
     "amsmath"
-    "texab")
-   (TeX-add-symbols
-    '("code" 1)
-    '("wb" 1)
-    '("sups" 1)
-    '("mx" 1)
-    '("bmath" 1)
-    '("vc" 1)
-    '("Vneed" 1)
-    '("Hneed" 1)
-    '("Tit" 1)
-    "T"
-    "ul")
+    "regr-desc")
    (LaTeX-add-labels
     "fig:taordered"
     "fig:plmatrix"
     "fig:mbox"
-    "fig:mboxes2"
-    "app.regr")))
+    "fig:mboxes2")))
 

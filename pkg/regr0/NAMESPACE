@@ -80,7 +80,9 @@ export(asinp,
        subset,
        summary.mregr, summary.regr,
        sumna, terms2order,
-       Surv, strata, cluster,
+       Surv, strata, cluster, ## need to export these since otherwise,
+       ## they cannot be used in the formula of a regr call without
+       ## require-ing the package survreg
        tit, "tit<-",
        Tobit,
        ##u.merge,

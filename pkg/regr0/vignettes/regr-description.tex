@@ -14,22 +14,7 @@
 % \usepackage{amssymb}
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
-\usepackage{texab}
-\providecommand{\T}{\texttt}
-\providecommand{\ul}{\textbf}
-\providecommand{\Tit}[1]{\textbf{#1}\hspace{1em}}
-\providecommand{\Hneed}[1]{\penalty-8000\hskip#1 plus10pt\penalty-8000\hskip-#1}
-\providecommand{\Vneed}[1]{\penalty-5000\vskip#1%\vskip 0pt plus20pt
-\penalty-5000\vspace{-#1}}
-\providecommand{\vc}[1]{\kern-1pt\underline{\kern1pt#1\kern-1pt}\kern1pt}
-\providecommand{\bmath}[1]{\relax\ifmmode{\mbox{\boldmath $#1$}}%
-  \else{\boldmath $#1$}\fi}    
-\providecommand{\mx}[1]{\bmath#1}  
-\providecommand{\sups}[1]{^{(#1)}}
-\providecommand{\wb}[1]{{}\if Y#1\overline{Y}\else
-\kern0.2em\overline{\kern-0.2em#1}\fi}
-
-\providecommand{\code}[1]{\texttt{#1}}
+\usepackage{regr-desc}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
@@ -105,8 +90,6 @@ In particular, the following models can be fitted by \T{regr}:
 \item
   nonlinear models, by calling \T{nls}
 \end{itemize}
-The \T{regr} function uses some default arguments that differ from those
-used by the functions just mentioned, see Appendix \ref{app.regr}.
 
 This document presents the main features of the package \T{regr0}
 and explains the ideas behind them. 
@@ -119,7 +102,7 @@ The reason why it is not on CRAN and why it is called \T{regr0} rather than
 \T{regr} is that the author is still developing additional features and
 does not yet want to guarantee upward compatibility.
 It also means that comments and suggestions are very welcome:
-\T{stahel{@}stat.math.ethz.ch} %% !!! at
+\T{stahel\@ stat.math.ethz.ch} %% !!! at
 
 \section{Numerical Output}
 The useful numerical output of fitting functions is usually obtained by
@@ -400,8 +383,7 @@ method for showing the information in a useful way.
 
 \begin{Schunk}
 \begin{Soutput}
-[1] "no"       "datetime" "device"   "charge"   "distance" "tremor"  
-[7] "location"
+[1] "no"       "datetime" "device"   "charge"   "distance" "tremor"   "location"
 \end{Soutput}
 \begin{Soutput}
                                r.blast       r.blast2    
@@ -451,7 +433,7 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 \end{Soutput}
 \begin{Soutput}
 logst(tremor) ~ location + log10(distance) + log10(charge)
-<environment: 0x94bdfd0>
+<environment: 0x55b4013bba00>
 \end{Soutput}
 \end{Schunk}
 
@@ -1046,15 +1028,6 @@ percentage of about 2\% of the data below $c$ for log-normal data.
 It is certainly useful to inspect a graph of the function, as drawn in 
 \texttt{example(logst)}.
 
-\textbf{Note.} 
-The fact that the function \T{logst} adapts to the dataset causes
-problems when predicting with ``new data'', unless the \T{threshold}
-argument is set explicitly.
-
-The \T{regr} method of \T{predict} solves this problem by getting the
-threshold from the \T{model} component of the \T{regr} object,
-but with standard \T{predict} methods, the threshold will be determined on
-the basis of the \T{newdata}, which distorts the regression formula.
 
 \subsection{Documentation}
 For a data analysis, it is often useful to save graphical displays in 
@@ -1097,29 +1070,9 @@ Feedback is highly appreciated.
 
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
 }
-
-\appendix
-\section{Appendix}
-\subsection{Details about \T{regr}}
-\label{app.regr}
-Here are some features of the function \T{regr} which differ from 
-the usual behavior of R functions.
-\Itm
-Contrasts: The default contrasts for factors are ``weighted sum''
-contrasts, that is, \T{contr.wsum} is applied.
-\Itm
-Factors: Unused levels are dropped. 
-By default, \T{NA}s are converted into a level \T{"NA"}.
-
-
-Note that logical variables are treated as factors with levels 
-\T{FALSE} and \T{TRUE} as in \T{lm}.
-This entails that contrasts are applied to them.
-
 \end{document}
 
-
-%%% Local Variables:
+%%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
-%%% End:
+%%% End: 

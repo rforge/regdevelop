@@ -14,22 +14,7 @@
 % \usepackage{amssymb}
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
-\usepackage{texab}
-\providecommand{\T}{\texttt}
-\providecommand{\ul}{\textbf}
-\providecommand{\Tit}[1]{\textbf{#1}\hspace{1em}}
-\providecommand{\Hneed}[1]{\penalty-8000\hskip#1 plus10pt\penalty-8000\hskip-#1}
-\providecommand{\Vneed}[1]{\penalty-5000\vskip#1%\vskip 0pt plus20pt
-\penalty-5000\vspace{-#1}}
-\providecommand{\vc}[1]{\kern-1pt\underline{\kern1pt#1\kern-1pt}\kern1pt}
-\providecommand{\bmath}[1]{\relax\ifmmode{\mbox{\boldmath $#1$}}%
-  \else{\boldmath $#1$}\fi}    
-\providecommand{\mx}[1]{\bmath#1}  
-\providecommand{\sups}[1]{^{(#1)}}
-\providecommand{\wb}[1]{{}\if Y#1\overline{Y}\else
-\kern0.2em\overline{\kern-0.2em#1}\fi}
-
-\providecommand{\code}[1]{\texttt{#1}}
+\usepackage{regr-desc}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
