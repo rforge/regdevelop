@@ -163,6 +163,9 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
 
   The 'summary' generic function does nothing to 'regr' objects, since
   all useful information is already collected in the object.
+
+  Logical explanatory variables are converted into numeric, in contrast
+  to the official R fitting functions, which treat them as factors.
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}

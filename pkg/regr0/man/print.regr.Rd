@@ -20,7 +20,8 @@
   \item{correlation}{logical: should correlation among estimated
     coefficients be shown?}
   \item{dummycoef}{logical: should the dummy coefficients for the
-    factors be shown?}
+    factors be shown? By default, coefficients corresponding to factors
+    are shown}
   \item{termcolumns}{columns of the term table to be printed.
     If \code{NULL}, all columns will be printed.}
   \item{allcoefcolumns}{columns of the (dummy) coefficent tables to be

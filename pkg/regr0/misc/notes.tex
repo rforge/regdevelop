@@ -31,6 +31,12 @@ by plresx. They get a flag as \T{is.fac==2}, and fitcomp needs to know
 that.
 (Consider such strange terms as \T{factor(2*stelle), factor(pmin(a,b))})
 
+\Itm
+A namespace catch:\\
+I export \T{Surv, strata, cluster} which come from the package
+\T{survreg}, since otherwise, they cannot be used in formulas
+unless \T{survreg} is loaded.
+
 %% =======================================================================
 \section{The Function \T{regr}}
 \Tit{Arguments to regr}
@@ -58,6 +64,20 @@ Coefficients for terms with a single coefficient.
 Zero degrees of freedom in some case of interactions: continuous times
 factor (obtained in survreg)
 
+
+%% =================================================================
+\section{Contrasts}
+contr.wsum
+
+contr.wpoly: orthogonalize wrt the design, not the scores.
+$-> X^TX=$diag = $S^T W S$, if the rows of $S$ correspond to the scores.
+
+Binary variables, whether 0-1, logical, or 2 level factors,
+should get treatment contrasts by default for easy interpretation 
+of the coefficient as well as coefficients of interactions.
+But may also be centered (wrt the data.frame, not at 0.5);
+which should be obtained either from contr.wpoly or by a tiny separate
+function that does the same (to be done...).
 
 %% =================================================================
 \section{drop1, add1, step}

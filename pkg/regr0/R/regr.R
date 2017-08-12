@@ -63,7 +63,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     stop("!regr! undefined variables in formula:  ",
          paste(lvm, collapse=", "))
   }
-  ## repair nemes of lallvars
+  ## repair names of lallvars
   if (anyNA(names(lallvars))) {
     lnm <- all.vars(lform)
     if (ldot <- match(".",lnm, nomatch=0))
@@ -93,6 +93,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lfnalabel <- if(is.character(factorNA)) factorNA else ".NA."
   for (lvn in 1:ncol(lallvars)) {
     lv <- lallvars[[lvn]]
+    if (is.logical(lv))
+      lallvars[[lvn]] <- as.numeric(lv) ## logical -> numeric!!!
     if (is.character(lv)|is.factor(lv))
       lallvars[[lvn]] <- if (lfacna) factorNA(lv, lfnalabel) else factor(lv)
   }
@@ -209,7 +211,6 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, ly)
 ##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
   }
-##  BR("beforecall")
 ##- ## --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
   lreg <- eval(lcl)
@@ -782,7 +783,8 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ## Purpose:  generate term table for various models
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 15:37
-  if(length(attr(terms(lreg),"term.labels"))==0)
+  lterms <- terms(lreg)
+  if(length(attr(lterms,"term.labels"))==0)
     return(list(termtable = data.frame(
       coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciHigh=NA, 
       df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
@@ -805,12 +807,12 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ldr1 <-
       if (class(lreg)[1]%in%c("lm","lmrob")) {
           if (u.debug()) 
-              drop1Wald(lreg, test=ltesttype, scope=terms(lreg)) else
-              try(drop1Wald(lreg, test=ltesttype, scope=terms(lreg)),
+              drop1Wald(lreg, test=ltesttype, scope=lterms) else
+              try(drop1Wald(lreg, test=ltesttype, scope=lterms),
               silent=TRUE) } else {
           if (u.debug()) 
-              drop1(lreg, test=ltesttype, scope=terms(lreg)) else
-              try(drop1(lreg, test=ltesttype, scope=terms(lreg)),
+              drop1(lreg, test=ltesttype, scope=lterms) else
+              try(drop1(lreg, test=ltesttype, scope=lterms),
                   silent=TRUE)
                            }
   if (class(ldr1)[1]=="try-error") {
@@ -838,9 +840,14 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   if (length(lmmt)==0)
       lmmt <- model.matrix(lreg)
   lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
-  if (class(lreg)[1]%in%c("polr","coxph")) lasg <- lasg[-1]
-## terms with 1 coef
-  lcont <- lasg[licasg <- which(!lasg%in%lasg[duplicated(lasg)])]
+  if (class(lreg)[1]%in%c("polr")) lasg <- lasg[-1] ## ,"coxph"
+  ## terms without factor involvement
+  lfactors <- attr(lterms,"factors")
+  lvcont <- !attr(lterms,"dataClasses")[row.names(lfactors)] %in%
+    c("numeric","logical") ## [...] excludes (weights) and possibly others
+  ## terms only containing continuous variables
+  lcont <- which( lvcont %*% lfactors ==0 ) 
+  ## licasg <- which(lasg%in%lcont)
   ## vif --> R2.x
   lr2 <- NA
   if (vif) {
@@ -864,16 +871,17 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
   ## intercept
   ljint <- "(Intercept)"==names(lcoef)[1]
   if (ljint) {
-    ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
+##    ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
       lcoeftab[1,3]^2 # else lcoeftab[1,3]
     ltb <- rbind(
       "(Intercept)"=
         data.frame(coef=NA, se=NA, ciLow=NA, ciHigh=NA, 
-                   df=1, testst=ltstint, signif=NA,
+                   df=1, testst=NA, signif=NA,
                    p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
                    stringsAsFactors=FALSE),
       ltb)
-    ltstq <- c(qf(0.95,1,ldfr), ltstq)
+    ltstq <- c(ltstq1, ltstq)
+    lcont <- c(0, lcont)
   }
   lcont1 <- lcont+ljint  # row number in dr1
 ## p.symb and signif
@@ -886,7 +894,7 @@ i.termtable <- function(lreg, lcoeftab, ldata, lcov, ltesttype="F",
     lcf <- lcoef[ljc]
     ## fill in
     ltb$coef[lcont1] <- lcf
-    ltb$se[lcont1] <- lse <- lcoeftab[licasg,2]
+    ltb$se[lcont1] <- lse <- lcoeftab[ljc,2]
     lci <- lcf+outer(ltstq1*lse, c(-1,1))
     ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
     ltb[lcont1,c("ciLow","ciHigh")] <- lci
@@ -936,20 +944,40 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
   data.frame(estimate=estimate, se=se, lci, testst=ltst,
              signif=lsgf, p.value=lpv, p.symb=lsst)
 }
+## --------------------------------------------------------------------------
+ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
+  if (is.null(se))
+    if (NCOL(estimate)>1) {
+      se <- estimate[,2]
+      estimate <- estimate[,1]
+    } else
+      stop("!ciSignif! no standard errors found")
+  ltq <- qt(1-testlevel/2, df)
+  lci <- estimate+outer(ltq*se, c(ciLow=-1,ciHigh=1))
+  ltst <- estimate/se
+  lsgf <- ltst/ltq
+  lpv <- 2*pt(-abs(ltst), df)
+  lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
+  lsst <- c("***", "**", "*", ".", " ")[lipv]
+##-     symnum(lpv, corr = FALSE, na = FALSE, 
+##-                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
+  ##-                  symbols = c("***", "**", "*", ".", " "))
+  data.frame(estimate=estimate, se=se, lci, testst=ltst,
+             signif=lsgf, p.value=lpv, p.symb=lsst)
+}
   
 ## ==========================================================================
 contr.wsum <- 
   function (n, y=NULL, w = NULL, contrasts = TRUE, sparse = FALSE) 
 {  ## provide weighted sum contrasts
   if (is.data.frame(n)) {
-    if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all),, drop=FALSE]
-    df <- n
-    for (lj in 1:ncol(df)) 
-      if(class(df[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
-        attr(df[,lj],"contrasts") <- contr.wsum(df[,lj])
-    return(df)
+    for (lj in 1:ncol(n)) 
+      if(class(n[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
+        attr(n[,lj],"contrasts") <- contr.wsum(n[,lj],y)
+    return(n)
   }
   ## argument is a number or ...
+  if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all)]
   if (is.character(n)) n <- factor(n)
   if (is.factor(n)) { ## ... a factor
     w <- c(table(n))
@@ -1143,10 +1171,10 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
         if (getOption("verbose"))
           warning(":print.regr: df of coef not available")
       } else { ## dummy coefficients
-        mterms <-
-          unique(c(row.names(x$termtable)[x$termtable[,"df"]>1],
-                   names(attr(x$terms,"dataClasses")[-1]%in%
-                         c("factor","ordered")) ))
+        mterms <- row.names(x$termtable)[is.na(x$termtable[,"coef"])]
+##-           unique(c(row.names(x$termtable)[is.na(x$termtable[,"coef"])],
+##-                    names(attr(x$terms,"dataClasses")[-1]%in%
+##-                          c("factor","ordered")) ))
         if (length(mterms)>0 & length(x$allcoef)>0) {
           imt <- mterms%in%names(x$allcoef)
           mt <- x$allcoef[mterms[imt]]
@@ -5573,9 +5601,9 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
   data
 }
 ## ======================================================================
-subset <- function(x, ...) { ## function subset that preserves attributes
-  lattr <- attributes(x)
-  lattr <- lattr[!names(lattr)%in%c("dim","dimnames","row.names","names")]
+subset <- function(x, ...) {
+  ## function subset that preserves attributes 'doc' and 'tit'
+  lattr <- attributes(x)[c("doc","tit")]
   lsubs <- base::subset(x, ...)
   attributes(lsubs) <- c(attributes(lsubs),lattr)
   lsubs

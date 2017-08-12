@@ -1,0 +1,58 @@
+importFrom("graphics", plot)
+### This exports everything but  ".foobar" :
+## exportPattern("^[^\\.]")
+
+## Ok, now we are better and do not export all
+export(
+"[.lassogrp",         
+cv.lasso,           
+descr,              
+"descr<-",            
+extract.lassogrp,   
+fitted.lassogrp,    
+formula.lassogrp,   
+get.blocks,         
+lambdamax,          
+lambdamax.default,  
+lambdamax.formula,  
+lasso,              
+lasso.default,      
+lasso.formula,      
+lasso.lassogrp,     
+lassoControl,       
+lassoGrpFit,        
+lassogrpModelmatrix,
+lassoModel,         
+LinReg,             
+LogReg,             
+plot.lassogrp,      
+PoissReg,           
+predict.lassogrp,   
+print.lassofit,     
+print.lassogrp,     
+stamp,              
+tit,                
+"tit<-",              
+varBlockStand     
+       )
+
+
+S3method(fitted, lassogrp)
+S3method(formula, lassogrp)
+S3method(fitted, lassogrp)
+S3method("[", lassogrp)
+S3method(plot, lassogrp)
+S3method(predict, lassogrp)
+S3method(plot, lassogrp)
+
+S3method(print, lassogrp)
+S3method(print, lassofit)
+
+S3method(lambdamax, default)
+S3method(lambdamax, formula)
+
+S3method(lasso, default)
+S3method(lasso, formula)
+S3method(lasso, lassogrp)
+
+
