@@ -120,17 +120,19 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     ly <- rep(0,NROW(lallvars))
     lytype <- "numeric"
   } else {
-    lyf <- model.frame(lformula[1:2], lallvars)
+    lyf <- model.frame(lformula[1:2], lallvars, na.action=na.pass)
     ## I tried to generate model.frame for x and y together. This failed
     ## because model.frame  needs adequate method (when y is matrix)
     ltrm <- attr(lyf, "terms")
     lytype <- substring(attr(ltrm, "dataClasses"),1,5)
-    lysimple <- lytype!="nmatr" ## not a matrix
-    ly <- lyf[[1]]
-    if (lysimple&&length(unique(ly))==2 &&
-        (is.factor(ly[[1]]) || all(ly%in%0:1)))
-        lytype <- "binary"
-    if (inherits(ly,"Surv"))  {
+##  lysimple <- lytype!="nmatr" ## not a matrix
+    lyy <- lyf[[1]]
+    lysimple <- length(dim(lyy))==0
+##    ly <- na.omit(lyy)
+    if (lysimple&&length(unique(notna(lyy)))==2 &&
+        all(as.numeric(lyy)%in%0:1)) ## FALSE for numeric !={0,1}
+      lytype <- "binary" 
+    if (inherits(lyy,"Surv"))  {
         lytype <- "survival"
     }
 ## strange variables
@@ -146,7 +148,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (u.nuna(lfam)) lfam <- dist
   lcl$dist <- NULL
   if (lytype=="survival")
-    lfam <- c( lfam, attr(ly,"distribution"))[1]
+    lfam <- c( lfam, attr(lyy,"distribution"))[1]
   if (u.nuna(lfam)) 
     lfam <- switch(substring(lytype,1,5),
                    numer="normal", nmatr="normal", binar="binomial",
@@ -166,7 +168,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (lfitfun=="unknown") stop("!regr! Fitting function not identified")
   ## additional checks
   if (lytype=="survival") {
-    if (!inherits(ly,"Surv"))
+    if (!inherits(lyy,"Surv"))
       stop("!regr! bug: convert response to Surv object")
     ## !!! hier machen! lallvars[,1] ersetzen durch Surv davon
     lfitfun <- "survreg"
@@ -191,13 +193,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
 ##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
   lcl$fname <- lfam
   lcl$na.action <- substitute(na.action)
-  lcl$data <- ## as.name("lallvars") ## environment(formula)
-    ldata <- na.action(lallvars)
-  environment(lcl$formula) <- environment() ## !!!
 ##-  lcl$data <- eval(lcl$data, sys.parent())
   ## problem with environment if different for  data  and  formula
   if (lfitname=="i.survreg") {
-    lcl$yy <- ly
+    lcl$yy <- lyy
     lcl$model <- TRUE  ## model needed, see below
   }
   old.opt <- NULL
@@ -205,12 +204,24 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     if(!is.character(contrasts))
       warning("!regr! invalid contrasts argument")
     else {
-      old.opt <- options(contrasts=c(contrasts,"contr.poly")[1:2])
+      old.opt <- options(contrasts=c(contrasts,getOption("contrasts")[2])[1:2])
       lcl$contrasts <- NULL
     }
-    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, ly)
-##    lcl$contrasts[1] <- c("contr.sum", lcl$contrasts[2])  ## modify: appply  contr.wfac  to model.frame 
+    if (ncol(lallvars)>1) 
+    if (any(lcw <- contrasts==c("contr.wsum","contr.wpoly")))
+      for (lj in 2:ncol(lallvars)) { ## no contrasts for y {
+        if(lcw[1]&&class(lallvars[,lj])[1]=="factor")
+          attr(lallvars[,lj],"contrasts") <-
+            contr.wsum(lallvars[,lj], y=lyy)
+        if(lcw[2]&&class(lallvars[,lj])[1]=="ordered")
+          attr(lallvars[,lj],"contrasts") <-
+            contr.wpoly(lallvars[,lj], scores=NULL, y=lyy)
+      }
+##    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, y=lyy)
   }
+  lcl$data <- ## as.name("lallvars") ## environment(formula)
+    ldata <- na.action(lallvars)
+  environment(lcl$formula) <- environment() ## !!!
 ##- ## --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
   lreg <- eval(lcl)
@@ -218,10 +229,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (length(old.opt)) options(old.opt)
   lreg$na.action <- attr(ldata, "na.action")
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
-  lreg$response <- ly
-  lyy <- as.matrix(ly) # ly is a model.frame
-  if (ncol(lyy)>1) colnames(lyy) <- colnames(ly[[1]])
-  lreg$Y <- lyy
+  lreg$response <- lyy
+##-   lyyy <- as.matrix(lyy) # lyy is a model.frame
+##-   if (ncol(lyyy)>1) colnames(lyyy) <- colnames(lyy[[1]])
+##-   lreg$Y <- lyyy
   lreg$allvars <- lallvars ## needed more than $model
   ## since $model contains transformed variables
   ## recover some arguments to effective function call
@@ -255,7 +266,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
       if (length(lreg$stres))
         warning(":regr: bug: leverages and st.res. incompatible")
   ## misc
-  if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(ly)
+  if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(lyy,na.rm=TRUE)
   if (class(lreg)[1]=="survreg")
     lreg$n.obs <- length(lreg$linear.predictor)
   if (is.null(x) || !x) lreg$x <- NULL
@@ -967,44 +978,95 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
 }
   
 ## ==========================================================================
-contr.wsum <- 
-  function (n, y=NULL, w = NULL, contrasts = TRUE, sparse = FALSE) 
+contr.wsumpoly <- 
+  function (n, scores = NULL, y = NULL, w = NULL,
+            contrasts = TRUE, sparse = FALSE, poly = NA) 
 {  ## provide weighted sum contrasts
   if (is.data.frame(n)) {
-    for (lj in 1:ncol(n)) 
-      if(class(n[,lj])[1]=="factor") ## avoid ordered factors (for the time being)
-        attr(n[,lj],"contrasts") <- contr.wsum(n[,lj],y)
+    for (lj in 1:ncol(n))
+      if (is.factor(n[,lj])) 
+        attr(n[,lj],"contrasts") <-
+          contr.wsumpoly(n[,lj], scores=scores, y=y,
+                         contrasts=contrasts, sparse=sparse)
     return(n)
   }
-  ## argument is a number or ...
-  if (!is.null(y)) n <- n[apply(is.finite(cbind(y)), 1, all)]
+  ## not a data.frame, but...
   if (is.character(n)) n <- factor(n)
   if (is.factor(n)) { ## ... a factor
+    if (length(y)) {
+      if (length(y)!=length(n)) {
+        warning(":contrasts.wsum: unequal lengths of arguments",
+                 "I ignore argument 'y'")
+        } else  n <- n[apply(is.finite(cbind(y)), 1, all)]
+    }
     w <- c(table(n))
-    n <- levels(n)
+    if (is.na(poly)) poly <- is.ordered(n)
   }
-  if ((is.numeric(n)&&n==1) || (is.character(n)&&length(n)==1))
-             return(matrix(1,1,1)) else
-    contr <- contr.sum(n, contrasts = contrasts, sparse = sparse)
-  if (is.null(w)) {
-    warning(":contr.wsum: no weights provided.",
-            " Returning unweighted sum contrasts for\n  ", paste(n,collapse=", "))
-    return(contr)
+  nn <- length(w)
+  if (is.na(poly)) poly <- FALSE
+  if (nn<1) {
+    if (!(is.atomic(n)&&is.numeric(n)&&length(n)==1))
+      stop ("!contr.wsumpoly! Provide either 'n' or 'w'")
+    nn <- n
+##    w <- rep(1,nn)
   }
-  if (length(w)!=nrow(contr) || anyNA(w) || any(w<0) || all(w==0)) {
+  contr <-
+    if (poly) {
+      scores <- if(length(scores)) scores else 1:nn
+      contr.poly(nn, scores = scores, contrasts=contrasts, spars=sparse)
+    } else
+      contr.sum(nn, contrasts=contrasts, spars=sparse)
+  if (is.null(w) || anyNA(w) || any(w<=0)) {
     warning(":contr.wsum: weights 'w' not suitable.",
-            " Returning unweighted contrasts")
+            " Returning unweighted sum contrast")
     return(contr)
   }
-##-   li0 <- w==0
-  ##-   if (any(li0)) contr <- contr[c(!li0,TRUE),!li0]
-  n <- nrow(contr)
-  if (w[n]==0) 
-    warning(":contr.wsum: last weight is zero.",
-            " Returning unweighted contrasts") else {
-  contr[n,] <- - w[-n]/w[n] }
+  if (poly) {
+    contr <- make.poly( nn, scores=scores, w=w)
+    if (contrasts) {
+      dn <- colnames(contr)
+      dn[2:min(4, nn)] <- c(".L", ".Q", ".C")[1:min(3, nn - 1)]
+      colnames(contr) <- dn
+      contr <- contr[, -1, drop = FALSE]
+    }
+    else {
+      contr[, 1] <- 1
+      contr
+    }
+  } else  contr[nn,] <- - w[-nn]/w[nn]
+  if (sparse) 
+    contr <- .asSparse(contr)
   structure(contr, w=w)
 }
+## --------------------------------------------------------------------
+contr.wsum <- function(n, scores = NULL, y=NULL, w = NULL, contrasts = TRUE,
+                       sparse = FALSE) {
+  if (is.ordered(n)) n <- factor(n)
+  contr.wsumpoly (n, y=y, w=w, contrasts=contrasts, sparse=sparse, poly=FALSE)
+}
+## --------------------------------------------------------------------
+contr.wpoly <- function(n, scores = NULL, y = NULL, w = NULL, contrasts = TRUE,
+                       sparse = FALSE) {
+  if (is.factor(n)) n <- ordered(n)
+  contr.wsumpoly (n, scores = scores, y = y, w = w,
+                  contrasts = contrasts, sparse = sparse, poly=TRUE)
+}
+## -----------------------------------------------------------------
+make.poly <- function(n, scores, w) {
+        y <- scores - sum(scores*w)/sum(w)
+        X <- sqrt(w)*outer(y, seq_len(n) - 1, "^")
+        QR <- qr(X)
+        z <- QR$qr
+        z <- z * (row(z) == col(z))
+        Z <- qr.qy(QR, z)  ## raw <- 
+##-         Z <- sweep(raw, 2L, apply(raw, 2L, function(x) sqrt(sum(x^2))), 
+##-             "/", check.margin = FALSE)
+      ##      do not standardize. WSt
+      Z <- Z / sqrt(w)
+        colnames(Z) <- paste0("^", 1L:n - 1L)
+        Z
+    }
+
 ##  ===================================================================
 print.regr <- function (x, call=TRUE, correlation = FALSE,
     dummycoef = getUserOption("show.dummycoef"),
@@ -1179,7 +1241,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           imt <- mterms%in%names(x$allcoef)
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
-            cat("\nCoefficients for factors:\n")
+            cat("\nEffects of factor levels:\n")
             print.allcoef(mt, digits=digits) }
         } ## else  cat("\n")
       }}
@@ -5837,7 +5899,7 @@ UserDefault <- UserOptions <-
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
-       regr.contrasts=c(unordered="contr.wsum", ordered="contr.poly"),
+       regr.contrasts=c(unordered="contr.wsum", ordered="contr.wpoly"),
        termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
          "signif", "p.value", "p.symb"),
        allcoefcolumns="coefsymb",

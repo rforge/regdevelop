@@ -147,6 +147,11 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
     fitting the model}
 }
 \details{
+  Contrasts: If (ordered) factors are generated in the \code{formula}
+  (like \code{y~ordered(f1)}), the contrast functions
+  \code{\link{contr.wsum}} and \code{\link{contr.wpoly}} will be
+  equivalent to their unweighted versions.
+  
   Robust fitting is available for ordinary linear models, by setting
   \code{robust = TRUE}.
   By default, the function \code{\link[robustbase]{lmrob}} from

@@ -299,14 +299,20 @@ dummy variables characterizing the factor, which is determined
 by the \T{contrasts} option (or argument) in use.
 We come back to this point below (``Contrasts'').
 
-Note that for factors with only two levels, the problem does not arise,
-since the single 
-coefficient can be interpreted in the straightforward manner as 
-for continuous explanatory variables. \T{regr} therefore treats binary
-factors in the same way as continuous explanatory variables.
+Note that for factors with only two levels, a single coefficient
+determines its effect. 
+If ``treatment'' contrasts are used, the coefficient equals the effect
+of a change from the first to the second level of the factor.
+In fact, such a factor could be replaced by the corresponding
+0-1 variable.
+\T{regr} does this for \ul{logical explanatory variables.}
+(Factors with two levels are not converted because this would
+mean that contrasts, other than treatment contrasts, would be 
+defined inconsistently once only two levels remain after subsetting a
+dataset.)
 
-The test performed for factors with more than two levels, which is shown 
-in the \T{Terms} table by the \T{p.value} entry, 
+The test performed for factors, which is shown 
+in the \T{termtable} table by the \T{p.value} and \T{signif} entries, 
 is the F test for the whole factor (hypothesis: all coefficients are 0). 
 It is obtained by calling \T{drop1}.
 The significance measure is defined as 

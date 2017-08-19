@@ -13,6 +13,7 @@ t.d <- data.frame(y = c(1,5,4,4,3,8,6,7),
                    x1 = c(1,2,3,4,5,6,7,8), x2 = c(4,2,8,7,5,3,4,3))
 r.r1 <- regr(formula = y~f1+x1+x2, data=t.d)
 r.r2 <- regr(formula = y~f1+x1+x2+f1:x1, data=t.d)
+r.r2o <- regr(formula = y~ordered(f1)+x1+x2+f1:x1, data=t.d)
 
 t.d[1,"x2"] <- NaN
 r.r3 <- regr(y~f1+x1+x2+f1:x2, data=t.d)
@@ -23,6 +24,11 @@ r.r4 <- regr(y~1, data=t.d)
 names(t.d)
 r.r5 <- regr(formula = y~f1+x1+x2, data=t.d, weights=0:7)
 
+t.d$f2 <- ordered(t.d$f1)
+
+t.ctr <- contr.wsumpoly(t.d)
+
+r.r6 <- regr(formula = y~f2+x1+x2, data=t.d)
 ##- plot(r.r2,plotselect=
 ##-      c( qq = NA, yfit=2, ta=3, tascale = NA, weights = NA, hat = 0),ask=c.ask)
 

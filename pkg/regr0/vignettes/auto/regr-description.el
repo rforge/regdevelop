@@ -7,6 +7,7 @@
                      '(("inputenc" "utf8") ("geometry" "a4paper" "text={14.5cm,22cm}")))
    (TeX-run-style-hooks
     "latex2e"
+    "regr-description-concordance"
     "article"
     "art11"
     "graphicx"
