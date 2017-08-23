@@ -23,7 +23,8 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
             rug = FALSE, 
             main = NULL, cex.title = NULL,  xlabs = NULL, ylabs = NULL, 
-            ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, 
+            ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL,
+            plext = getUserOption("plext"),
             cex = par("cex"), ask = NULL,
             ...)
 }
@@ -125,6 +126,10 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
   \item{ylimext}{argument passed to \code{plcoord}}
   \item{yaxp}{axis parameters used for residuals, passed to \code{plot},
     see \code{?par}.}
+  \item{plext}{extension factors for the four sides of the plots,
+    producing a "padding" area around the plotted points.
+    This corresponds to setting \code{par(xaxs="e", yaxs="e")}, but
+    allows to set different values for the 4 sides.}
   \item{cex}{character expansion}
   \item{ask}{Should R ask before erasing the screen?
     The default is 'getOption('ask'), followed by TRUE for certain

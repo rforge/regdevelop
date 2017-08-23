@@ -3351,7 +3351,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          main = NULL, cex.title = NULL,
          reslim = TRUE, reslimfac=4.0, reslimext=0.1, 
          resaxp=NULL, stresaxp=NULL,
-         ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
+         ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
+         plext = getUserOption("plext"),
          mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
          oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
          hatlim=c(0.99,0.5),
@@ -3613,7 +3614,9 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
                          weights=lweights, resid="ratio", par=lsmpar)
     }
   }
-## plot range
+  ## plot range
+  if (length(plext)==0||anyNA(plext)) plext <- 0.05
+  if (length(plext)<4) plext <- rep(plext, 4)
   if (is.logical(reslim)&&!is.na(reslim))
     if (reslim) {
       reslim <- if(lcondq) robrange(c(lres[,1:4]), fac=reslimfac) else
@@ -3755,7 +3758,7 @@ for (liplot in 1:length(lplsel)) {
                 lsyinches, lpllevel>1,NULL,lsmpar,smooth.iter,
                 ylim=ylim, ylimext=ylimext, yaxp=yaxp,
                 reflinex=0,refliney=1,nsims=lnsims, simres=lsimr,
-                condprobrange=condprobrange)
+                condprobrange=condprobrange, plext=plext)
     } }
   }
   ## ---
@@ -3774,7 +3777,7 @@ for (liplot in 1:length(lplsel)) {
                 ylim=reslim, ylimext=reslimext,
                 reflinex=lrx,refliney=lry,
                 nsims=lnsims, simres=lsimres,
-                condprobrange=condprobrange)
+                condprobrange=condprobrange, plext=plext)
     }
   }
 ## ---
@@ -3791,8 +3794,8 @@ for (liplot in 1:length(lplsel)) {
                 lpllevel>1, lfsmsm, lsmpar, smooth.iter, smooth.power=0.5,
                 nsims=if (is.null(lsimabs)) 0 else ncol(lsimabs),
                 simres=lsimabs,
-                ylim=c(0,max(abs(streslim))), yaxs="i",
-                condprobrange=c(0.01,0))
+                ylim=c(0,max(abs(streslim))),
+                condprobrange=c(0.01,0), plext=c(plext[1:2],0, plext[4]))
     }
   }
 ## --- plot abs. res vs. weights
@@ -3818,7 +3821,7 @@ for (liplot in 1:length(lplsel)) {
         NULL,FALSE,lsyinches,
         lpllevel>1,NULL,lsmpar,smooth.iter, smooth.power=0.5,
         ylim=c(0,1.05*robrange(lraw)[2]),yaxs="i",
-                condprobrange=condprobrange)
+                condprobrange=condprobrange, plext=plext)
   } } }
 ## --- normal plot qq plot
   if(lpls=="qq") {
@@ -3873,7 +3876,7 @@ for (liplot in 1:length(lplsel)) {
               colors,lty,lwd,lpch, col, lpty, llabh,cex.lab,ltxt,
               lIwsymb,lIwgt, lweights,liwgt,lsyinches,
               FALSE, ylim=streslim, ylimext=reslimext, yaxp=stresaxp,
-                condprobrange=condprobrange)
+                condprobrange=condprobrange, plext=plext)
   ##  line with constant Cook distance
       if (length(leverage.cooklim)>0) {
         llx <- seq(min(c(leverage.cooklim,4),na.rm=TRUE)^2*(1-ldfres/ln)/6,
@@ -3938,7 +3941,7 @@ for (liplot in 1:length(lplsel)) {
            pch=lpch, col=col,
            main=main, cex.title=cex.title,
            ylim = lylim, ylimfac = lylimfac, ylimext = lylimext, yaxp=resaxp,
-           ...)
+           plext = plext, ...)
   }
 ## --- end
   par(loldpar)
@@ -3951,11 +3954,11 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   txt=FALSE,  plwgt=FALSE, wgt=1, weights=NULL, iwgt=NULL, syinches=0.1,
   do.smooth=TRUE, smooth=NULL, smooth.par=NULL, smooth.iter=10,
   smooth.power=1, 
-  ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL,
+  ylim=NULL, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
   reflinex=NULL, refliney=NULL, reflineyw=NULL, nsims=0, simres=NULL,
   smooth.group = NULL, smooth.col=colors[3:4], smooth.pale=0.2,
   smooth.legend = TRUE,
-  condprobrange=c(0.05,0.8), new=TRUE, axes=1:2, ...)
+  condprobrange=c(0.05,0.8), new=TRUE, axes=1:2, plext=0.05, ...)
 {
   ## Purpose:   panel for residual plots (labels, weights, smooth)
   ##   produces more than one panel for multivariate y
@@ -3985,7 +3988,9 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
 ##-   lylim <- if (llimy) {
 ##-     if (length(ylim)==1)  ylim <- c(-ylim,ylim)
 ##-     matrix(ylim,2,lnc)
-##-   }  else  NULL
+  ##-   }  else  NULL
+  ## plot range extension, corresponding to yaxs="e"
+  yplext <- plext[3:4] 
   lylim <- if (length(ylim)==2|length(ylim)==2*lnc)
     matrix(ylim,2,lnc) else NULL
   llimy <- length(lylim)>0
@@ -4025,26 +4030,32 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   ljx <- ljrflx <- ljrfly <- 1
   for (lj in 1:lnc) {
     lxj <- lx[,ljx]
+    lxrgj <- range(lxj, na.rm=TRUE)
+    lxrgj <- lxrgj + plext[1:2]*diff(lxrgj)*c(-1,1)
     if (lcq) { # condquant: only 1 y possible
       lyj <- y[,1]
       lcqint <- y[,"prob"]!=0
       lypl <- y
       lyplj <- if (llimy) {
         lylimj <- lylim
-        plcoord(y[,1:4], range=lylimj, limext=ylimext)
+        plcoord(y[,1:4], range=lylimj, limext=ylimext, plext=yplext)
       }  else  y[,1:4]
     } else { # usual case
       lyj <- ly[,lj]
       if (llimy) {
         lylimj <- lylim[,lj]
-        lyplj <- plcoord(lyj, range=lylimj, limext=ylimext)
+        lyplj <- plcoord(lyj, range=lylimj, limext=ylimext, plext=yplext)
       } else lyplj <- lyj
     }
     ## plotting frame
     if (new) {
-      lyrgj <- range(lyplj,na.rm=TRUE)
-      plot(range(lxj,na.rm=TRUE), lyrgj, xlab = lxlab[lj], ylab = lylab[lj],
-           type="n", bty="n", axes=FALSE, ...)
+      lyrgj <- attr(lyplj, "plrange")
+      if (length(lyrgj)==0) {
+        lyrg <- range(lyplj,na.rm=TRUE)
+        lyrgj <- lyrg + yplext*diff(lyrg)*c(-1,1)
+      }
+      plot(lxrgj, lyrgj, xlab = lxlab[lj], ylab = lylab[lj],
+           type="n", bty="n", axes=FALSE, xaxs="i", yaxs="i")
       if (1%in%axes) axis(1)
       ## box
       if (llimy & length(attr(lyplj,"nmod"))) {
@@ -4100,7 +4111,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
             lrfyuj <- lrfyj+reflineyw[,ljrfly]*lrfxj
           }
         }
-        lrfyjp <- plcoord(lrfyj, range=lylimj, limext=ylimext)
+        lrfyjp <- plcoord(lrfyj, range=lylimj, limext=ylimext, plext=yplext)
         lrfyl <- lrfyj<lrfyjp
         lrfyh <- lrfyj>lrfyjp
         lrfyr <- lrfyj==lrfyjp
@@ -4411,6 +4422,7 @@ plresx <-
             rug = FALSE, 
             main = NULL, cex.title = NULL,  xlabs = NULL, ylabs = NULL, 
             ylim=TRUE, ylimfac=4.0, ylimext=0.1, yaxp=NULL, 
+            plext = getUserOption("plext"),
             cex = par("cex"), ask = NULL,
             ...)
 {
@@ -4677,6 +4689,8 @@ plresx <-
   ylabs <- rep(ylabs, length=ncd)
   names(ylabs) <- dvars
 ## plot range preparation
+  if (length(plext)==0||anyNA(plext)) plext <- 0.05
+  if (length(plext)<4) plext <- rep(plext, 4)
   if (is.logical(ylim)&&!is.na(ylim)) ylim <- if (ylim) {
       if(lcondq) robrange(c(lres[,1:3]), fac=ylimfac) else
       apply(lres,2,robrange, fac=ylimfac)
@@ -4768,7 +4782,7 @@ plresx <-
                 nsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy,
                 smooth.group=lsmgrp, smooth.col=smooth.col,
-                smooth.pale=smooth.pale)
+                smooth.pale=smooth.pale, plext=plext)
     }
     plmatrix(ldata[,vars,drop=FALSE],lres, panel=lpanel, pch=llab, range.=lylim,
              reference=FALSE,
@@ -4807,7 +4821,7 @@ plresx <-
         FALSE, NULL, smooth.par, smooth.iter, 1,
         lylim, ylimfac, ylimext,
         reflinex=NULL, nsims=0, simres=lsimres, axes=2,
-                condprobrange=condprobrange)
+                condprobrange=condprobrange, plext=plext)
       axis(1,labels=ll,at=1:lnl)
       axis(2)
       box(lty=3)
@@ -4819,7 +4833,7 @@ plresx <-
         lcil <- lci[1:lnl]
         if (llimy) {
           lcilp <- plcoord(lcil, lylim, ylimfac, ylimext)
-          if (attr(lcilp,"nmod")) {
+          if (any(attr(lcilp,"nmod"))) {
             liout <- lcilp!=lcil
             segments(lx[liout]-0.4, lcilp[liout], lx[liout]+0.4, lcilp[liout],
                  lwd = lwd.term/2, lty=lty.term, col=colors[5])
@@ -4853,7 +4867,7 @@ plresx <-
         yaxp=yaxp, reflinex=lrefx, refliney=lci, lrefyw, lnsims, lsimres,
         smooth.group=lsmgrp, smooth.col=smooth.col,
         smooth.pale=smooth.pale, smooth.legend=smooth.legend,
-        condprobrange=condprobrange)
+        condprobrange=condprobrange, plext=plext)
     }
 ##    if (llimy|llimyrob) abline(h=attr(rr,"range"),lty=lty[2],col=colors[2])
 ##-     if (rug) {
@@ -5884,7 +5898,7 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
     }
     lop <- c(list,list(...))
     ## show all options
-    if (length(lop)==0) return(luopt)
+    if (length(lop)==0) return(luopt[order(names(luopt))])
     ## set options
     lold <- luopt[names(lop)]
     for (li in names(lop))
@@ -5898,7 +5912,7 @@ UserDefault <- UserOptions <-
   list(stamp=1, project="", step="", doc=TRUE, show.dummycoef=TRUE,
        colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
-       mar=c(3,3,3,1), mgp=c(2,0.8,0), digits=4,
+       mar=c(3,3,3,1), mgp=c(2,0.8,0), plext=0.05, digits=4,
        regr.contrasts=c(unordered="contr.wsum", ordered="contr.wpoly"),
        termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
          "signif", "p.value", "p.symb"),
@@ -6096,16 +6110,19 @@ asinp <- function(x) asin(sqrt(x/100))/asin(1)
 asinperc <- asinp  ## compatibility
 ## ===========================================================================
 plcoord <-
-function(x, range=NULL, limfac=3.0, limext=0.1)
+function(x, range=NULL, limfac=3.0, limext=0.1, plext=0.05)
 {
   ## Purpose:    values for plot with limited "inner" plot range
-  lrg <- if (length(range)==0||anyNA(range))
-    robrange(x, fac=limfac)  else  range(range)
-  if (diff(lrg)==0) lrg <- c(-range,range)
+  lrg <- if (length(notna(range))==0)
+    robrange(x, fac=limfac)  else  range(range, na.rm=TRUE)
+  if (length(lrg)==0) lrg <- range(x, na.rm=TRUE)
+  if (diff(lrg)==0) lrg <- c(-1,1)*lrg
   rr <- pmax(pmin(x,lrg[2]),lrg[1])
   lxd <- x-rr
-  lnmod <- sum(lxd!=0,na.rm=TRUE)
-  if (lnmod>0) rr <- rr+(lxd)/(1+abs(lxd)/(diff(lrg)*limext))
+  lnmod <- c(sum(lxd<0,na.rm=TRUE),sum(lxd>0,na.rm=TRUE))
+  lrgext <- diff(lrg)*limext
+  if (sum(lnmod)>0) rr <- rr+lxd/(1+abs(lxd)/lrgext)
+  attr(rr,"plrange") <- lrg + ifelse(lnmod>0, lrgext, plext)*c(-1,1)
   attr(rr,"range") <- lrg
   attr(rr,"nmod") <- lnmod
   class(rr) <- class(x)

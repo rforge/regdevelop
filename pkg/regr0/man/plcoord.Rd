@@ -7,7 +7,7 @@
   converts the data values to the coordinates in the plot 
 }
 \usage{
-plcoord(x, range = NULL, limfac = 3, limext = 0.1)
+plcoord(x, range = NULL, limfac = 3, limext = 0.1, plext = 0.05)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,8 @@ plcoord(x, range = NULL, limfac = 3, limext = 0.1)
   \item{limfac}{ factor used to determine the default of \code{range} }
   \item{limext}{ factor for extending the \code{range} to determine the
     outer plot range }
+  \item{plext}{ vector of 1 or 2 elements setting the extension factor
+    for the plotting range}
 }
 \details{
   When plotting data that contain outliers, the non-outlying data is
@@ -30,7 +32,8 @@ plcoord(x, range = NULL, limfac = 3, limext = 0.1)
   them all.
 
   This function converts the data to the coordinates used in the
-  graphical display, and also returns the inner range for plotting.
+  graphical display, and also returns the inner and outer ranges for
+  plotting.
 }
 \value{
   vector of coordinates used for plotting, that is, unchanged \code{x}
@@ -38,6 +41,7 @@ plcoord(x, range = NULL, limfac = 3, limext = 0.1)
   for those outside.
 
   Attributes:
+  \item{attr(,"plrange")}{the range to be used when plotting}
   \item{attr(,"range")}{the "inner" plot range, either the argument
   \code{range} or the values determined by default.}
   \item{attr(,"nmod")}{the number of modified observations}

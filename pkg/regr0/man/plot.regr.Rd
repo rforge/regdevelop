@@ -27,6 +27,7 @@
          reslim = TRUE, reslimfac=4.0, reslimext=0.1, 
          resaxp=NULL, stresaxp=NULL, 
          ylim=TRUE, ylimfac=3.0, ylimext=0.1, yaxp=NULL, 
+         plext = getUserOption("plext"),
          mf = NULL, mfcol=FALSE, mar=c(3,3,2,1), mgp=c(2,0.7,0),
          oma = 2*(prod(mf)>1), cex=par("cex"), ask = NULL,
          hatlim=c(0.99,0.5), ...)
@@ -130,6 +131,10 @@
     residuals and standardized residuals, respectively, passed to
     argument \code{yaxp} of \code{plot}, see \code{?par}.}
   \item{yaxp, ylim, ylimfac, ylimext}{same, for plotting y values}
+  \item{plext}{extension factors for the four sides of the plots,
+    producing a "padding" area around the plotted points.
+    This corresponds to setting \code{par(xaxs="e", yaxs="e")}, but
+    allows to set different values for the 4 sides.}
   \item{mf}{vector of 2 elements, indicating the number of rows and
     columns of panels on each plot page.
     Defaults to \code{c(2,2)}, except for multivariate models, where
@@ -160,7 +165,7 @@
   resmatrix = 1, qqmult = 3).
      Modify this vector to change the selection and the sequence in
      which the plots appear.
-     Alternatively, provide a named vector defining all plot that should
+     Alternatively, provide a named vector defining all plots that should
      be shown on a different level than the default indicates,
      like \code{plotselect = c(ta = 2, leverage = 1)}.
      Adding an element \code{default = 0} suppresses all plots not
