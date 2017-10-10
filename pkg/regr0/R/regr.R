@@ -27,9 +27,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lcall$formula <- lformula
   ## d. --- data
   dataname <- deparse(substitute(data))
-  ldata <- as.data.frame(eval(data))
-    lnobs <- nrow(ldata)
-  if (lnobs==0) stop("!regr! no observations in data")
+  ldt <- eval(data)
+  ldata <- as.data.frame(ldt)
+  lnobs <- if (is.null(ldt)) NA else nrow(ldata)
+##  if (lnobs==0) stop("!regr! no observations in data")
   ## nonlinear: drop constants
   lform <- lformula
   if (!(is.null(nonlinear)||as.character(nonlinear)=="FALSE")) {
@@ -55,7 +56,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lcgetv$data <- eval(lcall$data, sys.parent()) ## !!! oct 15
   lallvars <- try(eval(lcgetv, parent.frame())) ##
   ## variables not found -- which ones?
-    if (class(lallvars)=="try-error") {
+  if (class(lallvars)=="try-error") {
     lv <- all.vars(formula)
     lvm <- setdiff(lv, names(ldata))
     for (lvv in lvm)  if(exists(lvv)&&!is.function(get(lvv)))
@@ -63,6 +64,11 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     stop("!regr! undefined variables in formula:  ",
          paste(lvm, collapse=", "))
   }
+  lallvars <- as.data.frame(unclass(lallvars))
+  ## in rare cases, lallvars will store a wrong dimension
+  if (!is.na(lnobs) && (nrow(lallvars)!=lnobs))
+    stop(":regr: number of observations of variables in 'formula'",
+            " and in 'data' do not match")
   ## repair names of lallvars
   if (anyNA(names(lallvars))) {
     lnm <- all.vars(lform)
@@ -949,30 +955,6 @@ ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
   lpv <- 2*pt(-abs(ltst), df)
   lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
   lsst <- c("***", "**", "*", ".", " ")[lipv]
-##-     symnum(lpv, corr = FALSE, na = FALSE, 
-##-                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
-  ##-                  symbols = c("***", "**", "*", ".", " "))
-  data.frame(estimate=estimate, se=se, lci, testst=ltst,
-             signif=lsgf, p.value=lpv, p.symb=lsst)
-}
-## --------------------------------------------------------------------------
-ciSignif <- function(estimate, se=NULL, df=Inf, testlevel=0.05) {
-  if (is.null(se))
-    if (NCOL(estimate)>1) {
-      se <- estimate[,2]
-      estimate <- estimate[,1]
-    } else
-      stop("!ciSignif! no standard errors found")
-  ltq <- qt(1-testlevel/2, df)
-  lci <- estimate+outer(ltq*se, c(ciLow=-1,ciHigh=1))
-  ltst <- estimate/se
-  lsgf <- ltst/ltq
-  lpv <- 2*pt(-abs(ltst), df)
-  lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
-  lsst <- c("***", "**", "*", ".", " ")[lipv]
-##-     symnum(lpv, corr = FALSE, na = FALSE, 
-##-                  cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
-  ##-                  symbols = c("***", "**", "*", ".", " "))
   data.frame(estimate=estimate, se=se, lci, testst=ltst,
              signif=lsgf, p.value=lpv, p.symb=lsst)
 }
@@ -1013,9 +995,9 @@ contr.wsumpoly <-
   contr <-
     if (poly) {
       scores <- if(length(scores)) scores else 1:nn
-      contr.poly(nn, scores = scores, contrasts=contrasts, spars=sparse)
+      contr.poly(nn, scores = scores, contrasts=contrasts, sparse=sparse)
     } else
-      contr.sum(nn, contrasts=contrasts, spars=sparse)
+      contr.sum(nn, contrasts=contrasts, sparse=sparse)
   if (is.null(w) || anyNA(w) || any(w<=0)) {
     warning(":contr.wsum: weights 'w' not suitable.",
             " Returning unweighted sum contrast")
@@ -1065,8 +1047,7 @@ make.poly <- function(n, scores, w) {
       Z <- Z / sqrt(w)
         colnames(Z) <- paste0("^", 1L:n - 1L)
         Z
-    }
-
+}
 ##  ===================================================================
 print.regr <- function (x, call=TRUE, correlation = FALSE,
     dummycoef = getUserOption("show.dummycoef"),
@@ -1074,9 +1055,11 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     allcoefcolumns = getUserOption("allcoefcolumns"),
     digits = max(3, getUserOption("digits")-2), 
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
+    na.print = getUserOption("na.print"),
     residuals=FALSE, niterations=FALSE, ...)
 {
-##
+  ##
+  if (is.null(na.print)) na.print <- "."
   ## doc
   ldoc <- getUserOption("doc")
   if (length(ldoc)==0) ldoc <- 1
@@ -1085,7 +1068,8 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
   if (ldoc>=2) if (length(doc(x)))
     cat(" ",paste(doc(x),"\n "))
   ## mlm
-  if (inherits(x,"mlm")) return(invisible(print.mregr(x, ...)))
+  if (inherits(x,"mlm"))
+    return(invisible(print.mregr(x, na.print=na.print, ...)))
   ## preparation
 ##-   if (length(dummycoef)==0)
 ##-     dummycoef <- c(getUserOption("show.dummycoef"),TRUE)[1]
@@ -1110,9 +1094,9 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
         structure(apply(t(resid), 1, quantile),
                   dimnames = list(nam, dimnames(resid)[[2]]))
         else structure(quantile(resid), names = nam)
-      print(rq, digits = digits, ...)
+      print(rq, digits = digits, na.print=na.print, ...)
     } else {
-      if (rdf > 0) print(resid, digits = digits, ...)
+      if (rdf > 0) print(resid, digits = digits, na.print=na.print, ...)
       else  cat("ALL", df[1],
                 "residuals are 0: no residual degrees of freedom!\n")
     }
@@ -1146,7 +1130,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
       if (length(ljrp)) ltc[,ljrp] <- round(as.matrix(ltc[,ljrp]),max(3,digits))
 ##-     ljps <- match("p.symb",colnames(ltc), nomatch=0)
 ##-       if (ljps && all(ltc[,ljps]=="")) ltc <- ltc[,-ljps]
-      ltcf <- format(ltc)
+      ltcf <- format(ltc, na.encode=FALSE)
 ##-       lsigst <- signif.stars*( signif.stars && !is.na(ljrp[2]) &&
 ##-                               any((pv <- ltc[,ljrp[2]]) < 0.1, na.rm=TRUE) )
 ##-       if (lsigst) {
@@ -1155,8 +1139,10 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
 ##-                           symbols = c("***", "**", "*", ".", " "))
 ##-         ltcf <- cbind(ltcf,format(lsignif))
 ##-         names(ltcf)[ncol(ltcf)] <- " "
-##-     }
-      print(ltcf, quote=FALSE)
+      ##-     }
+      ltcp <- data.frame(lapply(ltcf, function(x) sub("NA",na.print,x)),
+                         row.names=row.names(ltc))
+      print(ltcp, quote=FALSE, na.print="")
       if (signif.stars>=1) 
         cat("---\nSignif. codes:  ", attr(x$termtable, "legend"),"\n", sep = "")
     } ## end if(lltc)
@@ -1164,7 +1150,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
   } else {
     if (length(x$coef)) {
       cat("\nCoefficients:\n")
-      print(x$coef)
+      print(x$coef, na.print=na.print)
     }
   }
 ##-   if (length(x$binlevels)>0) {
@@ -1196,7 +1182,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     }
   ## deviances
   if (length(x$deviance)>0) {
-    if (length(x$devtable)) print(x$devtable)
+    if (length(x$devtable)) print(x$devtable, na.print=na.print)
     if (length(x$n.censored)) {
       lnc <- 100*x$n.censored/x$n.obs
       cat(paste("\ncensored         ",
@@ -1225,7 +1211,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
   ## --- additional coefficients
   if (x$distrname=="multinomial") {
     cat("\nCoefficients:\n")
-    print(t(x$coefficients))
+    print(t(x$coefficients), na.print=na.print)
   } else {
     if (length(ltc)&u.true(dummycoef)) {        
       lidf <- match("df",colnames(x$termtable))
@@ -1260,7 +1246,8 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
         cat("\nSymbols:  ",symbl,"\n")
       } else {
         correl[!lower.tri(correl)] <- NA
-        print(correl[-1, -p, drop = FALSE], digits = digits, na = "")
+        print(correl[-1, -p, drop = FALSE], digits = digits,
+              na.print = na.print)
       }
     }
   }
@@ -1273,7 +1260,7 @@ summary.regr <- function(object, ...)  object ## dispersion=NULL,
 allcoef <- function (object, se = 2, # use.na = TRUE, 
                       df = df.residual(object), ...) 
 {
-  contr.id <- function(n, contrasts = NULL) diag(n)
+##  contr.id <- function(n, contrasts = NULL) diag(n)
     ## used for dataClass "nmatrix"
 
   if (is.atomic(object)||is.null(terms(object)))
@@ -1300,7 +1287,12 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
     xtlv[imat] <-
         lapply(as.list(dcl[imat]),
                function(x) as.character(1:as.numeric(substr(x,9,12))))
-    lcontr <- c(lcontr, structure(rep("contr.id",length(tl)), names=tl)[imat])
+    ##    lcontr <- c(lcontr, structure(rep(contr.id,length(tl)), names=tl)[imat])
+    lctr <- list()
+    for (li in 1:sum(imat))
+      lctr <- c(lctr, list(diag(length(xtlv[[li]]))))
+    names(lctr) <- tl[imat]
+    lcontr <- c(lcontr, lctr)
   }
   xtnl <- pmax(sapply(xtlv,length),1) ## number of levels
   termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0])) ##! lterms
@@ -1923,7 +1915,8 @@ fitted.regr <-
 }
 ## ==========================================================================
 predict.regr <-
-function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
+  function (object, newdata = NULL, scale = object$sigma,
+            df=object$df.residual, type = NULL, ...)
   ## bug: if used with NULL newdata, predictions will be produced
   ## for obs in model.matrix, which excludes those with missing values
 {
@@ -1992,8 +1985,8 @@ function (object, newdata = NULL, scale = object$sigma, type = NULL, ...)
   }
   if (length(lvlogst))
     object$terms <- terms(as.formula(lform), data=object$data)
-  predict(object, newdata=ldt, type=type, scale=object$sigma,
-          dispersion=object$dispersion^2, ... )
+  predict(object, newdata=ldt, type=type, scale=object$sigma, 
+          df=df, dispersion=object$dispersion^2, ... )
 }
 ## ==========================================================================
 ##- extractAIC.regr <- function (fit, scale = 0, k = 2, ...)
@@ -2090,29 +2083,6 @@ drop1.multinom <-
                     if (test[1]=="Chisq") unlist(anova(object,nfit)[2,6:7]))
     }
     as.data.frame(ans)
-}
-## =================================================================
-## FIXME: this is nowhere called, nor documented ...
-summary.mregr <- function(object, ...)
-{
-  ## Purpose:   collect results for mlm object
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date: 15 Feb 2005, 09:11
-  lsum <- summary(object)
-  lts <- ltp <- NULL
-  for (ly in 1:length(lsum)) {
-    lts <- cbind(lts,c(lsum[[ly]][["sigma"]],lsum[[ly]][["r.squared"]],
-                       lsum[[ly]][["fstatistic"]]))
-    ltp <- cbind(ltp,lsum[[ly]][["coefficients"]][,4])
-  }
-  lts[4,] <- pf(lts[3,],lts[4,],lts[5,], lower.tail=FALSE)
-  lts <- lts[1:4,]
-  dimnames(ltp) <- dimnames(object$coefficients)
-  dimnames(lts) <- list(c("sigma","r.squared","fstatistic","p-value"),
-                        dimnames(ltp)[[2]])
-  list(coefficients=object$coefficients, pvalues=ltp, stats=lts)
 }
 ## =================================================================
 
@@ -2267,7 +2237,7 @@ i.add1na <- function (object, scope)
   }
 ## ==========================================================================
 ## currently only called from print.regr():
-print.mregr <- function(x, ...)
+print.mregr <- function(x, na.print=getUserOption("na.print"), ...)
 {
   ## Purpose:   collect results for mregr object
   ## ----------------------------------------------------------------------
@@ -2275,12 +2245,13 @@ print.mregr <- function(x, ...)
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: Feb 2008
   f.prv <- function(x) paste(paste(names(x),x,sep=" = "),collapse=", ")
+  if (is.null(na.print)) na.print <- "."
   cat("\nCall:\n")
   cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
   cat("\nCoefficients:\n")
-  print(x$coefficients)
+  print(x$coefficients, na.print=na.print)
   cat("\nP-values:\n")
-  print(round(x$pvalues,4))
+  print(round(x$pvalues,4), na.print=na.print)
   cat("\nStatistics for individual response models:\n")
   print(x$stats)
   cat("\nResidual degrees of freedom: ",x$df,"\n")
@@ -2288,7 +2259,7 @@ print.mregr <- function(x, ...)
   if (!is.null(ldr)) {
     cat("\nMultivariate tests for all responses\n  Degrees of freedom: ",
         f.prv(attr(ldr,"df")),"\n")
-    print(ldr[,])
+    print(ldr[,], na.print=na.print)
   }
   invisible(x)
 }
@@ -3702,7 +3673,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
       lmr1 <- ceiling(sqrt(lmres))
       c((lmres-1)%/%lmr1+1, lmr1)
     }} else c(2,2)
-  if (length(mf)==1 && mf==1) mf <- c(1,1)
+  if (length(mf)==1 && (!is.na(mf)) && mf==1) mf <- c(1,1)
   loma <- if (length(oma)==4) oma else c(0,0,oma[c(1,1)])
   loldpar <- NULL
   loldpar <- if (length(mf)==2) {
@@ -3767,7 +3738,7 @@ for (liplot in 1:length(lplsel)) {
       ## refline centerpoint
       lrx <- rbind(apply(lf,2,mean,na.rm=TRUE))
       lry <- rbind(rep(-1,lmres))
-      ldosm <- 2*(lpllevel>1)
+      ldosm <- (lpllevel>1) + (lpllevel>=1.5)
 ##-       if (ldosm)
 ##-         lfsmooth <- smoothMM(lf, lres, lsimres, weights=lIwgt, par=lsmpar)
       i.plotlws(lf,lres, lfname,lrname,main,outer.margin,cex.title,
@@ -4156,7 +4127,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
         lig <- lgrp==lgr
         lines(lsmx[lig,1], lsmy[lig,1], col=lsmcol1[lgr],
               lty=lty[3], lwd=lwd[3])
-        if (do.smooth>1) {
+        if (do.smooth>1) { ## quantile smooths
           ligi <- lig & lsm$ybandind
           lines(lsmx[ligi,1], lsm$yband[ligi], col=lsmcol1[lgr],
                 lty=lty[3], lwd=0.5*lwd[3])
@@ -4811,7 +4782,7 @@ plresx <-
       lnl <- length(ll)
       if (mbox)
         plmboxes(rr~ff, data=ldata, xlab = xlabs[lv], ylab = ylabs[lv],
-                 refline=0, mar=NA, ilim=lylim) else {
+                 refline=0, mar=NULL, ilim=lylim) else {
       xx <- as.numeric(ff)+runif(ln,-jitter,jitter)
       xlims <- c(0.5,lnl+0.5)
       i.plotlws(xx, rr, xlab = xlabs[lv], ylab = ylabs[lv],
@@ -5406,11 +5377,11 @@ plmboxes <- function(formula, data, width=1, at=NULL,
       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
     if(u.nuna(ylim)) ylim <- f.ylim(ilim,ilimext)
     ## margins
-    if (is.null(mar)) {
+    if (is.null(mar)||is.na(mar)) {
       mar <- c(ifelse(labelsvert, min(7,1+1.1*max(nchar(llev))), 4), 4,4,1)
       oldpar <- par(mar=mar)
       on.exit(par(oldpar))
-    } else par(mar=mar)
+    } else par(mar=rep(mar,length=4))
 ##-     if(is.null(xlim)) xlim <- 
 ##-       range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
   ## ---------------------------------
@@ -5917,6 +5888,7 @@ UserDefault <- UserOptions <-
        termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
          "signif", "p.value", "p.symb"),
        allcoefcolumns="coefsymb",
+       na.print=".",
        smoothFunction="smoothRegr", smoothMinobs = 8,
        debug=0
        )

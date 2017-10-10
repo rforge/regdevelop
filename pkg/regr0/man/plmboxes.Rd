@@ -165,7 +165,10 @@ Specific arguments for 'plmbox':
   quartiles, thereby recovering the box of the traditional box plot.
 }
 \value{
-  invisibly returns the 'at' values that are finally used.
+  \code{plmboxes} invisibly returns the 'at' values that are finally
+  used.\\
+  \code{plmbox} returns a factor [to be defined...!!!]
+  and, as attributes, the quantiles and widths used to draw the boxes
 }
 %% \references{
 %% %% ~put references to the literature/web site here ~

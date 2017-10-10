@@ -384,9 +384,18 @@ terms in the selected model, even based on the liberal formal tests
 provided in regression outputs.
 
 Unfortunately, it is not possible to specify the stopping criterion 
-in \T{step}. However, it can be shown that setting its argument \T{k=5},
-one usually obtains the model with the formally significant terms.
-
+in \T{step}. However, setting its argument \T{k=4}, 
+%% was k=5
+one usually obtains a model with formally significant terms, for which
+every additional regressor would be non-signifcant.
+\\
+($\mbox{AIC}\sups k$ is $2L+k\mbox{df}$, where $L$ is the log likelihood.
+When dropping a single regressor from model 1 to obtain model 2,
+$2(L_1-L_2)$ has a chisquared distribution with 1 degree of freedom,
+for which the critical value is $3.84$.
+Thus, $\mbox{AIC}_2\sups{3.84}-\mbox{AIC}_1\sups{3.84}<0$,
+if and only if $2(L_1-L_2)<3.84$, i.e., the test is non-significant, 
+and the regressor will be dropped.)
 
 %\pagebreak
 \Vneed{50mm}
@@ -813,8 +822,8 @@ them such that they then obey a standard normal distribution,
   R = \Phi\inv\fn{1-\exp\fn{-R_{CS}}}
 \;.\]
 Note that it is useless to draw a QQ-plot of these residuals, since they
-obey the normal law by construction. (? !!!)
-They should are are plotted against the linear predictor values 
+obey the normal law by construction. 
+They should be plotted against the linear predictor values 
 (Tukey-Anscombe plot) and against the explanatory variables.
 
 

@@ -12,6 +12,7 @@
       allcoefcolumns = getUserOption("allcoefcolumns"),
       digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
+      na.print = getUserOption("na.print"),
       residuals = FALSE, niterations = FALSE, ...)
 }
 \arguments{
@@ -32,6 +33,7 @@
     A legend will also be shown after the term table.
     To avoid the legend, set \code{signif.stars} false and include
     \code{"p.symb"} in \code{allcoefcolumns}.}
+  \item{na.print}{character string used to display NAs}
   \item{residuals}{logical: should summary(residuals) be shown?}
   \item{niterations}{???}
   \item{\dots }{further arguments, passed to the print methods used.}

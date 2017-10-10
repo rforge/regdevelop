@@ -19,17 +19,14 @@ UserDefault
   \item{default}{default value}%% FIXME
   \item{list}{a list of options to be set}%% FIXME
   \item{...}{any UserOptions can be defined or modified,
-    using ‘name = value’.
+    using 'name = value'.}
 }
-%% \details{
-%% %%  ~~ If necessary, more details than the description above ~~
-%% }
-\value{For ‘getUserOption’, the current value set for UserOption ‘x’,
-  or ‘NULL’ if the option is not set.
+\value{For 'getUserOption', the current value set for UserOption 'x',
+  or 'NULL' if the option is not set.
 
-  For ‘userOptions()’, a list of all set UserOptions sorted by name.  
-  For ‘userOptions(name)’, a list of length one containing the set
-  value, or ‘NULL’ if it is not set.
+  For 'userOptions()', a list of all set UserOptions sorted by name.  
+  For 'userOptions(name)', a list of length one containing the set
+  value, or 'NULL' if it is not set.
   For uses setting one or more options, a list with the previous values
   of the UserOptions that are changed (returned invisibly).
 }

@@ -10,7 +10,7 @@
 }
 \usage{
 \method{predict}{regr}(object, newdata = NULL, scale = object$sigma,
-  type = NULL, ...)
+  df=object$df.residual, type = NULL, ...)
 
 \method{predict}{polr}(object, newdata=NULL,
   type = c("class", "probs", "link"), ...)
@@ -28,7 +28,7 @@
           which to predict.  If omitted, the fitted values are used.}
   \item{se.fit}{if TRUE, standard errors will be calculated if possible}
   \item{scale}{Scale parameter for std.err. calculation}
-  \item{df}{Degrees of Freedom to be used, if \code{se.fit} is false,
+  \item{df}{Degrees of Freedom to be used, %if \code{se.fit} is false,
     for quantiles defining intervals}
   \item{interval}{Type of interval requested}
   \item{level}{Confidence level}

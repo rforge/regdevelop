@@ -106,7 +106,7 @@
       \item{[3] }{smooth;}
       \item{[4] }{simulated smooths;}
       \item{[5] }{component effects in plresx;}
-      \item{[6] }{for confidence bands of component effects.}
+      \item{[6] }{confidence bands of component effects.}
       \item{[7] }{(random) observations in the case of
 	\code{glm.restype="cond.quant"};}
       \item{[8] }{bars showing conditional quantiles for

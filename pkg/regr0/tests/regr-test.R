@@ -77,6 +77,10 @@ r.hail <- regr(logst(EGR) ~ logst(E0) * factor(SEED) + TB + TB:logst(E0) + H0,
 t.pr <- predict(r.hail, newdata=d.hail[1:5,])
 stopifnot( all(abs(t.pr-fitted(r.hail)[1:5])<0.0001)  )
 
+## splines
+require(splines)
+data(d.pollZH16d, package="regr0")
+rr <- regr(log10(NO2) ~ bs(temp, df=5) +daytype, data=d.pollZH16d)
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
 data(d.blast)
