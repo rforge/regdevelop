@@ -14,7 +14,7 @@ step(object, ...)
 \method{step}{default}(object, scope, scale = 0,
   direction = c("both", "backward", "forward"), trace = 1, keep = NULL,
   steps = 1000, k = 2, ...) 
-\method{step}{regr}(object, scope = terms2order(object), scale = 0,
+\method{step}{regr}(object, scope = NULL, expand=FALSE, scale = 0,
   direction = c("both", "backward", "forward"), trace = FALSE, keep = NULL,
   steps = 1000, k = 2, ...)
 }
@@ -22,18 +22,22 @@ step(object, ...)
 \arguments{
   \item{object}{an object representing a model of an appropriate class.
     This is used as the initial model in the stepwise search.
-}
+  }
   \item{scope}{defines the range of models examined in the stepwise search.
-          This should be either a single formula, or a list containing
-          components 'upper' and 'lower', both formulae.  See the
-          details for how to specify the formulae and how they are
-          used.
-}
+    This should be either a single formula, or a list containing
+    components 'upper' and 'lower', both formulae.  See the
+    details for how to specify the formulae and how they are
+    used.
+  }
+  \item{expand}{logical. If TRUE and \code{scope} is not specified,
+    all squared terms and interactions are used as upper scope
+    (using \code{\link{terms2order}})
+    and the formula of the \code{object} as the lower.}    
   \item{scale}{used in the definition of the AIC statistic for selecting the
-          models, currently only for 'lm', 'aov' and 'glm' models.  The
-          default value, '0', indicates the scale should be estimated:
-          see 'extractAIC'.
-}
+    models, currently only for 'lm', 'aov' and 'glm' models.  The
+    default value, '0', indicates the scale should be estimated:
+    see 'extractAIC'.
+  }
   \item{direction}{the mode of stepwise search, can be one of '"both"',
           '"backward"', or '"forward"', with a default of '"both"'.  If
           the 'scope' argument is missing the default for 'direction'

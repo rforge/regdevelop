@@ -55,7 +55,8 @@ plot(t.rr, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=2))
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
-r.bl3 <- step(r.bl2, trace=FALSE)
+r.bl3 <- step(r.bl2, trace=FALSE, k=4)
+r.bl4 <- step(r.blast, expand=TRUE)
 
 stopifnot(r.bl3$anova[2,"Step"]=="- I(log10(charge)^2)")
 
@@ -80,7 +81,8 @@ stopifnot( all(abs(t.pr-fitted(r.hail)[1:5])<0.0001)  )
 ## splines
 require(splines)
 data(d.pollZH16d, package="regr0")
-rr <- regr(log10(NO2) ~ bs(temp, df=5) +daytype, data=d.pollZH16d)
+rr <- regr(log10(NO2) ~ bs(temp, df=5) +daytype, data=d.pollZH16d[-c(2,3),])
+add1(rr)
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
 data(d.blast)

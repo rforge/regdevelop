@@ -1676,8 +1676,8 @@ step.default <- stats::step
 ## step.default <- get("step", pos="package:stats")
 #### !!! sollte das anders heissen? step.default <- stats::step  ???
 
-step.regr <- function (object, scope=terms2order(object), scale = 0,
-  direction = c("both", "backward","forward"), trace = FALSE, keep = NULL,
+step.regr <- function (object, scope=NULL, expand=FALSE, scale = 0,
+  direction = c("both", "backward", "forward"), trace = FALSE, keep = NULL,
   steps = 1000, k = 2, ...)
 {
   ## Purpose:
@@ -1730,40 +1730,26 @@ step.regr <- function (object, scope=terms2order(object), scale = 0,
     ## end step.results
     Terms <- terms(object)
     object$call$formula <- object$formula <- Terms
-##-     ## !!! begin mod by WSt for regr objects
-##-     ldata <- eval(object$call$data)
-##-     if (is.null(ldata)) stop("!step.regr! no data found ")
-##-     lvars <- all.vars(object$formula)
-##-     lina <- apply(is.na(ldata[,lvars]),1,sum)>0
-##-     lnotna <- sum(lina)
-##-     ldt <- ldata[!lina,]
-##-     lcdata <- object$call$data
-##-     object$call$data <- ldt
-##-     ## !!! end
     md <- missing(direction)
     direction <- match.arg(direction)
     backward <- direction == "both" | direction == "backward"
     forward <- direction == "both" | direction == "forward"
-    if (missing(scope)) {
-        fdrop <- numeric()
-        fadd <- attr(Terms, "factors")
-        if (md)
-            forward <- FALSE
-    }
-    else {
-        if (is.list(scope)) {
-            fdrop <- if (!is.null(fdrop <- scope$lower))
-                attr(terms(update.formula(object, fdrop)), "factors")
-            else numeric()
-            fadd <- if (!is.null(fadd <- scope$upper))
-                attr(terms(update.formula(object, fadd)), "factors")
-        }
-        else {
-            fadd <- if (!is.null(fadd <- scope))
-                attr(terms(update.formula(object, scope)), "factors")
-            fdrop <- numeric()
-        }
-    }
+  if (is.null(scope)&expand)  ## !! was missing(scope)
+    scope <- list(lower=formula(object), upper=terms2order(object)) ## !!
+  if (is.list(scope)) {
+    fdrop <- if (!is.null(fdrop <- scope$lower))
+               attr(terms(update.formula(object, fdrop)), "factors")
+             else numeric()
+    fadd <- if (!is.null(fadd <- scope$upper))
+              attr(terms(update.formula(object, fadd)), "factors")
+  }
+  else {
+    if (is.character(scope))
+      scope <- as.formula(paste("~.+",paste(scope, collapse="+")))
+    fadd <- if (!is.null(fadd <- scope))
+              attr(terms(update.formula(object, scope)), "factors")
+    fdrop <- numeric()
+  }
     models <- vector("list", steps)
     if (!is.null(keep))
         keep.list <- vector("list", steps)
