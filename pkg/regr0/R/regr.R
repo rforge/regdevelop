@@ -64,7 +64,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     stop("!regr! undefined variables in formula:  ",
          paste(lvm, collapse=", "))
   }
-  lallvars <- as.data.frame(unclass(lallvars))
+  lallvars <- as.data.frame(unclass(lallvars),row.names=row.names(lallvars))
   ## in rare cases, lallvars will store a wrong dimension
   if (!is.na(lnobs) && (nrow(lallvars)!=lnobs))
     stop(":regr: number of observations of variables in 'formula'",
@@ -1258,11 +1258,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
 summary.regr <- function(object, ...)  object ## dispersion=NULL,
 ## ==========================================================================
 allcoef <- function (object, se = 2, # use.na = TRUE, 
-                      df = df.residual(object), ...) 
-{
-##  contr.id <- function(n, contrasts = NULL) diag(n)
-    ## used for dataClass "nmatrix"
-
+                      df = df.residual(object), ...)  {
   if (is.atomic(object)||is.null(terms(object)))
       stop("!allcoef! inadequate first argument")
  ##  xl <- object$xlevels
@@ -1282,16 +1278,16 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
   xtnm <- dimnames(facs)[[1]]  ## names  ##! replaces vars
   xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
   lcontr <- object$contrasts
-  imat <- substr(dcl,1,7)=="nmatrix" ## resulting from bs()
-  if (any(imat)) {
+  imat <- which(substr(dcl,1,7)=="nmatrix") ## resulting from bs()
+  if (length(imat)) {
     xtlv[imat] <-
         lapply(as.list(dcl[imat]),
                function(x) as.character(1:as.numeric(substr(x,9,12))))
     ##    lcontr <- c(lcontr, structure(rep(contr.id,length(tl)), names=tl)[imat])
     lctr <- list()
-    for (li in 1:sum(imat))
+    for (li in seq_along(imat))
       lctr <- c(lctr, list(diag(length(xtlv[[li]]))))
-    names(lctr) <- tl[imat]
+    names(lctr) <- names(dcl)[imat]
     lcontr <- c(lcontr, lctr)
   }
   xtnl <- pmax(sapply(xtlv,length),1) ## number of levels
@@ -4372,7 +4368,7 @@ simresiduals.default <- function(object, nrep, resgen=NULL)
     lrsr <- residuals(lrs)
     if (inherits(lrsr, "condquant")) lrsr <- lrsr[,"random"]
     lsimres[,lr] <- lrsr
-    if (!lnostres) lsimstres[,lr] <- lrs$stres
+    if (!lnostres) lsimstres[,lr] <- naresid(lrs$na.action,lrs$stres)
   }
   structure(lsimres, stres=lsimstres)
 }
