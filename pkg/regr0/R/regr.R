@@ -6765,6 +6765,176 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     fit
 }
 ## ================================================================
+regrAllEqns <-
+  function(formula, data, weights = NULL, nbest = 50, nvmax = 20,
+           force.in = NULL, force.out = NULL, labels=NULL, really.big=FALSE,
+           ...) 
+{
+  ## Purpose:   all subsets
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 14 Oct 2017, 09:26
+  really.big <- really.big | nbest<=50
+  mm <- match.call()[c("","formula","data","weights")]
+  mm[[1]] <- as.name("model.frame")
+  mf <- eval(mm, sys.frame(sys.parent()))
+  x <- model.matrix(terms(formula, data = data), mf)
+  lasgn <- attr(x,"assign")
+  lxnm <- colnames(x)
+  if ("(Intercept)"==lxnm[1])  {
+    ljint <- TRUE
+    x <- x[,-1]
+    lasgn <- lasgn[-1]
+    lxnm <- lxnm[-1]
+  } else ljint <- FALSE  
+  names(lasgn) <- lxnm
+  y <- model.extract(mf, "response")
+  wt <- model.extract(mf, "weights")
+    if (is.null(wt)) 
+      wt <- rep(1, length(y))
+  ## force.in and force.out: allow for formulas
+  if (is.formula(force.in)) {
+    if (any(lvi <- !(lv <- all.vars(force.in))%in%names(data)))
+      stop("!regrAllEqns! Variable  ", paste(lv[lvi], collapse=", "),
+           "  of argument 'force.in' not in 'data'")
+    if (!ljint) force.in <- update(force.in, ~.-1)
+    force.in <- setdiff(colnames(model.matrix(force.in, data)),"(Intercept)")
+  }
+  if(is.character(force.in)) {
+    lwrong <- setdiff(force.in, lxnm)
+    force.in <- which(lxnm%in%force.in)
+  } else lwrong <- force.in%nin%1:ncol(x)
+  if (length(lwrong)) stop(paste("!regrAllEqns! Term ", lwrong,
+                                 " of 'force.in' not in model"))
+  if (is.formula(force.out)) {
+    if (any(lvi <- !(lv <- all.vars(force.out))%in%names(data)))
+      warning("!regrAllEqns! Variable  ", paste(lv[lvi], collapse=", "),
+           "  of argument 'force.out' not in 'data'")
+    force.out <- setdiff(colnames(model.matrix(force.out, data)),"(Intercept)")
+  }
+  if(is.character(force.out)) {
+    lwrong <- setdiff(force.out, lxnm)
+    force.out <- which(lxnm%in%force.out)
+  } else lwrong <- force.out%nin%1:ncol(x)
+  if (length(lwrong)) stop(paste("!regrAllEqns! Term ", lwrong,
+                                 " of 'force.out' not in model"))
+  ## ---------------
+  ls <- regsubsets(x, y, weights=wt, nbest=nbest, nvmax=nvmax,
+                   force.in=force.in, force.out=force.out, int=ljint,
+                   really.big=really.big, ...)
+  lss <- summary(ls)
+  ## factors: identify models that are unsuitable
+  lbl <- unique(lasgn[duplicated(lasgn)])
+  lwhich <- lss$which
+  lnm <- colnames(lwhich)
+  names(lnm) <- lnm
+  liok <- rep(TRUE, nrow(lwhich))
+  ljok <- structure(rep(TRUE, ncol(lwhich)),names=colnames(lwhich))
+  ltermnm <- attr(terms(mf),"term.labels")
+  for (li in lbl) {
+    lj <- which(lasgn==li)
+    lwh <- lwhich[,lxnm[lj]]
+    liok <- liok & ( apply(lwh,1,sum)%in%c(0,ncol(lwh)) )
+    ljok[lxnm[lj[-1]]] <- FALSE
+    lnm[lxnm[lj]] <- ltermnm[li]
+  }
+  lnm <- lnm[ljok]
+  lnm <- unname(lnm)
+  lwhs <- lwhich[liok,ljok,drop=FALSE]
+  if (is.null(labels) || (length(labels)==1 & is.na(labels)))
+    labels <- c(if(ljint) "1", rep(c(LETTERS,letters),length=ncol(lwhs)-ljint))
+  labels <- rep(labels, length=ncol(lwhs))
+  names(labels) <- lnm
+  llb <- apply(lwhs,1, function(x) paste(labels[x], collapse="") )
+  dimnames(lwhs) <- list(llb, lnm)
+  lout <- lwhs
+  lout[,] <- c(" ","*")[lwhs+1]
+  ## criteria
+  ldf <- apply(lwhich, 1, sum)
+  lcr <- data.frame(df=ldf, lss[c("rsq","rss","adjr2","cp","bic")])
+  lcrs <- lcr[liok,]
+  dimnames(lcrs)[[1]] <- llb
+  lall <- c(list(criteria=lcr), modsuit=liok,
+            lss[c("which", "rsq", "rss", "adjr2", "cp", "bic", "outmat")])
+  structure(
+    list(which=lwhs, criteria=lcrs, labels=labels, force.in=force.in,
+         force.out=force.out, outmat=lout, allsubsets=lall, obj=lss$obj),
+    class="regrAllEqns")
+}
+## ---------------------------------------------------------------------
+print.regrAllEqns <-
+  function(x, nbest=20, criterion="cp", printcriteria=FALSE, printlabels=TRUE,
+           ...)
+{
+  ## Author: Werner Stahel, Date: 14 Oct 2017, 14:46
+  li <- order(x$criteria[,criterion])[1:min(nbest,nrow(x$criteria))]
+  lout <- x$outmat[li,]
+  colnames(lout) <- x$labels[colnames(lout)]
+  lout <- cbind(code=row.names(lout), df=as.character(x$criteria[li,"df"]), lout)
+  row.names(lout) <- 1:nrow(lout)
+  print(lout, quote=FALSE)
+  if (printcriteria) {
+    lcr <- x$criteria[li,] 
+    lcr <- cbind(code=row.names(lcr), lcr)
+    row.names(lcr) <- 1:nrow(lcr)
+    print(lcr)
+  }
+  if (printlabels) print(cbind(x$labels), quote=FALSE)
+}
+## ------------------------------------------------------------------
+plot.regrAllEqns <-
+  function(x, critrange=10, criterion="cp", labels=x$labels, ncharhorizontal=6,
+           legend="bottomright", mar=6, main="", ...)
+{
+  ## Author: Werner Stahel, Date: 14 Oct 2017, 14:43
+  lmod <- x$criteria[,c("df",criterion)]
+  lcr <- lmod[,2]
+  limod <- 1:nrow(lmod)
+  if (is.null(critrange)) critrange <- Inf
+  if ((!is.na(critrange)) && critrange>0)
+    lmod <- lmod[limod <- lcr<min(lcr)+critrange,]
+  ldf <- lmod[,1]
+  lcr <- lmod[,2]
+  lwh <- x$which[limod,]
+  llab <- labels[colnames(lwh)]
+  lmar <- par("mar")
+  if (length(mar)) {
+    if (length(mar)!=4) {
+      lmar <- c(lmar[1:2],mar[1],lmar[4])
+    }
+    oldpar <- par(mar=lmar)
+    on.exit(par(oldpar))
+  }
+  plot(ldf,lmod[,2], type="n", xlab="df", ylab=criterion, main="", ...)
+  if (length(main)) mtext(main, 3, lmar[3]-1.2, cex=1.2)
+  for (ls in unique(ldf)) {
+    lii <- ldf==ls
+    lvf <- apply(lwh[lii,,drop=F],2,all) ## in all models
+    lvft <- paste(c(llab[lvf],"+"),collapse="")
+    mtext(lvft, 3, at=ls, cex=1.2, las=(nchar(lvft)>ncharhorizontal)+1)
+    lwhs <- lwh[lii,!lvf,drop=F]
+    llbv <- llab[!lvf]
+    llb <- apply(lwhs,1,function(x) paste(llbv[x],collapse=""))
+    if (sum(lii)==1) text(ls,lcr[lii], "+", cex=1.7) else
+      text(rep(ls,sum(lii)),lcr[lii],llb, cex=0.7)
+  }
+##  text(lmod[,1],lmod[,2], row.names(lmod))
+  if (length(legend)) {
+    llab <- x$labels
+    if (is.logical(legend)&&legend) legend <- "bottomright"
+    if (is.character(legend)) {
+      if (legend%nin%c("topleft","topright","bottomleft","bottomright"))
+        legend <- "bottomright"
+      legend(legend, paste(llab,names(llab)),pch=rep("",length=length(llab)))
+    }
+    if (is.numeric(legend)) {
+      if (length(legend)==2)
+        legend(legend[1],legend[2],
+               paste(llab,names(llab)),pch=rep("",length=length(llab)))
+      else warning(":plot.regrAllEqns! Argument 'legend' not suitable")
+    }
+  }
+}
+## ======================================================================
 colorpale <- function(col=NA, pale=0.3, ...)
   {
     lcolna <- is.na(col)

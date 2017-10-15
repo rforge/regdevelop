@@ -31,6 +31,7 @@ importFrom("robustbase", lmrob)
 
 importFrom("quantreg", rq)
 
+importFrom("leaps", regsubsets)
 
 ### This exports everything but  ".foobar" :
 ## exportPattern("^[^\\.]")
@@ -65,14 +66,15 @@ export(asinp,
        nainf.exclude, "%nin%",
        notna,
        panelDefault, plcoord, plfitpairs, plmatrix,
-       plot.regr, plot.xdistResscale,
+       plot.regr, plot.regrAllEqns, plot.xdistResscale,
        plmbox, plmboxes,
        plres2x, plresx, plTA.polr,
        predict.mlm, predict.polr, predict.regr,
        print.allcoef, print.modelTable, print.mregr, print.regr,
+       print.regrAllEqns, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
-       regr,
+       regr, regrAllEqns, 
        residuals.regr, residuals.polr, residuals.regrcoxph, residuals.regrsurv,
        ## RNAMES,
        robrange, showd, simresiduals,
