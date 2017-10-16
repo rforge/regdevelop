@@ -35,7 +35,8 @@
     \code{"p.symb"} in \code{allcoefcolumns}.}
   \item{na.print}{character string used to display NAs}
   \item{residuals}{logical: should summary(residuals) be shown?}
-  \item{niterations}{???}
+  \item{niterations}{logical: should number of iterations be shown
+    (if available)?}
   \item{\dots }{further arguments, passed to the print methods used.}
 }
 \details{

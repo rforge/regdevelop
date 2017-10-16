@@ -11,8 +11,8 @@
 regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
   force.in = NULL, force.out = NULL, labels = NULL, really.big = FALSE,
   ...)
-\method{print}{regrAllEqns}(x, nbest = 20, crit = "cp", printcriteria = FALSE, 
-    printlabels = TRUE) 
+\method{print}{regrAllEqns}(x, nbest = 20, criterion = "cp",
+  printcriteria = FALSE, printlabels = TRUE) 
 \method{plot}{regrAllEqns}(x, critrange = 10, crit = "cp", labels = x$labels, 
     ncharhoriz = 5, legend = NULL) 
 }
@@ -61,9 +61,9 @@ regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
 }
 \item{legend}{logical: Should a list of short and long codes for terms
   be shown as a legend?
-  \item{\dots }{Other arguments, to be passed to \code{\link{regsubsets},
-    \code{print} or \code{plot}, respectively}
 }
+\item{\dots }{Other arguments, to be passed to \code{\link{regsubsets}},
+  \code{print} or \code{plot}, respectively
 }
 }
 \details{This is a wrapper function for function
@@ -88,7 +88,7 @@ regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
 \item{allsubsets}{}
 \item{obj}{see \code{?\link{regsubsets}}}
 }
-\author{
+\author{Werner A. Stahel
 }
 \note{For further details and notes, see \code{?\link{regsubsets}}
 }
@@ -104,7 +104,6 @@ bornLocal + bornForeign + altitude + language
 r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
 print(r.ae)
 plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example")
-  }
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

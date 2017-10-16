@@ -378,6 +378,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
              "df","cov.unscaled")
   lreg[lcomp] <- lreg1[lcomp]
+  if (lfn=="lm") lreg$AIC <- extractAIC(lreg)[2]
   ## degrees of freedom
   if (is.null(lreg$df)) # needed for rq
     lreg$df <- c(length(coef(lreg))-attr(terms(lreg),"intercept"),
@@ -510,7 +511,7 @@ i.glm <- function(formula, data, family, fname,
       lreg$stres <- lstr
   }
   ## bug? leverage not taken into account
-  lcomp <- c("deviance","aic","df.residual","null.deviance", # "family",
+  lcomp <- c("deviance","AIC","df.residual","null.deviance", # "family",
     "df.null","iter","deviance.resid","aliased","df","cov.unscaled")
   lreg[lcomp] <- lreg1[lcomp]
   ## --- deviances
@@ -569,7 +570,7 @@ i.multinomial <- function(formula, data, family, fname,
   lreg$residuals <- lres
   lcf <- lreg1$coefficients
   lreg$coefficients <- lcf
-  lreg$aic <- lreg1$AIC
+  lreg$AIC <- lreg1$AIC
   ldfm <- lreg1$edf-nrow(lcf)
   lreg$df <- c(ldfm,prod(dim(lres)-1)-ldfm,ldfm)
 ##-   environment(lreg$call$formula) <- environment()
@@ -699,7 +700,7 @@ i.survreg <-
     ldfr <- length(lreg$residual)-ldf-1
   }
   lreg$df.residual <- ldfr
-  lreg$aic <- extractAIC(lreg)[2]
+  lreg$AIC <- extractAIC(lreg)[2]
   lreg$deviance <- -2*lreg$loglik
   lchi <- 2*diff(lreg1$loglik)
   ltbd <- cbind(deviance=c(lchi,-2*lreg1$loglik[2]),
@@ -1016,8 +1017,8 @@ contr.wsumpoly <-
       contr
     }
   } else  contr[nn,] <- - w[-nn]/w[nn]
-  if (sparse) 
-    contr <- .asSparse(contr)
+##-   if (sparse) 
+##-     contr <- .asSparse(contr)
   structure(contr, w=w)
 }
 ## --------------------------------------------------------------------
@@ -1170,8 +1171,9 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
   if (length(x$r.squared)&&!is.na(x$r.squared))
     cat("Multiple R^2: ", formatC(x$r.squared, digits = digits),
         "   Adjusted R-squared:",
-        formatC(x$adj.r.squared, digits = digits),"\n"
-        )
+        formatC(x$adj.r.squared, digits = digits),
+        if (length(lAIC <- x$AIC)&&!is.na(lAIC))
+          "   AIC: ", formatC(lAIC, digits = log10(abs(lAIC))+3),"\n" )
   if (length(x$fstatistic)>0) {
     cat("F-statistic:  ", formatC(x$fstatistic[1],
             digits = digits), "  on", x$fstatistic[2], "and", x$fstatistic[3],
@@ -1204,7 +1206,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           if ((!is.null(attr(x$scale,"fixed")))&&
               attr(x$scale,"fixed"))
              "fixed at ", format(x$scale))
-    cat("\nAIC: ", format(x$aic, digits = max(4, digits + 1)), "\n", sep = "  ")
+    cat("\nAIC: ", format(x$AIC, digits = max(4, digits + 1)), "\n", sep = "  ")
     if (niterations&&length(x$iter)>0)
       cat("Number of iterations:", x$iter, "\n")
   }
@@ -1228,7 +1230,8 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
             cat("\nEffects of factor levels:\n")
-            print.allcoef(mt, digits=digits) }
+            print.allcoef(mt, digits=digits,
+                          columns=getUserOption("allcoefcolumns")) }
         } ## else  cat("\n")
       }}
   }
@@ -1375,9 +1378,9 @@ allcoef <- function (object, se = 2, # use.na = TRUE,
   res
 }
 ## --------------------------------------------------------------------
-print.allcoef <- function(x, columns=userOptions("allcoefcolumns"),
+print.allcoef <- function(x, columns=NULL, ## userOptions("allcoefcolumns"),
                           transpose=FALSE, ...) {
-  if (is.null(columns)) columns <- "coefsymb"
+  if (is.null(columns)) columns <- "all"
   columns[columns=="coef"] <- "estimate"
   csymb <- "coefsymb"%in%columns
   if ("all"%in%columns)  columns <-
@@ -1626,12 +1629,12 @@ drop1Wald <-
     dfs <- c(c(object$rank,object$df)[1], dfs)
     RSS <- chisq + c(0, RSS)
     if (scale > 0) 
-        aic <- RSS/scale - n + k * dfs
-    else aic <- n * log(RSS/n) + k * dfs
+        AIC <- RSS/scale - n + k * dfs
+    else AIC <- n * log(RSS/n) + k * dfs
 ##-     dfs <- dfs[1] - dfs
 ##-     dfs[1] <- NA
     aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - 
-        RSS[1]), RSS = RSS, AIC = aic, row.names = scope, check.names = FALSE)
+        RSS[1]), RSS = RSS, AIC = AIC, row.names = scope, check.names = FALSE)
     if (scale > 0) 
         names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
     test <- match.arg(test)
