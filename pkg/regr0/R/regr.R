@@ -1126,21 +1126,11 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
     }
     if (lltc) {
       cat("\nTerms:\n")
-      ## round R2.x and p.value
-      ljrp <- notna(pmatch(c("R2","p.v"),colnames(ltc)))
+      ## round R2.x, signif, p.value
+      ljrp <- colnames(ltc)[notna(pmatch(c("R2","signif","p.v"),colnames(ltc)))]
       if (length(ljrp)) ltc[,ljrp] <- round(as.matrix(ltc[,ljrp]),max(3,digits))
-##-     ljps <- match("p.symb",colnames(ltc), nomatch=0)
-##-       if (ljps && all(ltc[,ljps]=="")) ltc <- ltc[,-ljps]
+      if ("signif"%in%ljrp) ltc$signif <- round(ltc$signif,last(digits)-1)
       ltcf <- format(ltc, na.encode=FALSE)
-##-       lsigst <- signif.stars*( signif.stars && !is.na(ljrp[2]) &&
-##-                               any((pv <- ltc[,ljrp[2]]) < 0.1, na.rm=TRUE) )
-##-       if (lsigst) {
-##-         lsignif <- symnum(pv, corr = FALSE, na = FALSE, 
-##-                           cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), 
-##-                           symbols = c("***", "**", "*", ".", " "))
-##-         ltcf <- cbind(ltcf,format(lsignif))
-##-         names(ltcf)[ncol(ltcf)] <- " "
-      ##-     }
       ltcp <- data.frame(lapply(ltcf, function(x) sub("NA",na.print,x)),
                          row.names=row.names(ltc))
       print(ltcp, quote=FALSE, na.print="")
@@ -5931,7 +5921,8 @@ factorNA <- function(x, na.label=".NA.", ...)
 }
 ## ==============================================================
 xNA <- function(data, na.values=NULL, name.suffix=c(".X",".NA")) {
-  if (missing(data)) stop("!xNA! Argument 'data' missing, with no default")
+  if (missing(data)||length(data)==0)
+    stop("!xNA! Argument 'data' missing, with no default, or NULL")
   data <- data.frame(data)
 ##  if (!is.data.frame(data)) stop("!xNA! Argument 'data' ...")
   lvn <- names(data)
@@ -5941,7 +5932,7 @@ xNA <- function(data, na.values=NULL, name.suffix=c(".X",".NA")) {
   lvnna <- paste(lvn, lnsuff[2], sep="")
   na.values <-
     if (is.null(na.values)) apply(data,2,median,na.rm=TRUE)  else
-      rep(na.values, length=length(lv))
+      rep(na.values, length=length(lvn))
   names(na.values) <- lvn
   ldt <- data[,1,drop=FALSE]
   names(ldt) <- "."
@@ -5952,7 +5943,7 @@ xNA <- function(data, na.values=NULL, name.suffix=c(".X",".NA")) {
       ldt[,lvnna[lv]] <- lna
     } else ldt[,lvn[lv]] <- data[,lv]
   }
-  structure(ldt[,-1], xNA.values = na.values)
+  structure(ldt[,-1, drop=FALSE], xNA.values = na.values)
 }
 ## ==============================================================
 nainf.exclude <- function (object, ...)
@@ -6777,8 +6768,10 @@ regrAllEqns <-
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 14 Oct 2017, 09:26
   really.big <- really.big | nbest<=50
-  mm <- match.call()[c("","formula","data","weights")]
+  lcall <- match.call()
+  mm <- lcall[c("","formula","data","weights")]
   mm[[1]] <- as.name("model.frame")
+  lcall$formula <- eval(lcall$formula)
   mf <- eval(mm, sys.frame(sys.parent()))
   x <- model.matrix(terms(formula, data = data), mf)
   lasgn <- attr(x,"assign")
@@ -6856,12 +6849,25 @@ regrAllEqns <-
   lcr <- data.frame(df=ldf, lss[c("rsq","rss","adjr2","cp","bic")])
   lcrs <- lcr[liok,]
   dimnames(lcrs)[[1]] <- llb
-  lall <- c(list(criteria=lcr), modsuit=liok,
-            lss[c("which", "rsq", "rss", "adjr2", "cp", "bic", "outmat")])
+  lall <- list(criteria=lcr, modsuit=liok, df=apply(lss$which, 1, sum),
+               lss[c("which", "rsq", "rss", "adjr2", "cp", "bic", "outmat")])
   structure(
     list(which=lwhs, criteria=lcrs, labels=labels, force.in=force.in,
-         force.out=force.out, outmat=lout, allsubsets=lall, obj=lss$obj),
+         force.out=force.out, call=lcall, outmat=lout, allsubsets=lall,
+         obj=lss$obj),
     class="regrAllEqns")
+}
+## ------------------------------------------------------------
+regrAllEqnsXtr <- function(object, nbest=1, criterion="cp")
+{
+  ## Author: Werner Stahel, Date: 18 Oct 2017, 17:37
+  lwh <- object$which
+  lwh <- lwh[order(object$criteria[,criterion])[1:nbest],,drop=F]
+  rr <- apply(lwh,1, function(x)
+    update(formula(object),
+           as.formula(paste("~", paste(setdiff(colnames(lwh)[x], "(Intercept)"),
+                                collapse="+"))) ) )
+  if (nbest==1) structure(rr[[1]], modelcode=names(rr)) else rr
 }
 ## ---------------------------------------------------------------------
 print.regrAllEqns <-
@@ -6874,19 +6880,20 @@ print.regrAllEqns <-
   colnames(lout) <- x$labels[colnames(lout)]
   lout <- cbind(code=row.names(lout), df=as.character(x$criteria[li,"df"]), lout)
   row.names(lout) <- 1:nrow(lout)
-  print(lout, quote=FALSE)
+  print(lout, quote=FALSE, ...)
   if (printcriteria) {
     lcr <- x$criteria[li,] 
     lcr <- cbind(code=row.names(lcr), lcr)
     row.names(lcr) <- 1:nrow(lcr)
-    print(lcr)
+    print(lcr, ...)
   }
-  if (printlabels) print(cbind(x$labels), quote=FALSE)
+  if (printlabels) print(cbind(x$labels), quote=FALSE, ...)
 }
 ## ------------------------------------------------------------------
 plot.regrAllEqns <-
-  function(x, critrange=10, criterion="cp", labels=x$labels, ncharhorizontal=6,
-           legend="bottomright", mar=6, main="", ...)
+  function(x, criterion="cp", critrange=10, minnumber=10, nbest=10,
+           labels=x$labels, ncharhorizontal=6, col="blue",
+           legend=TRUE, mar=6, main="", ...)
 {
   ## Author: Werner Stahel, Date: 14 Oct 2017, 14:43
   lmod <- x$criteria[,c("df",criterion)]
@@ -6894,7 +6901,9 @@ plot.regrAllEqns <-
   limod <- 1:nrow(lmod)
   if (is.null(critrange)) critrange <- Inf
   if ((!is.na(critrange)) && critrange>0)
-    lmod <- lmod[limod <- lcr<min(lcr)+critrange,]
+    limod <- lcr<min(lcr)+critrange
+  if (sum(limod)<minnumber) limod <- order(lcr)[1:min(minnumber,nrow(lmod))]
+  lmod <- lmod[limod,]
   ldf <- lmod[,1]
   lcr <- lmod[,2]
   lwh <- x$which[limod,]
@@ -6910,20 +6919,29 @@ plot.regrAllEqns <-
   plot(ldf,lmod[,2], type="n", xlab="df", ylab=criterion, main="", ...)
   if (length(main)) mtext(main, 3, lmar[3]-1.2, cex=1.2)
   for (ls in unique(ldf)) {
-    lii <- ldf==ls
-    lvf <- apply(lwh[lii,,drop=F],2,all) ## in all models
-    lvft <- paste(c(llab[lvf],"+"),collapse="")
-    mtext(lvft, 3, at=ls, cex=1.2, las=(nchar(lvft)>ncharhorizontal)+1)
-    lwhs <- lwh[lii,!lvf,drop=F]
-    llbv <- llab[!lvf]
-    llb <- apply(lwhs,1,function(x) paste(llbv[x],collapse=""))
-    if (sum(lii)==1) text(ls,lcr[lii], "+", cex=1.7) else
-      text(rep(ls,sum(lii)),lcr[lii],llb, cex=0.7)
+    lii <- which(ldf==ls)
+    llcr <- lcr[lii]
+    if (length(lii)) {
+      lk <- lii[order(llcr)[1:min(length(lii),nbest)]]
+      lvf <- apply(lwh[lk,,drop=F],2,all) ## in all models
+      lvft <- paste(c(llab[lvf],"+"),collapse="")
+      mtext(lvft, 3, 1, at=ls, cex=1.2, las=(nchar(lvft)>ncharhorizontal)+1,
+            col=col)
+      lwhs <- lwh[lk,!lvf, drop=F]
+      llbv <- llab[!lvf]
+      llb <- apply(lwhs,1,function(x) paste(llbv[x],collapse=""))
+      llcr <- lcr[lk]
+      if (length(lk)==1) text(ls, llcr, "+", cex=1.7, col=col) else
+        text(rep(ls,length(lk)),lcr[lk],llb, cex=0.7, col=col)
+    }
   }
-##  text(lmod[,1],lmod[,2], row.names(lmod))
+  ##  text(lmod[,1],lmod[,2], row.names(lmod))
   if (length(legend)) {
     llab <- x$labels
-    if (is.logical(legend)&&legend) legend <- "bottomright"
+    if (is.logical(legend)&&legend) {
+      lcmin <- sapply(split(lcr,ldf), min)
+      legend <- if (lcmin[1]>last(lcmin)) "bottomleft" else "bottomright"
+    }
     if (is.character(legend)) {
       if (legend%nin%c("topleft","topright","bottomleft","bottomright"))
         legend <- "bottomright"
@@ -6936,6 +6954,7 @@ plot.regrAllEqns <-
       else warning(":plot.regrAllEqns! Argument 'legend' not suitable")
     }
   }
+  invisible(lmod)
 }
 ## ======================================================================
 colorpale <- function(col=NA, pale=0.3, ...)

@@ -1,5 +1,6 @@
 \name{regrAllEqns}
 \alias{regrAllEqns}
+\alias{regrAllEqnsXtr}
 \alias{print.regrAllEqns}
 \alias{plot.regrAllEqns}
 %- Also NEED an '\alias' for EACH other topic documented here.
@@ -11,10 +12,11 @@
 regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
   force.in = NULL, force.out = NULL, labels = NULL, really.big = FALSE,
   ...)
+regrAllEqnsXtr(object, nbest=1, criterion="cp")
 \method{print}{regrAllEqns}(x, nbest = 20, criterion = "cp",
-  printcriteria = FALSE, printlabels = TRUE) 
+  printcriteria = FALSE, printlabels = TRUE, ...) 
 \method{plot}{regrAllEqns}(x, critrange = 10, crit = "cp", labels = x$labels, 
-    ncharhoriz = 5, legend = NULL) 
+    ncharhoriz = 5, legend = NULL, ...) 
 }
 
 \arguments{
@@ -63,7 +65,7 @@ regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
   be shown as a legend?
 }
 \item{\dots }{Other arguments, to be passed to \code{\link{regsubsets}},
-  \code{print} or \code{plot}, respectively
+  \code{print} or \code{plot}, respectively.
 }
 }
 \details{This is a wrapper function for function
@@ -87,6 +89,10 @@ regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
 \item{outmat}{}
 \item{allsubsets}{}
 \item{obj}{see \code{?\link{regsubsets}}}
+\code{regrAllEqnsXtr} returns a formula or a list of formulas
+(if \code{nbest>1}).
+\code{plot.regrAllEqns} invisibly returns the coordinates
+of the models used in the plot.
 }
 \author{Werner A. Stahel
 }
@@ -104,8 +110,11 @@ bornLocal + bornForeign + altitude + language
 r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
 print(r.ae)
 plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example")
+## extract the formula of the best model
+( t.formula <- regrAllEqnsXtr(r.ae) )
+## ... and fit it
+regr(t.formula, data=d.birthrates)
+
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{regression}% use one of  RShowDoc("KEYWORDS")
-\keyword{model selection}% __ONLY ONE__ keyword per line
+\keyword{regression}
+

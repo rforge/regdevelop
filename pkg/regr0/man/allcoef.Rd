@@ -10,8 +10,7 @@ A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
 allcoef(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
-\method{print}{allcoef}(x, columns=userOptions("allcoefcolumns"),
-                        transpose=FALSE, ...)
+\method{print}{allcoef}(x, columns=NULL, transpose=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,7 +26,8 @@ allcoef(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE,
   
   Arguments for \code{print}:
   \item{x}{object of class \code{allcoef}, produced by \code{allcoef(...)}}
-  \item{columns}{the columns of the tables to be printed}
+  \item{columns}{the columns of the tables to be printed. \code{NULL}
+  selects all the columns.}
   \item{transpose}{logical. should the tables be
     transposed for printing?}
   \item{\dots}{absorbs further arguments of call to generic function
