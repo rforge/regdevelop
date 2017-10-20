@@ -10,7 +10,7 @@
 \usage{
 simresiduals(object, ...)
 \method{simresiduals}{default}(object, nrep, resgen=NULL)
-\method{simresiduals}{glm}(object, nrep, resgen=NULL, glm.restype="deviance")
+\method{simresiduals}{glm}(object, nrep, resgen=NULL, glm.restype="working")
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,7 +20,8 @@ simresiduals(object, ...)
     which will be multiplied by object\$sigma. If TRUE, \code{rnorm} will
     be used. If NULL (default) the standardized residuals of
     \code{object} will be randomly permuted}
-  \item{glm.restype}{type of residuals to be generated (for glm)}
+  \item{glm.restype}{type of residuals to be generated (for glm)
+    Warning: type "deviance" may produce NAs.}
   \item{...}{further arguments passed to forthcoming methods.}
 }
 \details{

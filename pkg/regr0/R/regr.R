@@ -3285,7 +3285,7 @@ plot.xdistResscale <- function(x, lwd=2, cex=2, xlab="distance in x space",
 ## ==========================================================================
 plot.regr <-
 function(x, data=NULL, plotselect = NULL, sequence=FALSE,
-         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
+         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "working",
          smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
@@ -3469,7 +3469,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   }
 ## ----------------
 ## plot selection
-  lplsel <- c( yfit=0, ta=3, tascale = NA, weights = NA, qq = NA,
+  lplsel <- c( yfit=0, ta=3-1.6*lglm, tascale = NA, weights = NA, qq = NA,
               leverage = 2, resmatrix = 1, qqmult = 3)
   if (length(plotselect)>0) {
     lpls <- TRUE
@@ -3497,7 +3497,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   }
   if (!lmult) lplsel[c("resmatrix","qqmult")] <- 0
   if (is.na(lplsel["yfit"])) lplsel["yfit"] <- 0
-  if (is.na(lplsel["ta"]))  lplsel["ta"] <- 3*(lplsel["yfit"]==0)
+  if (is.na(lplsel["ta"]))  lplsel["ta"] <- (3-1.6*lglm)*(lplsel["yfit"]==0)
   if (is.na(lplsel["weights"])) lplsel["weights"] <- 3*(lfgauss&lIwgt)
   if (is.na(lplsel["tascale"])) lplsel["tascale"] <- 3*(!lfcount)
   if (is.na(lplsel["qq"])) lplsel["qq"] <- 3*lfgauss # how about gamma? !!!
@@ -3526,18 +3526,25 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (lmult) lnsims <- 0 # not yet programmed for mlm
   lsimabs <- lsimstres <- lsimres <- NULL
   if (lnsims>0) {
-      lsimr <- if(u.debug())  simresiduals(x, lnsims)  else
-      try(simresiduals(x, lnsims),silent=TRUE)
+    lsimr <- if(u.debug())
+               simresiduals(x, lnsims, glm.restype=glm.restype)  else
+      try(simresiduals(x, lnsims, glm.restype=glm.restype),silent=TRUE)
     if (class(lsimr)=="try-error") 
       warning(":plot.regr/simresiduals: simresiduals did not work. ",
               "No simulated smooths")
     else {
-      lsimres <- lsimr
-      lsimstres <- attr(lsimr,"stres")
-      lsimabs <- if (is.null(lsimstres)) NULL else abs(lsimstres)
+      if (any(is.na(lsimr)))
+        warning(":plot.regr/simresiduals: simresiduals produced NAs. ",
+                "No simulated smooths")
+      else {
+        lsimres <- lsimr
+        lsimstres <- attr(lsimr,"stres")
+        lsimabs <- if (is.null(lsimstres)) NULL else abs(lsimstres)
+      }
     }
     if (length(lsimres)==0) lnsims <- 0
-    }
+  }
+  
 ## residuals from smooth 
   lfsmsm <- lfsmooth <- NULL
   if (smresid) {
@@ -3951,7 +3958,7 @@ i.plotlws <- function(x,y, xlab="",ylab="",main="", outer.margin=FALSE,
   if (do.smooth) {
     ljsmgrp <- !is.null(smooth.group)
     lsmooth <- if(is.list(smooth)) smooth else
-      smoothMM(x, y, if (nsims) simres, wgt,
+      smoothMM(x, y, if (nsims) simres, weights,
                group=smooth.group, power=smooth.power, band=do.smooth>1, 
                par=smooth.par, iterations=smooth.iter)
     ## smooth colors
@@ -4186,7 +4193,7 @@ simresiduals <- function(object, ...)  UseMethod("simresiduals")
   ## ----------------------------------------------------------------------
   ## Arguments:  resgen: how are residuals generated?
 ## ---------------------------------------------------------------------
-simresiduals.glm <- function(object, nrep, resgen=NULL, glm.restype="deviance")
+simresiduals.glm <- function(object, nrep, resgen=NULL, glm.restype="working")
 {
   lcall <- object$call
   if ("weights"%in%names(lcall)) {
@@ -4355,7 +4362,7 @@ simresiduals.default <- function(object, nrep, resgen=NULL)
 plresx <-
   function (x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             se = FALSE, partial.resid = TRUE, addcomp = FALSE, 
-            glm.restype = "deviance", condprobrange=c(0.05,0.8),            
+            glm.restype = "working", condprobrange=c(0.05,0.8),            
             weights = NULL, wsymbols=NULL, symbol.size=NULL,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
@@ -5856,7 +5863,7 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
 ## -----------------------------------------------------
 UserDefault <- UserOptions <- 
   list(stamp=1, project="", step="", doc=TRUE, show.dummycoef=TRUE,
-       colors.ra = c("black","gray4","blue4","cyan","darkgreen","green",
+       colors.ra = c("gray","gray3","blue4","cyan","darkgreen","green",
          "burlywood4","burlywood3","burlywood4"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), plext=0.05, digits=4,
        regr.contrasts=c(unordered="contr.wsum", ordered="contr.wpoly"),
@@ -6264,7 +6271,7 @@ IR <- function(condition) {
   }
 }
 
-u.nuna <- function(x)  length(x)==0 || any(is.na(x))
+u.nuna <- function(x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
 
 ## ===========================================================================
 if (length(getUserOption("colors"))==0)

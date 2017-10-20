@@ -15,12 +15,13 @@ regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
 regrAllEqnsXtr(object, nbest=1, criterion="cp")
 \method{print}{regrAllEqns}(x, nbest = 20, criterion = "cp",
   printcriteria = FALSE, printlabels = TRUE, ...) 
-\method{plot}{regrAllEqns}(x, critrange = 10, crit = "cp", labels = x$labels, 
-    ncharhoriz = 5, legend = NULL, ...) 
+\method{plot}{regrAllEqns}(x, criterion = "cp", critrange = 10,
+  minnumber = 10, nbest=10, labels = x$labels, ncharhorizontal = 6,
+  col="blue", legend = TRUE, mar=6, main="", ...) 
 }
 
 \arguments{
-  \item{formula}{formula for the full model
+\item{formula}{formula for the full model
 }
 \item{data}{data.frame where the variables are found
 }
@@ -35,15 +36,18 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
 }
 \item{force.out}{formula for terms to be excluded from all models
 }
-\item{labels}{short names, preferably one letter each,
-  to be used for labelling the columns of the result 'outmat'
-  and for plotting
+\item{labels}{labels for the terms to be used for identifying the
+  equations in the result 'outmat' and in the plot. Preferably one
+  letter each.
 }
 \item{really.big}{Must be TRUE to perform exhaustive search on more
   than 50 variables.
 }
 \item{criterion}{Criterion to be used to rank the equations and for the
   vertical axis in plotting.
+}
+\item{object, x}{result of \code{regrAllEqns} to be used by
+  \code{regrAllEqnsXrt} or \code{print} or \code{plot}
 }
 \item{printcriteria}{logicel: should the table of criteria be printed?
 }
@@ -54,15 +58,23 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
   will be used in plotting: those that are less than \code{critrange}
   worse than the best.
 }
-\item{labels}{labels for the terms to be used for identifying the
-  equations in the plot. Preferably one letter each.
+\item{minnumber}{minimum number of equations shown; overrides
+  \code{critrange} if needed.
 }
 \item{ncharhorizontal}{maximum length of string on margin 3 to be shown
   horizontally. Use \code{ncharhorizontal=0} to get all labels
   shown vertically. This avoids overwriting.
 }
+\item{col}{color used for the equation identifiers in the plot
+} 
 \item{legend}{logical: Should a list of short and long codes for terms
-  be shown as a legend?
+  be shown as a legend? Alternatively, a position for the legend:
+  keyword like \code{"bottomleft"} or 2 coordinates.
+}
+\item{mar}{margins: either all 4 margins of the plot or 1 number for the
+  top margin.
+}
+\item{main}{main title
 }
 \item{\dots }{Other arguments, to be passed to \code{\link{regsubsets}},
   \code{print} or \code{plot}, respectively.

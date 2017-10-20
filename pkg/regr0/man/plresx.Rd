@@ -11,7 +11,7 @@
 \usage{
 plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             se = FALSE, partial.resid = TRUE, addcomp = FALSE, 
-            glm.restype = "deviance", condprobrange=c(0.05,0.8),            
+            glm.restype = "working", condprobrange=c(0.05,0.8),            
             weights = NULL, wsymbols=NULL, symbol.size=NULL,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
@@ -49,7 +49,10 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
     model. In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{cond.quant} is possible for
     (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
-    an explanation.}
+    an explanation.
+    Warning: type "deviance" will not work with simulated smooths since
+    NAs will emerge.
+  }
   \item{condprobrange}{if conditional probabilities are shown by bars:
     show only those that are contained in \code{condprobrange}
     (vector of length 2)}

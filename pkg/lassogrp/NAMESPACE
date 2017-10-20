@@ -1,8 +1,12 @@
-importFrom("graphics", plot)
-### This exports everything but  ".foobar" :
-## exportPattern("^[^\\.]")
+  importFrom("graphics", "plot", "axis", "box", "lines", "matplot", "mtext",
+             "par")
+  importFrom("stats", ".checkMFClasses", ".getXlevels", "aggregate",
+             "as.formula", "coef", "delete.response", "dummy.coef",
+             "fitted", "model.frame", "model.matrix", "model.offset",
+             "model.response", "model.weights", "na.omit", "na.pass",
+             "napredict", "nlminb", "predict", "terms", "update", "var",
+             "formula.glm")
 
-## Ok, now we are better and do not export all
 export(
 "[.lassogrp",         
 cv.lasso,           

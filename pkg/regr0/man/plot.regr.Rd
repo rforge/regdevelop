@@ -14,7 +14,7 @@
 }
 \usage{
 \method{plot}{regr}(x, data=NULL, plotselect = NULL, sequence=FALSE,
-         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "deviance",
+         xplot = TRUE, x.se=FALSE, addcomp=FALSE, glm.restype = "working",
          smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
@@ -50,7 +50,10 @@
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{cond.quant} is possible for
     (ungrouped) binary regression. See \code{?\link{residuals.polr}} for
-    an explanation.}
+    an explanation.
+    Warning: type "deviance" will not work with simulated smooths since
+    NAs will emerge.
+  }
   \item{smresid}{logical: Should residuals from smooth be used for
     'tascale' and 'qq' plots?}
   \item{condprobrange}{if conditional probabilities are shown by
