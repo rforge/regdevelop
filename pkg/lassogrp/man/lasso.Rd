@@ -157,8 +157,6 @@ lassoGrpFit(x, y, index, subset, weights = rep(1, length(y)), model="gaussian",
   Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
   \emph{The Group Lasso for Logistic Regression},
   Journal of the Royal Statistical Society, \bold{70} (1), 53--71;
-  \cr see also
-  \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}
 }
 \author{Lukas Meier and Werner Stahel, \email{stahel@stat.math.ethz.ch}}
 

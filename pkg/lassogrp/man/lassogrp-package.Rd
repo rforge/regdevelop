@@ -2,7 +2,7 @@
 \Rdversion{1.1}
 \alias{lassogrp-package}
 \docType{package}
-\title{Lasso Regression including group lasso and adaptive lasso
+\title{LASSO REGRESSION INCLUDING GROUP LASSO AND ADAPTIVE LASSO
 }
 \description{
 lassogrp implements the Lasso regression method for several regression
@@ -40,8 +40,6 @@ It is in development.
   Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
   \emph{The Group Lasso for Logistic Regression},
   Journal of the Royal Statistical Society, \bold{70} (1), 53--71;
-  \cr see also
-  \url{http://stat.ethz.ch/~meier/logistic-grouplasso.php}
 }
 \seealso{\code{library(lars)}}
 \examples{

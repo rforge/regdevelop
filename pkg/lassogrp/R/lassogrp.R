@@ -58,7 +58,9 @@ lasso.formula <-
      !("offset" %in% all.vars (formula)))
     stop("Cannot (yet) use  offset(.) in lasso() formula;\n",
          " use 'offset' argument instead")
-
+  
+  environment(nonpen) <- environment(formula)
+  
   l <- lassogrpModelmatrix(m, formula, nonpen, data, weights, subset, na.action,
                      contrasts, env = parent.frame())
 ##-   if(is.null(coef.init))  coef.init <- rep(0, ncol(l$x))
@@ -382,14 +384,14 @@ lassoGrpFit <-
 
   ## keep original x if wanted
   x.old <- if(save.x) x else NULL
-
+  
   ## Which are the non-penalized parameters?
   any.notpen    <- any(in0, na.rm=TRUE)
   inotpen.which <- which(in0)
   nrnotpen      <- length(inotpen.which)
   interc.which  <-
-    if(all(x[,1] == 1)) 1L ## = 99% of cases
-    else which(apply(x==1, 2, all))
+    if(all(x[,1] == 1)) { 1L ## = 99% of cases
+    } else which(apply(x==1, 2, all))
   has.interc <- length(interc.which) > 0
   notpenintonly <- nrnotpen==1 && has.interc
   if (is.na(center) || is.null(center)) center <- has.interc
@@ -611,7 +613,7 @@ lassoGrpFit <-
             coef.test[ind] <- coef[ind] + scale * d
 
             Xjd <- Xj * d
-            eta.test     <- eta + Xjd * scale
+            eta.test     <- c(eta) + Xjd * scale  ## !!! WSt was  eta +
 
             if(line.search){
               qh    <- sum(ngrad * d)
@@ -680,7 +682,8 @@ lassoGrpFit <-
           else nH.pen[j]
 
         cond       <- -ngrad + nH * coef.ind
-        cond.norm2 <- crossprod(cond)
+        cond.norm2 <- crossprod(cond)[,] ## !!! WSt. can possibly be
+        ## replaced by either c(crossprod(cond)) 
 
         ## Check the condition whether the minimum is at the non-differentiable
         ## position (-coef.ind) via the condition on the subgradient.
@@ -1257,7 +1260,17 @@ print.lassofit <-
 }
 
 ## Needed, e.g., for  update(., )  to work:
-formula.lassogrp <- stats:::formula.glm
+##- formula.lassogrp <- ## copy of  stats:::formula.glm
+##- function (x, ...) 
+##- {
+##-     form <- x$formula
+##-     if (!is.null(form)) {
+##-         form <- formula(x$terms)
+##-         environment(form) <- environment(x$formula)
+##-         form
+##-     }
+##-     else formula(x$terms)
+##- }
 
 ## ===================================================================
 cv.lasso <-

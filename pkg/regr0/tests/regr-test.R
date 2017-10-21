@@ -83,6 +83,32 @@ require(splines)
 data(d.pollZH16d, package="regr0")
 rr <- regr(log10(NO2) ~ bs(temp, df=5) +daytype, data=d.pollZH16d[-c(2,3),])
 add1(rr)
+## ------------------------------------
+## all subsets
+data(d.birthrates)
+t.formula <- fertility ~ catholic + single24 + single49 + eAgric + eIndustry +
+eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
+bornLocal + bornForeign + altitude + language
+
+r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
+print(r.ae)
+plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example",
+     legend="topright")
+## extract the formula of the best model
+( t.formula <- regrAllEqnsXtr(r.ae) )
+## ... and fit it
+regr(t.formula, data=d.birthrates)
+
+r.ae0 <-
+  regrAllEqns(fertility ~ catholic + bornLocal + altitude + language +
+                I(single49>30) -1,
+              data=d.birthrates, force.in=~language, force.out=~altitude,
+              codes=c(catholic="c",bornLocal="b",altitude="a",
+                      "I(single49 > 30)"="s",language="L",foo="f"))
+
+print(r.ae0, printcrit=T)
+plot(r.ae0, legend=c(5.5,3000), cex=1)
+                     
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
 data(d.blast)

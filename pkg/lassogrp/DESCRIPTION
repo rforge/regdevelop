@@ -1,6 +1,6 @@
 Package: lassogrp
 Type: Package
-Title: Lasso Regression including group lasso and adaptive lasso
+Title: LASSO REGRESSION INCLUDING GROUP LASSO AND ADAPTIVE LASSO
 Version: 1.0-3
 Date: 2010-08-26
 Author: Lukas Meier, Werner A. Stahel and Martin Maechler, ETH Zurich

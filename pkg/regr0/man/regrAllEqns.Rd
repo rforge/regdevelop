@@ -10,14 +10,15 @@
 }
 \usage{
 regrAllEqns(formula, data, weights = NULL, nbest = 50, nvmax = 20,
-  force.in = NULL, force.out = NULL, labels = NULL, really.big = FALSE,
+  force.in = NULL, force.out = NULL, codes = NULL, really.big = FALSE,
   ...)
 regrAllEqnsXtr(object, nbest=1, criterion="cp")
 \method{print}{regrAllEqns}(x, nbest = 20, criterion = "cp",
-  printcriteria = FALSE, printlabels = TRUE, ...) 
+  printcriteria = FALSE, printcodes = TRUE, ...) 
 \method{plot}{regrAllEqns}(x, criterion = "cp", critrange = 10,
-  minnumber = 10, nbest=10, labels = x$labels, ncharhorizontal = 6,
-  col="blue", legend = TRUE, mar=6, main="", ...) 
+  minnumber = 10, nbest=10, codes = x$codes, ncharhorizontal = 6,
+  col="blue", legend = TRUE, mar=6, main="", cex=0.7*par("cex"),
+  cex.lab=1.2*par("cex.lab"), ...) 
 }
 
 \arguments{
@@ -36,7 +37,7 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
 }
 \item{force.out}{formula for terms to be excluded from all models
 }
-\item{labels}{labels for the terms to be used for identifying the
+\item{codes}{codes for the terms to be used for identifying the
   equations in the result 'outmat' and in the plot. Preferably one
   letter each.
 }
@@ -51,7 +52,7 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
 }
 \item{printcriteria}{logicel: should the table of criteria be printed?
 }
-\item{printlabels}{logical: should the short labels for the terms
+\item{printcodes}{logical: should the short codes for the terms
   (columns in the primary output 'outmat') be listed?
 }
 \item{critrange}{range of criterion that determines how many equations
@@ -62,7 +63,7 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
   \code{critrange} if needed.
 }
 \item{ncharhorizontal}{maximum length of string on margin 3 to be shown
-  horizontally. Use \code{ncharhorizontal=0} to get all labels
+  horizontally. Use \code{ncharhorizontal=0} to get all codes
   shown vertically. This avoids overwriting.
 }
 \item{col}{color used for the equation identifiers in the plot
@@ -76,6 +77,8 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
 }
 \item{main}{main title
 }
+\item{cex, cex.lab}{character expansion for codes in the plot and on the
+  upper margin}
 \item{\dots }{Other arguments, to be passed to \code{\link{regsubsets}},
   \code{print} or \code{plot}, respectively.
 }
@@ -95,7 +98,7 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
 \value{\code{regrAllEqns} returns a list, containing
 \item{which}{}
 \item{criteria}{}
-\item{labels}{}
+\item{codes}{}
 \item{force.in}{}
 \item{force.out}{}
 \item{outmat}{}
@@ -118,10 +121,13 @@ data(d.birthrates)
 t.formula <- fertility ~ catholic + single24 + single49 + eAgric + eIndustry +
 eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
 bornLocal + bornForeign + altitude + language
+## altitude and language are factors
 
 r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
 print(r.ae)
-plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example")
+plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example",
+     legend="bottomright", xlim=c(4,20))
+
 ## extract the formula of the best model
 ( t.formula <- regrAllEqnsXtr(r.ae) )
 ## ... and fit it
