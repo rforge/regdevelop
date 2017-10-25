@@ -1,0 +1,59 @@
+% -*- Mode: noweb; noweb-default-code-mode: R-mode; -*-
+%\SweaveUTF8
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{Sweave}
+\usepackage[utf8]{inputenc}
+%% \usepackage{germanU}
+%%- \usepackage[noae]{Sweave}
+\usepackage[a4paper, text={14.5cm,22cm}]{geometry}
+\usepackage{color} %uncomment BF
+\usepackage{booktabs} % nice tables with \toprule \middlerule \bottomrule
+\usepackage{amsmath} % for align
+% \usepackage{wasysym} % for promille sign
+% \usepackage{amssymb}
+% \usepackage[textfont=it,font=small,labelfont=it]{caption}
+\interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
+\usepackage{regr-desc}
+
+\addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
+\addtolength{\oddsidemargin}{-1.04cm}
+
+%% ================================================================
+
+\begin{document}
+\input{lassogrp-concordance}
+\setkeys{Gin}{width=1\textwidth}
+\baselineskip 15pt
+
+\title{\vspace*{-10mm}
+R-Package \T{lassogrp} for the group lasso  method}
+\author{Werner A. Stahel, ETH Zurich}
+\maketitle
+
+\begin{abstract}\noindent
+  The lasso is a well known method for automatic model selection 
+  in regression.
+  This package is an extension of the \T{grplasso} package based on 
+  the PhD thesis of Lukas Meier.
+  It includes more user-oriented wrapper functions.
+  
+  This vignette waits to be written.
+\end{abstract}
+
+\section{Introduction}
+
+
+{\small
+This is the end of the story for the time being. I hope that you will
+get into using \T{regr0} and have good success with your data analyses.
+Feedback is highly appreciated.
+
+Werner Stahel, \T{stahel at stat.math.ethz.ch}
+}
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

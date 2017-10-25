@@ -45,7 +45,8 @@ It is available from \T{R-forge} and is still in development.
 \end{abstract}
 
 <<preliminary, echo=F>>=
-require(regr0)
+## library(regr0)
+library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 mframe()
 userOptions(project="regr0 documentation")
 
@@ -139,6 +140,7 @@ output that is safe to be interpreted.
 Here is a result of printing a \T{regr} object.
 <<regrout>>=
 data(d.blast)
+d.blast$location <- factor(d.blast$location)
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
 r.blast
@@ -341,7 +343,7 @@ names(d.blast)
 r.blast2 <- 
   regr(logst(tremor) ~ ( location + log10(distance) + log10(charge) )^2,
        data=d.blast)
-modelTable(c("r.blast","r.blast2"))             
+## modelTable(c("r.blast","r.blast2"))             
 @ 
 
 \subsection{Model Selection}

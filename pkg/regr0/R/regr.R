@@ -102,7 +102,8 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
     if (is.logical(lv))
       lallvars[[lvn]] <- as.numeric(lv) ## logical -> numeric!!!
     if (is.character(lv)|is.factor(lv))
-      lallvars[[lvn]] <- if (lfacna) factorNA(lv, lfnalabel) else factor(lv)
+      lallvars[[lvn]] <-
+        if (lfacna) factorNA(lv, lfnalabel)[[1]] else factor(lv)
   }
   ## g. --- check for variables with a single value
   lcgetv[[1]] <- as.name("model.frame")
@@ -2690,7 +2691,7 @@ fitcomp <- function(object, data=NULL, vars=NULL, se=FALSE,
   }
   if (lny==1) {
     dim(lcomp) <- dim(lcomp)[1:2]
-    dimnames(lcomp) <- dimnames(lx)
+    dimnames(lcomp) <- dimnames(lx[,lvcomp,drop=FALSE])
     lcomp <- lcomp-lprm
     if (se) {
       dim(lcse) <- dim(lcse)[1:2]
@@ -2958,16 +2959,23 @@ modelTable <-function(models, seq=NULL)
   ## -------------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  9 Aug 2000, 11:50
   t.islist <- is.list(models)
-  if ((!t.islist)&&!(is.atomic(models)&is.character(models)))
-    stop("!modelTable! Inadequate argument 'model'")
   t.nm <- length(models)
-  t.mnm <- if (t.islist) names(models) else models
-  if (length(t.mnm)==0)  names(models) <- t.mnm <- paste("model",1:t.nm,sep=".")
+  t.mnm <- names(models) ## if (t.islist) names(models) else models
+  if (length(t.mnm)==0)
+    if (t.islist) names(models) <- t.mnm <- paste("model",1:t.nm,sep=".")
+    else t.mnm <- models
+  if (t.islist) {
+    if (any(t.wr <- sapply(models,
+                           function (x) !inherits(x, regrModelClasses))))
+      stop("!modelTable! element  ",paste(t.mnm[t.wr],collapse=", "),
+           "  has inadequate class")
+  } else  if(!is.character(models))
+      stop("!modelTable! Argument 'models' must be a list or a character vector")
   t.ls <- t.trm <- t.cf <- setNames(vector("list",t.nm), t.mnm)
   t.nobs <- t.df <- t.sig <- t.fitfun <- setNames(rep(NA,t.nm), t.mnm)
   ## -----------------------------------------------------------
-  for (li in t.mnm) {
-    lr <- if (t.islist) models[[li]] else get(li,envir=parent.frame())
+  for (li in 1:t.nm) {
+    lr <- if (t.islist) models[[li]] else get(models[li],envir=parent.frame())
 ##-     lfitfun <- NULL
 ##-     for (lc in c("lm","lmrob","glm","multinom","polr","survreg"))
 ##-       if (inherits(lr,lc)) lfitfun <- lc
@@ -3029,7 +3037,7 @@ modelTable <-function(models, seq=NULL)
   li <- if(reduce) !apply(is.na(lp),1,all)  else 1:nrow(lp)
   if (length(li)==0) stop("![.modelTable! no terms left")
   lsd <- if (length(object$sd.terms)) object$sd.terms[rows][li]
-  lsig <- if (length(object$sigma)) object$sigma[rows][li]
+  lsig <- if (length(object$sigma)) object$sigma[li]
   rr <- list(coef=object$coef[rows,cols,drop=FALSE][li,,drop=FALSE],
              p=lp[li,,drop=FALSE], sigma=lsig,
              nobs=object$nobs[cols], df=object$df[cols],
@@ -4520,22 +4528,22 @@ plresx <-
         vars <- setdiff(vars,lvm[lj==0])
       }
     }
-    ldata <- ldata[,vars,drop=FALSE]
-    dvars <- names(ldata)
+    ldt <- ldata[,vars,drop=FALSE]
+    dvars <- names(ldt)
   ## --- factors
     ## convert character to factor
-    if (any(lic <- sapply(ldata,is.character)))
-      ldata[lic] <- lapply(ldata[lic], factor)
-    is.fac <- sapply(ldata, is.factor)
+    if (any(lic <- sapply(ldt,is.character)))
+      ldt[lic] <- lapply(ldt[lic], factor)
+    is.fac <- sapply(ldt, is.factor)
     ## variables with only 2 values
-    lnv <- apply(ldata,2, function(x) length(unique(x)) )
+    lnv <- apply(ldt,2, function(x) length(unique(x)) )
     if (jitterbinary) is.fac[lnv<=2] <- 2
     ## factors created in the formula argument of the call to regr
     ltv <- attr(terms(x),"variables")
     ltfc <- ltv[grep("factor\\(",as.character(ltv))]
     if (!is.null(ltfc)) {
       lfc <- all.vars(formula(paste("~",paste(ltfc,collapse="+"))))
-      is.fac[match(lfc,names(ldata),nomatch=0)] <- 2
+      is.fac[match(lfc,names(ldt),nomatch=0)] <- 2
     }
   } # if (length(vars))
 ##  --- sequence
@@ -4543,7 +4551,7 @@ plresx <-
   if (ljseq) {
     ## is the seqence represented by any other variable?
     lseqvar <- if (length(vars)>0)
-      sapply(ldata[,vars,drop=FALSE],function(x) {
+      sapply(ldt[,vars,drop=FALSE],function(x) {
            if (is.factor(x)||is.character(x)) FALSE else {
              ld <- diff(x)
              sum(ld==0)<0.1*length(x) && (all(ld<=0) | all(ld>=0)) }
@@ -4551,7 +4559,7 @@ plresx <-
     ljseq <- !any(lseqvar)
     if (any(lseqvar)) warning(paste(":plresx: sequence represented by",
                                     paste(vars[lseqvar],collapse=", ")))
-    ldata$.sequence. <- 1:nrow(ldata)
+    ldt$.sequence. <- 1:nrow(ldt)
     vars <- c(".sequence.",vars)
     dvars <- c(".sequence.",dvars)
     is.fac <- c(is.fac, .sequence.=FALSE)
@@ -4680,9 +4688,9 @@ plresx <-
 ##-   if (sum(terminmodel)>0) {
 ##-     comps <- fitcomp(x, ldt, vars=tin, xfromdata=addcomp, se=se)
 ##-     if (addcomp) {
-##-       if (length(ldata)==0&&(ln!=nrow(ldata))) # length(res)
+##-       if (length(ldt)==0&&(ln!=nrow(ldt))) # length(res)
 ##-         stop("plresx: BUG: number of residuals != nrow(comps)")
-##-       xcomp <- ldata[,tin]
+##-       xcomp <- ldt[,tin]
 ##-       lcmp <- comps$comp
 ##-     } else {
 ##-       xcomp <- comps$x
@@ -4690,7 +4698,7 @@ plresx <-
 ##-     }
 ##-   }
 ##-   environment(x$call$formula) <- environment()
-##-   x$call$data <- as.name("ldata")
+##-   x$call$data <- as.name("ldt")
 
 ## reflines: fitcomp!
   if (any(terminmodel) && reflines &&lnnls) {
@@ -4704,7 +4712,7 @@ plresx <-
       lcompy <- if (addcomp) lcmp$comp else -lcmp$comp
       lcompse <- lcmp$se
       if (addcomp) {
-##-         if (length(ldata)==0&&(ln!=nrow(ldata))) # length(res)
+##-         if (length(ldt)==0&&(ln!=nrow(ldt))) # length(res)
 ##-           stop("!plresx! BUG: number of residuals != nrow(comps)")
         lcompdt <-
           fitcomp(x, ldata, vars=vars[terminmodel], xfromdata=TRUE)$comp
@@ -4808,7 +4816,7 @@ plresx <-
         if (se) lrefyw <- qnt*lcompse[,lv]
         ## !!! comp + lsimres
       }
-      i.plotlws(as.numeric(ldata[, lv]), rr, xlab = xlabs[lv], ylab = ylabs[lv],
+      i.plotlws(as.numeric(ldt[, lv]), rr, xlab = xlabs[lv], ylab = ylabs[lv],
         "", outer.margin, cex.title,
         colors, lty, lwd, lpch, col, lpty, llab, cex.lab, ltxt,
         lIwsymb, lIwgt, lweights, liwgt, lsyinches,
@@ -4843,6 +4851,9 @@ smoothMM <-
 {
   ## Purpose:   smooth for multiple x and y
   ##   smoothM  would be enough if only univariate regression was considered
+  oldopt <- options(warn=-1)
+  on.exit(options(oldopt))
+  
   if (is.null(dim(x))) dim(x) <- c(length(x),1)
   if (is.null(dim(y))) dim(y) <- c(length(y),1)
   if (!(ly2null <- is.null(y2))) {
@@ -5912,19 +5923,66 @@ function(data,n = NULL, ncol=NULL, drop=is.matrix(data))
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## ==============================================================
-factorNA <- function(x, na.label=".NA.", ...)
+createNAvars <-
+  function(data, vars=NULL, na.prop=0.1, na.label=".NA.",
+           na.values=NULL, name.suffix=c(".X",".NA"), append=TRUE, ...)
 {
-  lfac <- factor(x, ...)
-  lnalabel <- as.character(na.label)
-  lna <- is.na(lfac)
-  if (any(lna)) {
-    levels(lfac) <- c(levels(lfac), lnalabel)
-    lfac[lna] <- lnalabel
+  if (is.matrix(data)) data <- as.data.frame(data)
+  if (!(is.data.frame(data)))
+    stop("!createNAvars! unsuitable first argument")
+  ldt <- if (length(vars)) {
+           if (length(lwr <- setdiff(vars, colnames(data))))
+             stop("!createNAvars! Variables  ",paste(lwr, collapse=", "),
+                  "  not in 'data'.")
+           data[,vars]} else data
+  if ((!is.numeric(na.prop))||na.prop>=1)
+    stop("!createNAvars! unsuitable argument 'na.prop'")
+  lvna <- sumna(data) > max(na.prop,0) * nrow(data)
+  ldclass <- sapply(data, is.numeric) + 2*sapply(data, is.factor)
+  if (any(lwr <- ldclass==0))
+    stop("!createNAvars! Funny variables  ", paste(lwr, collapse=", "))
+  if (any(lnum <- lvna & ldclass==1)) 
+    rrx <- xNA(ldt[,lnum, drop=FALSE], na.values=na.values,
+              name.suffix=name.suffix)
+  if (any(lfac <- lvna & ldclass==2)) {
+    rrf <- factorNA(ldt[,lfac, drop=FALSE],na.label=na.label,
+                ...)
   }
-  lfac
+  if (!any(c(lnum,lfac))) {
+    warning(":createNAvars: no variables had enough NAs to be modified")
+    return( if(append) data else NULL )
+  }
+  if (append) { if (any(lfac)) data[names(rrf)] <- rrf
+    if (any(lnum)) data.frame(data, rrx) else data
+  }
+  else data.frame(rrf,rrx)
 }
-## ==============================================================
-xNA <- function(data, na.values=NULL, name.suffix=c(".X",".NA")) {
+## --------------------------------------------------------------------  
+factorNA <- function(data, na.label=".NA.", na.prop=0, ...)
+{
+  if (missing(data)||length(data)==0)
+    stop("!xNA! Argument 'data' missing, with no default, or NULL")
+  data <- data.frame(data)
+##  if (!is.data.frame(data)) stop("!xNA! Argument 'data' ...")
+  lnalabel <- as.character(na.label)
+  lvn <- names(data)[sapply(data,is.factor)] 
+  ldt <- data[,lvn, drop=FALSE]
+  lnanum <- na.prop*nrow(data)
+  for (lv in seq_along(lvn)) {
+    lfac <- factor(data[,lvn[lv]], ...)
+    lna <- is.na(lfac)
+    if (sum(lna)>lnanum) {
+      levels(lfac) <- c(levels(lfac), lnalabel)
+      lfac[lna] <- lnalabel
+      ldt[,lv] <- lfac
+    }
+  }
+  structure(ldt, NA.label = na.label)
+}
+## -------------------------------------------------------------------
+xNA <-
+  function(data, na.values=NULL, na.prop=0.1, name.suffix=c(".X",".NA"))
+{
   if (missing(data)||length(data)==0)
     stop("!xNA! Argument 'data' missing, with no default, or NULL")
   data <- data.frame(data)
@@ -5943,11 +6001,13 @@ xNA <- function(data, na.values=NULL, name.suffix=c(".X",".NA")) {
   for (lv in seq_along(lvn)) {
     lna <- is.na(data[,lv])
     if (any(lna)) {
-      ldt[,lvnx[lv]] <- ifelse(lna, na.values[lv], data[,lv])
+      ldt[,lvnx[lv]] <-
+        structure(ifelse(lna, na.values[lv], data[,lv]), na.value=na.values[lv])
       ldt[,lvnna[lv]] <- lna
     } else ldt[,lvn[lv]] <- data[,lv]
   }
-  structure(ldt[,-1, drop=FALSE], xNA.values = na.values)
+  ##structure(ldt[,-1, drop=FALSE], xNA.values = na.values)
+  ldt[, -1, drop=FALSE]
 }
 ## ==============================================================
 nainf.exclude <- function (object, ...)
@@ -6270,6 +6330,7 @@ IR <- function(condition) {
 
 u.nuna <- function(x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
 
+regrModelClasses <- c("regr","lm","glm","survreg","coxph","rq","polr")
 ## ===========================================================================
 if (length(getUserOption("colors"))==0)
   userOptions(colors = c("black","firebrick3","deepskyblue3","springgreen3",

@@ -66,7 +66,8 @@ lasso.formula <-
 ##-   if(is.null(coef.init))  coef.init <- rep(0, ncol(l$x))
 
   ## 'subset': has been done in lassogrpModelmatrix, do not use it again below:
-  fit <- lasso.default(x = l$x, y = l$y, index = l$index,
+  fit <- if(is.null(adaptcoef))
+    lasso.default(x = l$x, y = l$y, index = l$index,
                        weights = l$w,
                        model = model, lambda = lambda,
                        adaptive = adaptive,
@@ -75,6 +76,17 @@ lasso.formula <-
                        penscale=penscale,
                        center=center, standardize=standardize,
                        save.x = save.x, control = control, ...)
+  else {
+    if (is.list(adaptcoef)&&"coefficients"%in%names(adaptcoef))
+      adaptcoef <- adaptcoef$coefficients
+    l$model <- model
+    lasso.lassogrp(l, lambda=lambda, lstep=lstep,
+                   cv = cv, cv.function = cv.function,
+                   adaptcoef = adaptcoef, adaptlambda = NULL,
+                   penscale = penscale, ## weights = NULL,
+                   center = center, standardize = standardize,
+                   save.x = save.x, control = control, ...)
+  }
   fit$terms <- l$Terms
   ## !!! Terms and x do not match index and coefs if adaptive==T
   fit$contrasts <- attr(l$x, "contrasts")
@@ -99,8 +111,8 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
   lx <- x$x
   ly <- x$y
   lindex <- x$index
-## coefficients to adapt to
   lcall <- match.call(expand.dots=TRUE)
+## coefficients to adapt to
   lcf <- adaptcoef
   if (length(lcf)==0) {
     if(length(adaptlambda) > 1)
@@ -115,14 +127,16 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
     lil <- which(abs(adaptlambda-x$lambda) <= 0.01*x$lambda)
     if (length(lil)==0)
       stop('lambda not suitable. not yet programmed') # call lassogrp
-    lcf <- x$coef[,lil]
+    lcf <- x$coef[,lil[1]]
   } else # length(lcf) >= 1 :
     if (length(lcf)!=ncol(lx)) stop('wrong number of coefficients in adaptcoef')
-  if (length(names(lcf))==0) {
+  if (is.matrix(lcf)) lcf <- structure(c(lcf), names=dimnames(lcf)[[1]])
+  if (is.null(names(lcf))) {
     if (length(lcf)>1)
       stop('coefficients must have names')
-    else {
+    else { ## index of coef
       lcf <- x$coefficients[,lcf]
+      if (is.null(lcf)) stop("'adaptcoef' not suitable")
       names(lcf) <- dimnames(x$coefficients)[[1]]
     }
   }
@@ -178,7 +192,8 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
     fit$formula <- update(x$formula, paste('~', paste(ltr, collapse="+")))
   }
   fit$call <- lcall
-  fit
+##  fit
+  structure(fit, class = "lassogrp")
 }
 
 ## =========================================================
@@ -287,10 +302,11 @@ lassoGrpFit <-
   if(!model@check(y)) stop("y has wrong format")
 
   ## Check the other arguments
-  if(length(weights) != nobs)
+  if(length(weights)==0) weights <- rep(1,nobs) else
+  if(length(weights)!=nobs)
     stop("length(weights) not equal length(y)")
   if(any(weights < 0))
-    stop("Negative weights not allowed")
+    stop("negative weights not allowed")
 
   if(length(offset) != nobs)
     stop("length(offset) not equal length(y)")
@@ -384,14 +400,14 @@ lassoGrpFit <-
 
   ## keep original x if wanted
   x.old <- if(save.x) x else NULL
-  
+
   ## Which are the non-penalized parameters?
   any.notpen    <- any(in0, na.rm=TRUE)
   inotpen.which <- which(in0)
   nrnotpen      <- length(inotpen.which)
   interc.which  <-
-    if(all(x[,1] == 1)) { 1L ## = 99% of cases
-    } else which(apply(x==1, 2, all))
+    if(all(x[,1] == 1)) 1L ## = 99% of cases
+    else which(apply(x==1, 2, all))
   has.interc <- length(interc.which) > 0
   notpenintonly <- nrnotpen==1 && has.interc
   if (is.na(center) || is.null(center)) center <- has.interc
@@ -613,7 +629,7 @@ lassoGrpFit <-
             coef.test[ind] <- coef[ind] + scale * d
 
             Xjd <- Xj * d
-            eta.test     <- c(eta) + Xjd * scale  ## !!! WSt was  eta +
+            eta.test     <- eta + Xjd * scale
 
             if(line.search){
               qh    <- sum(ngrad * d)
@@ -682,8 +698,7 @@ lassoGrpFit <-
           else nH.pen[j]
 
         cond       <- -ngrad + nH * coef.ind
-        cond.norm2 <- crossprod(cond)[,] ## !!! WSt. can possibly be
-        ## replaced by either c(crossprod(cond)) 
+        cond.norm2 <- crossprod(cond)
 
         ## Check the condition whether the minimum is at the non-differentiable
         ## position (-coef.ind) via the condition on the subgradient.
@@ -1028,8 +1043,10 @@ fitted.lassogrp <- function(object, ...)
 ## =========================================================
 plot.lassogrp <-
   function(x, type = c("norms","coefficients","criteria"),
-           col = NULL, lty=NULL, mar=NULL, main=NULL, cv=NULL, se=TRUE,
-           ylim = NULL, legend = TRUE, ...)
+           cv = NULL, se = TRUE,
+           col = NULL, lty=NULL, lwd = 1.5, mar = NULL, axes = TRUE, 
+           ylim = NULL,
+           legend = TRUE, main = NULL, xlab = "Lambda", ylab = NULL, ...)
 {
   ## Purpose: Plots the solution path of a "lassogrp" object. The x-axis
   ##          is the penalty parameter lambda, the y-axis can be
@@ -1052,8 +1069,6 @@ plot.lassogrp <-
   type <- match.arg(type)
 
   xlim <- rev(range(sqrt(lambda)))
-  xlb <- pretty(lambda)
-
   ind <- unique(x$index)
 
   nr.npen <- sum(x$index<=0)
@@ -1083,29 +1098,25 @@ plot.lassogrp <-
       lty <- lty[index.ord]
       yy <- coef(x)
     }
+    if (is.null(ylab)) ylab <- type
     if (is.null(ylim)) ylim <- range(yy[,lambda>0])
     matplot(sqrt(lambda), t(yy), type = "l", axes = FALSE,
-            xlab = "Lambda", ylab = type, col = col, lty=lty,
-            main = main, xlim = xlim, ylim = ylim, ...)
-    box()
-    axis(1, at=sqrt(xlb), labels=as.character(xlb))
-    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.5, xpd=TRUE)
-    la <- lambda[c(1,length(lambda))]
-    mtext(names(la),3,0.5,at=sqrt(la))
-    axis(2)
-    axis(4)
+            xlab = xlab, ylab = ylab, col = col, lty=lty,
+            main = main, xlim = xlim, ylim = ylim, lwd=lwd, ...)
+    if (axes[length(axes)]) axis(4)
 #    axis(4, mgp=c(3,2,0), at = yy[, ncol(yy)], labels = rownames(yy))
     if (legend) legend(x="topleft", legend=rownames(yy), col=col, lty=lty)
-    stamp(sure=FALSE)
 ## ----------------------------
   } else if(type=='criteria') {
 
-    if (is.null(main)) main <- "log-likelihood and penalty"
+    lmain <- if (is.null(main)) "log-likelihood and penalty" else main
     col <- if(is.null(col))  c(1,2,2,3)  else rep(col,length=4)
     lty <- if(is.null(lty))  c(1,5,6,2)  else rep(lty,length=4)
     mar <- if(is.null(mar))  c(4,4,4,4)  else rep(mar,length=4)
     l1 <- colSums(x$norms.pen)
     yy <- cbind(x$nloglik/length(x$y))
+    lylab <- if(is.null(ylab)) "-loglik/n" else ylab
+    if (is.null(cv)) cv <- x$cv
     if (!is.null(cv)) {
       if (is.logical(cv)&&cv) cv <- cv.lasso(x)
       if (!is.list(cv)) {
@@ -1113,27 +1124,37 @@ plot.lassogrp <-
       } else {
         yy <- cbind(yy, cv$mse)
         if (se) yy <- cbind(yy, cv$mse+outer(cv$mse.se,c(-1,1)))
+        if (is.null(ylab)) lylab <- paste(lylab, " || MSE (cv)")
+        if (is.null(main)) lmain <- "log-likelihood, MSE (cv), and penalty"
       }
     }
     matplot(sqrt(lambda), yy, type = "l", axes=FALSE,
-            xlab = "Lambda", ylab = "-loglik",
+            xlab = xlab, ylab = lylab,
             col = col[c(1,2,3,3)], lty=lty[c(1,2,3,3)],
-            main = main, xlim = xlim, mar=mar, ...)
-    box()
-    axis(1, at=sqrt(xlb), labels=as.character(xlb))
-    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.3, xpd=TRUE)
-#    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.2)
-    lll <- length(lambda)
-    if (lll>8)
-      axis(3, at=sqrt(lambda[seq(5,lll,5)]), labels=rep('',lll%/%5),
-           lwd=2, tcl=-0.3)
-    axis(2)
+            main = lmain, xlim = xlim, mar=mar, lwd=lwd, ...)
     par(usr=c(par('usr')[1:2], 0,1.05*max(l1)))
-    lines(sqrt(lambda), l1, col=col[4], lty=lty[4])
-    axis(4, col=col[4])
-    mtext('L1 penalty',4,1.8)
-    stamp(sure=FALSE)
+    lines(sqrt(lambda), l1, col=col[4], lty=lty[4], lwd=lwd)
+    if (axes[length(axes)]) {
+      axis(4, col=col[4])
+      mtext("l1 norm",4,1.8)
+    }
   } else warning(':plot.lassogrp: invalid argument "type". No plot')
+  if (axes) {
+    box()
+    axis(2)
+    xlb <- pretty(lambda)
+    axis(1, at=sqrt(xlb), labels=format(xlb))
+    axis(3, at=sqrt(lambda), labels=rep('',length(lambda)), tcl=0.5,
+         mgp=c(1,0.5,0), xpd=TRUE)
+    ilam <- c(1,length(lambda))
+    if(ilam[2]>8)
+      ilam <- c(seq(1,length(lambda)-3,by=5),length(lambda))
+    la <- lambda[ilam]
+    axis(3, at=sqrt(la), labels=rep("",length(la)), tcl=-0.3, xpd=TRUE)
+    mtext(names(la),3,0.3,at=sqrt(la))
+  }
+  stamp(sure=FALSE)
+  invisible(yy)
 }
 
 ## =========================================================
@@ -1146,7 +1167,7 @@ extract.lassogrp <-
   ## does not make sense yet for more than one i
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 21 Aug 2009, 08:55
-  lform <- object$formula
+  lform <- formula(object)
   lcall <- object$call
   if (is.null(lform)) lform <- lcall$x
   if (is.null(lform))
@@ -1167,6 +1188,7 @@ extract.lassogrp <-
   if (is.null(ldata)) ldata <- eval(object$call$data)
   if (is.null(ldata)) ldata <- eval(eval(object$call$x)$call$data)
   if (is.null(ldata)) stop("no 'data' found")
+##  environment(lform) <- ldata
   ni <- length(i)
   if (ni!=1) {
     warning('extract.lassogrp() not programmed for extracting more than 1 model')
@@ -1174,7 +1196,9 @@ extract.lassogrp <-
   }
   lpen <- object$norms.pen[,i]
   ltrms <- names(lpen[lpen>0])
-  lform <- update(eval(lform), paste('~',paste(ltrms, collapse=' + ')))
+  lform <- update(eval(lform),
+                  if (is.null(lcall$nonpen)) ~1 else lcall$nonpen )
+  lform <- update(lform, paste('~.+',paste(ltrms, collapse=' + ')) )
   result <- NULL
   lmod <- object$model
   if (!is.null(lmod)) {
@@ -1223,8 +1247,10 @@ extract.lassogrp <-
     lr$stres <- lr$testcoef <- lr$adj.r.squared <- lr$fstatistic <-
       lr$covariance <- lr$correlation <- NULL
     lr$fitfun <- fitfun
-    lallcoef <- try(dummy.coef(lr), silent=TRUE)
-    if (is.list(lallcoef)) lr$allcoef <- lallcoef
+    lr$faceff <- ## lfaceff <- if (exists("factoreffects"))
+      factoreffects(lr) ## else    try(dummy.coef(lr), silent=TRUE)
+    ## if (is.list(lfaceff)) lr$faceff <- lfaceff
+    lr$fit.unpen <- lreg
 
     result <- c(result,lr)
   }
@@ -1260,18 +1286,17 @@ print.lassofit <-
 }
 
 ## Needed, e.g., for  update(., )  to work:
-##- formula.lassogrp <- ## copy of  stats:::formula.glm
-##- function (x, ...) 
-##- {
-##-     form <- x$formula
-##-     if (!is.null(form)) {
-##-         form <- formula(x$terms)
-##-         environment(form) <- environment(x$formula)
-##-         form
-##-     }
-##-     else formula(x$terms)
-##- }
-
+formula.lassogrp <- ## identical to stats:::formula.glm
+function (x, ...) 
+{
+    form <- x$formula
+    if (!is.null(form)) {
+        form <- formula(x$terms)
+        environment(form) <- environment(x$formula)
+        form
+    }
+    else formula(x$terms)
+}
 ## ===================================================================
 cv.lasso <-
   function (object, blocks = 10,
@@ -1298,6 +1323,7 @@ cv.lasso <-
   } else {
     blocklist <- split(sample(1:n), blocks)
   }
+  ## fetch x
   lj <- match(names(object$index), colnames(x))
   if (any(is.na(lj)))
     stop (if(length(x)==0) "!cv.lasso! no x component" else
@@ -1327,6 +1353,7 @@ cv.lasso <-
       fit$terms <- NULL
     }
     pred <- rbind(predict(fit, xnew))
+       ## out of sample predictions for all lambda values
     blockmse[i,] <-
       if (blocksinmodel) {
         pred <- sweep(pred, 2, colMeans(pred) - mean(y[omit]))
@@ -1347,7 +1374,7 @@ cv.lasso <-
   if (is.null(plot.it)) plot.it <- identical(parent.frame(), globalenv())
   if (plot.it)   plot.lassogrp(object, type='crit', cv = result, se = se)
   ##
-  invisible(result)
+  invisible(structure(result, class="lassoCV"))
 }
 ## ===================================================================
 lassogrpModelmatrix <-

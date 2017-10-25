@@ -9,8 +9,9 @@
 }
 \usage{
 \method{plot}{lassogrp}(x, type = c("norms", "coefficients", "criteria"),
-    col = NULL, lty = NULL, mar = NULL, main = NULL,
-    cv = NULL, se = TRUE, ylim = NULL, legend = TRUE, ...)
+    cv = NULL, se = TRUE, col = NULL, lty = NULL, lwd=1.5,
+    mar = NULL, axes=TRUE, ylim = NULL, legend = TRUE, main = NULL,
+    xlab = "Lambda", ylab = NULL, ...)
 }
 \arguments{
   \item{x}{object of class 'lassogrp' containing the results of fitting
@@ -27,7 +28,12 @@
 	term}
     }
   }
-  \item{col, lty}{colors and line types for the curves.
+  \item{cv}{results of cross validation (see \code{\link{cv.lasso}}) to
+    be plotted, or logical: if true, \code{cv.lasso} will be called and
+    cross validation results will be plotted.}
+  \item{se}{logical: Should the cross validation standard error band
+    be plotted?}
+  \item{col, lty, lwd}{colors and line types and widths for the curves.
     If \code{type} is \code{"criteria"}, they are used as follows
     \describe{
       \item{[1]}{for the log-likelihood,}
@@ -38,21 +44,17 @@
     }
   }
   \item{mar}{plot margins}
-  \item{main}{main title of the plot}
-  \item{cv}{results of cross validation (see \code{\link{cv.lasso}}) to
-    be plotted, or logical: if true, \code{cv.lasso} will be called and
-    cross validation results will be plotted.}
-  \item{se}{logical: Should the cross validation standard error band
-    be plotted?}
+  \item{axes}{plot axes?}
   \item{ylim}{limits of the vertical plotting axis.
     Defaults to the range of the values to be plotted except for the
     values for lambda==0 (if these are contained in \code{x})}
   \item{legend}{logical: should a legend be displayed?}
+  \item{main, xlab, ylab}{main title and axis labels of the plot}
   \item{\dots}{further arguments passed to \code{matplot}}
 }
 \value{none}
 \author{Werner A. Stahel, ETH Zurich, \email{stahel@stat.math.ethz.ch}}
-\note{For model other than ordinary regression, the cross validation
+\note{For models other than ordinary regression, the cross validation
   results are not yet treated in a sensible way.
 }
 \examples{

@@ -1,6 +1,6 @@
 library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
 ## source('../R/regr.R')
-## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0_1.0-5.tar.gz")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
@@ -157,10 +157,10 @@ mframe(2,2)
 plresx(r.babysurv,vars=~Age+Apgar1+Apgar5+pH,data=d.babysurv,
        weights=FALSE,cex.lab=0.2)
 
-plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=TRUE)
+plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=TRUE, addcomp=TRUE)
 
-data(d.babysurv.w)
-t.d <- d.babysurv.w
+data(d.babysurvSum)
+t.d <- d.babysurvSum
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 plot(t.r,cex=1.2)

@@ -1,17 +1,20 @@
   importFrom("graphics", "plot", "axis", "box", "lines", "matplot", "mtext",
              "par")
   importFrom("stats", ".checkMFClasses", ".getXlevels", "aggregate",
-             "as.formula", "coef", "delete.response", "dummy.coef",
+             "as.formula", "coef", "delete.response", "dummy.coef", "formula",
              "fitted", "model.frame", "model.matrix", "model.offset",
              "model.response", "model.weights", "na.omit", "na.pass",
-             "napredict", "nlminb", "predict", "terms", "update", "var")
+             "napredict", "nlminb", "predict", "terms", "update", "var",
+             "df.residual", "pt", "qt", "setNames", "vcov")
+  importFrom("methods", "new", "validObject")
 
 export(
 "[.lassogrp",         
-cv.lasso,           
-descr,              
+cv.lasso,
+descr,
 "descr<-",            
-extract.lassogrp,   
+extract.lassogrp,
+factoreffects, print.faceff, 
 fitted.lassogrp,    
 formula.lassogrp,   
 get.blocks,         
