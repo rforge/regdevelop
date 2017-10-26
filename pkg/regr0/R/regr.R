@@ -214,16 +214,20 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
       old.opt <- options(contrasts=c(contrasts,getOption("contrasts")[2])[1:2])
       lcl$contrasts <- NULL
     }
-    if (ncol(lallvars)>1) 
-    if (any(lcw <- contrasts==c("contr.wsum","contr.wpoly")))
+    lcw <- contrasts==c("contr.wsum","contr.wpoly")
+    if (ncol(lallvars)>1) {
+      if (any(lcw))
+        lyna <- if (length(dim(lyy)))
+                  c(0,NA)[1+apply(is.na(as.matrix(lyy)),1,any)] else lyy 
       for (lj in 2:ncol(lallvars)) { ## no contrasts for y {
         if(lcw[1]&&class(lallvars[,lj])[1]=="factor")
           attr(lallvars[,lj],"contrasts") <-
-            contr.wsum(lallvars[,lj], y=lyy)
+            contr.wsum(lallvars[,lj], y=lyna)
         if(lcw[2]&&class(lallvars[,lj])[1]=="ordered")
           attr(lallvars[,lj],"contrasts") <-
-            contr.wpoly(lallvars[,lj], scores=NULL, y=lyy)
+            contr.wpoly(lallvars[,lj], scores=NULL, y=lyna)
       }
+    }
 ##    if (contrasts[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, y=lyy)
   }
   lcl$data <- ## as.name("lallvars") ## environment(formula)
@@ -979,8 +983,9 @@ contr.wsumpoly <-
   if (is.factor(n)) { ## ... a factor
     if (length(y)) {
       if (length(y)!=length(n)) {
-        warning(":contrasts.wsum: unequal lengths of arguments",
-                 "I ignore argument 'y'")
+        warning(":contrasts.wsum: unequal lengths of arguments. ",
+                "I ignore argument 'y'")
+        ## y only used to eliminate NAs in target variable
         } else  n <- n[apply(is.finite(cbind(y)), 1, all)]
     }
     w <- c(table(n))

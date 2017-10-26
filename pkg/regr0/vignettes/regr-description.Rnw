@@ -46,7 +46,7 @@ It is available from \T{R-forge} and is still in development.
 
 <<preliminary, echo=F>>=
 ## library(regr0)
-library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+library(regr0) ##, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 mframe()
 userOptions(project="regr0 documentation")
 
