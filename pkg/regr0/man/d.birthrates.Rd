@@ -63,6 +63,12 @@ Population and Development Review, vol. 6, no. 3.
 }
 \examples{
 data(d.birthrates)
-## maybe str(d.birthrates) ; plot(d.birthrates) ...
+plot(fertility ~ eAgric, data=d.birthrates)
+r.lm <- lm(fertility ~ catholic + single24 + single49 +
+  eAgric + eIndustry + eCommerce + eTransport + eAdmin +
+  german + french + italian + romansh + gradeHigh + gradeLow +
+  educHigh + bornLocal + bornForeign + sexratio, data=d.birthrates)
+r.st <- step(r.lm, k=4, trace=FALSE)
+summary(r.st)
 }
 \keyword{datasets}

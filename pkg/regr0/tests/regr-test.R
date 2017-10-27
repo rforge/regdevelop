@@ -159,8 +159,8 @@ plresx(r.babysurv,vars=~Age+Apgar1+Apgar5+pH,data=d.babysurv,
 
 plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=TRUE, addcomp=TRUE)
 
-data(d.babysurvSum)
-t.d <- d.babysurvSum
+data(d.babysurvGr)
+t.d <- d.babysurvGr
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 plot(t.r,cex=1.2)

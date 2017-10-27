@@ -48,11 +48,24 @@ Make NAs available for regression
 }
 }
 \value{
-  data.frame, containing, for each numeric variable \code{Vx}, a variable
-  \code{Vx.X} and a variable \code{Vx.NA} (if the default
-  \code{name.suffix} is used).
-  Variables that do not contain any
-  NAs will be tranferred as they are to the result. !!!
+  data.frame, containing,
+  \itemize{
+    \item{
+      for each numeric variable \code{Vx}, a variable
+      \code{Vx.X} and a variable \code{Vx.NA} (if the default
+      \code{name.suffix} is used),
+    }
+    \item{
+      for each factor, the factor consisting of the original values,
+      but with NAs replaced by a level '.NA.' (unless specified
+      otherwise).
+    }
+  }
+  If \code{append} is true, the data.frame will be the same as the
+  input \code{data}, except that factors containing NAs will have been
+  modified and the variables created for numeric variables containing
+  NAs will be appended. Note that no variables will be appended
+  for those that did not contain any NAs.
 }
 \author{
 Werner A. Stahel

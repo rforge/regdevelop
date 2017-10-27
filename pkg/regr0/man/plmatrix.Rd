@@ -38,7 +38,8 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
     panels, see Details.
     Defaults essentially to \code{\link{points}} or \code{\link{text}}
     depending on the argument \code{pch},
-    or to \code{\link{plmboxes}} if  x  is a factor and  y  is not.
+    to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not,
+    or to a modification of \code{sunflowers} if both are factors.
   }
   \item{nrows}{number of rows of panels on a page}
   \item{ncols}{number of columns of panels on a page}
@@ -87,7 +88,8 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
     The default is 'getOption('ask'), followed by TRUE for certain
     graphical devices.}
   \item{\dots}{further arguments passed to the \code{panel} function
-    and possibly further to functions called by the panel function}
+    and possibly further to functions called by the panel function\cr}
+
   Arguments for \code{panelDefault}
   \item{xx}{values of the horizontal variable}
   \item{yy}{values of the vertical variable}
