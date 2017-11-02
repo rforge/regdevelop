@@ -17,8 +17,8 @@ regrAllEqnsXtr(object, nbest=1, criterion="cp")
   printcriteria = FALSE, printcodes = TRUE, ...) 
 \method{plot}{regrAllEqns}(x, criterion = "cp", critrange = 10,
   minnumber = 10, nbest=10, codes = x$codes, ncharhorizontal = 6,
-  col="blue", legend = TRUE, mar=6, main="", cex=0.7*par("cex"),
-  cex.lab=1.2*par("cex.lab"), ...) 
+  col="blue", legend = TRUE, mar = 6, main = "", cex = 0.7*par("cex"),
+  cex.lab = par("cex.lab"), ...) 
 }
 
 \arguments{

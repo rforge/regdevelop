@@ -21,7 +21,7 @@ plmatrix(x, y = NULL, data = NULL, panel = panelDefault,
   vnames = NULL, main = "", xlab = NULL, ylab = NULL,
   cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, mar = rep(0.2, 4), keeppar = FALSE,
-  axes = TRUE, ask=NULL, ...)
+  axes = TRUE, ask=par("ask"), ...)
 
 panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
   size=NULL, ...)
@@ -96,8 +96,8 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
   \item{indx}{index of the variable shown horizontally, among the
     \code{y} variables}
   \item{indy}{index of the variable shown horizontally, among the
-    \code{y} variables}
-  \item{pch, col}{plotting character and color, as usual}
+    \code{y} variables}\cr
+  \code{pch, col}{plotting character and color, as usual}
   \item{size}{size of sunflowers for plotting two factors}
 }
 \details{

@@ -125,6 +125,8 @@ data(d.surveyenvir)
 ## require(MASS)  ## should not be needed
 r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir,
                  contrasts="contr.treatment")
+plot(r.survey, plotselect=c(ta=3, default=0), xplot=F, mf=c(1,1),
+     ask=FALSE)
 
 ##- with( r.survey,
 ##-      stopifnot(
