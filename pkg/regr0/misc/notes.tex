@@ -113,21 +113,25 @@ Conditional: show segments ony if conditional probability in range given by
 \section{Smooths}
 Functions:
 
+\Itm
 \code{smoothMM} calls \code{smoothM} calls \code{smooth}, 
-which is \code{smoothRegr} by default.
-\code{smoothMM} is called from \code{i.plotlws} or, in the case of
+which is \code{smoothRegr} by default.\\
+%\code{smoothMM}: 
+Smooths for multiple x and y, needed for multivariate regression.
+Yields a list of lists.\\
+%\code{smoothMM} is 
+Called from \code{i.plotlws} or, in the case of
 resdiduals from smooth (for qq and TAscale), by \code{plot.regr}.
-\Itm
-\code{smoothRegr} is essentially \code{loess}, with suitable parameter and
-error handling. Returns NULL if less than 8 observations are provided
-\Itm
-\code{smoothMM}: smooth for multiple x and y, needed for multivariate
-regression.
-Yields a list of lists
 \Itm
 \code{smoothM}: smooth for multiple y, generating smooths by group. 
 Yields a list.
+\Itm
+\code{smoothRegr} is essentially \code{loess}, with suitable parameter and
+error handling. Returns NULL if less than 8 observations are provided
 
+\code{smooth.group}: do separate smooths for each group\\
+Simulated smooths clutter the plot in this case, therefore, the default
+\code{smooth.sim} is then set to 0.
 
 %% =================================================================
 \section{Documentation of Output}

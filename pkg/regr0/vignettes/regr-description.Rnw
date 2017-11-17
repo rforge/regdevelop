@@ -399,6 +399,18 @@ Thus, $\mbox{AIC}_2\sups{3.84}-\mbox{AIC}_1\sups{3.84}<0$,
 if and only if $2(L_1-L_2)<3.84$, i.e., the test is non-significant, 
 and the regressor will be dropped.)
 
+\Tit{Missing values.}
+The \T{regr} methods for \T{drop1} and \T{step} behave more flexibly than
+in basic \T{R} when there are missing values: \\
+\T{drop1} drop the rows in 
+\T{data} that contain a missing value for the regressors in the current
+model and proceed, rather than complaining about a variable number of
+missing observations.\\
+\T{add1} drops the rows with any missings in the variable used by the
+\T{scope} before calculations.\\
+\T{step} uses these two functions for the two directions.
+This may lead to unexpected AIC differences in different models.
+
 %\pagebreak
 \Vneed{50mm}
 \section{Residual Analysis}

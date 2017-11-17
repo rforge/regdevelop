@@ -16,7 +16,7 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = 2, smooth.par=NA, smooth.iter=NULL,
-            smooth.sim=19, nxsmooth=51, smooth.group=NULL,
+            smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
             smooth.col=NULL, smooth.pale = 0.2, smooth.legend=TRUE, 
             multnrows = 0, multncols = 0, 
             lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
@@ -83,10 +83,12 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
     \code{smooth.iter} being the maximal number of iterations.
     Defaults to 0 if the family is \code{binomial} or
     \code{multinomail}, to 50 otherwise.}
-  \item{smooth.sim}{number of simulated smooth lines to be drawn}
-  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{smooth.group}{grouping factor. If given, smooth will be drawn
     for each group rather than for the whole dataset.}
+  \item{smooth.sim}{number of simulated smooth lines to be drawn.
+    If NULL (the default) 19 simulated smooths will be generated if
+    possible and sensible (i.e., none if \code{smooth.group} is set).}
+  \item{nxsmooth}{number of x values for which the smooth is calculated}
   \item{smooth.col}{colors to be used for the different groups}
   \item{smooth.pale}{argument to \code{\link{colorpale}} for attenuating
     the color of simulated smooths with respect to 'original' smooths}

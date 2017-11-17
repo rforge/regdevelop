@@ -27,7 +27,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   lcall$formula <- lformula
   ## d. --- data
   dataname <- deparse(substitute(data))
-  ldt <- eval(data)
+  ldt <- eval(data) ## as.name(substitute(data)), envir=sys.frame(-2)
   ldata <- as.data.frame(ldt)
   lnobs <- if (is.null(ldt)) NA else nrow(ldata)
 ##  if (lnobs==0) stop("!regr! no observations in data")
@@ -249,6 +249,10 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (length(old.opt)) options(old.opt)
   lreg$na.action <- attr(ldata, "na.action")
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
+  if (length(lreg$AIC)==0) {
+    laic <- try(extractAIC(lreg), silent=TRUE)
+    if (class(laic)!="try.error") lreg$AIC <- laic
+  }
   lreg$response <- lyy
 ##-   lyyy <- as.matrix(lyy) # lyy is a model.frame
 ##-   if (ncol(lyyy)>1) colnames(lyyy) <- colnames(lyy[[1]])
@@ -596,9 +600,11 @@ i.multinomial <- function(formula, data, family, fname,
                   "I return the multinom object"))
     class(lreg) <- c("orig",class(lreg))
     return(lreg)
-  } else {
-  ldr1 <- ldr1[-1,]}
-  names(ldr1) <- c("df", "AIC", "Chisq","p.value") #if(calcdisp) "F" else
+  } else { ##xxx
+    ldr1 <- ldr1[-1,]}
+  ## signif :
+  ldr1 <- cbind( ldr1[,1:3], sqrt(ldr1[,3]/qchisq(0.95,ldr1[,1])), ldr1[,4] )
+  names(ldr1) <- c("df", "AIC", "Chisq", "signif", "p.value") 
   lreg$termtable <- lreg$drop1 <- ldr1
   if (length(lnaact)) attr(lreg$na.action,"class") <- lnaact
 ## result of i.multinomial
@@ -1210,7 +1216,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
       cat(".  Shape parameter (`scale`): ",
           if ((!is.null(attr(x$scale,"fixed")))&&
               attr(x$scale,"fixed"))
-             "fixed at ", format(x$scale))
+            "fixed at ", format(x$scale))
     cat("\nAIC: ", format(x$AIC, digits = max(4, digits + 1)), "\n", sep = "  ")
     if (niterations&&length(x$iter)>0)
       cat("Number of iterations:", x$iter, "\n")
@@ -1235,7 +1241,7 @@ print.regr <- function (x, call=TRUE, correlation = FALSE,
           mt <- x$allcoef[mterms[imt]]
           if (length(mt)>0) {
             cat("\nEffects of factor levels:\n")
-            print.allcoef(mt, digits=digits,
+            print.allcoef(mt, digits=digits, na.print=na.print,
                           columns=getUserOption("allcoefcolumns")) }
         } ## else  cat("\n")
       }}
@@ -1399,8 +1405,11 @@ print.allcoef <- function(x, columns=NULL, ## userOptions("allcoefcolumns"),
     if (is.null(dim(xi))) next
     if (csymb)
       xi$coefsymb <-
-        if ("p.symb"%in%names(xi))
-          paste(format(xi[,1],...), format(xi[,"p.symb"])) else  xi[,1]
+        if ("p.symb"%in%names(xi)) {
+          lps <- as.character(xi[,"p.symb"])
+##          lps[is.na(lps)] <- na.print  ## would be misleading!
+          paste(format(xi[,1],...), lps)
+        } else  xi[,1]
     xif <- format(xi[,intersect(columns,names(xi)), drop=FALSE],...)
     xif <- if (ncol(xif)==1 || (nrow(xif)>1 & transpose)) t(xif) else xif
     if (nrow(xif)==1) row.names(xif) <- " "  ## drop row name
@@ -1408,8 +1417,7 @@ print.allcoef <- function(x, columns=NULL, ## userOptions("allcoefcolumns"),
     if (prod(dim(xif))==1) xif <- as.character(xif[1,1])
     x[li] <- list(xif)
   }
-  class(x) <- NULL
-  print.default(x, quote=FALSE, ...)
+  print(unclass(x), quote=FALSE, ...)
 }
 ## -------------------------------------------------------------------------
 vcov.regr <- function(object, ...) {
@@ -1500,9 +1508,9 @@ drop1.regr <-
   dr1 <- if (add) { ## ------------ add
     if (class(object)[1]=="lmrob")
         stop("!add1.regr! 'add1' not (yet) available for 'lmrob' objects")
-    ldata <- eval(object$call$data)
+    ldata <- eval(object$call$data, envir=environment(formula(object)) )
     li <- row.names(ldata)%in%RNAMES(object$residuals)
-    if (is.null(ldata[li,])) stop("!drop1.regr! no data found ")
+    if (length(ldata[li,])==0) stop("!drop1.regr! no data found ")
     lvars <-unique(c(all.vars(formula(object)),
                      if (is.formula(scope)) all.vars(scope) else scope))
     lvars <- lvars[lvars%in%names(ldata)]
@@ -1514,13 +1522,14 @@ drop1.regr <-
     if (lnobs!= lnrd) {
       warning(":add1.regr: refitting object to ",lnobs," / ",lnrd,
               " observations due to missing values")
-      if(!is.null(lsubs <- eval(lfc$subset))) {
+      if(!is.null(lsubs <-
+                    eval(lfc$subset, envir=environment(formula(object))))) {
         lnsubs <- rep(FALSE,length(linotna))
         lnsubs[lsubs] <- TRUE
         linotna <- linotna &!lnsubs
       }
       lfc$subset <- linotna
-      object <- eval(lfc)
+      object <- eval(lfc, envir=environment(formula(object)))
 ##-       object$call[[1]] <-
 ##-         if (is.null(lfc)) as.name(class(object)[1]) else
 ##-            lfc[[1]]
@@ -1530,7 +1539,7 @@ drop1.regr <-
     }
     if (!all(linotna)) { ## needed if NA's have been generated by transformations
       lfc$subset <- linotna
-      object <- eval(lfc)
+      object <- eval(lfc, envir=environment(formula(object)))
     }
     add1(object, scope=scope, scale=scale, test=test, k=k, ...)
   } else {  ## ---------------------  drop
@@ -3306,7 +3315,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = 2, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
-         smooth.sim=19, nxsmooth=51, 
+         smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
          colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -3462,8 +3471,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   lstres <- if (lcondq) NULL else x$stres
   if (length(lstres)==0) {
     lstres <- if (lcondq) {
-    ##  if (length(lhat)==0||anyNA(lhat))
-        cbind(lres[,1:4]/lsigma, lres[,5:6]) ## else lres
+      if (u.true(lsigma)) cbind(lres[,1:4]/lsigma, lres[,5:6]) else lres
     } else { 
       if (length(lhat)!=0&&!anyNA(lhat))
         lres/outer(sqrt(1-pmin(hatlim[1],lhat)),lsigma)
@@ -3518,7 +3526,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (is.na(lplsel["tascale"])) lplsel["tascale"] <- 3*(!lfcount)
   if (is.na(lplsel["qq"])) lplsel["qq"] <- 3*lfgauss # how about gamma? !!!
   lseq <- NA
-## ----------
+  ## ----------
+  ldata <- if (length(data)==0) x$allvars else data
   ## smooth
   if (is.null(smooth.iter)||is.na(smooth.iter)) smooth.iter <- {
     ldn <- x$distrname
@@ -3526,11 +3535,22 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   }
 ##  if (is.logical(smooth)) smooth <- smoothRegr
   lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
-# simulated residuals
-  lnsims <- smooth.sim
-  if (lcondq) lnsims <- 0  ## polr and ...
-  if (length(lnsims)==0) lnsims <- 0
+  lsmg <- substitute(smooth.group)
+  lsmgrp <- try(eval(lsmg, ldata), silent=TRUE)
+  if (class(lsmgrp)=="try-error"||is.null(lsmgrp)) lsmgrp <- smooth.group
+  if (length(lsmgrp)!=0 && length(lsmgrp)!=nrow(ldata)) {
+#    if (length(lsmgrp)!=length(li)) {
+    warning(":plot.regr: argument 'smooth.group' has wrong length. Not applied.")
+      lsmgrp <- NULL
+#    } else lsmgrp <- lsmgrp[li]
+  } ## sort out!!!
+  ## simulated residuals
+  llsims <- (length(smooth.sim)==0)||is.na(smooth.sim)
+  lnsims <- if (llsims) 19 else smooth.sim
+  ## when using  smooth.group , default is  0
+  if (length(lsmgrp)) lnsims <- ifelse(llsims, 0, lnsims)
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
+  if (lcondq) lnsims <- 0  ## polr and ...
   if (!lnnls) lnsims <- 0
   lfitfun <- x$fitfun
   if ((!is.null(lfitfun)&&lfitfun=="survreg")) lnsims <- 0
@@ -3745,7 +3765,7 @@ for (liplot in 1:length(lplsel)) {
                 ldosm, lfsmooth, lsmpar,smooth.iter,
                 ylim=reslim, ylimext=reslimext,
                 reflinex=lrx,refliney=lry,
-                nsims=lnsims, simres=lsimres,
+                nsims=lnsims, simres=lsimres, smooth.group=lsmgrp, 
                 condprobrange=condprobrange, plext=plext)
     }
   }
@@ -3762,7 +3782,7 @@ for (liplot in 1:length(lplsel)) {
                 lweights,liwgt,lsyinches,
                 lpllevel>1, lfsmsm, lsmpar, smooth.iter, smooth.power=0.5,
                 nsims=if (is.null(lsimabs)) 0 else ncol(lsimabs),
-                simres=lsimabs,
+                simres=lsimabs, smooth.group=lsmgrp,
                 ylim=c(0,max(abs(streslim))),
                 condprobrange=c(0.01,0), plext=c(plext[1:2],0, plext[4]))
     }
@@ -3789,6 +3809,7 @@ for (liplot in 1:length(lplsel)) {
         colors,lty,lwd,lpch, col, lpty, llab,cex.lab,ltxt, FALSE,FALSE, # lplwgt=F,wgt=F,
         NULL,FALSE,lsyinches,
         lpllevel>1,NULL,lsmpar,smooth.iter, smooth.power=0.5,
+        smooth.group=lsmgrp,
         ylim=c(0,1.05*robrange(lraw)[2]),yaxs="i",
                 condprobrange=condprobrange, plext=plext)
   } } }
@@ -3807,7 +3828,7 @@ for (liplot in 1:length(lplsel)) {
       abline(0,1,lty = lty[2], col=colors[2])
       if (lpllevel>2 & lnsims>0) {
         lxx <- qnorm(ppoints(ln))
-        lsimstr <- attr(simresiduals.default(x, nrep=lnsims, resgen=rnorm),
+        lsimstr <- attr(simresiduals.default(x, nrep=lnsims, simy=rnorm),
                         "stres")
           ## lsimr  does not contain sim. res. according to normal distr.
         for (lr in 1:lnsims) {
@@ -3908,8 +3929,8 @@ for (liplot in 1:length(lplsel)) {
            markprop=NULL, lab=llabna, cex.lab=cex.lab,
            mbox=mbox, jitterbinary = jitterbinary,
            smooth=x.smooth, smooth.par=lsmpar, smooth.iter=smooth.iter,
-           smooth.sim=lsimres, lty=lty, lwd=lwd, colors = colors,
-           pch=lpch, col=col,
+           smooth.group=lsmgrp, smooth.sim=lsimres,
+           lty=lty, lwd=lwd, colors = colors, pch=lpch, col=col,
            main=main, cex.title=cex.title,
            ylim = lylim, ylimfac = lylimfac, ylimext = lylimext, yaxp=resaxp,
            plext = plext, ...)
@@ -4209,9 +4230,9 @@ simresiduals <- function(object, ...)  UseMethod("simresiduals")
   ## Purpose:   simulate residuals according to regression model
   ##            by permuting residuals of actual model or by random numbers
   ## ----------------------------------------------------------------------
-  ## Arguments:  resgen: how are residuals generated?
+  ## Arguments:  simy: how are residuals generated?
 ## ---------------------------------------------------------------------
-simresiduals.glm <- function(object, nrep, resgen=NULL,
+simresiduals.glm <- function(object, nrep=19, simy=NULL,
                              glm.restype="working", ...)
 {
   lcall <- object$call
@@ -4222,7 +4243,7 @@ simresiduals.glm <- function(object, nrep, resgen=NULL,
   }
   loverd <- attr(object$scale, "fixed")
   if (length(loverd) && !loverd)
-    warning(":simresiduals: Cannot simulate from overdispersed model",
+    warning(":simresiduals: Cannot simulate from overdispersed model.",
             " Using dispersion 1")
   lcall[[1]] <- as.name("glm")
   lfit <- object$fitted.values
@@ -4238,7 +4259,7 @@ simresiduals.glm <- function(object, nrep, resgen=NULL,
     }
   }
   ## prepare call
-  lform <- formula(object)
+  lform <- update(formula(object), .Y. ~.)
   lynm <- all.vars(lform[[2]])
   environment(lform) <- environment()
   lcl <- call("glm", formula=lform, data=as.name("ldata"),
@@ -4247,46 +4268,50 @@ simresiduals.glm <- function(object, nrep, resgen=NULL,
   if (length(lfam)==0) lfam <- object$family$family
   if (is.null(lfam)) lfam <- ""
   ly <- object$response
-  if(lfam%in%c("binomial","quasibinomial")) {
-    if (NCOL(ly)==1 && length(unique(ly))!=2) {
-      warning(":simresiduals: binomial distribution with ",
-              "unsuitable response.\n  No residuals simulated")
-      return(list(simres=numeric(0)))
-    }
-    resgen <- if(NCOL(ly)==1) function(x) rbinom(x, 1, lfit)
-              else
-                function(x) {
-                  lnbin <- ly[,1]+ly[,2]
-                  ly1 <- rbinom(x, lnbin, lfit)
-                  cbind(ly1,lnbin-ly1)
-                }
-  } else {
-    if (lfam%in%c("poisson","quasipoisson")) 
-      resgen <- function(x) rpois(x, lfit)  else {
-          warning(":simresiduals: not (yet) available for this ",
-                     "type of model.\n  No residuals simulated")
-          return(list(simres=numeric(0)))
+  ln <- nrow(ldata)
+  lone <- rep(1,ln)
+  if (!is.function(simy)) {
+    if(lfam%in%c("binomial","quasibinomial")) {
+      if (NCOL(ly)==1 && length(unique(ly))!=2) {
+        warning(":simresiduals: binomial distribution with ",
+                "unsuitable response.\n  No residuals simulated")
+        return(list(simres=numeric(0)))
+      }
+      if(NCOL(ly)==1) simy <- function(n, fit, sig=NULL) rbinom(n, lone, fit)
+      else {
+        lnbin <- ly[,1]+ly[,2]
+        simy <- function(n, fit, sig) {
+          ly1 <- rbinom(n, lnbin, fit)
+          cbind(N1=ly1,N2=lnbin-ly1)
         }
+      }
+    } else {
+      if (lfam%in%c("poisson","quasipoisson")) 
+        simy <- function(n, fit, sig) rpois(ln, fit)
+      else {
+        warning(":simresiduals: not (yet) available for this ",
+                "type of model.\n  No residuals simulated")
+        return(list(simres=numeric(0)))
+      }
+    }
   }
   ## ---
-  ##
-  lnrow <- nrow(ldata)
-  lsimres <- matrix(NA,lnrow,nrep)
+  lsimres <- matrix(NA, ln, nrep)
   for (lr in 1:nrep) {
-    ldata[,lynm] <- resgen(lfit)
-    lrs <- eval(lcl) 
+    ldata$.Y. <- simy(ln, lfit)
+    lrs <- eval(lcl, environment()) 
     lsimres[,lr] <- residuals(lrs, type=glm.restype)
   }
   lsimres
 }
 ## ==========================================================================
-simresiduals.default <- function(object, nrep, resgen=NULL, stres=TRUE, ...)
+simresiduals.default <- function(object, nrep=19, simy=NULL, stres=TRUE, ...)
   ## glm.restype="deviance")
 {
   ## Purpose:   simulate residuals according to regression model
   ##            by permuting residuals of actual model or by random numbers
   ## ----------------------------------------------------------------------
-  ## Arguments:  resgen: how are residuals generated?
+  ## Arguments:  simy: how are residuals generated?
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 10 Aug 2008, 07:55
 ##-   if (!class(object)[1]%in%c("regr","lm","glm")) {
@@ -4318,8 +4343,8 @@ simresiduals.default <- function(object, nrep, resgen=NULL, stres=TRUE, ...)
   if (is.null(lfit)) lfit <- object$linear.predictors
   if (is.null(lfit)) lfit <- 0
   ## -------
-  if (lrgen <- length(resgen)>0) {
-    if (!is.function(resgen)) resgen <- rnorm
+  if (lrgen <- length(simy)>0) {
+    if (!is.function(simy)) simy <- rnorm
     ## ---
   ## weibull not yet implemented
     lsig <- object$sigma
@@ -4374,7 +4399,7 @@ simresiduals.default <- function(object, nrep, resgen=NULL, stres=TRUE, ...)
   lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
   lsimstres <- if (lnostres) NULL else lsimres
   for (lr in 1:nrep) {
-    ldata[,lynm] <- lfit + if (lrgen) resgen(lnrow)*lsig else sample(lres)
+    ldata[,lynm] <- if (lrgen) simy(lnrow,lfit,lsig) else lfit + sample(lres)
     ## this would not work with polr or other matrix residuals
     lrs <- eval(lcall) ## update(x, formula=lfo, data=ldata)
     lrsr <- residuals(lrs)
@@ -4393,7 +4418,7 @@ plresx <-
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = 2, smooth.par=NA, smooth.iter=NULL,
-            smooth.sim=19, nxsmooth=51, smooth.group=NULL,
+            smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
             smooth.col=NULL, smooth.pale=0.2, smooth.legend=TRUE, 
             multnrows = 0, multncols = 0, 
             lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
@@ -4498,7 +4523,9 @@ plresx <-
       stop("!plresx! cannot match residuals and x`s")
     ldata <- ldata[li,]
   }
-  lsmgrp <- eval(substitute(smooth.group), ldata)
+  lsmg <- substitute(smooth.group)
+  lsmgrp <- try(eval(lsmg, ldata), silent=TRUE)
+  if (class(lsmgrp)=="try-error"||is.null(lsmgrp)) lsmgrp <- smooth.group
   if (length(lsmgrp)!=0 && length(lsmgrp)!=nrow(ldata)) {
 #    if (length(lsmgrp)!=length(li)) {
       warning(":plresx: argument 'smooth.group' has wrong length. Not applied.")
@@ -4622,9 +4649,11 @@ plresx <-
 ##-                    na.action=na.exclude))
   if (length(smooth)==0) smooth <- FALSE
   lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
-## simulated residuals
-  lnsims <- smooth.sim
-  if (length(lnsims)==0) lnsims <- 0
+  ## simulated residuals
+  llsims <- (length(smooth.sim)==0)||is.na(smooth.sim)
+  lnsims <- if (llsims) 19 else smooth.sim
+  ## when using  smooth.group , default is  0
+  if (length(smooth.group)) lnsims <- ifelse(llsims, 0, lnsims)
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
   if (lcondq) lnsims <- 0
   if (lmult) lnsims <- 0
@@ -4641,7 +4670,7 @@ plresx <-
   lty <- rep(c(lty,1:6),length=6)
   lwd <- rep(c(lwd,1),length=6)
   colors <- if (length(colors)==0)
-    c("black","gray","blue","cyan","red","magenta","darkgreen",
+    c("gray3","gray2","blue","cyan","red","magenta","darkgreen",
       "green","lightgreen")  else
     rep(colors,length=9)
   if (length(jitter)==0) jitter <- 0.3*(1-10^(-0.01*pmax(0,ln-10)))
@@ -5336,14 +5365,17 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   ldt <- model.frame(formula, data, na.action=na.pass)
   ly <- ldt[,1]
   ##
-  if (length(formula[[3]])>1 && as.character(formula[[3]][[2]])=="1") 
-      ldt <- data.frame(ldt[,1],0,ldt[,2])
+  l1asymbox <- length(formula[[3]])>1 && as.character(formula[[3]][[2]])=="1"
+  if (l1asymbox)  ldt <- data.frame(ldt[,1],0,ldt[,2])
   ## preliminary 
   lx <- ldt[,2] <- factor(ldt[,2]) # unused levels are dropped
   lxx <- ldt[,-1]
-  llr <- ncol(ldt)>2
+  llr <- ncol(ldt)>2 ## asymmetrix mboxes required for binary factor
   llist <- split(ly,lxx)
-  llev <- levels(lx)
+  if (l1asymbox) {
+    llev <- ""
+    llev2 <- c(levels(ldt[[3]]),"","")[1:2]
+  } else llev <- levels(lx)
   lng <- length(llev)
   lnn <- sapply(llist,length)
   lsd <- mean(sapply(llist,mad,na.rm=TRUE),na.rm=TRUE)
@@ -5403,11 +5435,15 @@ plmboxes <- function(formula, data, width=1, at=NULL,
   ## ---------------------------------
     plot(xlim, ylim, type="n", axes=FALSE, xlab="", ylab=ylab, mar=mar, ...)
     if (axes) {
-      axis(1,at=at,labels=if(lng>1) llev else "",las=1+2*labelsvert)
+      axis(1, at=at, labels=llev, las=1+2*labelsvert)
       lat <- pretty(f.ylim(lrg, ilimext)) #, n=7,n.min=5
       if(!is.null(na.pos)) {
         lat <- lat[lat>max(na.pos)]
         mtext("NA",2,1,at=mean(na.pos),las=1)
+      }
+      if (l1asymbox) {
+        mtext(llev2[1], 1,1, at=0.75)
+        mtext(llev2[2], 1,1, at=1.25)
       }
       axis(2, at=lat)
       if (ljlim) { ## inner and outer box
@@ -5435,13 +5471,13 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     if (length(lli <- llist[[li]])) 
     plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
 ##           adj=0.5*(1+llr), na.pos=na.pos, minheight=minheight, extquant=TRUE,
-           adj=0.5*(1+llr), na.pos=na.pos, extquant=TRUE,
+           adj=0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
            ilim=if(ljlim) ilim, ilimext=ilimext, 
            widthfac=lwfac, colors=lcol, lwd=llwd, warn=-1)
     if (llr) ## second half of asymmetrix  mbox
       if (length(llir <- llist[[li+lng]]))
         plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
-               adj=0, na.pos=na.pos, extquant=TRUE,
+               adj=1, na.pos=na.pos, extquant=TRUE,
                ilim=ilim, ilimext=ilimext, 
                widthfac=lwfac, colors=lcol, warn=-1)
   }
@@ -5897,8 +5933,8 @@ userOptions <- function (x=NULL, default=NULL, list=NULL, ...)
 ## -----------------------------------------------------
 UserDefault <- UserOptions <- 
   list(stamp=1, project="", step="", doc=TRUE, show.dummycoef=TRUE,
-       colors.ra = c("gray","gray3","blue4","cyan","darkgreen","green",
-         "burlywood4","burlywood3","burlywood4"),
+       colors.ra = c("gray3","gray2","blue4","cyan","darkgreen","green",
+         "burlywood4","burlywood3","burlywood1"),
        mar=c(3,3,3,1), mgp=c(2,0.8,0), plext=0.05, digits=4,
        regr.contrasts=c(unordered="contr.wsum", ordered="contr.wpoly"),
        termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
@@ -6363,7 +6399,7 @@ if (length(getUserOption("colors"))==0)
          "darkgoldenrod3","olivedrab3","purple3","orange3","palegreen3"))
 if (length(getUserOption("colors.ra"))==0)
   userOptions(colors.ra =
-          c("black","gray","blue","cyan","darkgreen","green",
+          c("gray3","gray2","blue","cyan","darkgreen","green",
             "burlywood4","burlywood3","burlywood4"))
 ##- c.uoAtlTcc <- termcolumns=c("coef",  "df", "ciLow","ciHigh","R2.x",
 ##-          "signif")

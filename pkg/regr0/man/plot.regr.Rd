@@ -18,8 +18,8 @@
          smresid = TRUE, condprobrange=c(0.05,0.8), leverage.cooklim = 1:2, 
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
-         smooth = 2, x.smooth = smooth,
-         smooth.par=NA, smooth.iter=NULL, smooth.sim=19, nxsmooth=51,
+         smooth = 2, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
+         smooth.group=NULL, smooth.sim=NULL, nxsmooth=51,
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
          colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -96,7 +96,11 @@
     \code{smooth.iter} being the maximal number of iterations.
     Defaults to 0 if the family is \code{binomial} or
     \code{multinomail}, to 50 otherwise.}
-  \item{smooth.sim}{number of simulated smooths added to each plot}
+  \item{smooth.group}{grouping factor. If given, smooth will be drawn
+    for each group rather than for the whole dataset.}
+  \item{smooth.sim}{number of simulated smooths added to each plot.
+    If NULL (the default) 19 simulated smooths will be generated if
+    possible and sensible (i.e., none if \code{smooth.group} is set).}
   \item{nxsmooth}{number of values on the horizontal axes where smooths
     are evaluated}
   \item{multnrows, multncols}{number of rows and columns of panels on
@@ -110,10 +114,10 @@
       \item{[4] }{simulated smooths;}
       \item{[5] }{component effects in plresx;}
       \item{[6] }{confidence bands of component effects.}
-      \item{[7] }{(random) observations in the case of
-	\code{glm.restype="cond.quant"};}
-      \item{[8] }{bars showing conditional quantiles for
-	\code{glm.restype="cond.quant"};}
+      In the case of \code{glm.restype="cond.quant"}
+      \item{[7] }{(random) observations;}
+      \item{[8] }{conditional medians;}
+      \item{[9] }{bars showing conditional quantiles.}
     }
   }
   \item{pch}{plotting character to use for unlabeled points. Defaults to

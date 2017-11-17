@@ -1,5 +1,5 @@
 library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
-## source('../R/regr.R')
+library(regr0, lib="~/R/regdevelop/pkg/regr0.Rcheck")
 ## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0_1.0-5.tar.gz")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
@@ -65,6 +65,12 @@ r.mt2 <- r.mt[,-2]
 stopifnot(c(round(r.mt2[4,1]$p,7))==0.2757776)
 
 r.ct <- compareTerms(large=r.bl2,reduced=r.bl3,original=r.blast)
+
+r.sim <- simresiduals(r.blast)
+
+k <- d.blast
+t.r <- regr(tremor~distance+charge+location, data=k)
+add1(t.r) ## has produced an error due to wrong eval() environment 
 
 plresx(r.blast, vars=~distance,
        pch=d.blast$location, smooth.group=d.blast$location,

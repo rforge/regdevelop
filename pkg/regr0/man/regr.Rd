@@ -204,8 +204,6 @@ d.surveyenvir$dist.unordered <- factor(as.character(d.surveyenvir$disturbance))
 t.r <- regr(dist.unordered~age+education+location, data=d.surveyenvir)
 
 ## ordered regression
-## This example fails in the installation phase...
-require(MASS) ## should not be needed
 data(housing, package="MASS")
 t.r <- regr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 plot(t.r)
