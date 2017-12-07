@@ -251,7 +251,7 @@ regr <- function(formula, data=NULL, tit=NULL, family=NULL, dist=NULL,
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
   if (length(lreg$AIC)==0) {
     laic <- try(extractAIC(lreg), silent=TRUE)
-    if (class(laic)!="try.error") lreg$AIC <- laic
+    if (class(laic)!="try-error") lreg$AIC <- laic
   }
   lreg$response <- lyy
 ##-   lyyy <- as.matrix(lyy) # lyy is a model.frame
@@ -325,7 +325,7 @@ i.lm <- function(formula, data, family, fname="gaussian", nonlinear=FALSE,
       if (length(method)>1) {
         if (substr(method[2],1,2)=="KS")
           method <- NULL
-        lcall$setting <- "KS2011"
+        lcall$setting <- "KS2014"
       }
       lcall$x <- TRUE
   }
@@ -3315,7 +3315,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = 2, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
-         smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
+         smooth.group=NULL, smooth.legend=FALSE, smooth.sim=NULL, nxsmooth=51, 
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
          colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -3534,7 +3534,6 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     50 * if (is.null(ldn)) 1 else !ldn%in%c("binomial","multinomial")
   }
 ##  if (is.logical(smooth)) smooth <- smoothRegr
-  lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
   lsmg <- substitute(smooth.group)
   lsmgrp <- try(eval(lsmg, ldata), silent=TRUE)
   if (class(lsmgrp)=="try-error"||is.null(lsmgrp)) lsmgrp <- smooth.group
@@ -3543,7 +3542,12 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     warning(":plot.regr: argument 'smooth.group' has wrong length. Not applied.")
       lsmgrp <- NULL
 #    } else lsmgrp <- lsmgrp[li]
-  } ## sort out!!!
+  }
+  if (length(lnaaction)) lsmgrp <- lsmgrp[-lnaaction]
+  ## smooth.par
+  lnsm <- ln
+  if (length(lsmgrp)) lnsm <- ln/length(unique(lsmgrp))
+  lsmpar <- if (is.na(smooth.par)) 5*lnsm^log10(1/2)*(1+lglm) else smooth.par
   ## simulated residuals
   llsims <- (length(smooth.sim)==0)||is.na(smooth.sim)
   lnsims <- if (llsims) 19 else smooth.sim
@@ -3560,7 +3564,7 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
     lnsims <- 0
   }
   if (lmult) lnsims <- 0 # not yet programmed for mlm
-  lsimabs <- lsimstres <- lsimres <- NULL
+  lsimabs <- lsimstres <- lsimres <- NULL ## !!! neu !!!
   if (lnsims>0) {
     lsimr <- if(u.debug())
                simresiduals(x, lnsims, glm.restype=glm.restype)  else
@@ -3586,7 +3590,8 @@ function(x, data=NULL, plotselect = NULL, sequence=FALSE,
   if (smresid) {
     lfsmooth <-
       smoothMM(lf, if(lcondq) lres[,1, drop=FALSE] else lres, lsimres, 
-               weights=lweights, band=smooth>1, resid=TRUE, par=lsmpar)
+               weights=lweights, group=lsmgrp,
+               band=smooth>1, resid=TRUE, par=lsmpar)
     if (any(lplsel[c("tascale","qq")]>0)) {
       if (lcondq)  { ## only 1 component in lfsmooth
         lressm <- cbind(lfsmooth[[1]]$resid,
@@ -3765,7 +3770,8 @@ for (liplot in 1:length(lplsel)) {
                 ldosm, lfsmooth, lsmpar,smooth.iter,
                 ylim=reslim, ylimext=reslimext,
                 reflinex=lrx,refliney=lry,
-                nsims=lnsims, simres=lsimres, smooth.group=lsmgrp, 
+                nsims=lnsims, simres=lsimres, smooth.group=lsmgrp,
+                smooth.legend=smooth.legend, 
                 condprobrange=condprobrange, plext=plext)
     }
   }
@@ -3929,7 +3935,8 @@ for (liplot in 1:length(lplsel)) {
            markprop=NULL, lab=llabna, cex.lab=cex.lab,
            mbox=mbox, jitterbinary = jitterbinary,
            smooth=x.smooth, smooth.par=lsmpar, smooth.iter=smooth.iter,
-           smooth.group=lsmgrp, smooth.sim=lsimres,
+           smooth.group=lsmgrp,
+           smooth.sim=if(length(lsimres)) lsimres else 0,
            lty=lty, lwd=lwd, colors = colors, pch=lpch, col=col,
            main=main, cex.title=cex.title,
            ylim = lylim, ylimfac = lylimfac, ylimext = lylimext, yaxp=resaxp,
@@ -4319,7 +4326,7 @@ simresiduals.default <- function(object, nrep=19, simy=NULL, stres=TRUE, ...)
 ##-             "I can simulate only for `regr`, `lm`, or `glm` objects")
 ##-     return(NULL)
   ##-   }
-  if (!inherits(object, c("lm")))
+  if (!inherits(object, c("lm", "lmrob")))
       stop("!simresiduals! I cannot simulate for model class  ",
            paste(class(object), collapse="  "))
   lcall <- object$call
@@ -4418,8 +4425,8 @@ plresx <-
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = 2, smooth.par=NA, smooth.iter=NULL,
-            smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
-            smooth.col=NULL, smooth.pale=0.2, smooth.legend=TRUE, 
+            smooth.group=NULL, smooth.legend=TRUE, smooth.sim=NULL, nxsmooth=51, 
+            smooth.col=NULL, smooth.pale=0.2, 
             multnrows = 0, multncols = 0, 
             lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
             colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -4532,6 +4539,11 @@ plresx <-
       lsmgrp <- NULL
 #    } else lsmgrp <- lsmgrp[li]
   } ## sort out!!!
+  if (length(lnaaction)) lsmgrp <- lsmgrp[-lnaaction]
+  ## smooth.par
+  lnsm <- ln
+  if (length(lsmgrp)) lnsm <- ln/length(unique(lsmgrp))
+  lsmpar <- if (is.na(smooth.par)) 5*lnsm^log10(1/2)*(1+lglm) else smooth.par
 ## Prepare vars
   lvmod <- all.vars(formula(x)[[3]])
   if (!lnnls) lvmod <- setdiff(lvmod, names(eval(x$call$start)))
@@ -4648,7 +4660,6 @@ plresx <-
 ##-       fitted(loess(y~x, weights=weights, span=par, iter=iter,
 ##-                    na.action=na.exclude))
   if (length(smooth)==0) smooth <- FALSE
-  lsmpar <- if (is.na(smooth.par)) 5*ln^log10(1/2)*(1+lglm) else smooth.par
   ## simulated residuals
   llsims <- (length(smooth.sim)==0)||is.na(smooth.sim)
   lnsims <- if (llsims) 19 else smooth.sim
@@ -4657,7 +4668,7 @@ plresx <-
   lnsims <- if (is.logical(lnsims)&&lnsims) 19 else as.numeric(lnsims)
   if (lcondq) lnsims <- 0
   if (lmult) lnsims <- 0
-  if (length(lnsims)>1) {
+  if (length(lnsims)>1) { ## simulated residuals already generated
     lnsims <- ncol(smooth.sim)
     if (length(lnsims)==0) {
       warning(":plresx: unsuitable argument smooth.sim")
@@ -4794,7 +4805,8 @@ plresx <-
                 yaxp=yaxp,
                 nsims=lnsims, simres=lsimres, new=FALSE,
                 reflinex=lcmpx, refliney=lcmpy,
-                smooth.group=lsmgrp, smooth.col=smooth.col,
+                smooth.group=lsmgrp, smooth.legend=smooth.legend,
+                smooth.col=smooth.col,
                 smooth.pale=smooth.pale, plext=plext)
     }
     plmatrix(ldata[,vars,drop=FALSE],lres, panel=lpanel, pch=llab, range.=lylim,
@@ -4878,8 +4890,8 @@ plresx <-
         smooth, NULL, smooth.par, smooth.iter, smooth.power=1,
         ylim=if(llimy) lylim else NULL, ylimfac=ylimfac, ylimext=ylimext,
         yaxp=yaxp, reflinex=lrefx, refliney=lci, lrefyw, lnsims, lsimres,
-        smooth.group=lsmgrp, smooth.col=smooth.col,
-        smooth.pale=smooth.pale, smooth.legend=smooth.legend,
+        smooth.group=lsmgrp, smooth.legend=smooth.legend,
+        smooth.col=smooth.col, smooth.pale=smooth.pale, 
         condprobrange=condprobrange, plext=plext)
     }
 ##    if (llimy|llimyrob) abline(h=attr(rr,"range"),lty=lty[2],col=colors[2])

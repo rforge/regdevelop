@@ -19,7 +19,7 @@
          weights = NULL, wsymbols=NULL, symbol.size=NULL,
          markprop=NULL, lab=NULL, cex.lab=1, mbox = FALSE, jitterbinary=TRUE,
          smooth = 2, x.smooth = smooth, smooth.par=NA, smooth.iter=NULL,
-         smooth.group=NULL, smooth.sim=NULL, nxsmooth=51,
+         smooth.group=NULL, smooth.legend = FALSE, smooth.sim=NULL, nxsmooth=51,
          multnrows = 0, multncols=0,
          lty = c(1,2,5,3,4,6,1,1), lwd = c(1,1,2,1,1.5,1,1,1),
          colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -98,6 +98,8 @@
     \code{multinomail}, to 50 otherwise.}
   \item{smooth.group}{grouping factor. If given, smooth will be drawn
     for each group rather than for the whole dataset.}
+  \item{smooth.legend}{logical: if there is a grouping factor, 
+    should legend for smoothing lines be shown?}
   \item{smooth.sim}{number of simulated smooths added to each plot.
     If NULL (the default) 19 simulated smooths will be generated if
     possible and sensible (i.e., none if \code{smooth.group} is set).}

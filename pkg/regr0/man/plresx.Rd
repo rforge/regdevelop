@@ -16,8 +16,9 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
             markprop=NULL, lab = NULL, cex.lab = 0.7,
             reflines = TRUE, mbox = FALSE, jitter=NULL, jitterbinary=TRUE,
             smooth = 2, smooth.par=NA, smooth.iter=NULL,
-            smooth.group=NULL, smooth.sim=NULL, nxsmooth=51, 
-            smooth.col=NULL, smooth.pale = 0.2, smooth.legend=TRUE, 
+            smooth.group=NULL, smooth.legend=TRUE,
+            smooth.sim=NULL, nxsmooth=51, 
+            smooth.col=NULL, smooth.pale = 0.2, 
             multnrows = 0, multncols = 0, 
             lty = c(1,2,5,3,6,4,1,1), lwd=c(1,1,2,1,1.5,1,1,1),
             colors = getUserOption("colors.ra"), pch=NULL, col=NULL,
@@ -85,6 +86,8 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
     \code{multinomail}, to 50 otherwise.}
   \item{smooth.group}{grouping factor. If given, smooth will be drawn
     for each group rather than for the whole dataset.}
+  \item{smooth.legend}{if a legend for the groups is desired, its
+    position should be given here}
   \item{smooth.sim}{number of simulated smooth lines to be drawn.
     If NULL (the default) 19 simulated smooths will be generated if
     possible and sensible (i.e., none if \code{smooth.group} is set).}
@@ -92,8 +95,6 @@ plresx(x, data = NULL, resid=NULL, vars = NULL, sequence=FALSE,
   \item{smooth.col}{colors to be used for the different groups}
   \item{smooth.pale}{argument to \code{\link{colorpale}} for attenuating
     the color of simulated smooths with respect to 'original' smooths}
-  \item{smooth.legend}{if a legend for the groups is desired, its
-    position should be given here}
   \item{multnrows, multncols}{number of rows and columns for multiple
     frames in case of multivatiate residuals}
   \item{lty, lwd, colors}{vector of line types and colors to be used for \cr
