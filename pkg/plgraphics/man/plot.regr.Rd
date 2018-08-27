@@ -123,7 +123,7 @@ plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
 
   The smoothing function used by default is \code{\link{smoothRegr}},
   which calls \code{\link{loess}}. This can be changed by setting
-  \code{userOptions(smoothFunction=<func>)}, which must have the same
+  \code{ploptions(smooth.function=<func>)}, which must have the same
   arguments as \code{smoothRegr}.
   
   The arguments \code{lty, lwd, colors} characterize how the graphical

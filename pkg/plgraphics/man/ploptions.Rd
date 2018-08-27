@@ -8,7 +8,7 @@
   behavior \pkg{regr0} functions, notably \code{\link{stamp}()}.
 }
 \usage{
-ploptions(x = NULL, default = NULL, list = NULL, ploptions = .ploptions,
+ploptions(x = NULL, default = NULL, list = NULL, ploptions = NULL,
           assign = TRUE,...)
 .ploptions
 ploptionsDefault

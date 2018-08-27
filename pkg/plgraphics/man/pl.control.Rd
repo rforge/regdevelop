@@ -55,7 +55,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
   \item{ploptions}{Plotting attributes, e.g., plotting character,
     line types, colors and the like, for different aspects of plots.
     Result of \code{\link{plappearance}}. Defaults to
-    \code{userOptions("plappearance")}.
+    \code{.ploptions}.
   }
   \item{.environment.}{used by the calling function to provide the
     environment for evaluating \code{x} and \code{y}
@@ -78,8 +78,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
 \author{Werner A. Stahel
 }
 \seealso{
-  \code{\link{plyx}}, \code{\link{plmatrix}}, \code{\link{plappearance}},
-  \code{\link{userOptions}}
+  \code{\link{plyx}}, \code{\link{plmatrix}}, \code{\link{ploptions}}
 }
 \examples{
 plyx(Sepal.Width~Sepal.Length, data=iris, axp=7, plab=TRUE, cex.plab=0.6)

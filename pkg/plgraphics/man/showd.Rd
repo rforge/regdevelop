@@ -36,7 +36,7 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL)
 \examples{
 showd(iris)
 data(d.rehab)
-userOptions(doc=1)
+options(doc=1)
 showd(d.rehab, ncol=7)
 
 showd(cbind(1:100))

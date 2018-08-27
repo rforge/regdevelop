@@ -45,7 +45,7 @@ stamp(sure = TRUE, outer.margin = NULL,
 }
 \author{Werner A. Stahel, ETH Zurich}
 \examples{
-userOptions(project="Example A",  step="regression analysis")
+options(project="Example A",  step="regression analysis")
 plot(1:10)
 stamp() ##-> "stamp" at bottom of right border
 }

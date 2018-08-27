@@ -60,7 +60,7 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
   }
   \item{cex}{character size. May be vector of length 3, giving size for
     main title, subtitle, and \code{tit} attribute of title,
-    respectively. The default is given by \code{userOptions("cex.title")}.
+    respectively. The default is given by \code{ploptions("title.cex")}.
   }
   \item{side}{For \code{pltitle}: in which margin should the text
     be shown?}
