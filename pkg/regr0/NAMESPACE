@@ -37,11 +37,11 @@ importFrom("leaps", regsubsets)
 ## exportPattern("^[^\\.]")
 
 ## Ok, now we are better and do not export all
-export(asinp,
+export(asinp, ## asinperc, 
        BR, DB, IR,
        UserOptions,
        add1.regr, ## add1.default, add1.mlm, ## see below
-       allcoef,
+       termeffects,
        c.mon, c.months,
 ##       ciSignif,
        colorpale, compareTerms,
@@ -54,11 +54,12 @@ export(asinp,
        factorNA, fitcomp,
        fitted.regr, fitted.polr,
        format.modelTable,
-       getmeth,
+       getmeth, getvars, 
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
        ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.survreg,
-       i.polrfit, i.multinomfit,
+       i.polrfit, i.multinomfit, i.smooth,
+       i.def, i.main, 
        ## i.findformfac,
        is.formula,
        last, legendr, leverage, linear.predictors, linpred, logst, mframe,
@@ -67,19 +68,19 @@ export(asinp,
        nainf.exclude, "%nin%",
        notna,
        panelDefault, plcoord, plfitpairs, plmatrix,
-       plot.regr, plot.regrAllEqns, plot.xdistResscale,
-       plmbox, plmboxes,
+       plot.regr, plotregr.control, plot.regrAllEqns, plot.xdistResscale,
+       pllimits, plmbox, plmboxes,
        plres2x, plresx, plTA.polr,
        predict.mlm, predict.polr, predict.regr,
-       print.allcoef, print.modelTable, print.mregr, print.regr,
+       print.termeffects, print.modelTable, print.mregr, print.regr,
        print.regrAllEqns, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
-       regr, regrAllEqns, regrAllEqnsXtr, 
+       regr, regr.control, regrAllEqns, regrAllEqnsXtr, 
        residuals.regr, residuals.polr, residuals.regrcoxph, residuals.regrsurv,
        ## RNAMES,
        robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
-       smoothM, smoothMM, smoothRegr, stamp,
+       smoothM, smoothRegr, stamp,
        step, step.default, step.regr,
        subset,
        summary.regr, ## summary.mregr, 
@@ -89,10 +90,8 @@ export(asinp,
        ## require-ing the package survreg
        tit, "tit<-",
        Tobit,
-       ##u.merge,
        userOptions,
        getUserOption, UserDefault, UserOptions, ## <- ??
-       ## u.true,
        ## vif.regr,
        warn,
        xdistResdiff, xdistResscale, xNA
@@ -110,7 +109,7 @@ S3method(drop1, regr)
 S3method(summary, regr)# trivial: returns it unchanged
 S3method(plot, regr)
 S3method(print, regr)
-S3method(print, allcoef)
+S3method(print, termeffects)
 
 S3method("[", modelTable)
 

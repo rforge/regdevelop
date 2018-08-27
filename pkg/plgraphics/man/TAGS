@@ -1,0 +1,160 @@
+
+asinp.Rd,44
+% Add one or more standard keywords,26,619
+
+c.colors.Rd,44
+% Add one or more standard keywords,21,340
+
+c.months.Rd,44
+% Add one or more standard keywords,32,659
+
+colorpale.Rd,26
+\examples{xamples40,969
+
+condquant.Rd,47
+\usage{sage10,307
+\examples{xamples40,1534
+
+doc.Rd,47
+\usage{sage16,546
+\examples{xamples44,1374
+
+dropdata.Rd,45
+% Add one or more standard keywords,48,1406
+
+fitcomp.Rd,27
+\examples{xamples66,2968
+
+gensmooth.Rd,46
+\usage{sage9,190
+\examples{xamples97,3538
+
+genvarattributes.Rd,47
+\usage{sage11,353
+\examples{xamples85,3032
+
+getmeth.Rd,44
+% Add one or more standard keywords,22,552
+
+getvariables.Rd,79
+\description{escription6,124
+\value{alue35,1270
+\examples{xamples52,1740
+
+last.Rd,45
+% Add one or more standard keywords,42,1508
+
+legendr.Rd,44
+% Add one or more standard keywords,31,956
+
+leverage.Rd,26
+\examples{xamples27,688
+
+linear.predictors.Rd,65
+\value{alue19,481
+% Add one or more standard keywords,46,1185
+
+logst.Rd,19
+\usage{sage8,222
+
+mframe.Rd,46
+\usage{sage8,200
+\examples{xamples36,1348
+
+modarg.Rd,46
+\usage{sage13,409
+\examples{xamples33,765
+
+nainf.exclude.Rd,44
+% Add one or more standard keywords,31,845
+
+plappearance.Rd,19
+\usage{sage8,134
+
+pl.control.Rd,28
+\examples{xamples157,6164
+
+plfitpairs.Rd,19
+\usage{sage8,226
+
+plinnerrange.Rd,27
+\examples{xamples41,1131
+
+plmatrix.Rd,48
+\usage{sage16,526
+\examples{xamples111,4857
+
+plmboxes.Rd,189
+\description{escription10,124
+\usage{sage17,457
+  \item{tem104,3976
+\item{tem121,4613
+\item{tem135,5089
+  If given,149,5583
+\details{etails164,6180
+\examples{xamples189,6975
+
+plotregr.control.Rd,51
+} %%    jitter 21,675
+\examples{xamples125,5847
+
+plot.regr.Rd,20
+\usage{sage16,579
+
+plpoints.Rd,47
+\usage{sage16,302
+\examples{xamples97,3753
+
+plres2x.Rd,27
+\examples{xamples52,2167
+
+plyx.Rd,27
+\examples{xamples60,2092
+
+quantilew.Rd,106
+  remove NAs from 'x'? If FALSE and 'x' contains NAs,27,717
+% Add one or more standard keywords,50,1412
+
+quinterpol.Rd,45
+% Add one or more standard keywords,48,1271
+
+revGumbel.Rd,47
+\usage{sage12,331
+\examples{xamples43,1354
+
+robrange.Rd,45
+% Add one or more standard keywords,36,1171
+
+showd.Rd,47
+\usage{sage10,337
+\examples{xamples36,1288
+
+simresiduals.Rd,47
+\usage{sage10,259
+\examples{xamples62,2448
+
+smoothRegr.Rd,58
+\usage{sage11,293
+\item{...}{Further arguments,33,1011
+
+stamp.Rd,46
+\usage{sage8,217
+\examples{xamples44,1606
+
+sumna.Rd,44
+% Add one or more standard keywords,29,817
+
+userOptions.Rd,47
+\usage{sage11,325
+\examples{xamples44,1408
+
+warn.Rd,44
+% Add one or more standard keywords,27,584
+
+regr-internal.Rd,0
+
+pllimits.Rd,0
+
+plcoord.Rd,0
+
+notna.Rd,0

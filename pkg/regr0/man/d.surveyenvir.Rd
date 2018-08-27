@@ -45,7 +45,7 @@
 %%- }
 \examples{
 data(d.surveyenvir)
-require(MASS) ## should not be needed
+
 t.r <- regr(disturbance~age+education+location, data=d.surveyenvir)
 }
 \keyword{datasets}

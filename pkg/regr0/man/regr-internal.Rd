@@ -1,5 +1,6 @@
 \name{regr0-internal}
 \title{Internal regr0 objects}
+\alias{i.def}
 \alias{i.glm}
 \alias{i.lm}
 \alias{i.multinomial}
@@ -12,6 +13,7 @@
 \alias{is.formula}
 \alias{\%nin\%}
 \alias{print.mregr}
+\alias{i.main}
 \alias{DB}
 \alias{BR}
 \alias{IR}

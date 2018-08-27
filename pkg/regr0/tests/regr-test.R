@@ -1,11 +1,11 @@
-library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
+## library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
 library(regr0, lib="~/R/regdevelop/pkg/regr0.Rcheck")
 ## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0_1.0-5.tar.gz")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
 
-options(verbose=1)
+## options(verbose=1)
 ## ========================================================================
 ## --- lm
 t.d <- data.frame(y = c(1,5,4,4,3,8,6,7),
@@ -17,11 +17,7 @@ r.r2o <- regr(formula = y~ordered(f1)+x1+x2+f1:x1, data=t.d)
 
 t.d[1,"x2"] <- NaN
 r.r3 <- regr(y~f1+x1+x2+f1:x2, data=t.d)
-
 r.r4 <- regr(y~1, data=t.d)
-
-## DB()
-names(t.d)
 r.r5 <- regr(formula = y~f1+x1+x2, data=t.d, weights=0:7)
 
 t.d$f2 <- ordered(t.d$f1)
@@ -29,8 +25,6 @@ t.d$f2 <- ordered(t.d$f1)
 t.ctr <- contr.wsumpoly(t.d)
 
 r.r6 <- regr(formula = y~f2+x1+x2, data=t.d)
-##- plot(r.r2,plotselect=
-##-      c( qq = NA, yfit=2, ta=3, tascale = NA, weights = NA, hat = 0),ask=c.ask)
 
 data(d.blast)
 r.blast <-
@@ -46,12 +40,12 @@ with(r.blast,
 stopifnot(length(residuals(r.blast))==nrow(d.blast))
 
 plot(r.blast, smooth.group=location)
-t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
-plot(r.blast, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=0))
+## t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
+plot(r.blast, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=0))
 
 dd <- cbind( d.blast, indicator= factor(1==1:nrow(d.blast)) )
 t.rr <- regr(tremor ~ distance + charge + location + indicator, data=dd)
-plot(t.rr, smresid=TRUE, xplot=F, plsel=c(ta=0, leverage=2))
+plot(t.rr, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=2))
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
@@ -72,9 +66,9 @@ k <- d.blast
 t.r <- regr(tremor~distance+charge+location, data=k)
 add1(t.r) ## has produced an error due to wrong eval() environment 
 
-plresx(r.blast, vars=~distance,
-       pch=d.blast$location, smooth.group=d.blast$location,
-       smooth.col=c("blue","red","darkgreen","purple","brown",
+plresx(r.blast, xvars=~distance,
+       plab=d.blast$location, smooth.group=d.blast$location,
+       colors.smgrp=c("blue","red","darkgreen","purple","brown",
          "orange","cyan","black"),
        smooth.legend="bottomright")
 
@@ -93,15 +87,15 @@ add1(rr)
 ## all subsets
 data(d.birthrates)
 t.formula <- fertility ~ catholic + single24 + single49 + eAgric + eIndustry +
-eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
-bornLocal + bornForeign + altitude + language
+  eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
+  bornLocal + bornForeign + altitude + language
 
 r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
 print(r.ae)
 plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example",
      legend="topright")
 ## extract the formula of the best model
-( t.formula <- regrAllEqnsXtr(r.ae) )
+t.formula <- regrAllEqnsXtr(r.ae)
 ## ... and fit it
 regr(t.formula, data=d.birthrates)
 
@@ -125,14 +119,11 @@ r.rob
 modelTable( list(ls=r.blast, robust=r.rob) )
 ## ========================================================================
 ## ordered regression (using polr)
-## load('../data/d.surveyenvir.rda')
 data(d.surveyenvir)
 
-## require(MASS)  ## should not be needed
 r.survey <- regr(disturbance ~ age+education+location, data=d.surveyenvir,
                  contrasts="contr.treatment")
-plot(r.survey, plotselect=c(ta=3, default=0), xplot=F, mf=c(1,1),
-     ask=FALSE)
+plot(r.survey, plotselect=c(resfit=3, default=0), xvars=F, mf=c(1,1))
 
 ##- with( r.survey,
 ##-      stopifnot(
@@ -141,7 +132,7 @@ plot(r.survey, plotselect=c(ta=3, default=0), xplot=F, mf=c(1,1),
 ##-          ,
 ##-           all.equal(unname(zeta),
 ##-                           c(-0.15772572, 1.37302143, 2.82205070 ), tol=100e-4)
-##-          ) )
+##-          ) 
 
 ## ========================================================================
 ## multivariate regression
@@ -154,18 +145,19 @@ plot(r.mregr)
 ## Baby Survival
 data(d.babysurv)
 t.d <- d.babysurv
+t.d$Age[2] <- NA
 t.r <- regr(Survival~.,data=t.d)
 t.rglm <- glm(Survival~.,data=t.d,family=binomial)
 t.rs <- step(t.r, trace=FALSE)  ## ???
 t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
-plot(r.babysurv,xplot=~Weight,cex=0.7,symbol.size=NULL,res.lim=c(-5,5))
-plot(r.babysurv,glm.restype="cond", ask=FALSE)
+plot(r.babysurv, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
+plot(r.babysurv, glm.restype="cond")
 
 mframe(2,2)
-plresx(r.babysurv,vars=~Age+Apgar1+Apgar5+pH,data=d.babysurv,
-       weights=FALSE,cex.lab=0.2)
+plresx(r.babysurv, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurv,
+       weight=FALSE,cex.plab=0.2)
 
-plresx(t.r,data=t.d,vars=~.+Apgar5,sequence=TRUE, addcomp=TRUE)
+plresx(t.r, data=t.d, xvars=~.+Apgar5,sequence=TRUE, addcomp=TRUE)
 
 data(d.babysurvGr)
 t.d <- d.babysurvGr
@@ -176,8 +168,9 @@ plot(t.r,cex=1.2)
 ## ===========================================================
 ## Gamma
 data(d.transaction)
-r.gam <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma)
-r.gami <- regr(Time~Type1+Type2,data=d.transaction,family=Gamma(link=identity))
+r.gam <- regr(Time~Type1+Type2, data=d.transaction, family=Gamma)
+r.gami <- regr(Time~Type1+Type2, data=d.transaction,
+               family=Gamma(link=identity))
 
 ## ===========================================================
 ##- multinom
@@ -186,7 +179,7 @@ data(d.surveyenvir)
 ##- r.mnom <- multinom(responsibility~age+education+disturbance+sex,
 ##-           data=d.surveyenvir)
 r.mnom <- regr(responsibility~age+education+disturbance+sex,
-          data=d.surveyenvir, family="multinomial", na.action=na.omit)
+          data=d.surveyenvir, family="multinomial")
 r.mnom2 <- regr(responsibility~age+education, data=d.surveyenvir[1:100,])
 drop1(r.mnom2)
 ## !!! wieso geht drop1 in der regr-fn nicht?
@@ -195,7 +188,7 @@ drop1(r.mnom2)
 ## sysfile('external/d.reacten.rda', package='regr0')
 data(d.reacten)
 t.d <- d.reacten[300:1700,]
-r.lin <- regr(log10(q)~time,data=t.d)
+r.lin <- regr(log10(q)~time, data=t.d)
 t.cl <- unname(coefficients(r.lin))
 t.r <- regr(q~theta1*exp(-theta2*time), data=t.d, nonlinear=TRUE,
              start=c(theta1=10^t.cl[1],theta2=t.cl[2]))
@@ -219,7 +212,7 @@ require(survival) ## for dataset ovarian and >3 functions
 ##-     data = ovarian, dist = "extreme") ## not the same
 r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
                data = ovarian, family="weibull")
-plot(r.surv)
+## plot(r.surv)  # !!!
 r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 length(residuals(r.coxph, type="martingale"))
 
@@ -231,7 +224,7 @@ t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1)
 r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
 
 bladder1$sizej <- jitter(bladder1$size)
-plresx(r.sr, vars="sizej")
+plresx(r.sr, xvars="size") ## !!! falsche limits
 ## d.cmbscores <- t.d
 ## ===================================================================
 ## Tobit

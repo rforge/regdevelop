@@ -1,0 +1,13 @@
+Package: plgraphics
+Type: Package
+Title: Building regression models
+Version: 0.5
+Author: Werner A. Stahel
+Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
+Imports: stats, graphics, MASS, survival, nnet, robustbase
+Suggests: knitr
+Description: Plots with high flexibility and easy handling, including
+  informative regression diagnostics for many models.
+License: GPL-2
+LazyLoad: yes
+VignetteBuilder: knitr

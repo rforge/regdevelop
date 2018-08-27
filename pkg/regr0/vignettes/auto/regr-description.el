@@ -10,7 +10,6 @@
     "article"
     "art11"
     "graphicx"
-    "Sweave"
     "inputenc"
     "geometry"
     "color"
@@ -20,6 +19,6 @@
    (LaTeX-add-labels
     "fig:taordered"
     "fig:plmatrix"
-    "fig:mbox"
+    "fig:mboxes"
     "fig:mboxes2")))
 

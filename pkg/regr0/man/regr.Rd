@@ -13,13 +13,8 @@
   respective print and plot methods.
 }
 \usage{
-regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
-  calcdisp = NULL, suffmean = 3, nonlinear = FALSE, start = NULL,
-  robust = FALSE, method = NULL, 
-  subset = NULL, weights = NULL, na.action = nainf.exclude,
-  contrasts=getUserOption("regr.contrasts"),
-  model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
-  factorNA = TRUE, testlevel = 0.05, hatlim=c(0.99,0.5), ...)
+regr(formula, data=NULL, family=NULL, robust = FALSE, method=NULL, 
+     nonlinear = FALSE, start=NULL, subset=NULL, weights=NULL, offset=NULL, ...)
 
 \method{summary}{regr}(object, ...)
 }
@@ -27,7 +22,6 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
 \arguments{
   \item{formula}{ a symbolic description of the model to be fit. }
   \item{data}{ data frame containing the variables in the model. }
-  \item{tit}{ title (becomes tit attribute of result) }
   \item{family}{ character string describing the type of model and the
     fitting procedure. By default, \code{regr} will fit a model that is
     suitable for the response variable, if possible.\cr
@@ -46,13 +40,6 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
     naming a family function, a family function or the result of a call
     to a family function.  (See 'family' for details of family
     functions.) }
-  \item{dist}{only used for survival regression if \code{family} is
-  \code{NULL} (the default), introduced for compatibility with the
-    call to \code{survreg} }
-  \item{calcdisp}{ a logical value indicating whether, for
-    \code{family=binomial} and \code{family=poisson}, dispersion
-    should be calculated \code{(TRUE)} or set to 1 \code{(FALSE)} }
-  \item{suffmean}{!!!}
   \item{nonlinear}{if TRUE, a non-linear model is expected, to be fitted
     by \code{nlm}
   }
@@ -71,29 +58,11 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can
     be used to generate the vector. }
-  \item{weights}{ an optional vector of weights to be used for fitting. }
-  \item{na.action}{ a function which indicates what should happen when the data
-    contain 'NA's. The default is '\code{\link{nainf.exclude}}'.}
-  \item{contrasts}{contrasts used for factors. Either a named list that
-    determines contrasts for each factor or a character vector of two
-    elements giving the names of the functions to be used for unordered
-    and ordered factors, respectively. See \code{contrast.arg} in
-    \code{\link{model.matrix.default}} or \code{contrasts} in
-    \code{\link{options}}.
-    }
-  \item{model, x}{ logical values indicating whether the model frame or
-    the model matrix, respectively, should be included as a component
-    of the returned value. }
-  \item{termtable}{if \code{FALSE}, the \code{regr} type term table will
-    not be generated}
-  \item{vif}{ a logical value indicating whether the collinearity
-    measure R2.j ahould be calculated }
-  \item{factorNA}{ a logical value indicating whether missing values in
-    factors should be re-coded by a respective level }
-  \item{testlevel}{level for significance testing and confidence intervals}
-  \item{hatlim}{bound for leverages to be used in standardizing
-    residuals and calculation of standardized residuals from smooth}
-  \item{\dots}{ other argument to be passed to the fitting function }
+  \item{weights}{ an optional vector of weights to be used for
+    fitting. }
+  \item{offset}{sometimes used to help specify the model.}
+  \item{\dots}{ additional arguments, which are passed to %%the fitting function
+    \code{regr.control}, see \code{?regr.control}}
   \item{object}{'summary.regr' simply returns its only argument
     \code{object}.}
 }
@@ -108,25 +77,6 @@ regr(formula, data = NULL, tit = NULL, family = NULL, dist = NULL,
     degree terms (continuous or binary explanatory variables and
     factors).
     The columns are
-%%     \item{coef}{estimated coefficients for single degree terms}
-%%     \item{ciLow, ciHigh}{confidence interval}
-%%     \item{df}{degrees of freedom}
-%%     \item{testst}{test statistic}
-%%     \item{signif}{significance measure}
-%%     \item{p.value}{p value}
-%%     \item{p.symb}{significance "stars"}
-%%     \item{stcoef}{standardized coefficients}
-%%     \item{R2.x}{collinearity measure}
-%% \cr
-%%     -- \ {coef}: \ {estimated coefficients for single degree terms}\cr
-%%     -- \ {ciLow, ciHigh}: \ {confidence interval}\cr
-%%     -- \ {df}: \ {degrees of freedom}\cr
-%%     -- \ {testst}: \ {test statistic}\cr
-%%     -- \ {signif}: \ {significance measure}\cr
-%%     -- \ {p.value}: \ {p value}\cr
-%%     -- \ {p.symb}: \ {significance "stars"}\cr
-%%     -- \ {stcoef}: \ {standardized coefficients}\cr
-%%     -- \ {R2.x}: \ {collinearity measure}\cr
     The \code{print} method for the whole \code{regr} object will
     by default not show all of them.
 }

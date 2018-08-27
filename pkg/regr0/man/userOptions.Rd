@@ -41,9 +41,10 @@ UserDefault
 }
 \examples{
 ## see example(stamp)
+
 ## set options
 userOptions(project="Example A",  step="regression analysis")
-userOptions(show.dummycoef=FALSE)  ## suppress dummy coefficients
+userOptions(show.termeffects=FALSE)  ## suppress dummy coefficients
                         ##  for factors when using  print.regr 
 userOptions("regr.contrasts")  ##  c("contr.wsum","contr.wpoly")
 

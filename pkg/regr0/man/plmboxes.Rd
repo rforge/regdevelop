@@ -15,7 +15,7 @@ Multibox plots
 \usage{
 plmboxes(formula, data, width=1, at=NULL,
     probs=NULL, outliers=TRUE, na=FALSE,
-    refline=NULL, add=FALSE, ilim=NULL, ilimext=0.05,
+    refline=NULL, add=FALSE, ilim=NULL, ilimfac=4, ilimext=0.05,
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsvert=FALSE, mar=NULL,
     widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, ...)
@@ -72,6 +72,8 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, width=1, wfac=NULL,
   squeezed scale, such that areas are no longer proportional to
   probabilities.
 }
+\item{ilimfac}{scalar factor by which the range 'middle range' interval
+  is expanded, see \code{?\link{pllimits}}}
 \item{ilimext}{number ruling the amount of expansion of the vertical
   plotting range beyond the range of the data values (or \code{ilim}
   if used): the data range will be extended by the factor 'ilimext'

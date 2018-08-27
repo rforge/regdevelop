@@ -9,15 +9,15 @@
 }
 \usage{
 simresiduals(object, ...)
-\method{simresiduals}{default}(object, nrep=19, simy=NULL, stres=TRUE, ...)
-\method{simresiduals}{glm}(object, nrep=19, simy=NULL,
+\method{simresiduals}{default}(object, nrep=19, simfunction=NULL, stres=TRUE, ...)
+\method{simresiduals}{glm}(object, nrep=19, simfunction=NULL,
         glm.restype="working", ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{result of fitting a regression}
   \item{nrep}{number of replicates}
-  \item{simy}{if a function, it is used to generate random values for
+  \item{simfunction}{if a function, it is used to generate random values for
     the target variable, with three arguments, which will be fed by
     the number of observations, the fitted values, and
     \code{object$sigma} in the case of \code{simresiduals.default},

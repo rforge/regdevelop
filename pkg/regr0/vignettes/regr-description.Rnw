@@ -2,7 +2,7 @@
 %\SweaveUTF8
 \documentclass[11pt]{article}
 \usepackage{graphicx}
-\usepackage{Sweave}
+%% \usepackage{Sweave}
 \usepackage[utf8]{inputenc}
 %% \usepackage{germanU}
 %%- \usepackage[noae]{Sweave}
@@ -22,7 +22,7 @@
 %% ================================================================
 
 \begin{document}
-\SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
+%% \SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
 \setkeys{Gin}{width=1\textwidth}
 \baselineskip 15pt
 
@@ -50,6 +50,7 @@ library(regr0) ##, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
 mframe()
 userOptions(project="regr0 documentation")
 
+options(warn=1)
 @ 
 \section{Introduction}
 
@@ -471,7 +472,7 @@ regression and censored responses.
 \end{itemize}
 
 The number of plots produced by calling \T{plot} on a \T{regr} object may
-be elevated. The arguments \T{plotselect} and \T{xplot} allow for 
+be elevated. The arguments \T{plotselect} and \T{xvars} allow for 
 requiring or deselecting any of them. 
 The arguments to \T{plot.regr} are numerous and allow for varying many
 features, including those for which the default behavior is discussed below.
@@ -490,10 +491,10 @@ descriptions.
 
 \begin{figure}[htb]
 %% \centerline{\includegraphics[width=1\textwidth]{p-plotregr-ta}}
-<<taplot, source=F, fig=T, echo=F>>=
+<<taplot, source=F, echo=F>>=
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-plot(r.blast, plotselect=c(ta=3, default=0), xplot=F, mf=c(1,1) )
+plot(r.blast, plotselect=c(resfit=3, default=0), xvars=F, mf=c(1,1) )
 
 @ 
 \caption{A Tukey-Anscombe plot.}
@@ -701,7 +702,7 @@ observed mean differences. Corresponding error bars are shown in the
 plot. 
 
 \Bfig
-<<xdist, fig=T>>=
+<<xdist>>=
 data(d.blast)
 rr <- regr(tremor~distance+charge, data=d.blast)
 ## an inadequate model!
@@ -804,11 +805,11 @@ shown.
 Note that this definition may not have appeared in the literature yet.
 
 \Bfig
-<<taordered, fig=T>>=
+<<taordered>>=
 data(d.surveyenvir)
 dd <- d.surveyenvir
 t.rr <- regr(disturbance~age+education+location, data=dd)
-plot(t.rr, plotselect=c(ta=3, default=0), xplot=F, mf=c(1,1),
+plot(t.rr, plotselect=c(resfit=3, default=0), xvars=F, mf=c(1,1),
      ask=FALSE)
 
 @ 
@@ -889,7 +890,7 @@ In \T{regr0}, there is a function with more flexibility, called
 \end{itemize}
 
 \Bfig
-<<plmatrix, fig=T>>=
+<<plmatrix>>=
 plmatrix(iris[,1:4], main="Iris", pch=as.numeric(iris[,"Species"]))
 
 @
@@ -915,11 +916,11 @@ adapted to the number of observations to be represented.
 For moderate sample sizes, ``octiles'' appear suitable.
 
 \Bfig
-<<mboxes, fig=T>>=
+<<mboxes>>=
 plmboxes(residuals(r.blast)~location, data=d.blast)
 
 @ 
-\Efig{\label{fig:mbox}
+\Efig{\label{fig:mboxes}
   Multibox plot of residuals for the explanatory factor \T{location}
   }
 Since raw quantiles may be poor characterizations for discrete data,
@@ -933,7 +934,7 @@ the relationship of the continuous variable with any binary variable.
 Figure \ref{fig:mboxes2} shows the distribution of ....
 
 \Bfig
-<<mboxes2, fig=T>>=
+<<mboxes2>>=
 data(d.blast)
 plmboxes(tremor~location+I(charge>5), data=d.blast)
 

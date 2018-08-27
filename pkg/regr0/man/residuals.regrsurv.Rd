@@ -52,6 +52,7 @@ time, given the censoring, is used to calculate quantiles, see
 }
 \examples{
 require(survival)
+%% should be   data(aml, package="survival")
 t.r <- regr(Surv(time,status)~x, data=aml, family="weibull")
 residuals(t.r)
 }

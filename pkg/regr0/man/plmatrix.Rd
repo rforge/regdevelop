@@ -1,6 +1,7 @@
 \name{plmatrix}
 \alias{plmatrix}
 \alias{panelDefault}
+\alias{panel.smooth}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Scatterplot Matrix}
 \description{
@@ -14,17 +15,22 @@
 }
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = panelDefault,
-  nrows = 0, ncols = nrows, save = TRUE, robrange. = FALSE, range. = NULL,
+  nrow = 0, ncol = nrow, save = TRUE, robrange. = FALSE, range. = NULL,
   pch = 1, col = 1, reference = 0, ltyref = 3,
   log = "", xaxs = "r", yaxs = "r",
   xaxmar = NULL, yaxmar = NULL, xlabmar=NULL, ylabmar=NULL,
   vnames = NULL, main = "", xlab = NULL, ylab = NULL,
   cex = NA, cex.points = NA, cex.lab = 1, cex.text = 1.3, cex.title = 1,
   bty = "o", oma = NULL, mar = rep(0.2, 4), keeppar = FALSE,
-  axes = TRUE, ask=par("ask"), ...)
+  axes = TRUE, ...)  %% ask=par("ask"), 
 
-panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
-  size=NULL, ...)
+panelDefault(xx, yy, indx, indy, pch=par("pch"), col=par("col"), 
+  cex=par("cex"), size=NULL, ...)
+
+panel.smooth(xx, yy, indx, indy, pch=par("pch"), col=par("col"),
+  cex=par("cex"), ...)
+%% args xx and yy instead of x and y in order to distinguish them here
+%%  in the .Rd file
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -41,8 +47,8 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
     to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not,
     or to a modification of \code{sunflowers} if both are factors.
   }
-  \item{nrows}{number of rows of panels on a page}
-  \item{ncols}{number of columns of panels on a page}
+  \item{nrow}{number of rows of panels on a page}
+  \item{ncol}{number of columns of panels on a page}
   \item{save}{if y is not provided and \code{save==TRUE},
     the first row and the last column are suppressed.}
   \item{robrange.}{if TRUE, robust plot ranges will be used}
@@ -84,13 +90,13 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
     the old values will be restored (default).}
   \item{axes}{logical. If TRUE, axes will be drawn and labels shown
     (default).}
-  \item{ask}{Should R ask before erasing the screen?
-    The default is 'getOption('ask'), followed by TRUE for certain
-    graphical devices.}
+%%-   \item{ask}{Should R ask before erasing the screen?
+%%-     The default is 'getOption('ask'), followed by TRUE for certain
+%%-     graphical devices.}
   \item{\dots}{further arguments passed to the \code{panel} function
     and possibly further to functions called by the panel function\cr}
 
-  Arguments for \code{panelDefault}
+  Arguments for \code{panelDefault} and \code{panel.smooth}
   \item{xx}{values of the horizontal variable}
   \item{yy}{values of the vertical variable}
   \item{indx}{index of the variable shown horizontally, among the
@@ -106,13 +112,18 @@ panelDefault(xx, yy, indx, indy, pch=1, col=1, cex=par("cex"),
   \code{panelDefault}, see above. If some arguments are not used,
   just introduce them as arguments to the function anyway in order to
   avoid (unnecessary) error messages and stops.
-  The names \code{pch} and \code{col} must appear among the argument names.
+  The names \code{pch} and \code{col} must appear among the argument
+  names.
+
+  \code{panel.smooth} only calls \code{\link{panel.smooth}} of the
+  \code{graphics} package, 
+  absorbing the arguments that are needed but not used.
 
   Since large scatterplot matrices lead to tiny panels, \code{plmatrix}
-  splits the matrix into blocks of at most \code{nrows} rows and
-  \code{ncols} columns. If these numbers are missing, they default to
-  \code{nrows=5} and \code{ncols=6} for landscape pages, and to
-  \code{nrows=8} and \code{ncols=5} for portrait pages.
+  splits the matrix into blocks of at most \code{nrow} rows and
+  \code{ncol} columns. If these numbers are missing, they default to
+  \code{nrow=5} and \code{ncol=6} for landscape pages, and to
+  \code{nrow=8} and \code{ncol=5} for portrait pages.
 }
 \value{
   none

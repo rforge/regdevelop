@@ -7,8 +7,8 @@
   order to meet the argument conventions used in the \code{regr0} package.
 }
 \usage{
-smoothRegr(x, y, weights, par = 5 * length(x)^log10(1/2),
-  iterations = 50, minobs=NULL)
+smoothRegr(x, y, weights = NULL, par = 5 * length(x)^log10(1/2),
+  iterations = 50, minobs=NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -26,6 +26,8 @@ smoothRegr(x, y, weights, par = 5 * length(x)^log10(1/2),
 }
 \item{minobs}{minimal number of observations. If less valid observations
   are provided, the result is \code{NULL}.
+}
+\item{...}{Further arguments, passed to \code{loess}.
 }
 }
 \value{vector of smoothed values. If \code{loess} fails, NAs will be

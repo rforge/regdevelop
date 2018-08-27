@@ -7,9 +7,9 @@
 }
 \usage{
 \method{print}{regr}(x, call=TRUE, correlation = FALSE,
-      dummycoef = getUserOption("show.dummycoef"),
+      termeffects = getUserOption("show.termeffects"),
       termcolumns = getUserOption("termcolumns"),
-      allcoefcolumns = getUserOption("allcoefcolumns"),
+      termeffcolumns = getUserOption("termeffcolumns"),
       digits = max(3, getUserOption("digits") - 2), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
       na.print = getUserOption("na.print"),
@@ -20,19 +20,19 @@
   \item{call}{logical: should the call to \code{regr} be shown?}
   \item{correlation}{logical: should correlation among estimated
     coefficients be shown?}
-  \item{dummycoef}{logical: should the dummy coefficients for the
-    factors be shown? By default, coefficients corresponding to factors
-    are shown}
+  \item{termeffects}{logical: should the dummy coefficients for the
+    factors be shown? if TRUE (default), coefficients corresponding
+    to factors are shown. If $>1$, all termeffects are shown}
   \item{termcolumns}{columns of the term table to be printed.
     If \code{NULL}, all columns will be printed.}
-  \item{allcoefcolumns}{columns of the (dummy) coefficent tables to be
-    printed.} % See \code{\link{print.allcoef}}.
+  \item{termeffcolumns}{columns of the (dummy) coefficent tables to be
+    printed.} % See \code{\link{print.termeffects}}.
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
   \item{signif.stars}{logical: should significance asterisks be shown?
     A legend will also be shown after the term table.
     To avoid the legend, set \code{signif.stars} false and include
-    \code{"p.symb"} in \code{allcoefcolumns}.}
+    \code{"p.symb"} in \code{termeffcolumns}.}
   \item{na.print}{character string used to display NAs}
   \item{residuals}{logical: should summary(residuals) be shown?}
   \item{niterations}{logical: should number of iterations be shown
@@ -54,7 +54,7 @@
             data=d.blast)
   print(r.blast,
     termcolumns = c("coef","ciLow","ciHigh","df","signif"),
-    allcoefcolumns = c("coef","ciLow","ciHigh"),
+    termeffbcolumns = c("coef","ciLow","ciHigh"),
     correlation=TRUE, symbolic.cor=TRUE)
 }
 \keyword{print}

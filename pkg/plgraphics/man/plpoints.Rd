@@ -1,0 +1,146 @@
+\name{plpoints}
+\alias{plpoints}
+\alias{plbars}
+\alias{plframe}
+\alias{pltitle}
+\alias{plaxis}
+\alias{plsmooth}
+\alias{plsmoothlines}
+\alias{plreflines}
+\alias{plmark}
+
+\title{Low level plotting functions for the 'pl' system
+}
+\description{
+  These functions do the plotting of points and enhancing lines
+  based on the 'pl' paradigm
+}
+\usage{
+plframe(x, y, plargs=NULL, axes = 1:2, xlab = NULL, ylab = NULL,
+  plextext = NULL, axcol = rep(1, 4), ploptions = NULL)
+
+pltitle(main=NULL, sub=NULL, plargs=NULL, cex=NULL, cexmin=NULL, 
+  side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
+  doc=NULL, sure=TRUE)
+
+plaxis(axis, x, lab=TRUE, range=NULL, col=1, ...)
+
+plpoints(x, y, type="p", plargs=NULL, plab=NULL,
+  pch=NULL, col=NULL, lty=NULL, condquant = TRUE)
+
+plbars(x, y,  ploptions = NULL, plargs = NULL)
+
+plsmooth(x, y, plargs = NULL, band=FALSE)
+plsmoothlines(smoothlines, x, y, plargs=NULL)
+
+plreflines(reflines, x=NULL, innerrange=NULL, y=NULL,
+  cutrange = c(x = TRUE, y = FALSE),  ploptions = NULL, plargs=NULL)
+
+plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
+}
+%- maybe also 'usage' for other objects documented here.
+\arguments{
+  \item{x}{coordinates for the horizontal axis
+  }
+  \item{y}{coordinates for the vertical axis
+  }
+  \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
+  }
+  \item{plab}{labels for displaying points. Overrides labels provided by
+    \code{plargs$pdata[["plab"]]}.
+  }
+  \item{axes}{indexes of axes to be drawn by \code{plframe}
+  }
+  \item{axcol}{colors for drawing axes scales
+  }
+  \item{xlab, ylab}{axis labels}
+  \item{main, sub}{main title and subtitle}
+  \item{plextext}{extension of the plotting area beyond the possibly
+    already extended range. This helps to accomodate sybmbols.
+  }
+  \item{cex}{character size. May be vector of length 3, giving size for
+    main title, subtitle, and \code{tit} attribute of title,
+    respectively. The default is given by \code{userOptions("cex.title")}.
+  }
+  \item{side}{For \code{pltitle}: in which margin should the text
+    be shown?}
+  \item{cexmin}{minimal character size, to be used to adjust the
+    character size to the length of the text (if \code{cex} is \code{NULL})}
+  \item{line}{line in margin on which the main title is placed -- or the
+    subtitle if \code{main} is \code{NULL}}
+  \item{adj}{text adjustment, scalar between 0 and 1}
+  \item{outer.margin}{logical: should title text be placed in outer margin?}
+  \item{col}{color for the title text or axis line and tickmarks}
+  \item{axis}{integer indicating which axis is to be drawn}
+  \item{lab}{logical: should labels for tickmarks be displayed?}
+  \item{range}{range in which tickmarks are set}
+  \item{doc}{logical: should the \code{tit} attribute of \code{main}
+    be displayed if available?}
+  \item{sure}{logical: if \code{FALSE}, nothing will be done if
+    there are multiple frames and the current one is not the first.}
+  \item{type}{type of displaying points. See \code{?\link{points}}.}
+  \item{pch, lty}{... and \code{col} in \code{plpoints}:
+    plotting character(s), color of plotting points,
+    and line type. %% to be used for \code{plpoints}.
+    Overrides other settings, defined in \code{plargs}.
+  }
+  \item{condquant}{logical: should bars be drawn for censored data?
+    If \code{FALSE}, censored observations will be set to the median of
+    the conditional distribution and shown by a different plotting
+    character, see argument \code{censored} of
+    \code{\link{plappearance}}.
+    If \code{NULL}, the standard plotting character will be used.
+  }
+  \item{smoothlines}{for \code{plsmoothlines}: result of a smooth fitting}
+  \item{band}{logical: should a band (e.g., a confidence band)
+    be drawn together with the smooth?
+  }
+  \item{reflines}{for \code{plreflines}: ...!!!}
+  \item{innerrange}{for \code{plreflines}: logical: !!!}
+  \item{cutrange}{for \code{plreflines}: logical vector of length 2:
+    should the reference line(s) be cut at the inner plotting range?
+    Otherwise, it will be continued outside it with the appropriate
+    transformation.
+  }
+  \item{markextremes}{proportion of observations that should be labeled
+    because they show extreme values for a variable
+  }
+  \item{plabel}{point labels to be used to mark extreme points
+  }
+  \item{\dots}{absorbs extra arguments}
+}
+\details{
+  \code{plframe} draws axes according to argument \code{axes}.
+  It looks for attributes of \code{x} and \code{y}, such as
+  \code{innerrange} and \code{axisat}.
+  If there is an attribute \code{axislabels}, it has only an effect if
+  \code{axisat} is also available. If it is numeric,
+  it specifies the values of \code{axisat} for which labels should be
+  shown. This facilitates setting more tick marks than labels, see the
+  respecive example.
+
+  \code{plargs} and \code{ploptions} may be specified, but are usually
+  generated by calling \code{pl.control}.
+}
+  
+\author{Werner A. Stahel
+}
+
+\seealso{\code{\link{plframe}; \link{plsmooth}; \link{plreflines};
+    \link{pl.control}}
+}
+\examples{
+plyx(Sepal.Width ~ Sepal.Length, data=iris)
+
+## again, each step separately
+t.dt <- .plargs$pldata
+.plargs$gridlines <- TRUE
+plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
+plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
+t.plab <- plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03,
+                 plargs=.plargs)
+plpoints(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs, plab=t.plab) 
+}
+
+\keyword{aplot}
+

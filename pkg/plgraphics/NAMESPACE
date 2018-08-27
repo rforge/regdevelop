@@ -1,0 +1,84 @@
+importFrom("stats",
+           ## S3 Generics for which we define methods:
+           add1, drop1, fitted, predict, residuals,
+           .checkMFClasses, .getXlevels, IQR,
+           add.scope, as.formula,
+           binomial, coef, coefficients, contr.sum, contr.poly,
+           dcauchy, delete.response, deviance, df.residual,
+           dist, dlogis, dnorm, 
+           formula, glm.fit, hat, hatvalues, lm, lm.fit, lm.wfit, loess,
+           mad, mahalanobis, median, model.frame, model.matrix,
+           ## model.weights, model.extract, 
+           na.exclude, na.pass, 
+           nobs, pcauchy, pchisq, pf, plogis,
+           pnorm, ppoints, pt, pweibull, qchisq,
+           qlogis, qnorm, qqnorm, quantile, rbinom,
+           resid, rnorm, rpois, runif, sd, setNames,
+           terms,
+           model.response, napredict, naresid, qt,
+           update, update.formula, var)
+importFrom("utils", getS3method, recover, str)
+importFrom("graphics", plot, abline, axis, box, frame, legend,
+           lines, matlines, mtext, par, points, polygon,
+           segments, symbols, text)
+importFrom("grDevices", col2rgb, dev.list, palette, rgb)
+
+importFrom("MASS", polr)
+importFrom("nnet", multinom, nnet.default)
+importFrom("survival", "coxph", "survreg", "Surv")
+
+importFrom("robustbase", lmrob)
+
+## importFrom("quantreg", rq)
+
+### This exports everything but  ".foobar" :
+## exportPattern("^[^\\.]")
+
+## Ok, now we are better and do not export all
+export(asinp, 
+       BR, DB, IR,
+       ## add1.regr, ## add1.default, add1.mlm, ## see below
+       c.mon, c.months, c.colors, 
+       cexSize, colorpale, condquant,
+       c.weekdays,
+       doc, "doc<-",
+       dropdata, 
+       fitcomp,
+       ## fitted.regr, fitted.polr,
+       gensmooth, genvarattributes,
+       getmeth, getvariables, getvarnames, 
+       i.def, is.formula,
+       last, legendr, leverage, linear.predictors, logst, 
+       modarg, 
+       nainf.exclude, "%nin%", notna, #narestore, 
+       panelDefault, panelSmooth,
+       ploptions, ploptionsDefault, .ploptions,
+       plyx, plmatrix, plmfg, 
+       plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
+       pl.control, plinnerrange, pllimits, plcoord, plmark,
+       plframe, pltitle, plaxis, plpoints, plbars,
+       plsmooth, plsmoothlines, plreflines, 
+       plot.regr, plotregr.control, 
+       plres2x, plresx, plfitpairs, ## plTA.polr,
+       ## predict.mlm, predict.polr, ## predict.regr,
+       drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
+       quantilew, quinterpol,
+       ## residuals.regr,
+       residuals.polr, ## residuals.regrcoxph,
+       ## residuals.regrsurv,
+       robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
+       smoothRegr, stamp,
+       sumna,
+       Surv, ## need to export these since otherwise,
+       ## they cannot be used in the formula of a regr call without
+       ## require-ing the package survreg
+       tit, "tit<-", transferAttributes, 
+       varattributes, warn
+       )
+
+S3method(plot, regr)
+
+S3method(residuals, regr)
+S3method(residuals, polr)
+S3method(residuals, regrsurv)
+S3method(residuals, regrcoxph)
