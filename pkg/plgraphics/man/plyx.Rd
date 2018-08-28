@@ -27,14 +27,6 @@ plyx(x, y = NULL, group = NULL, data = NULL, type = "p",
   }
   \item{xlab, ylab}{axis labels}
   \item{type}{type of plot, see \code{?\link{plot.default}}}
-%%-  \item{linecol}{colors to be used for the y variables. This is useful in
-%%-    case there is more than one.
-%%-    If \code{NULL}, \code{plyx} will use the \code{linecol} attribute of
-%%-    the variables in \code{data}. If this is not available,
-%%-    \code{plargs$plappearance$default$linecol} will be used for
-%%-    \code{type}s \code{"l", "b"} and
-%%-    \code{plargs$plappearance$default$col} for other \code{type}s.
-%%-  }
   \item{markextremes}{proportion of extreme residuals to be labeled.
     If all points should be labeled, let \code{markextremes=1}.}
   \item{rescale}{logical. Only applies if there are multiple y

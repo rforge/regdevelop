@@ -169,7 +169,7 @@ logst <- function(data, calib=data, threshold=NULL, mult=1)
     if (is.logical(threshold)&&threshold) 
       threshold <- attr(data, "threshold")
     if (!length(threshold)%in%c(1, lncol))
-      stop("!logst! argument `threshold` is inadequate")
+      stop("!logst! argument 'threshold' is inadequate")
     lthr <- rep(threshold, length=lncol)
     ljdt <- !is.na(lthr)
   } else {
@@ -279,7 +279,7 @@ doc <- function(x) attr(x,"doc")
 ## ---
 tit <- function(x) attr(x,"tit")
 ## ---
-"tit<-" <- function(x, value) ## ! argument must be `value`. demanded by attr
+"tit<-" <- function(x, value) ## ! argument must be 'value'. demanded by attr
 {
   attr(x, "tit") <- value
   x
@@ -306,7 +306,7 @@ dropdata <- function(data, rowid=NULL, incol="row.names", colid=NULL)
     else {
       incol <- if (is.numeric(incol)) (1:ncol(data))[incol] else
       match(incol, colnames(data))
-      if (is.na(incol)) stop("misspecified argument `incol`")
+      if (is.na(incol)) stop("misspecified argument 'incol'")
       li <- match(rowid,data[,incol],nomatch=0)
     }
     if (any(li==0)) warning(":dropdata: observations",

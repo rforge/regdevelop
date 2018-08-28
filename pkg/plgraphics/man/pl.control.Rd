@@ -13,7 +13,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
            main = NULL, sub = ":", .subdefault = NULL,
            mar = NULL, 
            varlabels = NULL,
-           ploptions = NULL, .environment. = parent.frame(), ... )
+           ploptions = .ploptions, .environment. = parent.frame(), ... )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -54,8 +54,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
   }
   \item{ploptions}{Plotting attributes, e.g., plotting character,
     line types, colors and the like, for different aspects of plots.
-    Result of \code{\link{plappearance}}. Defaults to
-    \code{.ploptions}.
+    Result of \code{\link{ploptions}}. Defaults to \code{.ploptions}.
   }
   \item{.environment.}{used by the calling function to provide the
     environment for evaluating \code{x} and \code{y}

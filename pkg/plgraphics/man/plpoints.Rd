@@ -23,7 +23,7 @@ pltitle(main=NULL, sub=NULL, plargs=NULL, cex=NULL, cexmin=NULL,
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
   doc=NULL, sure=TRUE)
 
-plaxis(axis, x, lab=TRUE, range=NULL, col=1, ...)
+plaxis(axis, x, lab=TRUE, range=NULL, label=NULL, col=1, ...)
 
 plpoints(x, y, type="p", plargs=NULL, plab=NULL,
   pch=NULL, col=NULL, lty=NULL, condquant = TRUE)
@@ -74,6 +74,7 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
   \item{axis}{integer indicating which axis is to be drawn}
   \item{lab}{logical: should labels for tickmarks be displayed?}
   \item{range}{range in which tickmarks are set}
+  \item{label}{variable name}
   \item{doc}{logical: should the \code{tit} attribute of \code{main}
     be displayed if available?}
   \item{sure}{logical: if \code{FALSE}, nothing will be done if
@@ -88,7 +89,7 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
     If \code{FALSE}, censored observations will be set to the median of
     the conditional distribution and shown by a different plotting
     character, see argument \code{censored} of
-    \code{\link{plappearance}}.
+    \code{\link{ploptions}}.
     If \code{NULL}, the standard plotting character will be used.
   }
   \item{smoothlines}{for \code{plsmoothlines}: result of a smooth fitting}

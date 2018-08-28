@@ -21,7 +21,7 @@ pl.control <-
   ## ploptions
   ploptions <- i.def(ploptions, .ploptions)
   lnmd <- setdiff(names(ploptionsDefault), names(ploptions) )
-  if (length(lnmd)) ploptions <- c(ploptions, plotionsDefault[lnmd])
+  if (length(lnmd)) ploptions <- c(ploptions, ploptionsDefault[lnmd])
   lnmdots <- setdiff(names(lcall), c("",i.argPlcontr,i.argPldata))
   if (length(lnmdots)) {
     lls <- do.call("list",as.list(lcall[lnmdots]))
@@ -573,6 +573,7 @@ plframe <-
   if (is.null(ploptions)) ploptions <- plargs$ploptions
   lext <- rep(i.getploption("plext"),length=4)
   plextext <- rep(i.def(plextext, 0, i.getploption("plextext"), 0), length=4)
+  axcol <- rep(i.def(axcol,1), length=4)
   lx <- if (is.data.frame(x)) x[,1] else x ## x[,2] ## lpd[,y]
   lrgx <- attr(lx,"plrange")
   if (is.null(lrgx))
@@ -599,10 +600,10 @@ plframe <-
        xlab = "", ylab = "", type="n", axes=FALSE, xaxs="i", yaxs="i")
   ## axis labels
   lmfg <- par("mfg")
-  if(lmar[1]>lmgp[1]+1 | lmfg[1]==lmfg[3])
-    mtext(c(xlab, attr(lx, "label"), "")[1], side=1, line=lmgp[1], xpd=TRUE)
-  if(lmar[2]>lmgp[1]+1 | lmfg[2]==1)
-    mtext(c(ylab, attr(ly, "label"), "")[1], side=2, line=lmgp[1], xpd=TRUE)
+##-   if(lmar[1]>lmgp[1]+1 | lmfg[1]==lmfg[3])
+##-     mtext(c(xlab, attr(lx, "label"), "")[1], side=1, line=lmgp[1], xpd=TRUE)
+##-   if(lmar[2]>lmgp[1]+1 | lmfg[2]==1)
+##-     mtext(c(ylab, attr(ly, "label"), "")[1], side=2, line=lmgp[1], xpd=TRUE)
   ## inner range
   lnmodx <- c(attr(lx, "nmod"),0,0)[1:2]
   lirgx <- c(attr(lx, "innerrange"), lrgx)[1:2]
@@ -658,11 +659,19 @@ plframe <-
 }
 ## --------------------------------------------------------------------
 plaxis <-
-  function(axis, x, lab=TRUE, range=NULL, col=1, ...)
+  function(axis, x, lab=TRUE, range=NULL, label=NULL, col=1, ...)
 {
   range <- i.def(range, i.def(attr(x, "innerrange"), attr(x, "plrange")),
               valuefalse = range(x,na.rm=TRUE))
   lat <- attr(x,"axisat")
+  label <- i.def(label, attr(x,"label"), valuefalse="")
+  lmar <- par("mar")
+  lmgp <- par("mgp")
+  lmfg <- par("mfg")
+  lIouter <- switch(axis, lmfg[1]==lmfg[3], lmfg[2]==1,
+                    lmfg[1]==1, lmfg[2]==lmfg[4])
+  if(lab & (lmar[axis]>lmgp[1]+1 | lIouter) )
+    mtext(label, side=axis, line=lmgp[1], xpd=TRUE, col=col)
   ## tick labels
   llab <- NULL
   if (lnat <- length(lat)) {
@@ -1059,7 +1068,7 @@ plcoord <-
 ## -------------------------------------------------------------------
 i.pchcens <-
   function(plargs, condquant)
-    ##  \Delta, \nabla, >, <, quadrat : pch= c(24, 25, 62, 60, 32)
+    ##  Delta, nabla, >, <, quadrat : pch= c(24, 25, 62, 60, 32)
 {
   if (is.null(condquant) | !is.null(lpc <- plargs$pldata$"(pch)"))
   return(lpc)
@@ -1151,7 +1160,8 @@ plyx <-
     }
     ## extend
     attr(ly1,"plrange") <-
-      lrgy1 + diff(lrgy1)*c(-1,1)*lIinner*plargs$ploptions$plext
+      lrgy1 + diff(lrgy1)*c(-1,1)*
+      ifelse(lIinner, ploptions$innerrange.ext, ploptions$plext)
   }
   ## mark extremes
   lmark <- i.getplopt(markextremes)
@@ -1212,6 +1222,7 @@ plyx <-
       ## smooth
       if (lIsmooth) { ## !!! lny>1
         if (lIgrp) plargs$pldata <- ldt[li,]
+        plargs$ploptions$smoothlines.col <- lpcol
         plsmooth(lxjg, ly1g, plargs=plargs)
       }
       ## reflines
@@ -1229,12 +1240,14 @@ plyx <-
           lyjg <- lyg[,lj]
           lrgj <- lrg[,lj]
           lpcol <- attr(lyjg, "col") ##  the color must reflect the variable
-##-           attr(ly[,lj],"innerrange")
-##-           if (is.null(lrgj)) lrgj <- attr(lyj, "plrange")
           if (!lIpch) lpchg <- attr(lyjg, "pch")
           if (rescale) {
             lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
             par(usr=lusr)
+          }
+          if (lIsmooth) {
+            plargs$ploptions$smoothlines.col <- lpcol
+            plsmooth(lxjg, lyjg, plargs=plargs)
           }
           plpoints(lxjg, lyjg, type=type, plargs=plargs,
                    plab=lplab, pch=lpchg, col=lpcol)
@@ -1242,8 +1255,8 @@ plyx <-
           lrgold <- lrgj
           if (rescale & lj==2) {
             lmfg <- par("mfg")
-            plaxis(4, ly[,lj], lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4], lrgj,
-                   col=lpcol)
+            plaxis(4, ly[,lj], lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
+                   range=lrgj, col=lpcol)
           }
         }
       }

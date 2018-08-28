@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  27 AUG 2018 10:48
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  28 AUG 2018 22:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -629,7 +629,8 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 154--155
 
 [2]
 Package color Info: Redefining color shadecolor on input line 167.
- <figure/plyx_pchar-1.pdf, id=18, 505.89pt x 505.89pt>
+ [3 </scratch/users/stahel/pl/vignettes/figure/plyx-1.pdf>]
+<figure/plyx_pchar-1.pdf, id=27, 505.89pt x 505.89pt>
 File: figure/plyx_pchar-1.pdf Graphic file (type pdf)
 
 <use figure/plyx_pchar-1.pdf>
@@ -640,9 +641,9 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 173--174
 [][] 
  []
 
-[3 </scratch/users/stahel/pl/vignettes/figure/plyx-1.pdf>]
+[4 </scratch/users/stahel/pl/vignettes/figure/plyx_pchar-1.pdf>]
 Package color Info: Redefining color shadecolor on input line 191.
- [4 </scratch/users/stahel/pl/vignettes/figure/plyx_pchar-1.pdf>]
+
 <figure/plyx_smooth-1.pdf, id=37, 505.89pt x 289.08pt>
 File: figure/plyx_smooth-1.pdf Graphic file (type pdf)
 
@@ -681,42 +682,56 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 251--252
 [][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 285.
+Package color Info: Redefining color shadecolor on input line 282.
 [7 </scratch/users/stahel/pl/vignettes/figure/innerrange-1.pdf>]
-<figure/ploptions-1.pdf, id=69, 505.89pt x 505.89pt>
-File: figure/ploptions-1.pdf Graphic file (type pdf)
+<figure/plyx_multipley-1.pdf, id=69, 505.89pt x 505.89pt>
+File: figure/plyx_multipley-1.pdf Graphic file (type pdf)
 
-<use figure/ploptions-1.pdf>
-Package pdftex.def Info: figure/ploptions-1.pdf used on input line 291.
+<use figure/plyx_multipley-1.pdf>
+Package pdftex.def Info: figure/plyx_multipley-1.pdf used on input line 287.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 291--292
+Overfull \hbox (17.0pt too wide) in paragraph at lines 287--288
 [][] 
  []
 
-[8 </scratch/users/stahel/pl/vignettes/figure/ploptions-1.pdf>]
-Underfull \hbox (badness 10000) detected at line 349
+[8 </scratch/users/stahel/pl/vignettes/figure/plyx_multipley-1.pdf>]
+Package color Info: Redefining color shadecolor on input line 307.
+
+<figure/ploptions-1.pdf, id=78, 505.89pt x 505.89pt>
+File: figure/ploptions-1.pdf Graphic file (type pdf)
+
+<use figure/ploptions-1.pdf>
+Package pdftex.def Info: figure/ploptions-1.pdf used on input line 313.
+(pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
+
+Overfull \hbox (17.0pt too wide) in paragraph at lines 313--314
+[][] 
+ []
+
+[9] [10 </scratch/users/stahel/pl/vignettes/figure/ploptions-1.pdf>]
+Underfull \hbox (badness 10000) detected at line 371
 []
  []
 
 
-Underfull \hbox (badness 10000) detected at line 353
+Underfull \hbox (badness 10000) detected at line 375
 []
  []
 
-[9] [10]
-Overfull \hbox (25.70363pt too wide) in paragraph at lines 496--501
+[11] [12]
+Overfull \hbox (25.70363pt too wide) in paragraph at lines 518--523
 \OT1/cmr/bx/n/10.95 Color  \OT1/cmr/m/n/10.95 If color (\OT1/cmtt/m/n/10.95 pco
 l\OT1/cmr/m/n/10.95 ) is a fac-tor, it will be con-verted into \OT1/cmtt/m/n/10
 .95 ploptions("group.col")[as.numeric(pcol)]\OT1/cmr/m/n/10.95 .
  []
 
-[11] [12] (/scratch/users/stahel/pl/vignettes/pl-description.aux) ) 
+[13] [14] (/scratch/users/stahel/pl/vignettes/pl-description.aux) ) 
 Here is how much of TeX's memory you used:
- 3155 strings out of 493014
- 43107 string characters out of 6130583
+ 3160 strings out of 493014
+ 43254 string characters out of 6130583
  114604 words of memory out of 5000000
- 6627 multiletter control sequences out of 15000+600000
+ 6631 multiletter control sequences out of 15000+600000
  11489 words of font info for 43 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  40i,6n,31p,307b,249s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -735,10 +750,10 @@ fonts/type1/public/amsfonts/cm/cmsy10.pfb></scratch/local/app/teTeX/08.16/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></scratch/local/app/teTeX/08.16/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></scratch/local/app/teTeX/
 08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on pl-description.pdf (12 pages, 210139 bytes).
+Output written on pl-description.pdf (14 pages, 222683 bytes).
 PDF statistics:
- 137 PDF objects out of 1000 (max. 8388607)
- 97 compressed objects within 1 object stream
+ 151 PDF objects out of 1000 (max. 8388607)
+ 106 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 31 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 36 words of extra memory for PDF output out of 10000 (max. 10000000)
 

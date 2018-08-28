@@ -24,10 +24,10 @@ importFrom("graphics", plot, abline, axis, box, frame, legend,
 importFrom("grDevices", col2rgb, dev.list, palette, rgb)
 
 importFrom("MASS", polr)
-importFrom("nnet", multinom, nnet.default)
+## importFrom("nnet", multinom, nnet.default)
 importFrom("survival", "coxph", "survreg", "Surv")
 
-importFrom("robustbase", lmrob)
+## importFrom("robustbase", lmrob)
 
 ## importFrom("quantreg", rq)
 
