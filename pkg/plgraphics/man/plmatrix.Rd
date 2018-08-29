@@ -121,7 +121,7 @@ panelSmooth(xx, yy, indx, indy, plargs, ...)
   by an argument \code{plargs} that is hidden in the ... argument list.
 }
 \examples{
-plmatrix(iris, main="Iris", pch=as.numeric(Species))
+plmatrix(iris, pch=as.numeric(Species))
 plmatrix(~Sepal.Length+Sepal.Width, ~Petal.Length+Petal.Width,
     data=iris, smooth=TRUE, plab=substr(Species,1,2))
 }

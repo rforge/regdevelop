@@ -21,6 +21,8 @@
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
+%\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
+%R-functions based on the 'pl' concept}
 %% ================================================================
 
 \begin{document}
@@ -139,6 +141,8 @@ plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, smooth.group=Species,
 @ 
 Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
 lines to be the same.
+The call to \T{plmfg} splits the screen essentially like 
+\T{par(mfrow=c(1,2))}.
 
 If the argument \T{group} is specified, separate plots will be generated
 for the different groups, thereby maintaining the plot ranges.
@@ -208,44 +212,132 @@ plyx(1:40, EuStockMarkets[1:40,], type="b")
 @ 
 
 If multiple x variables are given, a separate plot is drawn for each of them.
+<<plyx_multiplex, fig.height=5>>=
+plmfg(1,2)
+plyx(Sepal.Width~Sepal.Length+Petal.Length, data=iris, 
+     smooth.group=Species, pcol=Species)
+@ 
 
 \subsection{Marking extreme points}
-%% markextremes
+
+Extreme points are often of interest. They can easily be identified if they 
+are labelled. This is achieved by setting the argument \T{markextremes}.
+
+<<markextremes>>=
+plmfg(1,2)
+plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, markextremes=0.1)
+plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, 
+     markextremes=list(0,c(0.02,0.2)))
+@ 
 The default value of \T{markextremes} is 0 for \T{plyx}.
 If the argument is \T{NA}, it depends on the number of 
 observations: It is $1/(2\sqrt{n})$. 
 
-\Tit{Factors, \T{mboxes}}
+\subsection{Factors, multibox plot}
+If the x variable is a factor, R's generic plot function draws box plots.
+Since this often results in too much simplification, \T{plyx} shows a 
+``multibox plot'', which is a refinement of a boxplot, to be described in
+more detail below.
+
+[to be implemented]
+
+The multibox plot can also be called directly.
+<<mboxes>>=
+plmfg()
+plmboxes(Petal.Length~Species, data=iris)
+@ 
+%% !!! ausreisser verschwindet
 
 \Tit{Censored data}
 
 \Tit{Raw or transformed variables?}
 max(x1,x2)
 
-<<ploptions>>=
-t.plopt <- ploptions(basic.col="blue")
-plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plopt)
-@ 
-
 
 \section{Scatterplot matrix}
+The \T{pairs} plotting function of R has some inconvenient restrictions.
+If the number of variables is larger than about 8, the panels become so
+small that hardly anything can be observed. Furtherore, factors are simply 
+converted to numeric.
 
-\Tit{Multiple x}
-
-\Tit{Groups}
-
-\Tit{Same scales}
+The function \T{plmatrix} has much more flexibility. 
+If used for a small number of variables, it does a similar job as 
+\T{pairs}, but also provides the flexibility for the panels that have been
+described above.
 
 \T{plmatrix}
+<<plmatrix>>=
+plmatrix(iris, smooth.group=Species, pcol=Species)
+@ 
+
+\T{plmatrix} can also show any submatrix of the full scatterplot matrix.
+<<plmatrix_sub>>=
+plmatrix(~Petal.Length+Petal.Width, ~Sepal.Length+Sepal.Width, data=iris, 
+         smooth.group=Species, pcol=Species)
+@ 
 
 \section{Regression diagnostic plots}
 
+The primary purpose of developing \T{plgraphics} has been to improve
+regression diagnostic plots.
+The features are obtained by using \T{plot.regr}.
+
+<<plotregr>>=
+data(d.blast)
+rr <- 
+  lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
+
+plot.regr(rr, xvar=FALSE)
+@ 
+Before we describe the plots in some detail, let us first explain a 
+principle guiding the design of diagnostics.
+Each diagnostic (plot) should be specific for a well-identified potential 
+deficiency of the model.
+
+\Tit{Residuals on fit: the Tukey-Anscombe plot.}
+By default, the scatterplot of residuals against fitted values shows
+the points with the feature of outlier margins and marking of extremes in
+the residual direction. It adds a smooth line to show deviations from
+the linearity assumption. Another 19 smooth lines are shown to 
+mimik the variability of this smooth line under the hypothesis that the
+model is correct.
+It also adds a reference line indicating the direction of constant observed
+response values $Y$. This helps to see whether a transformation of $Y$
+could help to avoid any significant curvature.
+
+As a second diagram, the plot of absolute residuals against fitted values
+is shown.
+%% !!! V1 in absresfit
+Note that the absolute residuals in this plot are not the absolute values
+of the residuals used in the first plot. They differ in two ways:
+\Itm
+They are standardized to have the same variances.
+... weighted
+\Itm
+By default, they are modified because in the following way.
+Note first that the plot should show any dependence of the scale of the
+random errors on the model value.
+If the plot of residuals against fit shows a clear curvature, the
+residuals do not show only the random errors but also the bias of the
+regression function, which should be best approximated by the smooth line
+in that first plot. Therefore, the residuals from the smooth line are 
+used in the plot of absolute residuals against fit.
+Additionally, they are standardized using the same factor that is commonly
+used for standardizing the ordinary residuals.
+
+
+
+The argument \T{xvar=FALSE} indicates that by default, \T{plot.regr} 
+shows more diagrams: The plots of residuals against explanatory variables.
+
+
+plot.regr(rr, transformed=TRUE, reflinesband=TRUE)
 diagnostics should be specific 
 scale diagnostic should work even when bias is signalled
 
-\T{plot.regr}
 
 \Tit{Residuals against fit}
+
 
 \Tit{Absolute residuals against fit}
 residuals from smooth
@@ -280,6 +372,12 @@ plrex2x
 \Tit{ploptions}
 The graphical elements, like plotting character, color, line types, etc. 
 to be used in pl graphics are specified in the pl options. 
+<<ploptions>>=
+t.plopt <- ploptions(basic.col="blue")
+plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plopt)
+@ 
+
+
 They are analogous to the ordinary options, with two differences:
 \Itm
 The pl options are stored in a list \T{.ploptions} which is not erased when

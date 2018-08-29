@@ -1113,7 +1113,7 @@ plyx <-
   plargs <-
     if (lIplargs) {
       lcall$markextremes <- markextremes
-      ldtnm <- as.character(substitute(data))
+      ldtnm <- as.character(substitute(data))[1]
       lcall$.subdefault <- if (length(ldtnm)<30) ldtnm else ""
       do.call(pl.control, as.list(lcall[-1]))
     } else  eval(lcall[["plargs"]], sys.frame(1))
@@ -1166,7 +1166,7 @@ plyx <-
   ## mark extremes
   lmark <- i.getplopt(markextremes)
   lmk <- unlist(lmark)
-  lImark <- length(lmk)>0 && (any(is.na(lmk)||lmk>0))
+  lImark <- length(lmk)>0 && any(ifelse(is.na(lmk),TRUE,lmk>0))
   lImark <- is.na(lImark)||lImark
   lymark <- if (lImark & lny==1) ly  ## cannot mark extremes if  lny>1
   ##
