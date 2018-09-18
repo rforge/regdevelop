@@ -92,7 +92,7 @@ gensmooth(x, y, plargs = NULL, band = FALSE, power = 1,
 \author{Werner A. Stahel, ETH Zurich}
 
 \seealso{\code{\link{smoothRegr}},
-  \code{\link{plsmooth}}, \code{\link{plsmoothlines}}
+  \code{\link{plsmooth}}, \code{\link{plsmoothline}}
 }
 \examples{
 data(d.blast)
@@ -112,7 +112,7 @@ r.smx <- gensmooth( d.blast$dist, residuals(r.blast), plargs=t.plargs)
 
 plot(d.blast$dist, residuals(r.blast), main="Residuals against Regressor")
 abline(h=0)
-plsmoothlines(r.smx, d.blast$dist, resid(r.blast), plargs=t.plargs)
+plsmoothline(r.smx, d.blast$dist, resid(r.blast), plargs=t.plargs)
 ## or, without using plsmoothlines:
 ## for (lg in 1:length(levels(r.smx$group))) {
 ##   li <- as.numeric(r.smx$group)==lg 

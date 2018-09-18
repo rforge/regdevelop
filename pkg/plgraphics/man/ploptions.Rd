@@ -19,21 +19,26 @@ ploptionsDefault
     For those ploptionsions that are lists, \code{x} must be a list, too.
     It contains the components that should be modified, see the second
     example below.
+    If \code{x} is set, all further arguments will be ignored.
   }
   \item{list}{a named list of options to be set}
-  \item{default}{default value for \code{getPloptions}.
-    If \code{NULL}, the option will be set according to
-    \code{ploptionsDefault}.}
+  \item{default}{character vector of option names.
+    The named options will be set according to \code{ploptionsDefault}.
+    \code{default="all"} or \code{=TRUE} will reset all options.
+    If \code{default} is set and \code{x} is not, all further arguments
+    will be ignored.
+  }
   \item{ploptions}{the list of options that should be modified}
   \item{assign}{logical: should the list be assigned to
     \code{.ploptions}?}    
   \item{...}{any ploptions can be defined or modified,
-    using 'name = value'.}
+    using \code{name = value}, as in \code{\link{options}} of basic R.}
 }
-\value{For 'ploptions()', a list of all set UserOptions sorted by name.  
+\value{For \code{ploptions()}, a list of all set UserOptions sorted by name.  
 
-  For 'ploptions(name)', a \emph{list} of length one containing the set
-  value, or 'NULL' if it is not set.
+  For \code{ploptions(x)}, where \code{x} is the name of a pl option,
+  a \emph{list} of length one containing the option,
+  or \code{NULL} if it is not such a name.
 
   For uses setting one or more options, the important effect is a changed
   list \code{.ploptions} that is used by the \code{pl} graphical
@@ -52,7 +57,7 @@ ploptionsDefault
 }
 \author{Werner A. Stahel}
 \note{In contrast to the \code{\link{options}} of R base,
-  the \code{UserOptions} are stored on the \code{.GlobalEnv}
+  the \code{plptions} are stored in the \code{.GlobalEnv}
   (if anyone is changed)
   and will be recovered if the latter is stored and loaded again.
 }

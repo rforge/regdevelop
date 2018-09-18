@@ -7,7 +7,7 @@
   the concept of the  plplot  package
 }
 \usage{
-plyx(x, y = NULL, group = NULL, data = NULL, type = "p",
+plyx(x, y = NULL, group = NULL, data = NULL, type = "p", panel = plpanel,
   xlab = NULL, ylab = NULL, markextremes = 0, rescale = TRUE,
   mar = NULL, ...)
 }
@@ -27,6 +27,7 @@ plyx(x, y = NULL, group = NULL, data = NULL, type = "p",
   }
   \item{xlab, ylab}{axis labels}
   \item{type}{type of plot, see \code{?\link{plot.default}}}
+  \item{panel}{panel function to do the actual drawing}
   \item{markextremes}{proportion of extreme residuals to be labeled.
     If all points should be labeled, let \code{markextremes=1}.}
   \item{rescale}{logical. Only applies if there are multiple y

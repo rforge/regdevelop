@@ -6,7 +6,8 @@
   This is a short-cut to set some graphical parameters
 }
 \usage{
-plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, row = TRUE,
+plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, nrow = NULL, ncol = NULL,
+  row = TRUE,
   oma = NULL, mar = NULL, mgp = NULL, \dots)
 }
 \arguments{
@@ -15,6 +16,7 @@ plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, row = TRUE,
   \item{mft}{total number of panels, to be split into \code{mfrow}
     and \code{mfcol} by the function. The result depends on the current
     aspect ratio (ratio of height to width) of the plotting area.}
+  \item{nrow, ncol}{maximum number of rows and columns on one page}
   \item{row}{if TRUE, the panels will be used by rows, otherwise, by
     columns}
   \item{mar}{plot margins.

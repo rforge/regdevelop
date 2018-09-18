@@ -52,6 +52,67 @@ showd <- function(data, first=3, nrow.=4, ncol.=NULL)
   invisible(l.dc)
 }
 ## ===================================================
+u.merge <- function(dd1, dd2 = NA, which=NULL, after=NULL,
+                    length=NULL, names=NULL)
+{
+## Purpose:   merge two vectors or expand a vector by NA s
+## -------------------------------------------------------------------------
+## Arguments:
+##   dd1      first vector or matrix or data.frame (?),
+##   dd2      second vector, ...
+##   which    is T for indices for which first vector is used
+##   after    elements of  dd2  will be inserted after "after" in dd1
+##   length   length of the result (will be expanded if necessary)
+##   names    names of the result (if length is adequate)
+## -------------------------------------------------------------------------
+## Author: Werner Stahel, Date: 11 Mar 93, 13:50, and later
+  llen <- length
+  n1 <- length(dd1)
+  nc1 <- ncol(dd1)
+  nc2 <- ncol(dd2)
+  if (length(nc1)>0) {
+    n1 <- nrow(dd1)
+    if (!( length(dd2)==1 || is.null(nc2) || nc2==nc1 ))
+      stop("unsuitable second argument")
+    }
+## --- generate  which  vector for all cases
+  if (length(which)==0) {
+## - after  specified
+      if (length(after)==0) stop("specify either  which  or  after")
+      if (is.logical(after))  after <- which(after)
+      wh <- rep(TRUE,n1+length(after))
+      wh[after+1:length(after)] <- FALSE }
+  else {
+## - which  specified
+    if(is.logical(which)) wh <- which
+    else {
+      if (length(llen)==0)  llen <- n1+length(which)
+        wh <- rep(TRUE, llen)
+        wh[which] <- FALSE }
+  }
+## --- merge
+  nn <- length(wh)
+  n2 <- nn-n1
+  if (!(is.null(names)|length(names)==nn))
+    warning("argument  names  not used (unsuitable length)")
+  if (length(nc1)>0) {
+    if (!(length(dd2)==1 || NROW(dd2)==n2))
+      stop("unsuitable number of rows")
+    rr <- matrix(NA,nn,nc1)
+    rr[wh,] <- as.matrix(dd1)
+    rr[!wh,] <- if (is.data.frame(dd2)) as.matrix(dd2) else dd2
+##-     if (length(names)>0) row.names(rr) <- names else {
+##-       if (length(lrn1 <- row.names(dd1))>0)
+  }
+  else {
+    rr <- rep(NA,nn)
+    rr[wh] <- dd1
+    rr[!wh] <- dd2
+    if (length(names)>0) names(rr) <- names
+  }
+  rr
+}
+## ==========================================================================
 sumna <- function(object,inf=TRUE)
 {
   ## Purpose:   count NAs along columns
@@ -265,7 +326,6 @@ modarg <- function(arg=NULL, default) {
   default
 }
 ## ===========================================================================
-## ===========================================================================
 doc <- function(x) attr(x,"doc")
 ## ---
 "doc<-" <- function(x, value)
@@ -372,78 +432,20 @@ RNAMES <- function(x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function(object)
   length(class(object))>0 && class(object)=="formula"
+u.true <- function(x) length(x)>0 && is.logical(x) && all(x)
+## u.true <- function(x) length(x)>0 && (!is.na(lx <- as.logical(x[1]))) && lx
 nafalse <- function(x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 u.nuna <- function(x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
-u.true <- function(x) length(x)>0 && (!is.na(lx <- as.logical(x[1]))) && lx
 "%nin%" <- function(x,y) !x%in%y
 u.notfalse <-
   function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
-## ----------------------------------------------------------------
-
-u.merge <- function(dd1, dd2 = NA, which=NULL, after=NULL,
-                    length=NULL, names=NULL)
-{
-## Purpose:   merge two vectors or expand a vector by NA s
-## -------------------------------------------------------------------------
-## Arguments:
-##   dd1      first vector or matrix or data.frame (?),
-##   dd2      second vector, ...
-##   which    is T for indices for which first vector is used
-##   after    elements of  dd2  will be inserted after "after" in dd1
-##   length   length of the result (will be expanded if necessary)
-##   names    names of the result (if length is adequate)
-## -------------------------------------------------------------------------
-## Author: Werner Stahel, Date: 11 Mar 93, 13:50, and later
-  llen <- length
-  n1 <- length(dd1)
-  nc1 <- ncol(dd1)
-  nc2 <- ncol(dd2)
-  if (length(nc1)>0) {
-    n1 <- nrow(dd1)
-    if (!( length(dd2)==1 || is.null(nc2) || nc2==nc1 ))
-      stop("unsuitable second argument")
-    }
-## --- generate  which  vector for all cases
-  if (length(which)==0) {
-## - after  specified
-      if (length(after)==0) stop("specify either  which  or  after")
-      if (is.logical(after))  after <- which(after)
-      wh <- rep(TRUE,n1+length(after))
-      wh[after+1:length(after)] <- FALSE }
-  else {
-## - which  specified
-    if(is.logical(which)) wh <- which
-    else {
-      if (length(llen)==0)  llen <- n1+length(which)
-        wh <- rep(TRUE, llen)
-        wh[which] <- FALSE }
-  }
-## --- merge
-  nn <- length(wh)
-  n2 <- nn-n1
-  if (!(is.null(names)|length(names)==nn))
-    warning("argument  names  not used (unsuitable length)")
-  if (length(nc1)>0) {
-    if (!(length(dd2)==1 || NROW(dd2)==n2))
-      stop("unsuitable number of rows")
-    rr <- matrix(NA,nn,nc1)
-    rr[wh,] <- as.matrix(dd1)
-    rr[!wh,] <- if (is.data.frame(dd2)) as.matrix(dd2) else dd2
-##-     if (length(names)>0) row.names(rr) <- names else {
-##-       if (length(lrn1 <- row.names(dd1))>0)
-  }
-  else {
-    rr <- rep(NA,nn)
-    rr[wh] <- dd1
-    rr[!wh] <- dd2
-    if (length(names)>0) names(rr) <- names
-  }
-  rr
+u.debug <- function() u.true(getOption("debug"))
+u.asformula <- function(x) {
+  if (is.formula(x)) return(x)
+  if (is.character(x)) as.formula(paste("~",paste(x,collapse="+")))
+  else stop("!u.asformula! inadequate argument")
 }
-## ==========================================================================
-##- is.R <- function ()
-##- exists("version") && !is.null(vl <- version$language) && vl == "R"
-
+## ----------------------------------------------------------------
 warn <- function()
   table(paste(names(lw <- warnings()),"@",substr(unlist(lw),1,10)))
 

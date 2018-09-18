@@ -51,13 +51,13 @@ export(asinp,
        last, legendr, leverage, linear.predictors, logst, 
        modarg, 
        nainf.exclude, "%nin%", notna, #narestore, 
-       panelDefault, panelSmooth,
-       ploptions, ploptionsDefault, .ploptions,
-       plyx, plmatrix, plmfg, 
+       panelSmooth,
+       ploptions, ploptionsDefault, .ploptions, .plargs, 
+       plyx, plmatrix, plmfg, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, plbars,
-       plsmooth, plsmoothlines, plreflines, 
+       plsmooth, plsmoothline, plrefline, 
        plot.regr, plotregr.control, 
        plres2x, plresx, plfitpairs, ## plTA.polr,
        ## predict.mlm, predict.polr, ## predict.regr,
@@ -72,6 +72,7 @@ export(asinp,
        Surv, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without
        ## require-ing the package survreg
+       Tobit,
        tit, "tit<-", transferAttributes, 
        varattributes, warn
        )
@@ -79,6 +80,13 @@ export(asinp,
 S3method(plot, regr)
 
 S3method(residuals, regr)
+S3method(fitted, regr)
+S3method(predict, regr)
+S3method(predict, mlm)
 S3method(residuals, polr)
+S3method(fitted, polr)
+S3method(predict, polr)
 S3method(residuals, regrsurv)
 S3method(residuals, regrcoxph)
+S3method(nobs, survreg)
+S3method(nobs, coxph)

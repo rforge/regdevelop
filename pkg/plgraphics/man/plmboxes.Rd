@@ -19,11 +19,11 @@ plmboxes(x, ...)
 \method{plmboxes}{formula}(x, data, ...)
 
 \method{plmboxes}{default}(x, y, data, width=1, at=NULL, horizontal=FALSE,
-    probs=NULL, outliers=TRUE, na=FALSE, refline=NULL, add=FALSE, 
-    xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
-    labelsvert=FALSE, mar=NULL,
+    probs=NULL, outliers=TRUE, na=FALSE, asymbox=NULL, refline=NULL,
+    add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
+    labelsperp=FALSE, xmar=NULL,
     widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, plargs = NULL,
-    ...)
+    .subdefault=NULL, ...)
 
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     width=1, wfac=NULL, minheight=NULL, adj=0.5, extquant=TRUE, 
@@ -79,6 +79,9 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     the position of the box is at that value (with a generated width) or
     between the 2 values, respectively.
   }
+  \item{asymbox}{logical: Should a single, asymmetric multibox be
+    displayed if the (single) x factor is binary?
+  }
   \item{refline}{vertical positions of any horizontal reference lines
   }
   \item{add}{logical. If TRUE, the mboxes will be added to an existing
@@ -96,11 +99,13 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
   \item{ylab}{label for the x axis. Defaults to the left hand side of
     'formula'.
   }
-  \item{labelsvert}{logical: Should the labels for the level of the
-    "x factor" be marked in vertical direction?
+  \item{labelsperp}{logical: Should the labels for the levels of the
+    "x factor" be shown in perpendicular to the axis?
   }
-  \item{mar}{plot margins. Default tries to be suitable, i.e. expand
-    \code{mar[1]} if needed. If \code{FALSE}, \code{mar} will not be set. 
+  \item{xmar}{plot margin for the "x factor" axis.
+    Default tries to be suitable, i.e. expand the margin if
+    \code{labelsperp} is \code{TRUE} according to the length of the
+    levels' labels.
   }
   \item{widthfac}{named vector used to modify the following settings:
     \cr  
@@ -148,6 +153,9 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     Its components are often needed to generate the panel.}
   \item{\dots}{additional arguments passed to 'plot'
   }
+  \item{.subdefault}{text for the subtitle in case that it is not
+    specified
+  }
 Specific arguments for 'plmbox':
 \item{wfac}{factor by which the widths of the boxes must be multiplied.
   If given, it overrides 'width'
@@ -192,16 +200,12 @@ Specific arguments for 'plmbox':
 }
 \examples{
 plmboxes(Sepal.Length~Species, data=iris)
+
 plmboxes(Sepal.Length~Species, data=iris,
-  widthfac=c(med=2), colors=c(med="red"))
+  widthfac=c(med=2), colors=c(med="red"), horizontal=TRUE)
 
-data(anorexia, package="MASS")
-dd <- anorexia
-dd[sample(nrow(dd),5),"Postwt"] <- NA
-t.wtmed <- median(dd$Prewt)
-plmboxes( I(Postwt-Prewt)~Treat + I(Prewt>t.wtmed) , data=dd,
-         probs=c(0.1,0.25), na=TRUE)
-
+plmboxes(Sepal.Length~factor(Species)+I(Sepal.Width<=3), data=iris[1:100,],
+         labelsperp=TRUE, horizontal=TRUE)
 }
 \keyword{hplot}
 

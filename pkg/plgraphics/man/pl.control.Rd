@@ -9,9 +9,9 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
            ## generate variables used for plotting
            psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
            cex = NULL, markextremes = NULL,
-           ycol = NULL, ylty = NULL, ypch = NULL,
+           ycol = NULL, ylty = NULL, ypch = NULL, smooth = NULL,
            main = NULL, sub = ":", .subdefault = NULL,
-           mar = NULL, 
+           mar = NULL, xlab = NULL, ylab = NULL,
            varlabels = NULL,
            ploptions = .ploptions, .environment. = parent.frame(), ... )
 }
@@ -38,7 +38,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
     to be used when multiple y-s are plotted (in the sense of
     \code{matplot})
   }
-%%-  \item{smooth}{logical: should a smooth line be added?}
+  \item{smooth}{logical: should a smooth line be added?}
   \item{main, sub}{string. Main title of the plot(s).
     If \code{sub} starts by \code{":"} (the default),
     \code{pl.control} tries to generate an informative subtitle,
@@ -46,6 +46,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
   }
   \item{.subdefault}{for internal use: default of subtitle}
   \item{mar}{plot margins}
+  \item{xlab, ylab}{axis labels}
   \item{varlabels}{
     labels for variables replacing their names in the \code{x} and
     \code{y} arguments, either a simple vector of strings with an

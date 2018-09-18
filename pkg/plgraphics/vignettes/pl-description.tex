@@ -71,6 +71,8 @@
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
+%\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
+%R-functions based on the 'pl' concept}
 %% ================================================================
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
@@ -173,7 +175,7 @@ More arguments allow to specify many aspects of the plot.
 \includegraphics[width=\maxwidth]{figure/plyx_pchar-1} 
 
 \end{knitrout}
-The argument \T{psize}) sets the size of the plotting symbols
+The argument \T{psize} sets the size of the plotting symbols
 such that their area is proportional to it.
 The median size is determined by \T{cex}.
 By default, this value adjusts to the number of observations.
@@ -202,6 +204,8 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \end{knitrout}
 Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
 lines to be the same.
+The call to \T{plmfg} splits the screen essentially like 
+\T{par(mfrow=c(1,2))}.
 
 If the argument \T{group} is specified, separate plots will be generated
 for the different groups, thereby maintaining the plot ranges.
@@ -283,70 +287,245 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \begin{alltt}
 \hlkwd{plyx}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{, EuStockMarkets[}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{,],} \hlkwc{type}\hlstd{=}\hlstr{"b"}\hlstd{)}
 \end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/plyx_multipley-1} 
 
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in xy.coords(x, y, xlabel, ylabel, log): 'x' and 'y' lengths differ}}\end{kframe}
 \end{knitrout}
 
 If multiple x variables are given, a separate plot is drawn for each of them.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Petal.Length,} \hlkwc{data}\hlstd{=iris,}
+     \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx_multiplex-1} 
+
+\end{knitrout}
+
+%%- \subsection{Groups}
+%%- The argument \T{group} is used to generate multiple plots, one for each 
+%%- factor level, using the same plotting scales and ranges.
+%%- <plyx_group, fig_height=4>
+%%- plmfg(1,3, mar=c(1,1,1,1))
+%%- plyx(Sepal.Width~Sepal.Length, data=iris, group=Species)
+%%- @ 
 
 \subsection{Marking extreme points}
-%% markextremes
+
+Extreme points are often of interest. They can easily be identified if they 
+are labelled. This is achieved by setting the argument \T{markextremes}.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
+     \hlkwc{markextremes}\hlstd{=}\hlnum{0.1}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
+     \hlkwc{markextremes}\hlstd{=}\hlkwd{list}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwd{c}\hlstd{(}\hlnum{0.02}\hlstd{,}\hlnum{0.2}\hlstd{)),} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/markextremes-1} 
+
+\end{knitrout}
 The default value of \T{markextremes} is 0 for \T{plyx}.
 If the argument is \T{NA}, it depends on the number of 
 observations: It is $1/(2\sqrt{n})$. 
 
-\Tit{Factors, \T{mboxes}}
+\subsection{Factors, multibox plot}
+If the x variable is a factor, R's generic plot function draws box plots.
+Since this often results in too much simplification, \T{plyx} shows a 
+``multibox plot'', which is a refinement of a boxplot, to be described in
+more detail below.
+
+[to be implemented]
+
+The multibox plot can also be called directly.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plmfg}\hlstd{()}
+\hlkwd{plmboxes}\hlstd{(Petal.Length}\hlopt{~}\hlstd{Species,} \hlkwc{data}\hlstd{=iris)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/mboxes-1} 
+
+\end{knitrout}
+%% !!! ausreisser verschwindet
 
 \Tit{Censored data}
 
 \Tit{Raw or transformed variables?}
 max(x1,x2)
 
+
+\section{Scatterplot matrix}
+The \T{pairs} plotting function of R has some inconvenient restrictions.
+If the number of variables is larger than about 8, the panels become so
+small that hardly anything can be observed. Furtherore, factors are simply 
+converted to numeric.
+
+The function \T{plmatrix} has much more flexibility. 
+If used for a small number of variables, it does a similar job as 
+\T{pairs}, but also provides the flexibility for the panels that have been
+described above.
+
+\T{plmatrix}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{basic.col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{ploptions}\hlstd{=t.plopt)}
+\hlkwd{plmatrix}\hlstd{(iris,} \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/ploptions-1} 
-
+\includegraphics[width=\maxwidth]{figure/plmatrix-1} 
+\begin{kframe}\begin{verbatim}
+## [1] "plmatrix: done"
+\end{verbatim}
+\end{kframe}
 \end{knitrout}
 
-
-\section{Scatterplot matrix}
-
-\Tit{Multiple x}
-
-\Tit{Groups}
-
-\Tit{Same scales}
-
-\T{plmatrix}
+\T{plmatrix} can also show any submatrix of the full scatterplot matrix.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plmatrix}\hlstd{(}\hlopt{~}\hlstd{Petal.Length}\hlopt{+}\hlstd{Petal.Width,} \hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Sepal.Width,} \hlkwc{data}\hlstd{=iris,}
+         \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plmatrix_sub-1} 
+\begin{kframe}\begin{verbatim}
+## [1] "plmatrix: done"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
 
 \section{Regression diagnostic plots}
 
-diagnostics should be specific 
-scale diagnostic should work even when bias is signalled
+The primary purpose of developing \T{plgraphics} has been to improve
+regression diagnostic plots.
+The features are obtained by using \T{plot.regr}.
 
-\T{plot.regr}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(d.blast)}
+\hlstd{rr} \hlkwb{<-}
+  \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
 
-\Tit{Residuals against fit}
+\hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\end{alltt}
 
-\Tit{Absolute residuals against fit}
-residuals from smooth
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in max(abs(as.numeric(lattrj\$innerrange))): no non-missing arguments to max; returning -Inf}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plotregr-1} 
+
+\end{knitrout}
+Before we describe the plots in some detail, let us first explain a 
+principle guiding the design of diagnostics.
+Each diagnostic (plot) should be specific for a well-identified potential 
+deficiency of the model.
+
+\Tit{Residuals against fit: the Tukey-Anscombe plot.}
+By default, the scatterplot of residuals against fitted values shows
+the points with the feature of outlier margins and marking of extremes in
+the residual direction. It adds a smooth line to show deviations from
+the linearity assumption. Another 19 smooth lines are shown to 
+mimik the variability of this smooth line under the hypothesis that the
+model is correct.
+It also adds a reference line indicating the direction of constant observed
+response values $Y$. This helps to see whether a transformation of $Y$
+could help to avoid any significant curvature.
+
+\Tit{Absolute residuals against fit.}
+As a second diagram, the plot of absolute residuals against fitted values
+is shown.
+%% !!! V1 in absresfit
+Note that the absolute residuals shown here in this plot are not the 
+absolute values of the residuals used in the first plot. 
+They differ in two ways:
+\Itm
+They are standardized to have the same variances.
+... weighted
+\Itm
+By default, they are modified because in the following way.
+Note first that the plot should show any dependence of the scale of the
+random errors on the model value.
+If the plot of residuals against fit shows a clear curvature, the
+residuals do not show only the random errors but also the bias of the
+regression function, which should be best approximated by the smooth line
+in that first plot. Therefore, the residuals from the smooth line are 
+used in the plot of absolute residuals against fit.
+Additionally, they are standardized using the same factor that is commonly
+used for standardizing the ordinary residuals.
+
 censored: no intervals
 
 \Tit{QQ-plot}
 only for Gaussian
 
-markextremes
+\Tit{Residuals against leverage}
 
-\Tit{plresx}
-This function plots the residuals against the input variables,
-either in raw or in transformed form.
+%% =================================
 
+The argument \T{xvar=FALSE} in the statement generating the last plot
+indicates that by default, \T{plot.regr} 
+shows more diagrams: The plots of residuals against explanatory variables.
+
+\subsection{Residuals against input variables}
+Since the ``x'' variables in a regression model cannot always be
+interpreted as explaining the variability of the response $Y$,
+we call them ``input'' variables here.
+
+The plots of residuals against these variables are important regression
+diagnostics. They are often neglected since the ordinary plot function
+for models does not show them. 
+\T{plot.regr} does, unless \T{xvars=FALSE} is used as it was above.
+It does so by calling \T{plresx}, which can also be done directly.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plresx}\hlstd{(rr)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plresx-1} 
+
+\end{knitrout}
+The input variables are often transformed before they are used 
+in the linear predictor,
+and the main purpose of showing a plot of residuals against them is
+to possibly find a (more) adequate transformation.
+For those that have been transformed already, the adequate transformation 
+may be more easily guessed if the untransformed version is used in the
+plot. The transformed variables can be called for by setting
+\T{transformed=TRUE}.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
+
+\end{knitrout}
+
+\Detail
 The raw input variables are those appearing in the formula, as delivered by
 \T{all.vars(formula)}.
 
@@ -356,6 +535,8 @@ formula, as delivered by \T{rownames(attr(terms(formula[1:2]), "factors"))}.
 fitcomp: use model.frame -> model.matrix -> lm.fit
 
   
+plot.regr(rr, transformed=TRUE, reflinesband=TRUE)
+
   
 
 
@@ -364,18 +545,35 @@ plrex2x
 %% ==============================================================
 \section{Options}
 
-\Tit{ploptions}
 The graphical elements, like plotting character, color, line types, etc. 
 to be used in pl graphics are specified in the pl options. 
-They are analogous to the ordinary options, with two differences:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{basic.col}\hlstd{=}\hlstr{"magenta"}\hlstd{,} \hlkwc{basic.pch}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{smoothlines.lty}\hlstd{=}\hlnum{3}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/ploptions-1} 
+\begin{kframe}\begin{alltt}
+\hlcom{## restore the old optios}
+\hlkwd{ploptions}\hlstd{(}\hlkwc{list}\hlstd{=}\hlkwd{attr}\hlstd{(t.plopt,} \hlstr{"old"}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+They are analogous to the ordinary options, with differences:
 \Itm
-The pl options are stored in a list \T{.ploptions} which is not erased when
-leaving the R session. It can therefore be stored with the global
-environment. 
+The pl options are stored in a list \T{.ploptions} in the global
+environment and are therefore not erased when leaving the R session. 
 \Itm
 There is a list \T{ploptionsDefault} in the package. It collects the
 packages default settings and is used as a backup if some components should
 not be contained in \T{.ploptions}.
+\Itm
+Both of these lists can be overriden by objects with the same name
+that appear earlier in the search list than the \T{plgraphics} package.
 
 The function \T{ploptions} is used to set and get pl options, in the same
 way that \T{options} sets and gets the basic R options.
@@ -398,37 +596,193 @@ Thus, a graphical element like a plotting character is generally searched
 in
 \begin{enumerate}
 \item 
-  the argument list of the calling function
+  the argument list of the calling function,
 \item
-  the \T{ploptions} argument of the calling function
+  the \T{ploptions} argument of the calling function,
 \item
-  the \T{.ploptions} list
+  the \T{.ploptions} list in the global environment,
 \item
   the list \T{ploptionsDefault} in the package \T{plgraphics}
+  or in an environment hiding it.
 \end{enumerate}
 
+The components of these lists include
+\begin{itemize}
+\item 
+  \T{colors}, the palette of colors to be used,
+\item
+  \T{linewidth}, the linewidths used for the different line types.
+  If the line types are shown with the same \T{lwd}, they are perceived
+  with different intensity. \T{linewidth} intends to compensate this effect.
+\item
+  \T{cex}, the median character expansion.
+  The default is the function \T{cexSize} with an argument \T{n}, defined as
+  \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
+  observations is available. Alternatively, a fixed scalar can be given.
+\item
+  a group of components with ``group name'' \T{basic}:
+  \T{basic.pch}, ...
+  \T{basic.cex} is a factor which will be applied to \T{cex} above for
+  showing points by a single symbol (\T{basic.pch}),\\
+  \T{basic.cex.plab} is an additional factor applied for the points that
+  are shown by \T{plab}.
+\item
+  a group of compnents starting by \T{group}.
+  They characterize how different groups will be displayed.
+  Thus, \T{group.pch} should be a vector defining the plotting symbol
+  for the first, second, ... group (when there are groups in the data).
+\item
+  a group \T{variables}, 
+  defining the elements to be used when different variables should be
+  distinguishable. 
+\item
+  \T{censored.pch} and \T{censored.cex} used to show censored observations.
+\item
+  \T{mar, oma, mgp, thickintervals}
+\item
+  \T{stamp}, logical value determining if a stamp should be added to each
+  plotting page,
+\item
+  a group \T{innerrange}, determining if and how an inner plotting range
+  should be used and generated.
+\item
+  \T{plext}: percentage by which the range of the data should be
+  extended unless an inner range is active (in which case the extension 
+  is determined by \T{innerrange.ext}), and\\
+  \T{plextext}: further extension to allow for large symbols near the 
+  limits of the plotting range.
+\item
+  \T{markextremes} sets the proportion of extreme points that are shown 
+  with labels to help identify them.
+  If set to \code{TRUE}, the proportion depends on the number of
+  observations through \code{ceiling(sqrt(n)/2)/n}.
+\item
+  \T{title.cex} determines the character expansion of the plot title.
+  By default, it adapts to the length of the title.
+  For long titles, it will however never be smaller than
+  \T{title.cexmin}. 
+  If \T{title.cex} has 2 elements, the second refers to the subtitle.
+\item
+  a group \T{gridlines}. If \code{gridlines} is a list of two vectors,
+  it contains the values where vertical and horizontal thin lines are drawn.
+  If it is \T{TRUE}, the gridlines correspond to the tickmarks of the
+  two axes.
+  \T{gridlines.lty, gridlines.lwd, gridlines.col} set the respective
+  properties for the gridlines.
+\item
+  a group \T{zeroline}, which is analogous to \T{gridlines}, but the
+  default is a value of 0 for both axes, and the properties are independent
+  of those for \T{gridlines}
+\item
+  a group \T{refline}. \T{refline} can be set in high level pl functions as
+  a vector giving intercept and slope of a straight line, or a function
+  that generates this list, such as \T{lm}.
+\item
+  a group \T{smoothline}, analogous to \T{refline}, usually generated
+  by setting \T{smooth} to \T{TRUE}.
+\item
+  a group \T{smooth}. If \T{smooth} is \T{TRUE}, a smoothing function 
+  with default \T{ploptions("smooth.function")} is called to calculate a
+  smooth line and show it according toe the \T{smoothline} properties.
+\item
+  a group \T{bar} needed to show reference values for levels of factors
+  used as explanatory variables in regression diagnostic plots.
+\item
+  \T{jitter}: logical indicating if factors should be shown with jittering.
+  %% !!! factor.show!!
+  A named vector may be given that defines the jittering for each
+  variable.\\ 
+  \T{jitter.factor} is the jittering factor used, see \T{?jitter}.
+\item
+  \T{condprobrange} is used to determine which bars should be shown
+  in the case of censored data.
+\item
+  \T{functionxvalues} contains the number of values used to calculate
+  smooth functions and fitting component for diagnostic plots.
+\item
+  \T{leveragelim} determines the range used for leverage values
+  when plotting residuals against leverages.
+\end{itemize}
+
 %% ---------------------------------
+\subsection{pl.control, pldata, plargs}
+
+High level pl functions call the function \T{pl.control} first.
+It generates the ``plotting dataset'' \T{pldata}, which
+collects data dependent information needed for plotting in an enriched,
+standardized form. 
+It also takes any futher arguments to be passed on to \T{ploptions}.
+The result is stored as \T{.plargs} in the global environment.
+This allows for inspection of the plotting data
+\T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions}
+and thereby helps debugging.
+
 \Tit{Plotting data}
+There are plotting elements that are useful to represent individual
+observations or individual variables.
+Those related to the observations include:
+\begin{itemize}
+\item 
+  plotting symbol (character) \T{pch},
+\item
+  plotting label, an extension of \T{pch} to more than one symbol,
+  often used to identify observations, \T{plab},
+\item
+  plotting size \T{psize}, scaled by the pl option \T{cex},
+\item
+  color of the symbol, \T{pcol}
+\end{itemize}
+These elements are stored in \T{pldata} as columns with names
+\T{(pch)}, \T{(plab)}, ...
+They are generated in \T{pl.control} when the respective arguments
+\T{pch}, \T{plab}, ... are given to the high level pl function.
 
-pdata
-attributes of points, grouping
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,}
+     \hlkwc{pch}\hlstd{=Species,} \hlkwc{psize}\hlstd{=Petal.Length}\hlopt{^}\hlnum{2}\hlstd{,} \hlkwc{pcol}\hlstd{=Species)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx_pattr-1} 
 
-plotting elements for grouping
+\end{knitrout}
 
-attributes of variables
-label
-axis
-colors  lty, lwd?)
-to be used if variable is plotted vertically (only if multiple vars?)
+The elements attached to variables are
+\begin{itemize}
+\item
+  a variable name and a variable label (to be used for labelling the axis
+  on which the variable is shown), 
+  typically identical to the name of the variable
+  in the data.frame it comes from,
+\item
+  the values for which tick marks and labels should be shown in plots,
+  \T{axisat},
+\item
+  an inner and an outer plotting range, \T{innerrange} and \T{plrange},
+\item
+  the extension \T{innerrange.ext} used to calculate \T{plrange}
+  from \T{innerrange}, if the latter does not cover all points,
+\item 
+  the number of points modified at each end of the inner range,
+  \T{nmod},
+\item
+  coordinates, possibly different from the variable's data values,
+  typically when an inner plotting range or jittering is active,
+\item
+  line type \T{lty}, color \T{col}
+  to be used if multiple y's are shown in a plot.
+\end{itemize}
+These elements are stored as attributes of the variables,
+e.g., \T{attr(var, "axisat")}.
+They can be set or generated by the function \T{genvarattributes} and then
+modified before calling the high level pl function, such as \T{plyx}.
+Those that are needed and have not been stored beforehan will be 
+generated by \T{pl.control} when calling such a function.
 
-very often NULL, adaptation to data
-
-\Tit{.parguments}
 
 Some graphical elements will depend on the number of observations
   default: cex
-  
-title: cex, cexmin
   
 
 \section{Low level graphics and auxiliary functions}

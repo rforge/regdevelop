@@ -100,12 +100,12 @@ residuals.regrsurv <- function(object, type=NULL, ...)
   structure( naresid(lnaaction, lres), condquant=lr, type=type)
 }
 ## ==============================================================
-nobs.survreg <- function(object, use.fallback = TRUE) {
+nobs.survreg <- function(object, ...) { ##use.fallback = TRUE
   lnobs <- length(object$linear.predictors)
   if (lnobs==0) lnobs <- NROW(residuals(object))
   lnobs
 }
-nobs.coxph <- function(object, use.fallback = TRUE) {
+nobs.coxph <- function(object, ...) {
   object$n
 }
 ## ===================================================================
@@ -1093,6 +1093,251 @@ rrevgumbel <- function (n, location = 0, scale = 1)
         stop("\"scale\" must be positive")
     location + scale * log(-log(runif(n)))
 }
+## ==========================================================================
+simresiduals <- function(object, ...)  UseMethod("simresiduals")
+  ## Purpose:   simulate residuals according to regression model
+  ##            by permuting residuals of actual model or by random numbers
+  ## ----------------------------------------------------------------------
+  ## Arguments:  simfunction: how are residuals generated?
+## ---------------------------------------------------------------------
+simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
+                             glm.restype="working", ...)
+{
+  lcall <- object$call
+  if ("weights"%in%names(lcall)) {
+    warning(":simresiduals: I cannot simulate for weighted regression (yet)")
+    ## get_all_vars  contains  weights  without parentheses -> danger!
+    return(NULL)
+  }
+  loverd <- attr(object$scale, "fixed")
+  if (length(loverd) && !loverd)
+    warning(":simresiduals: Cannot simulate from overdispersed model.",
+            " Using dispersion 1")
+  lcall[[1]] <- as.name("glm")
+  ## -------
+  lnaaction <- object$na.action
+  ldata <- object$allvars
+  if (is.null(ldata)) {
+      ldata <- if (u.debug())  eval(lcall$data)  else
+      try(eval(lcall$data))
+      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+        warning(":simresiduals: data not found -> No simulated residuals")
+        return(NULL)
+      }
+  }
+  if (length(lnaaction)) ldata <- ldata[-lnaaction,]
+  lfit <- object$fitted.values
+  ## prepare call
+  lform <- update(formula(object), .Y. ~.)
+  lynm <- all.vars(lform[[2]])
+  environment(lform) <- environment()
+  lcl <- call("glm", formula=lform, data=as.name("ldata"),
+              family=object$family, start=object$coef, model=FALSE,
+              y=FALSE, na.action=lcall$na.action)
+  lfam <- object$distrname
+  if (length(lfam)==0) lfam <- object$family$family
+  if (is.null(lfam)) lfam <- ""
+  ly <- object$response
+  ln <- nrow(ldata)
+  lone <- rep(1,ln)
+  if (!is.function(simfunction)) {
+    if(lfam%in%c("binomial","quasibinomial")) {
+      if (NCOL(ly)==1 && length(unique(ly))!=2) {
+        warning(":simresiduals: binomial distribution with ",
+                "unsuitable response.\n  No residuals simulated")
+        return(list(simres=numeric(0)))
+      }
+      simfunction <-
+        if(NCOL(ly)==1) function(n, fit, sig=NULL) rbinom(n, lone, fit)
+      else {
+        lnbin <- ly[,1]+ly[,2]
+        function(n, fit, sig=NULL) {
+          ly1 <- rbinom(n, lnbin, fit)
+          cbind(N1=ly1,N2=lnbin-ly1)
+        }
+      }
+    } else {
+      if (lfam%in%c("poisson","quasipoisson")) 
+        simfunction <- function(n, fit, sig) rpois(ln, fit)
+      else {
+        warning(":simresiduals: not (yet) available for this ",
+                "type of model.\n  No residuals simulated")
+        return(list(simres=numeric(0)))
+      }
+    }
+  }
+  ## ---
+  lsimres <- matrix(NA, ln, nrep)
+  for (lr in 1:nrep) {
+    ldata$.Y. <- simfunction(ln, lfit)
+    lrs <- eval(lcl, environment())
+    lsimres[,lr] <-
+      if (substr(glm.restype,1,4)=="cond")
+          residuals.polr(lrs)[,"random"] else
+          residuals(lrs, type=glm.restype)
+  }
+  naresid(lnaaction, lsimres)
+}
+## ======================================================================
+simresiduals.default <-
+  function(object, nrep=19, simfunction=NULL, stresiduals=NULL,
+           sigma=object$sigma, ...)
+  ## glm.restype="deviance")
+{
+  ## Purpose:   simulate residuals according to regression model
+  ##            by permuting residuals of actual model or by random numbers
+  ## ----------------------------------------------------------------------
+  ## Arguments:  simfunction: how are residuals generated?
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 10 Aug 2008, 07:55
+##-   if (!class(object)[1]%in%c("regr","lm","glm")) {
+##-     warning(":simresiduals: ",
+##-             "I can simulate only for `regr`, `lm`, or `glm` objects")
+##-     return(NULL)
+  ##-   }
+  if (!inherits(object, c("lm", "lmrob")))
+      stop("!simresiduals! I cannot simulate for model class  ",
+           paste(class(object), collapse="  "))
+  lcall <- object$call
+  if ("weights"%in%names(lcall)) {
+    warning(":simresiduals: I cannot simulate for weighted regression (yet)")
+    ## get_all_vars  contains  weights  without parentheses -> danger!
+    return(NULL)
+  }
+  ldata <- object$allvars
+  if (is.null(ldata)) {
+      ldata <- if (u.debug())  eval(lcall$data)  else
+      try(eval(lcall$data))
+      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+        warning(":simresiduals: data not found -> No simulated residuals")
+        return(NULL)
+      }
+  }
+  if ("omit"==class(lnaaction <- object$na.action)) {
+    lkeep <- rep(TRUE, nrow(ldata))
+    lkeep[lnaaction] <- FALSE
+    ldata <- ldata[lkeep,]
+  }
+##  lcall$na.action <- NULL
+##-   lfit <- object$fitted.values
+##-   if (is.null(lfit)) lfit <- object$linear.predictors
+##-   if (is.null(lfit)) lfit <- 0
+  lres <- stresiduals
+  if (is.null(lres)) lres <- attr(object$stresiduals, "stresiduals")
+  lnc <- NCOL(object$coefficients)
+  ## -------
+  if (lrgen <- length(simfunction)>0) {
+    if (!is.function(simfunction)) simfunction <- rnorm
+    ## ---
+  ## weibull not yet implemented
+    lsig <- sigma
+    if (length(lsig)==0) lsig <- rep(1,lnc)  ## only standardized res useful!
+    if (length(lsig)!=lnc) {
+      warning(":simresiduals.default: inadequate length of 'sigma'")
+      return(NULL)
+    }
+    if (length(lres)==0) lres <- matrix(0, nrow(ldata),length(lsig)) 
+  } else { ## not yet for multivariate !!!
+    lrs <- if (length(lres)==0) matrix(0,1,1) else as.matrix(lres)
+    if(all(lrs[,1]==lrs[1,1])||all(!is.finite(lrs[,1]))) {
+      lres <- object$resid
+      if(is.null(lres)) {
+        warning(":simresiduals: no (distinct) residuals found",
+                "-> No simulated residuals")
+        return(NULL)
+      } else lres <- as.matrix(lres)
+    }
+    else
+      lres <- sweep(as.matrix(lres), 2, object$sigma, "*") ## may still be d.f
+    if (length(lcq <- attr(lres[,1], "condquant"))>0) { ##!!! mult!
+      li <- lcq[,"index"]
+      lres[li,1] <- lcq[,"random"] ##structure(lres[,"random"], names=row.names(lres))
+    }
+  }
+  lresj <- lres[,1] ## wrong for multivariate
+  if (nrow(ldata)!=length(lresj)) {
+    li <- match(names(lresj),row.names(ldata))
+    if (anyNA(li)) {
+      warning(":simresiduals: data not suitable -> No simulated residuals")
+      return(NULL)
+    }
+    ldata <- ldata[li,]
+  }
+    ##!!! weights
+  lina <- is.na(lresj)
+  if (any(lina)) {
+    lresj <- lresj[!lina]
+    ldata <- ldata[!lina,]
+  ##  lfit <- rep(lfit,length=length(lresj))[!lina]
+  }
+  if (nrow(ldata)<=2) {
+    warning(":simresiduals: <=2 residuals found -> No simulated residuals")
+    return(NULL)
+  }
+## ---
+  ## prepare call
+  lcall$data <- as.name("ldata")
+  lform <- formula(object)
+  lynm <- all.vars(lform[[2]])
+  environment(lform) <- environment()
+  lcall$formula <- lform
+  lcall <- lcall[names(lcall)%nin%c("yy","fname","family","vif",
+                                    "calcdisp","suffmean","termtable")]
+  lcall$model <- NULL
+  lcall$termtable <- NULL
+  lnrow <- nrow(ldata)
+  lsimres <- matrix(NA,lnrow,nrep)
+  lfam <- object$distrname
+  if (length(lfam)==0) lfam <- object$family$family
+##  if (lfam%in%c("gaussian","Gaussian")) 
+  lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
+  for (lr in 1:nrep) {
+    ldata[,lynm] <-
+      ##-    if (lrgen) simfunction(lnrow,lfit,lsig) else lfit + sample(lresj)
+      if (lrgen) simfunction(lnrow,0,lsig) else sample(lresj)
+    ## this would not work with polr or other matrix residuals
+    lenv <- environment()
+    lrs <- eval(lcall, envir=lenv) ## update(x, formula=lfo, data=ldata)
+    lrsr <- residuals(lrs)
+    if (inherits(lrsr, "condquant"))
+      lrsr <- attr(lrsr, "condquant")[,"random"]
+    lsimres[,lr] <- lrsr
+  }
+  ##naresid(lnaaction, lsimres)
+  lsimres
+}
+## ==========================================================================
+
+drevgumbel <- function (x, location = 0, scale = 1)
+{ # from VGAM
+    if (!nafalse(scale>0))
+        stop("\"scale\" must be positive")
+    E <- exp((x - location)/scale)
+    E * exp(-E)/scale
+}
+prevgumbel <- function (q, location = 0, scale = 1)
+{
+    if (!nafalse(scale>0))
+        stop("\"scale\" must be positive")
+    -expm1(-exp((q - location)/scale)) # expm1(u) = exp(u)-1, accurately also for |u| << 1
+}
+qrevgumbel <- function (p, location = 0, scale = 1)
+{
+    if (!nafalse(scale>0))
+        stop("\"scale\" must be positive")
+    location + scale * log(-log(p))
+}
+
+qrevgumbelexp <- function (p) exp(qrevgumbel(p))
+
+rrevgumbel <- function (n, location = 0, scale = 1)
+{
+    if (!nafalse(n>=1))
+        stop("bad input for argument \"n\"")
+    if (!nafalse(scale>0))
+        stop("\"scale\" must be positive")
+    location + scale * log(-log(runif(n)))
+}
 ## =========================================================================
 Tobit <- function(data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
 {
@@ -1137,4 +1382,3 @@ Tobit <- function(data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
             limit=c(limit,limhigh), class=c(class(rr), "matrix"))
 }
 
-## =========================================================================

@@ -5,8 +5,8 @@
 \alias{pltitle}
 \alias{plaxis}
 \alias{plsmooth}
-\alias{plsmoothlines}
-\alias{plreflines}
+\alias{plsmoothline}
+\alias{plrefline}
 \alias{plmark}
 
 \title{Low level plotting functions for the 'pl' system
@@ -16,24 +16,25 @@
   based on the 'pl' paradigm
 }
 \usage{
-plframe(x, y, plargs=NULL, axes = 1:2, xlab = NULL, ylab = NULL,
+plframe(x, y, plargs=NULL, xlab = NULL, ylab = NULL,
   plextext = NULL, axcol = rep(1, 4), ploptions = NULL)
 
 pltitle(main=NULL, sub=NULL, plargs=NULL, cex=NULL, cexmin=NULL, 
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
-  doc=NULL, sure=TRUE)
+  doc=NULL, show=TRUE, ...)
 
-plaxis(axis, x, lab=TRUE, range=NULL, label=NULL, col=1, ...)
+plaxis(axis, x, lab=TRUE, range=NULL, label=NULL, col=1,
+  tickintervals=NULL, ...)
 
 plpoints(x, y, type="p", plargs=NULL, plab=NULL,
   pch=NULL, col=NULL, lty=NULL, condquant = TRUE)
 
 plbars(x, y,  ploptions = NULL, plargs = NULL)
 
-plsmooth(x, y, plargs = NULL, band=FALSE)
-plsmoothlines(smoothlines, x, y, plargs=NULL)
+plsmooth(x, y, plargs = NULL, band=NULL)
+plsmoothline(smoothline, x, y, plargs=NULL)
 
-plreflines(reflines, x=NULL, innerrange=NULL, y=NULL,
+plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
   cutrange = c(x = TRUE, y = FALSE),  ploptions = NULL, plargs=NULL)
 
 plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
@@ -48,8 +49,6 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
   }
   \item{plab}{labels for displaying points. Overrides labels provided by
     \code{plargs$pdata[["plab"]]}.
-  }
-  \item{axes}{indexes of axes to be drawn by \code{plframe}
   }
   \item{axcol}{colors for drawing axes scales
   }
@@ -77,8 +76,14 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
   \item{label}{variable name}
   \item{doc}{logical: should the \code{tit} attribute of \code{main}
     be displayed if available?}
-  \item{sure}{logical: if \code{FALSE}, nothing will be done if
-    there are multiple frames and the current one is not the first.}
+  \item{show}{logical: if \code{FALSE}, nothing will be done if
+    there are multiple frames and the current one is not the first.
+    If it is negative, no title will be shown, but the value will be
+    returned.
+  }
+  \item{tickintervals}{number of intervals used by
+    \code{\link{pretty}} to determine the axis ticks.
+  }
   \item{type}{type of displaying points. See \code{?\link{points}}.}
   \item{pch, lty}{... and \code{col} in \code{plpoints}:
     plotting character(s), color of plotting points,
@@ -92,13 +97,13 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
     \code{\link{ploptions}}.
     If \code{NULL}, the standard plotting character will be used.
   }
-  \item{smoothlines}{for \code{plsmoothlines}: result of a smooth fitting}
+  \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
   \item{band}{logical: should a band (e.g., a confidence band)
     be drawn together with the smooth?
   }
-  \item{reflines}{for \code{plreflines}: ...!!!}
-  \item{innerrange}{for \code{plreflines}: logical: !!!}
-  \item{cutrange}{for \code{plreflines}: logical vector of length 2:
+  \item{refline}{for \code{plrefline}: ...!!!}
+  \item{innerrange}{for \code{plrefline}: logical: !!!}
+  \item{cutrange}{for \code{plrefline}: logical vector of length 2:
     should the reference line(s) be cut at the inner plotting range?
     Otherwise, it will be continued outside it with the appropriate
     transformation.
@@ -109,6 +114,11 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
   \item{plabel}{point labels to be used to mark extreme points
   }
   \item{\dots}{absorbs extra arguments}
+}
+\value{\code{pltitle} invisibly returns a character vector containing
+  the main and sub title.\cr
+  \code{plsmooth} invisibly returns the data.frame needed for
+  drawing the smooth line.
 }
 \details{
   \code{plframe} draws axes according to argument \code{axes}.
@@ -127,7 +137,7 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
 \author{Werner A. Stahel
 }
 
-\seealso{\code{\link{plframe}; \link{plsmooth}; \link{plreflines};
+\seealso{\code{\link{plframe}; \link{plsmooth}; \link{plrefline};
     \link{pl.control}}
 }
 \examples{
