@@ -13,7 +13,7 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
            main = NULL, sub = ":", .subdefault = NULL,
            mar = NULL, xlab = NULL, ylab = NULL,
            varlabels = NULL,
-           ploptions = .ploptions, .environment. = parent.frame(), ... )
+           ploptions = NULL, .environment. = parent.frame(), ... )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

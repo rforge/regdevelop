@@ -483,3 +483,4 @@ c.months <- c("January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November",
         "December")
 c.mon <- substring(c.months,1,3)
+c.quarters <- c("I","II","III","IV")

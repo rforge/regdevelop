@@ -7,8 +7,8 @@
 }
 \usage{
 stamp(sure = TRUE, outer.margin = NULL, 
-      project = getOption("project"), step=getOption("step"),
-      stamp = NULL, line = NULL, ...)
+      project = getOption("project"), step = getOption("step"),
+      stamp = NULL, line = NULL, ploptions = NULL, ...)
 }
 \arguments{
   \item{sure}{ if FALSE, the stamp will only be added if
@@ -20,7 +20,8 @@ stamp(sure = TRUE, outer.margin = NULL,
   \item{stamp}{controls default action, see details }
   \item{line}{line in the (outer) margin on which the stamp should be
     shown.
-  }  
+  }
+  \item{ploptions}{pl options}
   \item{\dots}{arguments passed to \code{mtext}}
 }
 \details{

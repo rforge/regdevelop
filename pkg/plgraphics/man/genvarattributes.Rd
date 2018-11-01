@@ -51,7 +51,7 @@ varattributes(data, attributes = NULL)}
   }
   \item{plcoord}{plotting coordinates
   }
-  \item{axisat}{tick marks for axis
+  \item{ticksat}{tick marks for axis
   }
   \item{label}{label to be used as axis label
   }
@@ -67,9 +67,9 @@ data(d.blast)
 dd <- genvarattributes(d.blast)
 str(attributes(dd$tremor))
 
-ddd <- varattributes(dd, list( tremor=list(axisat=seq(0,24,2),
-  axislabels = seq(0,24,10)) ) )
-str(attr(ddd$tremor, "axislabels"))
+ddd <- varattributes(dd, list( tremor=list(ticksat=seq(0,24,2),
+  ticklabelsat = seq(0,24,10), ticklabels=c("low","medium","high")) ) )
+str(attributes(ddd$tremor))
 }
 
 \keyword{utilities}

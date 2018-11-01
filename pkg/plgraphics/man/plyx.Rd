@@ -9,7 +9,7 @@
 \usage{
 plyx(x, y = NULL, group = NULL, data = NULL, type = "p", panel = plpanel,
   xlab = NULL, ylab = NULL, markextremes = 0, rescale = TRUE,
-  mar = NULL, ...)
+  mar = NULL, plargs = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -35,6 +35,9 @@ plyx(x, y = NULL, group = NULL, data = NULL, type = "p", panel = plpanel,
     for each of these variables.
   }
   \item{mar}{plot margins, see \code{\link{par}}
+  }
+  \item{plargs}{result of calling \code{pl.control}.
+    If \code{NULL}, \code{pl.control} will be called to generate it.
   }
   \item{\dots}{ more arguments, to be passed to \code{\link{pl.control}}
   }

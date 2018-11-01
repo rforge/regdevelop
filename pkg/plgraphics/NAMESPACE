@@ -41,8 +41,9 @@ export(asinp,
        c.mon, c.months, c.colors, 
        cexSize, colorpale, condquant,
        c.weekdays,
+       clipat,
        doc, "doc<-",
-       dropdata, 
+       dropdata, extendrange, 
        fitcomp,
        ## fitted.regr, fitted.polr,
        gensmooth, genvarattributes,
@@ -56,7 +57,7 @@ export(asinp,
        plyx, plmatrix, plmfg, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
-       plframe, pltitle, plaxis, plpoints, plbars,
+       plframe, pltitle, plaxis, plpoints, plbars, pltimeaxis, 
        plsmooth, plsmoothline, plrefline, 
        plot.regr, plotregr.control, 
        plres2x, plresx, plfitpairs, ## plTA.polr,
@@ -78,6 +79,10 @@ export(asinp,
        )
 
 S3method(plot, regr)
+S3method(plmboxes, default)
+S3method(plmboxes, formula)
+S3method(simresiduals, default)
+S3method(simresiduals, glm)
 
 S3method(residuals, regr)
 S3method(fitted, regr)

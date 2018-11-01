@@ -66,13 +66,15 @@
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{pldescr}
 %% \VignetteEngine{knitr::knitr}
+%% \VignetteDepends{plgraphics}
+%% \VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
+%R-functions based on the 'pl' concept}
+
 \def\wh#1{\widehat{#1}}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
-%\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
-%R-functions based on the 'pl' concept}
 %% ================================================================
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
@@ -287,9 +289,9 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \begin{alltt}
 \hlkwd{plyx}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{, EuStockMarkets[}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{,],} \hlkwc{type}\hlstd{=}\hlstr{"b"}\hlstd{)}
 \end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx_multipley-1} 
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in xy.coords(x, y, xlabel, ylabel, log): 'x' and 'y' lengths differ}}\end{kframe}
 \end{knitrout}
 
 If multiple x variables are given, a separate plot is drawn for each of them.
@@ -350,9 +352,7 @@ The multibox plot can also be called directly.
 \hlkwd{plmfg}\hlstd{()}
 \hlkwd{plmboxes}\hlstd{(Petal.Length}\hlopt{~}\hlstd{Species,} \hlkwc{data}\hlstd{=iris)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/mboxes-1} 
 
 \end{knitrout}
@@ -416,14 +416,9 @@ The features are obtained by using \T{plot.regr}.
 \hlkwd{data}\hlstd{(d.blast)}
 \hlstd{rr} \hlkwb{<-}
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
-
 \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in max(abs(as.numeric(lattrj\$innerrange))): no non-missing arguments to max; returning -Inf}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
 
 \end{knitrout}
@@ -496,8 +491,6 @@ It does so by calling \T{plresx}, which can also be done directly.
 \end{alltt}
 
 
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}
-
 {\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx-1} 
 
@@ -517,8 +510,6 @@ plot. The transformed variables can be called for by setting
 \hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
 \end{alltt}
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in axis(axis, at = lat, labels = llab, col = col, ...): 'labels' is supplied and not 'at'}}
 
 {\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
@@ -804,7 +795,12 @@ adaptation of cex
 
 pllimits, plcoord
 
-
+plpanel
+calls all of the above functions except for \T{plframe}.
+The user can re-program this function to modify and expand the actions that
+are taken, store the modified function, e.g. under \T{my.panel}
+and then set %% \T{ploptions(panel=my.panel)}
+the argument \T{panel = my.panel} in \T{plyx} and \T{plmatrix}.
 
 \section{Details}
 
@@ -827,16 +823,20 @@ generated in pl.control avoiding elements already in use
 \subsection{Components of plptions}
 
 \Tit{innerrange}
-Usually, \T{innerrange} is a logical, indicating if inner ranges
-should be determined
-\T{innerrange.limits} is a vector of length 2 giving the range to be
-applied. 
+\T{innerrange} is a logical, indicating if inner ranges
+should be determined.
 
-?? Both can also be a named list of such objects, where the names reflect the 
+\T{innerrange.limits} is a vector of length 2 giving the range to be
+applied. If it is logical, it acts as \T{innerrange}.
+It can also be a named list of such objects, where the names reflect the 
 variables.
 
-set innerrange.limits by calling genvarattributes
+Set the \T{innerrange} attribute by calling genvarattributes. 
+Otherwise, you need to call also \T{plcoord} in order to have a conforming
+\T{plcoord} attribute of the variable(s).
 
+Note that the resulting \T{innerrange} may differ from the required 
+inner range at the end(s) where no data are modified (\T{nmod==0}).
 
 
 \subsection{Point labelling and plotting character}

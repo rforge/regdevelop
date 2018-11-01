@@ -54,10 +54,12 @@ plcoord(x, range = NULL, innerrange.factor = NULL,
 \seealso{ \code{\link{robrange}} }
 \examples{
   x <- c(rnorm(20),rnorm(3,5,20))
-  xmod <- plcoord(x)
+  ( xmod <- plcoord(x) )
+
   plot(x,xmod)
   plot(xmod)
-  abline(h=attr(xmod,"range"),lty=3, lwd=2)
+  abline(h=attr(xmod,"innerrange"),lty=3, lwd=2)
+## This shows what high level pl functions do by default
 }
 \keyword{manip}
 \keyword{aplot}

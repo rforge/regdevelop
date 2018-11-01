@@ -24,7 +24,7 @@ pltitle(main=NULL, sub=NULL, plargs=NULL, cex=NULL, cexmin=NULL,
   doc=NULL, show=TRUE, ...)
 
 plaxis(axis, x, lab=TRUE, range=NULL, label=NULL, col=1,
-  tickintervals=NULL, ...)
+  tickintervals=NULL, ploptions=NULL, ...)
 
 plpoints(x, y, type="p", plargs=NULL, plab=NULL,
   pch=NULL, col=NULL, lty=NULL, condquant = TRUE)
@@ -123,10 +123,10 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL, plargs=.plargs)
 \details{
   \code{plframe} draws axes according to argument \code{axes}.
   It looks for attributes of \code{x} and \code{y}, such as
-  \code{innerrange} and \code{axisat}.
-  If there is an attribute \code{axislabels}, it has only an effect if
-  \code{axisat} is also available. If it is numeric,
-  it specifies the values of \code{axisat} for which labels should be
+  \code{innerrange} and \code{ticksat}.
+  If there is an attribute \code{ticklabels}, it has only an effect if
+  \code{ticksat} is also available. If it is numeric,
+  it specifies the values of \code{ticksat} for which labels should be
   shown. This facilitates setting more tick marks than labels, see the
   respecive example.
 

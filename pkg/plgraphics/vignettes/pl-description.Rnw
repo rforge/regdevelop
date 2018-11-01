@@ -16,13 +16,15 @@
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{pldescr}
 %% \VignetteEngine{knitr::knitr}
+%% \VignetteDepends{plgraphics}
+%% \VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
+%R-functions based on the 'pl' concept}
+
 \def\wh#1{\widehat{#1}}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
-%\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
-%R-functions based on the 'pl' concept}
 %% ================================================================
 
 \begin{document}
@@ -47,7 +49,7 @@ production of useful graphics.
 
 <<preliminary, echo=FALSE, out=FALSE>>=
 ## library(regr)
-library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+library(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 ## plmfg()
 options(warn=1)
 knitr::opts_chunk$set(fig.width=6, fig.height=5)
@@ -296,7 +298,6 @@ The features are obtained by using \T{plot.regr}.
 data(d.blast)
 rr <- 
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-
 plot.regr(rr, xvar=FALSE)
 @ 
 Before we describe the plots in some detail, let us first explain a 
@@ -642,7 +643,12 @@ adaptation of cex
 
 pllimits, plcoord
 
-
+plpanel
+calls all of the above functions except for \T{plframe}.
+The user can re-program this function to modify and expand the actions that
+are taken, store the modified function, e.g. under \T{my.panel}
+and then set %% \T{ploptions(panel=my.panel)}
+the argument \T{panel = my.panel} in \T{plyx} and \T{plmatrix}.
 
 \section{Details}
 
@@ -665,17 +671,13 @@ generated in pl.control avoiding elements already in use
 \subsection{Components of plptions}
 
 \Tit{innerrange}
-Usually, \T{innerrange} is a logical, indicating if inner ranges
-should be determined
+\T{innerrange} is a logical, indicating if inner ranges
+should be determined.
+
 \T{innerrange.limits} is a vector of length 2 giving the range to be
-applied. 
-
-?? Both can also be a named list of such objects, where the names reflect the 
+applied. If it is logical, it acts as \T{innerrange}.
+It can also be a named list of such objects, where the names reflect the 
 variables.
-
-set innerrange.limits by calling genvarattributes
-
-
 
 \subsection{Point labelling and plotting character}
 Priorities:
@@ -712,6 +714,33 @@ If color (\T{pcol}) is a factor, it will be converted into
 \T{ploptions("group.col")[as.numeric(pcol)]}.
 In order to give color by color names, make sure that \T{pcol} is
 a character variable.
+
+\subsection{Axes, plotting ranges}
+
+\Tit{Setting pl ranges}
+The regular and inner plotting ranges can be set by specifying
+\T{plrange} and \T{innerrange} in the high level pl function 
+by giving a named list of vectors of length 2.
+Alternatively, a range can be specified for any variable in a dataset
+by setting the attribute \T{attr(dd, "plrange")} or
+\T{attr(dd, "innerrange")} or both.
+
+Set the \T{innerrange} attribute by calling genvarattributes. 
+Otherwise, you need to call also \T{plcoord} in order to have a conforming
+\T{plcoord} attribute of the variable(s).
+
+Note that the resulting \T{innerrange} may differ from the required 
+inner range at the end(s) where no data are modified (\T{nmod==0}).
+
+!!!
+
+\Tit{Tick marks}
+The tick mark occur in three ``degrees'', the first one being labelled,
+the second being only shown by a mark, the third, by a short mark.
+
+\Tit{Gridlines}
+If \T{gridlines} is \T{TRUE}, grid lines will be drawn at each (regular)
+tick of both axes.
 
 \subsection{Standardized residuals}
 

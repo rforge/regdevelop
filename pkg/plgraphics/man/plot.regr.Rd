@@ -20,7 +20,8 @@
 
 plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
   sequence = FALSE, weights = NULL,
-  addcomp = FALSE, smooth.legend = FALSE, markextremes = NA, ...)
+  addcomp = FALSE, smooth.legend = FALSE, markextremes = NA,
+  plargs = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -60,6 +61,9 @@ plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
     for identifying the groups should be shown, see Details}
   \item{markextremes}{proportion of extreme residuals to be labeled.
     If all points should be labeled, let \code{markextremes=1}.}
+  \item{plargs}{result of calling \code{pl.control}.
+    If \code{NULL}, \code{pl.control} will be called to generate it.
+  }
   \item{\dots}{Many further arguments are available to customize the plots,
     see below for some of the most useful ones, and
     \code{\link{plotregr.control}} for a complete list.}
