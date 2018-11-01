@@ -49,7 +49,7 @@ production of useful graphics.
 
 <<preliminary, echo=FALSE, out=FALSE>>=
 ## library(regr)
-library(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 ## plmfg()
 options(warn=1)
 knitr::opts_chunk$set(fig.width=6, fig.height=5)
