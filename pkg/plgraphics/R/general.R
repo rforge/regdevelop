@@ -432,7 +432,7 @@ RNAMES <- function(x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function(object)
   length(class(object))>0 && class(object)=="formula"
-u.true <- function(x) length(x)>0 && is.logical(x) && all(x)
+u.true <- function(x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
 ## u.true <- function(x) length(x)>0 && (!is.na(lx <- as.logical(x[1]))) && lx
 nafalse <- function(x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 u.nuna <- function(x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))

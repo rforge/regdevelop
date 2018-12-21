@@ -1,13 +1,13 @@
-\name{pltimeaxis}
-\alias{pltimeaxis}
+\name{gentimeaxis}
+\alias{gentimeaxis}
 
 \title{Generate attributes for a variable expressing time
 }
-\description{code{pltimeaxis} generates a variable that has suitable
+\description{code{gentimeaxis} generates a variable that has suitable
   attributes for plotting a time
 }
 \usage{
-pltimeaxis(date = NULL, year = NULL, month = NULL, day = NULL,
+gentimeaxis(date = NULL, year = NULL, month = NULL, day = NULL,
   hour = NULL, data = NULL, ploptions=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -44,13 +44,28 @@ pltimeaxis(date = NULL, year = NULL, month = NULL, day = NULL,
 \author{Werner A. Stahel
 }
 \note{
-This function is under development
+  \code{gentimeaxis} converts the date into
+  \code{julian(date, origin = as.Date("2000-01-01"))}, storing
+  these values as the attribute \code{attr(.,"numvalues")}
+  (rather than using the default origin at 1970).
+  
+  This function currently works for time scales from years to hours.
+  Minutes and seconds remain to be implemented.
 }
 
-\seealso{\code{\link{genvarattributes}}
+\seealso{\code{\link{genvarattributes}}, \code{\link{axis.Date}}
 }
 \examples{
-## not ready!
+## call gentimeaxis without 'real' data
+gentimeaxis(year=rep(2010:2015, each=12), month=rep(1:12, 6))
+gentimeaxis(year=rep(2010:2015, each=12), month=rep(1:12, 6))
+
+## ... derived from data
+data(d.river)
+d.river$time <- gentimeaxis(date="date", hour="hour", data=d.river)
+plyx(O2~time, data=d.river[months(d.river$date)!="September",])
+plyx(O2~time, data=d.river[months(d.river$date)!="September",])
+plyx(O2~time, data=d.river[1:1000,])
 }
 \keyword{utilities}
 

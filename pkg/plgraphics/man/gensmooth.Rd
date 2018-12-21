@@ -7,19 +7,13 @@
   Smooths can be calculated within given groups.
 }
 \usage{
-gensmooth(x, y, plargs = NULL, band = FALSE, power = 1,
-          resid = "difference", ...)
+gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
+  plargs=NULL, ploptions=plargs$ploptions, ...)
 }
 \arguments{
   \item{x}{vector of x values.
   }
   \item{y}{vector or matrix of y values.
-  }
-  \item{plargs}{result of calling \code{pl.control}.
-    Its component \code{\$pdata} may contain \code{smooth.weight}
-    and \code{smooth.group}, and it specifies
-    \code{smoothPar} and \code{smoothIter}.
-    All of these may be used by the smoothing function.
   }
   \item{band}{logical: Should a band consisting of low and high smooth
     be calculated?
@@ -33,6 +27,12 @@ gensmooth(x, y, plargs = NULL, band = FALSE, power = 1,
     \code{resid=2} or \code{="ratio"} means $y_i/\\hat y_i$, which is useful
     to get scaled y's (regression residuals) according to a smooth fit in the
     scale plot.
+  }
+  \item{plargs, ploptions}{result of calling \code{pl.control}.
+    The component \code{plargs$pdata} may contain \code{smooth.weight}
+    and \code{smooth.group}, and \code{ploptions} specifies
+    \code{smoothPar} and \code{smoothIter}.
+    All of these may be used by the smoothing function.
   }
   \item{...}{Further arguments, passed to the smoothing function.
   }

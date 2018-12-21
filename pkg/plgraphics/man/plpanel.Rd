@@ -8,10 +8,10 @@
   called. 
 }
 \usage{
-plpanel(x, y, indx = NULL, indy = NULL, type = "p", plargs = NULL,
-  frame = FALSE, title = FALSE, ...)
+plpanel(x, y, indx = NULL, indy = NULL, type = "p", frame = FALSE,
+  title = FALSE, plargs = NULL, ploptions = plargs$ploptions, ...)
 
-panelSmooth(x, y, indx, indy, plargs, ...)
+panelSmooth(x, y, indx, indy, plargs=.plargs, ploptions=plargs$ploptions, ...)
 }
 
 \arguments{
@@ -22,13 +22,14 @@ panelSmooth(x, y, indx, indy, plargs, ...)
   \item{indy}{index of the variable shown horizontally, among the
     \code{y} variables}
   \item{type}{type of plot as usual in R: "p" for points, ...}
-  \item{plargs}{result of calling \code{pl.control}.
-    If \code{NULL}, \code{pl.control} will be called to generate it.
-    Its components are often needed to generate the panel.
-  }
   \item{frame}{logical: should \code{plframe} be called?
   }
   \item{title}{logical: should \code{pltitle} be called?
+  }
+  \item{plargs, ploptions}{result of calling \code{pl.control}.
+    If \code{plargs} is \code{NULL}, \code{pl.control} will be called to
+    generate it.
+    The components are often needed to generate the panel.
   }
   \item{...}{further arguments passed to \code{plmboxes}
   }

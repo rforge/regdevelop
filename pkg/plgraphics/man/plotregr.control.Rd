@@ -36,7 +36,7 @@ plotregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{condquant} is possible for
     (ungrouped) binary regression.
-    See \code{?\link{residuals.polr}} for an explanation.
+    See \code{?\link{residuals.regrpolr}} for an explanation.
     Warning: type "deviance" will not work with simulated smooths since
     NAs will emerge.}
   \item{smresid}{logical: Should residuals from smooth be used for

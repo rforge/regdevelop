@@ -11,7 +11,7 @@
 }
 \usage{
 genvarattributes(data, ynames = NULL, ycol = NULL, ylty = NULL, ypch = NULL,
-  labels = NULL, innerrange.limits = NULL, ploptions = NULL, replace=FALSE)
+  varlabels = NULL, innerrange.limits = NULL, ploptions = NULL, replace=FALSE)
 
 varattributes(data, attributes = NULL)}
 
@@ -24,7 +24,7 @@ varattributes(data, attributes = NULL)}
     to be used when multiple y-s are plotted (in the sense of
     \code{matplot})
   }
-  \item{labels}{labels of the variables, in the case that the
+  \item{varlabels}{labels of the variables, in the case that the
     \code{names} of \code{data} are not appropriate.
   }
   \item{innerrange.limits}{limits of the inner plotting range, if
@@ -53,7 +53,7 @@ varattributes(data, attributes = NULL)}
   }
   \item{ticksat}{tick marks for axis
   }
-  \item{label}{label to be used as axis label
+  \item{varlabel}{label to be used as axis label
   }
 }
 \author{Werner A. Stahel

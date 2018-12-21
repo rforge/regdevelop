@@ -30,7 +30,7 @@ condquant(x, dist = "normal", sig = 1, randomrange = 0.9)
   \item{random}{random number according to the conditional distribution
     (one for each row)}
   \item{prob}{probability of the condition being true}
-  \item{index}{row index of the corresponding entry in the input 'x'}
+  \item{index}{(row) index of the corresponding entry in the input 'x'}
 }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
 %%- \note{The function is needed for \code{\link{residuals.polr}} and
@@ -38,6 +38,6 @@ condquant(x, dist = "normal", sig = 1, randomrange = 0.9)
 %%- }
 
 \examples{
-condquant(cbind(seq(-2,0),c(0,1,Inf)))
+condquant(cbind(seq(-2,1),c(0,1,Inf,1)))
 }
 \keyword{distribution}

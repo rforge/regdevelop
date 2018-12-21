@@ -7,7 +7,7 @@
   \code{na.action} component if available
 }
 \usage{
-leverage(object)
+leverage(object, na.action=object$na.action)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -15,14 +15,37 @@ leverage(object)
     an object containing a component \code{fit$leverage} and possibly
     a component \code{fit$na.action}
   }
+  \item{na.action}{if \code{FALSE}, the result will not be expanded
+    to have the same number of observations as the data to which the
+    model has been fitted (in case of NA's in the data). Otherwise,
+    it is the \code{na.action} object that regulates such an expansion,
+    see \code{\link{na.exclude}}.
+  }
 }
 \value{
   The vector \code{fit$leverage}, possibly expanded by missing values
-  if \code{fit$na.action} has class \code{na.replace}
+  if \code{fit$na.action} has class \code{na.exclude}
 }
+\details{
+  The difference to \code{hatvalues} is that \code{leverage} does not
+  call \code{influence} and therefore does not require residuals.
+  It is therefore simpler and more widely applicable.
+
+  The function uses the \code{qr} decomposition of \code{object}.
+  If necessary, it generate it.
+
+  The leverage is the squared Mahalanobis distance of the observation
+  from the center of the design X (\code{model.matrix}) with
+  "covariance" X^T X. If there are weights (\code{object$weights}),
+  the weighted center and "covariance" are used, and the distances are
+  multiplied by the weights.
+  To obtain the distances in the latter case, "de-weight" the leverages
+  by dividing them by the weights.
+}
+
 \author{Werner A. Stahel, ETH Zurich}
 
-\seealso{\code{\link{hat}; \link{influence}}}
+\seealso{\code{\link{hat}; \link{hatvalues}; \link{influence}}}
 
 \examples{
 data(d.blast)

@@ -1,5 +1,7 @@
 %% Latex macros for regr description
-\newcommand{\T}{\texttt}
+\newcommand{\T}[1]{\hskip0.5ex\texttt{#1}\hskip0.5ex}
+\newcommand{\code}[1]{\T{#1}}
+\newcommand{\link}{}
 \newcommand{\ul}{\textbf}
 \newcommand{\Tit}[1]{\textbf{#1}\hspace{1em}}
 \newcommand{\Detail}[1]{{\small #1}}
@@ -11,10 +13,10 @@
 \newcommand{\mx}[1]{\bmath#1}  
 \newcommand{\sups}[1]{^{(#1)}}
 \newcommand{\inv}{^{-1}}
+\newcommand{\tr}{^T}
 \newcommand{\wb}[1]{{}\if Y#1\overline{Y}\else
 \kern0.2em\overline{\kern-0.2em#1}\fi}
 
-\newcommand{\code}[1]{\texttt{#1}}
 
 \newcommand{\Bfig}{\begin{figure}[htb]}
 \newcommand{\Efig}[1]{\caption[]{#1}\end{figure}}

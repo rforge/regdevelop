@@ -1,6 +1,6 @@
 \name{pllimits}
 \alias{pllimits}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{Determine Inner Plot Range 
 }
 \description{The inner plotting range is the range in which
@@ -10,7 +10,6 @@
 \usage{
 pllimits(pllim, data, limfac = NULL, FUNC=NULL)
 }
-%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{pllim}{either a logical: shall an inner plotting range be
     determined? -- or a matrix with 2 rows and \code{NCOL(data)} rows,

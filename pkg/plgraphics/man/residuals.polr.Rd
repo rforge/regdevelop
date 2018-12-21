@@ -1,5 +1,8 @@
-\name{residuals.polr}
-\alias{residuals.polr}
+\name{residuals.regrpolr}
+\alias{residuals.regrpolr}
+\alias{residuals.regrsurvreg}
+\alias{residuals.regrcoxph}
+% \alias{residuals.polr}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Residuals of a Binary or Ordered Regression}
 \description{
@@ -9,7 +12,10 @@
   See Details for an explanation.
 }
 \usage{
-\method{residuals}{polr}(object, ...)
+\method{residuals}{regrpolr}(object, type="condquant", ...)
+%% \method{residuals}{polr}(object, type=c("condquant","deviance"), ...)
+\method{residuals}{regrsurvreg}(object, type="condquant", ...)
+\method{residuals}{regrcoxph}(object, type="CoxSnellMod", ...)
 }
 \arguments{
   \item{object}{the result of \code{polr} or of
@@ -17,7 +23,16 @@
 %%-   \item{na.action}{a list with component \code{na.action}, which
 %%-     determines the na.action for the residual component of
 %%\code{object} }
-  \item{...}{unused}
+\item{type}{type of residuals:
+  \code{"condquant"} for response type residuals augmented, for censored
+  observations, by conditional quantiles (see
+  \code{\link{condquant}}). 
+%% or \code{"deviance"} for deviance residuals\cr
+  For \code{residuals.regrsurvreg}, type \code{CoxSnellMod} yields
+  a modified version of Cox-Snell residuals, also including
+  a \code{condquant} attribute, see Details.
+  }
+  \item{...}{arguments passed to standard methods of \code{residuals}}
 }
 \details{
   For binary and ordinal regression, the regression models can be
@@ -31,25 +46,37 @@
   This function calculates quantiles and random numbers according to the
   conditional distribution of residuals for Z[i], given the observed
   y[i].
+
+  Modified Cox-Snell residuals:
+  Cox-Snell residuals are defined in a way that they always follow an
+  exponential distribution. Since this is an unususal law for residuals,
+  it is convenient to transform them such that they then obey a standard
+  normal distribution. See the vignette for more detail.
 }
 \value{
+  Vector of residual values. If conditional quantiles are requested,
+  it carries an attribute \code{"condquant"}, which is 
   a data.frame with the variables
-  \item{median}{medians of the conditional distributions}
-  \item{lowq}{lower quartiles}
-  \item{uppq}{upper quartiles}
-  \item{random}{random numbers, drawn according to the conditional
-    distributions}
-  \item{fit}{linear predictor values}
-  \item{y}{observed response values}
+  \item{median}{median of the conditional distributions}
+  \item{lowq}{lower quartile}
+  \item{uppq}{upper quartile}
+  \item{random}{random number, drawn according to the conditional
+    distribution}
+  \item{prob}{probability of the condition being true}
+  \item{index}{index of the observation in the sequence of the result
+    (residuals)}
+  \item{fit}{linear predictor value}
+  \item{y}{observed response value}
 }
 \references{See http://stat.ethz.ch/~stahel/regression}
 \author{Werner A. Stahel, ETH Zurich}
 \seealso{\code{\link{condquant}}, \code{\link{plot.regr}}}
 \examples{
 require(MASS)
-house.plr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
-house.resid <- residuals(house.plr)
-head   (house.resid)
-summary(house.resid)
+data(housing, package="MASS")
+rr <- polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
+t.res <- residuals.regrpolr(rr)
+head   (t.res)
+summary(t.res)
 }
 \keyword{regression}

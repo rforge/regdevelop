@@ -5,20 +5,20 @@
   other 'pl' functions are checked and data is prepared for plotting.  
 }
 \usage{
-pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
-           ## generate variables used for plotting
-           psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
-           cex = NULL, markextremes = NULL,
-           ycol = NULL, ylty = NULL, ypch = NULL, smooth = NULL,
-           main = NULL, sub = ":", .subdefault = NULL,
-           mar = NULL, xlab = NULL, ylab = NULL,
-           varlabels = NULL,
-           ploptions = NULL, .environment. = parent.frame(), ... )
+pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
+  psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
+  markextremes = NULL, smooth = NULL,
+  cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
+  ycol = NULL, ylty = NULL, ypch = NULL, 
+  main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
+  ploptions = NULL, .environment. = parent.frame(), ... )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x, y, data}{as in \code{\link{plyx}}
   }
+  \item{subset}{subset of data.frame 'data' to be used for plotting.
+    See details.}
   \item{transformed}{logical: should transformed variables be used?
   }
   \item{psize, plab, pch, pcol}{Plotting characteristics of points,
@@ -28,24 +28,14 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
     strings), plotting character, and color, respectively.\cr
     \code{plabs = TRUE} asks for using the row names of \code{data}.
   }
+  \item{markextremes}{scalar: proportion of extreme points to be labelled
+  }
+  \item{smooth}{logical: should a smooth line be added?
+  }
   \item{cex}{character expansion, applied to both labels and plotting
     characters.
     By default, it adjusts to the number of observations.
   }
-  \item{markextremes}{scalar: proportion of extreme points to be labelled
-  }
-  \item{ycol, ylty, ypch}{color, line type and plotting character
-    to be used when multiple y-s are plotted (in the sense of
-    \code{matplot})
-  }
-  \item{smooth}{logical: should a smooth line be added?}
-  \item{main, sub}{string. Main title of the plot(s).
-    If \code{sub} starts by \code{":"} (the default),
-    \code{pl.control} tries to generate an informative subtitle,
-    determined by the data or a model formula.
-  }
-  \item{.subdefault}{for internal use: default of subtitle}
-  \item{mar}{plot margins}
   \item{xlab, ylab}{axis labels}
   \item{varlabels}{
     labels for variables replacing their names in the \code{x} and
@@ -53,6 +43,17 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
     element for each variable,
     or a named vector, where names correspond to such variables.
   }
+  \item{ycol, ylty, ypch}{color, line type and plotting character
+    to be used when multiple y-s are plotted (in the sense of
+    \code{matplot})
+  }
+  \item{main, sub}{string. Main title of the plot(s).
+    If \code{sub} starts by \code{":"} (the default),
+    \code{pl.control} tries to generate an informative subtitle,
+    determined by the data or a model formula.
+  }
+  \item{.subdefault}{for internal use: default of subtitle}
+  \item{mar}{plot margins}
   \item{ploptions}{Plotting attributes, e.g., plotting character,
     line types, colors and the like, for different aspects of plots.
     Result of \code{\link{ploptions}}. Defaults to \code{.ploptions}.
@@ -64,7 +65,12 @@ pl.control(x=NULL, y=NULL, data = NULL, transformed = TRUE,
 }
 }
 \details{
-!!!
+  !!!
+
+  The argument \code{subset} should be used instead of
+  \code{data[subset,]} if the dataset \code{data} contains variable
+  attributes like \code{varlabel, ticksat, ...}
+  
 }
 \value{A list containing all the arguments, possibly in modified form.
   Specifically, the evaluations of the variables contained in

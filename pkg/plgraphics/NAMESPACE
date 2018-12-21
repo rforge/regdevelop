@@ -38,16 +38,15 @@ importFrom("survival", "coxph", "survreg", "Surv")
 export(asinp, 
        BR, DB, IR,
        ## add1.regr, ## add1.default, add1.mlm, ## see below
-       c.mon, c.months, c.colors, 
+       c.mon, c.months, c.weekdays, c.colors, 
        cexSize, colorpale, condquant,
-       c.weekdays,
        clipat,
        doc, "doc<-",
        dropdata, extendrange, 
        fitcomp,
        ## fitted.regr, fitted.polr,
-       gensmooth, genvarattributes,
-       getmeth, getvariables, getvarnames, 
+       gensmooth, genvarattributes, gentimeaxis, 
+       getvariables, getvarnames, getmeth, 
        i.def, is.formula,
        last, legendr, leverage, linear.predictors, logst, 
        modarg, 
@@ -57,18 +56,18 @@ export(asinp,
        plyx, plmatrix, plmfg, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
-       plframe, pltitle, plaxis, plpoints, plbars, pltimeaxis, 
-       plsmooth, plsmoothline, plrefline, 
+       plframe, pltitle, plaxis, plpoints, plbars, 
+       plsmooth, plsmoothline, plrefline, plsubset, 
        plot.regr, plotregr.control, 
        plres2x, plresx, plfitpairs, ## plTA.polr,
        ## predict.mlm, predict.polr, ## predict.regr,
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
        ## residuals.regr,
-       residuals.polr, ## residuals.regrcoxph,
-       ## residuals.regrsurv,
+       residuals.regrpolr, residuals.polr, residuals.regrcoxph,
+       residuals.regrsurvreg,
        robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
-       smoothRegr, stamp,
+       smoothRegr, smoothxtrim, stamp,
        sumna,
        Surv, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without
@@ -86,12 +85,13 @@ S3method(simresiduals, glm)
 
 S3method(residuals, regr)
 S3method(fitted, regr)
-S3method(predict, regr)
-S3method(predict, mlm)
-S3method(residuals, polr)
+##S3method(predict, regr)
+##S3method(predict, mlm)
+S3method(residuals, regrpolr)
+## S3method(residuals, polr)
 S3method(fitted, polr)
-S3method(predict, polr)
-S3method(residuals, regrsurv)
+##S3method(predict, polr)
+S3method(residuals, regrsurvreg)
 S3method(residuals, regrcoxph)
 S3method(nobs, survreg)
 S3method(nobs, coxph)

@@ -7,7 +7,6 @@
     '("Itemone" 1)
     '("Item" 1)
     '("Efig" 1)
-    '("code" 1)
     '("wb" 1)
     '("sups" 1)
     '("mx" 1)
@@ -16,9 +15,12 @@
     '("fn" 1)
     '("Detail" 1)
     '("Tit" 1)
-    "T"
+    '("code" 1)
+    '("T" 1)
+    "link"
     "ul"
     "inv"
+    "tr"
     "Bfig"
     "Itm"
     "Itmone"
@@ -28,5 +30,6 @@
    (LaTeX-add-lengths
     "Litemskip"
     "Litemwidth"
-    "Lparskip")))
+    "Lparskip"))
+ :latex)
 

@@ -9,15 +9,15 @@ residuals.regr <- function(object, type=NULL, standardized=FALSE, ...)
   if (lff=="glm" && !is.null(type) && substr(type,1,4)=="cond") lff <- "polr"
   lcall[[1]] <-
     switch(as.character(lff),
-           "polr" = quote(residuals.polr),
-           "survreg" = quote(residuals.regrsurv),
+           "polr" = quote(residuals.regrpolr),
+           "survreg" = quote(residuals.regrsurvreg),
            "coxph" = quote(residuals.regrcoxph),
            quote(residuals))
   class(object) <- setdiff(class(object), "regr")
   lcall$object <- object
   rr <- structure( eval(lcall, envir=parent.frame()), type=type)
   if (standardized) {
-    lstr <- i.stresx(object, resid=rr)
+    lstr <- i.stres(object, residuals=rr)
     attr(rr,"stresiduals") <- lstr$stresiduals
     attr(rr,"leverage") <- lstr$leverage
     attr(rr,"strratio") <- lstr$strratio
@@ -25,16 +25,19 @@ residuals.regr <- function(object, type=NULL, standardized=FALSE, ...)
   rr
 }
 ## ===================================================================
-residuals.regrcoxph <- function(object, type=NULL, ...)
+residuals.regrcoxph <- function(object, type="CoxSnellMod", ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: Aug 2010
-  if(u.nuna(type)) type <- "CoxSnellMod"
+  type <- i.def(type, "CoxSnellMod", valuefalse="")
+  if (type=="") return()
   if (type!="CoxSnellMod") {
-    object$residuals <- object$resid.orig
-    return(structure( survival:::residuals.coxph(object, type=type, ...),
-                     type=type) )
+    if (!inherits(object, "coxph")) {
+      warning(":residuals.regrcoxph: 'object' does not inherit from 'coxph'")
+      return()
+    } ## $residuals <- object$resid.orig
+    return(structure( residuals(object, type=type, ...), type=type) )
   }
   lnaaction <- object$na.action
   lres <- object$residuals
@@ -58,23 +61,28 @@ residuals.regrcoxph <- function(object, type=NULL, ...)
   structure( naresid(lnaaction, lres), condquant=lr, type=type)
 }
 ## ===================================================================
-residuals.regrsurv <- function(object, type=NULL, ...)
+residuals.regrsurvreg <- function(object, type="condquant", ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 24 Oct 2008, 10:16
-  if(u.nuna(type)) type <- "condquant"
-  if (type!="condquant") 
-    return(structure( survival:::residuals.survreg(object, type, ...),
-                     type=type) )
+  type <- i.def(type, "condquant", valuefalse="")
+  if (type=="") return()
+  if (type!="condquant") {
+    if (!inherits(object, "survreg")) {
+      warning(":residuals.regrsurvreg: 'object' does not inherit from 'survreg'")
+      return()
+    } ## $residuals <- object$resid.orig
+    return(structure( residuals(object, type=type, ...), type=type) )
+  }
   lnaaction <- object$na.action
   ly <- object$y  ## log for weibull
   lsig <- object$sigma
   if (length(lsig)==0) lsig <- summary(object)$scale
   if (length(lsig)==0) {
-    warning(":residuals.regrsurv: no sigma found. Setting =1")
+    warning(":residuals.regrsurvreg: no sigma found. Setting =1")
     lsig <- 1
   }
   lfit <- object$linear.predictors
@@ -95,9 +103,9 @@ residuals.regrsurv <- function(object, type=NULL, ...)
       llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
       lr <- condquant(llim, ldist, lsig)
       lres[li] <- lr[,"median"]
-      lr[,'index'] <- which(naresid(lnaaction, lii))
+      lr[,'index'] <- which(naresid(lnaaction, lii)) ## !! not needed (?)
   } else lr <- NULL
-  structure( naresid(lnaaction, lres), condquant=lr, type=type)
+  structure( naresid(lnaaction, lres), condquant=lr, type=type, family=ldist)
 }
 ## ==============================================================
 nobs.survreg <- function(object, ...) { ##use.fallback = TRUE
@@ -109,23 +117,27 @@ nobs.coxph <- function(object, ...) {
   object$n
 }
 ## ===================================================================
-residuals.polr <- function(object, ...) ## na.action=object, 
+residuals.regrpolr <- function(object, type="condquant", ...) ## na.action=object, 
 {
   ## Purpose:   residuals for cumulative logit regression
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  2 Oct 2007, 11:31
   if (!((lpolr <- inherits(object, "polr"))|
         (lbin <- inherits(object, "glm")&&object$family=="binomial")))
-    stop ("!residuals.polr! unsuitable first argument")
+    stop ("!residuals.regrpolr! unsuitable first argument")
+  type <- i.def(type, "condquant")[1]
+  if (type=="deviance") return(residuals(object, type="deviance"))
+  ## ---
   lnaaction <- object$na.action
   lmodel <- object$model
   if (is.null(lmodel)) lmodel <- model.frame(object)
   ly <- model.response(lmodel)
-  if (length(ly)==0) stop ("!residuals.polr! bug: no response values found")
+  if (length(ly)==0) stop ("!residuals.regrpolr! bug: no response values found")
   if (length(dim(ly))) {
-    warning(":residuals.polr: returning simple deviance residuals for non-binary (grouped) data")
+    warning(":residuals.regrpolr: returning simple deviance residuals for non-binary (grouped) data")
     return(residuals(object, type="deviance"))
   }
+  ## ---
   ly <- as.numeric(ordered(ly))
   ##  ly <- naresid(object$na.action, ly)
   object$na.action <- NULL
@@ -139,6 +151,7 @@ residuals.polr <- function(object, ...) ## na.action=object,
   ##
   structure(naresid(lnaaction, lr[,"median"]), condquant=lr) 
 }
+residuals.polr <- residuals.regrpolr
 ## ===========================================================================
 linear.predictors <- function(object) {
   llp <- object$linear.predictors
@@ -230,7 +243,7 @@ fitcomp <-
     attr(object$terms,"predvars") <- attr(lterms,"predvars")
   }
   ltype <- if (inherits(object,"coxph")) "lp"  else "response"
-  if (inherits(object, "glm")) ltype <- "link"
+  if (inherits(object, c("glm", "polr"))) ltype <- "link"
   if (ltransf) {
     lobj <- structure(object, class="list")
     lobj[["terms"]] <- lterms <- delete.response(terms(object))
@@ -362,14 +375,46 @@ i.findformfac <- function(formula) {
         paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
 }
 ## =======================================================================
-leverage <- function(object)
+leverage <- function(object, na.action=object$na.action)
 {
   ## Purpose:  extract leverages
   ## Author: Werner Stahel, Date: 10 Nov 2010, 09:31
   lh <- object$leverage
-  if(is.null(lh)) lh <- hatvalues(object)
-  names(lh) <- names(object$resid)
-  naresid(object$na.action, lh)
+  lnm <- names(i.def(object$residuals,object$resid))
+  if (is.null(object$rank)) object$rank <- length(coefficients(object))
+  if (is.null(lh)) {
+    lqr <- object$qr
+    if (is.null(lqr)) {
+      if (length(lx <- object[["x"]])==0)
+        if (inherits(object, "lm")) lx <- model.matrix(object)
+        else if(length(ld <- object$model))
+          lx <- model.matrix(formula(object), data=object$model)
+      if (length(lx))
+        lqr <- qr(if (length(lwgt <- object$weights)) sqrt(lwgt)*lx else lx)
+    }
+    if(length(lqr)) {
+      lh <- setNames(hat(lqr, intercept=FALSE), lnm)
+      ##  lh <- naresid(object$na.action, lh)
+    }
+  }
+  if (length(lh)==0) {
+    lmf <- object$model
+    if (length(lmf)) {
+      lx <- try(model.matrix(formula(object), data=lmf))
+    } else {
+      lcl <- object$call
+      lcl <- lcl[setdiff(names(lcl),"dist")]
+      names(lcl)[2] <- "object"
+      lcl[1] <- list(quote(model.matrix))
+      lx <- try(eval(lcl))
+    }
+    if (class(lx)!="try.error") 
+      lh <- setNames(hat(lx, intercept=FALSE), lnm)
+  }
+  if (length(lh)==0) message("*leverage* no model.matrix found -> no leverages",
+                             ". call fitting function with 'x=TRUE'")
+  if (length(lh) & u.notfalse(na.action)) lh <- naresid(na.action, lh)
+  lh
 }
 ## ==========================================================================
 i.stres <-
@@ -380,36 +425,35 @@ i.stres <-
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Mar 2018, 15:45
   leveragelim <- i.def(leveragelim, c(0.99, 0.5), valuefalse=c(0.99, 0.5))
-  sigma <- i.def(sigma, x$sigma)
+  lres <- as.data.frame(residuals)
+  lmres <- ncol(lres)
   if (is.null(sigma)||(!is.finite(sigma))||sigma<=0) {
-    warning(":i.stres: sigma is missing or <=0. I use sigma=1")
+    if (!(inherits(x, "glm") && x$family$family%in%c("binomial","poisson") ||
+          inherits(x, "polr")))
+      warning(":i.stres: sigma is missing or <=0. I use sigma=1")
     sigma <- 1
   }
-  if (inherits(x, "nls")) {
-    warning(":i.stres: no leverage and standardized residuals",
-            " are available for a nonlinear model")
-    return(list(leverage = NULL, stresiduals = NULL, strratio = NULL))
-  }
+  sigma <- rep(i.def(sigma, x$sigma), length=lmres)
+  ## --- leverage
   llev <- x$leverage
-  if (length(llev)==0) llev <- hatvalues(x)
-##-   {
-##-     lmm <- x[["x"]]
-##-     if (length(lmm)==0) lmm <- model.matrix(terms(x),x$model)
-##-     llev <- hat(lmm)
-  ##-   }
+  if (length(llev)==0) llev <- leverage(x, na.action=FALSE)
+  if (length(llev)==0)
+    return(list(leverage = NULL,
+                stresiduals = sweep(lres,2,sigma,"/"), strratio = 1/sigma))
+  ##
   llevlim <- leveragelim[1]
   if (mean(llev)>llevlim) {
     warning(":i.stres: leveragelim not suitable. I use 0.99")
     llevlim <- 0.99
   }
-  lres <- residuals
+  ## --- standardized residuals
   if (length(lres)==0) {
     warning(":regr/i.stres: no residuals round -> no standardized res.")
     return( list(leverage=llev) )
   }
-  if (length(llev)!=NROW(lres)) {
+  if (length(llev)!=nrow(lres)) {
     warning(":regr/i.stres: no leverages available, I set them 0")
-    llev <- rep(0,NROW(lres))
+    llev <- rep(0,nrow(lres))
   }
   names(llev) <- rownames(as.matrix(lres))
   ##
@@ -420,36 +464,12 @@ i.stres <-
     if (lIwgt) lstrratio <- lstrratio / sqrt(weights)
     else warning(":regr/i.stres: weights not suitable -> not used")
   }
-  lstres <- as.matrix(lres)*lstrratio
-  list(leverage = llev, stresiduals = structure(lstres, weighted=lIwgt),
-       strratio = lstrratio)
-}
-## -----------------------------------------------------------------------
-i.stresx <-
-  function(x, resid=NULL, weights=NULL, leveragelim = c(0.99, 0.5))
-{ ## Purpose:  calculate  hat  and  standardized residuals
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel
-  sigma <- i.def(i.def(x$sigma, x$scale), 1)
-  llev <- leverage(x)
-  if (length(llev)==0) {
-    lmm <- x[["x"]]
-    if (length(lmm)==0) lmm <- model.matrix(terms(x),x$model)
-    llev <- naresid(x$na.action, hat(lmm))
-  }
-  resid <- as.data.frame(i.def(resid, residuals(x)))
-  lstrratio <- i.def(x$strratio,
-                     outer(1/sqrt(1-pmin(leveragelim[1],llev)), sigma, "/") )
-  lwgt <- weights
-  if (lIwgt <- length(lwgt)==NROW(resid)) lstrratio <- lstrratio * sqrt(lwgt)
-  lstres <- resid*lstrratio
-  lmres <- ncol(lstres)
+  lstres <- as.data.frame(as.matrix(lres)*lstrratio)
   for (lj in 1:lmres) {
-    if (length(lcq <- attr(resid[,lj], "condquant")))
+    if (length(lcq <- attr(lres[,lj], "condquant")))
       attr(lstres[,lj], "condquant") <-
-        cbind(lcq[,1:4]*lstrratio[lcq[,"index"]], lcq[,-(1:4)])
+        cbind(lcq[,1:4]*lstrratio[lcq[,"index"]], lcq[,5:6])
   }
-  if (lmres==1) lstres <- lstres[[1]]
   list(leverage = llev, stresiduals = structure(lstres, weighted=lIwgt),
        strratio = lstrratio)
 }
@@ -478,7 +498,7 @@ condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
                          c("median","lowq","uppq","random","prob","index")),
                   class="condquant")
   if (length(lii)==0) {
-    message(".condquant. All intervals of length 0. ",
+    message(":condquant: All intervals of length 0. ",
             "I return a matrix with 0 lines")
     return(rr)
   }
@@ -538,317 +558,6 @@ fitted.polr <- function(object, type="link", na.action=object, ...) {
   naresid(object$na.action,lfit)
 }
 ## ==========================================================================
-predict.regr <-
-  function (object, newdata = NULL, type = NULL, se.fit=FALSE,
-            scale = object$sigma, df=object$df.residual, ...)
-{
-  if (length(type)==0)
-    type <- if (inherits(object,c("glm","polr"))) "link" else "response"
-  if (se.fit & inherits(object, c("polr"))) {
-    warning(":predict.regr: standard errors for fit not available for ",
-            paste(class(object), collapse="  "), "models. Set to FALSE")
-    se.fit <- FALSE
-  }
-  ## !!!
-  if (object$fitfun=="rlm")
-    if (!is.matrix(object[["x"]]))
-      object$x <- model.matrix(formula(object), data=object$allvars) ## !!! was $model
-  class(object) <- class(object)[-1]
-  ldt <- newdata
-  if (is.null(ldt)) return(
-    predict(object, type=type, scale=object$sigma,
-            dispersion=object$dispersion^2, ... ) )
-  ## analyze variables
-  ltl <- attr(terms(object),"term.labels")
-  ltll <- grep("logst\\(",ltl)
-  lvlogst <- NULL
-  if (length(ltll)) {
-    lvlogst <- unique( gsub(".*logst\\((.*)\\).*","\\1", ltl[ltll]) )
-    lmodel <- model.frame(object)
-    lform <- as.character(as.expression(formula(object)))
-  }
-  for (lvn in names(ldt)) {
-    lv <- ldt[[lvn]]
-    ## factors
-    if (is.factor(lv))  ldt[[lvn]] <- 
-      if (match(lvn,names(object$binlevels),nomatch=0)>0) ## binary
-        match(lv,object$binlevels[[lvn]])-1
-      else  factor(lv)
-    ## logst
-    if (lvn %in% lvlogst) {
-      lt <- ltl[grep(lvn, ltl)[1]]
-      lvv <- lmodel[[lt]]
-      lth <- attr(lvv, "threshold")
-      if (is.null(lth))
-        stop("!predict.regr! variable in term ",lt,
-             "  not found in model.frame or threshold not available. \n",
-             "  Prediction with 'logst' would fail.",
-             "  Store transformed variable in data.frame")
-      lth <- round(lth,5) ## get it from there,
-        ## since it may have been set by the call to regr
-      lform <- gsub(paste("logst *\\(",lvn,"\\)",sep=" *"),
-                   paste("logst(",lvn,", threshold=",lth,")",sep=""), lform)
-    }
-  }
-  if (length(lvlogst))
-    object$terms <- terms(as.formula(lform), data=object$data)
-  predict(object, newdata=ldt, type=type, scale=object$sigma, 
-          df=df, dispersion=object$dispersion^2, se.fit=se.fit, ... )
-}
-## ===================================================
-predict.polr <-
-  function (object, newdata=NULL,
-            type = c("class", "probs", "link"), ...)
-  ## type link added by WSt, newdata=NULL
-{
-  if (!inherits(object, "polr"))
-    stop("not a \"polr\" object")
-  type <- match.arg(type)
-  if (length(newdata)==0) {
-    if (type=="link")
-      eta <- fitted(object, type="link", na.action=NULL)
-    Y <- object$fitted
-    na.action <- object$na.action
-  }
-  else {
-    na.action <- NULL
-    newdata <- as.data.frame(newdata)
-    Terms <- delete.response(object$terms)
-    attr(Terms, "intercept") <- 1
-    environment(Terms) <- environment() ## ! WSt
-    m <- model.frame(Terms, newdata, na.action = function(x) x,
-                     xlev = object$xlevels)
-    if (!is.null(cl <- attr(Terms, "dataClasses")))
-      .checkMFClasses(cl, m)
-    X <- model.matrix(Terms, m, contrasts = object$contrasts)
-    ## changed by WSt
-    coef <- coefficients(object)
-    eta <- drop(X[,-1] %*% coef) ## without the intercept
-    n <- nrow(X)
-    q <- length(object$zeta)
-    ##  pgumbel <- function(q) exp(pweibull(log(q))) # ???
-    pfun <- switch(object$method, logistic = plogis, probit = pnorm,
-                   cloglog = prevgumbel, cauchit = pcauchy)
-    cumpr <- matrix(pfun(matrix(object$zeta, n, q, byrow = TRUE) - eta), , q)
-    Y <- t(apply(cumpr, 1, function(x) diff(c(0, x, 1))))
-    dimnames(Y) <- list(rownames(X), object$lev)
-  }
-##-     if (newdata) && !is.null(object$na.action))
-##-         Y <- napredict(object$na.action, Y)
-  switch(type, class = {
-    Y <- factor(max.col(Y), levels = seq_along(object$lev),
-                labels = object$lev)
-  }, probs = {
-  }, link = { Y <- eta })
-  Y <- napredict(na.action,Y)
-  drop(Y)
-}
-## ==========================================================================
-predict.mlm <-
-  function (object, newdata=NULL, scale = NULL, df = Inf,
-            interval = c("none", "confidence", "prediction"),
-            se.fit = FALSE, level = 0.95, type = c("response", "terms"),
-            terms = NULL, na.action = na.pass,
-            pred.var = NULL, weights = 1, ...) ## ... to absorb unused args
-  ## predict.lm, extended for mlm
-{
-    tt <- terms(object)
-    if (missing(newdata) || is.null(newdata)) {
-        mm <- X <- model.matrix(object)
-        mmDone <- TRUE
-        offset <- object$offset
-    }
-    else {
-        Terms <- delete.response(tt)
-        m <- model.frame(Terms, newdata, na.action = na.action,
-            xlev = object$xlevels)
-        if (!is.null(cl <- attr(Terms, "dataClasses")))
-            .checkMFClasses(cl, m)
-        X <- model.matrix(Terms, m, contrasts.arg = object$contrasts)
-        offset <- if (!is.null(off.num <- attr(tt, "offset")))
-            eval(attr(tt, "variables")[[off.num + 1]], newdata)
-        else if (!is.null(object$offset))
-            eval(object$call$offset, newdata)
-        mmDone <- FALSE
-    }
-    r <- cbind(object$residuals)
-    n <- nrow(r)
-    m <- ncol(r)
-    ynm <- colnames(r)
-    p <- object$rank
-    p1 <- seq_len(p)
-    piv <- object$qr$pivot[p1]
-    if (p < ncol(X) && !(missing(newdata) || is.null(newdata)))
-        warning("prediction from a rank-deficient fit may be misleading")
-##-     beta <- object$coefficients
-    beta <- cbind(object$coefficients)
-##-     predictor <- drop(X[, piv, drop = FALSE] %*% beta[piv])
-    predictor <- drop(X[, piv, drop = FALSE] %*% beta[piv,,drop=FALSE])
-    if (!is.null(offset))
-        predictor <- predictor + offset
-    interval <- match.arg(interval)
-    if (interval == "prediction") {
-        if (missing(newdata))
-            warning("Predictions on current data refer to _future_ responses\n")
-        if (missing(newdata) && missing(weights)) {
-            w <- weights(object) ## .default
-            if (!is.null(w)) {
-                weights <- w
-                warning("Assuming prediction variance inversely proportional to weights used for fitting\n")
-            }
-        }
-        if (!missing(newdata) && missing(weights) && !is.null(object$weights) &&
-##-             missing(pred.var)
-            is.null(pred.var)
-            )
-            warning("Assuming constant prediction variance even though model fit is weighted\n")
-        if (inherits(weights, "formula")) {
-            if (length(weights) != 2L)
-                stop("`weights` as formula should be one-sided")
-            d <- if (missing(newdata) || is.null(newdata))
-                model.frame(object)
-            else newdata
-            weights <- eval(weights[[2L]], d, environment(weights))
-        }
-    }
-    type <- match.arg(type)
-    if (se.fit || interval != "none") {
-        res.var <- if (is.null(scale)) {
-##            r <- object$residuals
-            w <- object$weights
-##-             rss <- sum(if (is.null(w)) r^2 else r^2 * w)
-            rss <- apply( if (is.null(w)) r^2 else r^2 * w ,2,sum)
-            df <- n - p
-            rss/df
-        }  else {
-##-         scale^2
-        if (length(scale)==m) scale^2 else
-           stop("!predict.lm! argument scale has wrong length")
-        }
-        res.var.mx <- matrix(res.var, p, m, byrow=TRUE)
-        if (type != "terms") {
-            if (p > 0) {
-                XRinv <- if (missing(newdata) && is.null(w))
-                  qr.Q(object$qr)[, p1, drop = FALSE]
-                else X[, piv] %*% qr.solve(qr.R(object$qr)[p1, p1])
-##-                 ip <- drop(XRinv^2 %*% rep(res.var, p))
-                ip <- drop(XRinv^2 %*% res.var.mx)
-            }
-            else ip <- rep(0, n)
-        }
-    }
-    if (type == "terms") {
-        if (!mmDone) {
-            mm <- model.matrix(object)
-            mmDone <- TRUE
-        }
-        aa <- attr(mm, "assign")
-        ll <- attr(tt, "term.labels")
-        hasintercept <- attr(tt, "intercept") > 0L
-        if (hasintercept)
-            ll <- c("(Intercept)", ll)
-        aaa <- factor(aa, labels = ll)
-        asgn <- split(order(aa), aaa)
-        if (hasintercept) {
-            asgn$"(Intercept)" <- NULL
-            if (!mmDone) {
-                mm <- model.matrix(object)
-                mmDone <- TRUE
-            }
-            avx <- colMeans(mm)
-            termsconst <- sum(avx[piv] * beta[piv])
-        }
-        nterms <- length(asgn)
-        if (nterms > 0) {
-##-             predictor <- matrix(ncol = nterms, nrow = NROW(X))
-            predictor <- array(dim=c(NROW(X),nterms,m))
-##-             dimnames(predictor) <- list(rownames(X), names(asgn))
-            dimnames(predictor) <- list(rownames(X), names(asgn), ynm)
-            if (se.fit || interval != "none") {
-##-                 ip <- matrix(ncol = nterms, nrow = NROW(X))
-##-                 dimnames(ip) <- list(rownames(X), names(asgn))
-                ip <- predictor
-                Rinv <- qr.solve(qr.R(object$qr)[p1, p1])
-            }
-            if (hasintercept)
-                X <- sweep(X, 2L, avx, check.margin = FALSE)
-            unpiv <- rep.int(0L, NCOL(X))
-            unpiv[piv] <- p1
-            for (i in seq.int(1L, nterms, length.out = nterms)) {
-                iipiv <- asgn[[i]]
-                ii <- unpiv[iipiv]
-                iipiv[ii == 0L] <- 0L
-##-                 predictor[, i] <- if (any(iipiv > 0L))
-##-                   X[, iipiv, drop = FALSE] %*% beta[iipiv]
-                predictor[, i,] <- if (any(iipiv > 0L))
-                  X[, iipiv, drop = FALSE] %*% beta[iipiv,]
-                else 0
-                if (se.fit || interval != "none")
-##-                   ip[, i] <- if (any(iipiv > 0L))
-##-                     as.matrix(X[, iipiv, drop = FALSE] %*% Rinv[ii,, drop = FALSE])^2 %*%
-##-                       rep.int(res.var,p)
-                  ip[, i,] <- if (any(iipiv > 0L))
-                    as.matrix(X[, iipiv, drop = FALSE] %*% Rinv[ii,, drop = FALSE])^2 %*%
-                      res.var.mx
-                  else 0
-            }
-            if (!is.null(terms)) {
-                predictor <- predictor[, terms, drop = FALSE]
-                if (se.fit)
-                  ip <- ip[, terms, drop = FALSE]
-            }
-        }
-        else {
-            predictor <- ip <- matrix(0, n, 0)
-        }
-        attr(predictor, "constant") <- if (hasintercept)
-            termsconst
-        else 0
-    }
-    if (interval != "none") {
-        tfrac <- qt((1 - level)/2, df)
-        if (is.null(pred.var)) pred.var <- res.var.mx/weights ## !!!
-        hwid <- tfrac * switch(interval, confidence = sqrt(ip),
-            prediction = sqrt(ip + pred.var))
-        if (type != "terms") {
-            if (m==1) {  ## changed
-              predictor <- cbind(predictor, predictor + hwid %o% c(1, -1))
-              colnames(predictor) <- c("fit", "lwr", "upr")
-            } else {  ## changed
-              predictor <- array(c(predictor, predictor - hwid, predictor + hwid),
-                               dim=c(n,m,3))
-              dimnames(predictor)[[3]] <- c("fit", "lwr", "upr")
-            }
-        }
-        else {
-            lwr <- predictor + hwid
-            upr <- predictor - hwid
-        }
-    }
-    if (se.fit || interval != "none")
-        se <- sqrt(ip)
-##-     if (missing(newdata) && !is.null(na.act <- object$na.action)) { ## !!! not yet extended
-##-         predictor <- napredict(na.act, predictor)
-##-         if (se.fit)
-##-             se <- napredict(na.act, se)
-##-     }
-    if (m==1) { ## !!!
-      if (length(dim(predictor))==3) predictor <- predictor[,,1]
-      if (se.fit) if (length(dim(se))==3) se <- se[,,1]
-    }
-    if (type == "terms" && interval != "none") {
-##-         if (missing(newdata) && !is.null(na.act)) { # !!! not yet extended
-##-             lwr <- napredict(na.act, lwr)
-##-             upr <- napredict(na.act, upr)
-##-         }
-        list(fit = predictor, se.fit = se, lwr = lwr, upr = upr,
-            df = df, residual.scale = sqrt(res.var))
-    }
-    else if (se.fit)
-        list(fit = predictor, se.fit = se, df = df, residual.scale = sqrt(res.var))
-    else predictor
-}
-## ==========================================================================
 simresiduals <- function(object, ...)  UseMethod("simresiduals")
   ## Purpose:   simulate residuals according to regression model
   ##            by permuting residuals of actual model or by random numbers
@@ -892,7 +601,12 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
   lfam <- object$distrname
   if (length(lfam)==0) lfam <- object$family$family
   if (is.null(lfam)) lfam <- ""
-  ly <- object$response
+  ly <- object$y
+  if (is.null(ly)) ly <- object$response
+  if (is.null(ly)) {
+    warning(":simresiduals: response not found. No simulated residuals")
+    return(NULL)
+  }
   ln <- nrow(ldata)
   lone <- rep(1,ln)
   if (!is.function(simfunction)) {
@@ -928,7 +642,7 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
     lrs <- eval(lcl, environment())
     lsimres[,lr] <-
       if (substr(glm.restype,1,4)=="cond")
-          residuals.polr(lrs)[,"random"] else
+          residuals.regrpolr(lrs)[,"random"] else
           residuals(lrs, type=glm.restype)
   }
   naresid(lnaaction, lsimres)
@@ -1173,7 +887,7 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
     lrs <- eval(lcl, environment())
     lsimres[,lr] <-
       if (substr(glm.restype,1,4)=="cond")
-          residuals.polr(lrs)[,"random"] else
+          residuals.regrpolr(lrs)[,"random"] else
           residuals(lrs, type=glm.restype)
   }
   naresid(lnaaction, lsimres)

@@ -55,6 +55,36 @@ ploptionsDefault
   stored in the \code{".GlobalEnv"} environment.
   The second is stored in the package \code{plgraphics}.
 }
+\details{
+  Here is a list of the components of \code{ploptionsDefault},
+  describing the suitable alternative values to be set by calling
+  \code{ploptions}:
+  \cr very incomplete for the time being!!!
+  %% ===========================================================
+  \itemize{
+    \item{tickintervals}{vector of length 2. The first element is the
+      desired number of tick intervals for axes, to be used as argument
+      \code{n} in \code{\link{pretty}}.
+      The second determines how many tick labels are shown in the same
+      way, and should therefore be smaller than (or equal to) the first.
+    }      
+    \item{gridlines}{can be \cr
+      -- a logical indicating if gridlines should be drawn. If
+      \code{TRUE}, gridlines will be drawn at the values given in
+      \code{attr(.,"ticksat")};
+      -- a vector of values at which the gridlines should appear;\cr
+      -- a list of length 2 of such values;\cr
+      -- a named list. If a name equals the attribute \code{varname}
+      of either the x or y variable, the respective component will be
+      used.
+    }
+    \item{smooth.xtrim}{proportion of fitted values to be trimmed off on
+      both sides when drawing a smooth line, either a number or a function
+      that takes the number of points as its argument.
+      The default is the simple function \code{2^log10(n)/n}.
+    }
+  }
+}
 \author{Werner A. Stahel}
 \note{In contrast to the \code{\link{options}} of R base,
   the \code{plptions} are stored in the \code{.GlobalEnv}
