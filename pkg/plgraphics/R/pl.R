@@ -2241,8 +2241,9 @@ plot.regr <-
   if (length(loma)<4) loma <- c(0,0,loma,0)[1:4]
   loldpar <- 
     if (length(lmf)&(!is.logical(lmf))) {
-      if (length(lmf)==1) attr(plmfg(mft=lmf, oma=loma),"oldpar") else
-          attr(plmfg(lmf[1], lmf[2], oma=loma),"oldpar")
+      lop <- if (length(lmf)==1) attr(plmfg(mft=lmf, oma=loma),"oldpar") else
+      attr(plmfg(lmf[1], lmf[2], oma=loma),"oldpar")
+      lop[setdiff(names(lop), c("mfig","mrow","mcol"))]
     } else par(oma=loma) ## , ask=plargs$ask
   on.exit(par(loldpar), add=TRUE)
   lnewplot <- TRUE ## !!!

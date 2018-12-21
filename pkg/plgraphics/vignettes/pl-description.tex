@@ -67,8 +67,7 @@
 \usepackage{pldescr}
 %% \VignetteEngine{knitr::knitr}
 %% \VignetteDepends{plgraphics}
-%% \VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical
-%R-functions based on the 'pl' concept}
+%\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
 \def\wh#1{\widehat{#1}}
 
@@ -203,9 +202,7 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{smooth.group}\hlstd{=Species,}
      \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in smoothline\$y[lig, 1]: incorrect number of dimensions}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_smooth-1} 
 
 \end{knitrout}
@@ -299,9 +296,9 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \begin{alltt}
 \hlkwd{plyx}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{, EuStockMarkets[}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{,],} \hlkwc{type}\hlstd{=}\hlstr{"b"}\hlstd{)}
 \end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx-multipley-1} 
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in `[.data.frame`(lpldata, , lvarnames, drop = FALSE): undefined columns selected}}\end{kframe}
 \end{knitrout}
 
 If multiple x variables are given, a separate plot is drawn for each of them.
@@ -312,9 +309,7 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Petal.Length,} \hlkwc{data}\hlstd{=iris,}
      \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in smoothline\$y[lig, 1]: incorrect number of dimensions}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multiplex-1} 
 
 \end{knitrout}
@@ -405,9 +400,7 @@ described above.
 \begin{alltt}
 \hlkwd{plmatrix}\hlstd{(iris,} \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in smoothline\$y[lig, 1]: incorrect number of dimensions}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plmatrix-1} 
 
 \end{knitrout}
@@ -419,9 +412,7 @@ described above.
 \hlkwd{plmatrix}\hlstd{(}\hlopt{~}\hlstd{Petal.Length}\hlopt{+}\hlstd{Petal.Width,} \hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Sepal.Width,} \hlkwc{data}\hlstd{=iris,}
          \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in smoothline\$y[lig, 1]: incorrect number of dimensions}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plmatrix_sub-1} 
 
 \end{knitrout}
@@ -455,6 +446,8 @@ The figure shows the versions of these displays obtained by \T{plot.regr}.
 \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in check.ploption(lnam, lopt): :check.ploption: argument 'condquant' not suitable. It should\\\#\#\ \  be of mode logical (or interpretable as such)}}
 
 {\ttfamily\noindent\color{warningcolor}{\#\# Warning in sqrt((1 - llx) * ldfres/llx): NaNs produced}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
@@ -575,7 +568,11 @@ It does so by calling \T{plresx}, which can also be done directly.
 \end{alltt}
 
 
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mrow"{} is not a graphical parameter}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mcol"{} is not a graphical parameter}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx-1} 
 
 \end{knitrout}
@@ -595,7 +592,11 @@ plot. The transformed variables can be called for by setting
 \end{alltt}
 
 
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}\end{kframe}
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mrow"{} is not a graphical parameter}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mcol"{} is not a graphical parameter}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
 
 \end{knitrout}
@@ -648,6 +649,23 @@ random number. It also stores the probability of the condition.
 These quantities are then used for plotting: the conditional median is 
 shown together with segments connecting the conditional quartiles.
 this results in residual plots like those shown in the figure.
+
+\subsection{Residuals for the Cox model}
+
+The Cox proportional hazards model, the most frequently used model in
+survival analysis, is a semi-parametric model. There is no obvious meaning
+of the notion residual in this context. 
+The Cox-Snell residuals $R_{CS}$ are defined in a way that they always
+follow an exponential distribution. 
+Since this is an unususal law for residuals, it is convenient to transform
+them such that they then obey a standard normal distribution,
+\[
+  R = \Phi\inv\fn{1-\exp\fn{-R_{CS}}}
+\;.\]
+Note that it is useless to draw a QQ-plot of these residuals, since they
+obey the normal law by construction. 
+They should be plotted against the linear predictor values 
+(Tukey-Anscombe plot) and against the explanatory variables.
 
 %% !!!
 
@@ -949,8 +967,10 @@ generated by \T{pl.control} when calling such a function.
 \T{getvariables}
 \T{genvarattributes}
 \T{varattributes}
-\Tit{\T{gentimeaxis}.}
 
+\Tit{\T{gentimeaxis}.}
+The function \T{gentimeaxis} provides nice tick values and labels for 
+variables having a time scale. 
 
 \section{Low level graphics}
 
