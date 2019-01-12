@@ -35,9 +35,11 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL)
 }
 \examples{
 showd(iris)
-data(d.rehab)
-options(doc=1)
-showd(d.rehab, ncol=7)
+
+data(d.birthrates)
+names(d.birthrates)
+## only show 7 columns, including the first and last
+showd(d.birthrates, ncol=7)  
 
 showd(cbind(1:100))
 }

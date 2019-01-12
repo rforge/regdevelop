@@ -6,6 +6,7 @@
 }
 \usage{
 pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
+  gensequence = NULL,
   psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
   markextremes = NULL, smooth = NULL,
   cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
@@ -20,6 +21,10 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
   \item{subset}{subset of data.frame 'data' to be used for plotting.
     See details.}
   \item{transformed}{logical: should transformed variables be used?
+  }
+  \item{gensequence}{logical: if only \code{x} or only \code{y} is set,
+    should the other of these be specified as the sequence
+    \code{1:nobs} (where \code{nobs} is the number of observations)?
   }
   \item{psize, plab, pch, pcol}{Plotting characteristics of points,
     specified as a (unquoted) variable name found in \code{data}

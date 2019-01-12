@@ -25,26 +25,21 @@ importFrom("grDevices", col2rgb, dev.list, palette, rgb)
 
 importFrom("MASS", polr)
 ## importFrom("nnet", multinom, nnet.default)
-importFrom("survival", "coxph", "survreg", "Surv")
+importFrom("survival", coxph, survreg, Surv)
 
 ## importFrom("robustbase", lmrob)
 
 ## importFrom("quantreg", rq)
 
-### This exports everything but  ".foobar" :
-## exportPattern("^[^\\.]")
-
-## Ok, now we are better and do not export all
 export(asinp, 
        BR, DB, IR,
-       ## add1.regr, ## add1.default, add1.mlm, ## see below
        c.mon, c.months, c.weekdays, c.colors, 
        cexSize, colorpale, condquant,
        clipat,
        doc, "doc<-",
-       dropdata, extendrange, 
+       dropdata, 
        fitcomp,
-       ## fitted.regr, fitted.polr,
+       fitted.regrpolr, ## fitted.regr, 
        gensmooth, genvarattributes, gentimeaxis, 
        getvariables, getvarnames, getmeth, 
        i.def, is.formula,
@@ -59,12 +54,12 @@ export(asinp,
        plframe, pltitle, plaxis, plpoints, plbars, 
        plsmooth, plsmoothline, plrefline, plsubset, 
        plot.regr, plotregr.control, 
-       plres2x, plresx, plfitpairs, ## plTA.polr,
-       ## predict.mlm, predict.polr, ## predict.regr,
+       plres2x, plresx, plfitpairs, 
+       predict.regrpolr, ## predict.regr, predict.mlm, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
-       ## residuals.regr,
-       residuals.regrpolr, residuals.polr, residuals.regrcoxph,
+       ## residuals.regr, residuals.polr, 
+       residuals.regrpolr, residuals.regrcoxph, 
        residuals.regrsurvreg,
        robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
        smoothRegr, smoothxtrim, stamp,
@@ -87,10 +82,10 @@ S3method(residuals, regr)
 S3method(fitted, regr)
 ##S3method(predict, regr)
 ##S3method(predict, mlm)
-S3method(residuals, regrpolr)
 ## S3method(residuals, polr)
-S3method(fitted, polr)
-##S3method(predict, polr)
+S3method(fitted, regrpolr)
+S3method(predict, regrpolr)
+S3method(residuals, regrpolr)
 S3method(residuals, regrsurvreg)
 S3method(residuals, regrcoxph)
 S3method(nobs, survreg)

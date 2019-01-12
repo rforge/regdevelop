@@ -67,8 +67,8 @@ r.blast <-
 r.simblast <- simresiduals(r.blast, nrep=5)
 showd(r.simblast)
 ## --------------------------
-data(d.babysurv)
-r.babysurv <- lm( Survival~Weight+Age+Apgar1, data=d.babysurv)
+data(d.babysurvival)
+r.babysurv <- lm( Survival~Weight+Age+Apgar1, data=d.babysurvival)
 r.simbs <- simresiduals(r.babysurv, nrep=5)
 showd(r.simbs)
 }

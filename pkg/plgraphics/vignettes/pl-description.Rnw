@@ -15,8 +15,8 @@
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{pldescr}
-%% \VignetteEngine{knitr::knitr}
-%% \VignetteDepends{plgraphics}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{plgraphics}
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
 \def\wh#1{\widehat{#1}}
@@ -33,8 +33,8 @@
 \parskip 10pt
 
 \title{\vspace*{-10mm}
-'plgraphics': A user-oriented collection of graphical R-functions based on
- the 'pl' concept}
+`plgraphics': A user-oriented collection of graphical R-functions based on
+ the `pl' concept}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
@@ -47,13 +47,14 @@ production of useful graphics.
 \end{abstract}
 
 <<preliminary, echo=FALSE, out=FALSE>>=
-library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck"
+library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 options(warn=1)
-knitr::opts_chunk$set(fig.width=6, fig.height=5)
+knitr::opts_chunk$set(fig.width=8, fig.height=6)
 @ 
 
 \tableofcontents
 
+\pagebreak
 \section{Introduction}
 
 The plotting functionality is the historical origin of the R package.
@@ -135,7 +136,7 @@ The line type, width and color are modified by respective arguments.
 
 Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 
-<<plyx_smooth, fig.width=7, fig.height=4>>=
+<<plyx_smooth, fig.width=8, fig.height=4>>=
 plmfg(1,2)
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, smoothlines.col="red")
 
@@ -154,7 +155,7 @@ The function \T{plmfg} splits the figure region into multiple figures
 If the argument \T{group} is specified, separate plots will be generated
 for the different groups, thereby maintaining the plot ranges.
 
-<<plyx_group, fig.width=7, fig.height=7>>=
+<<plyx_group, fig.width=8, fig.height=7.5>>=
 plmfg(2,2)
 
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, group=Species)
@@ -219,8 +220,19 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 plyx(1:40, EuStockMarkets[1:40,], type="b")
 @ 
 
+The following plot shows a more elaborate example of a time series plot,
+see ... for details about the generation of a time axis and
+the additional arguments of \T{plyx}, respectively
+
+<<plyx-time>>=
+  data(d.river)
+  t.i <- d.river$date < as.Date("2010-03-31")
+  plyx(O2+T+ra~date, data=d.river[t.i & d.river$hour==14,], 
+    smooth.par=0.5, smooth.xtrim=0.03)
+@ 
+
 If multiple x variables are given, a separate plot is drawn for each of them.
-<<plyx-multiplex, fig.width=7, fig.height=4>>=
+<<plyx-multiplex, fig.width=8, fig.height=4>>=
 plmfg(1,2)
 plyx(Sepal.Width~Sepal.Length+Petal.Length, data=iris, 
      smooth.group=Species, pcol=Species)
@@ -239,7 +251,7 @@ plyx(Sepal.Width~Sepal.Length+Petal.Length, data=iris,
 Extreme points are often of interest. They can easily be identified if they 
 are labelled. This is achieved by setting the argument \T{markextremes}.
 
-<<markextremes, fig.width=7, fig.height=4>>=
+<<markextremes, fig.width=8, fig.height=4>>=
 plmfg(1,2)
 plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, 
      markextremes=0.1, cex=0.7)
@@ -295,7 +307,7 @@ If used for a small number of variables, it does a similar job as
 \T{pairs}, but also provides the flexibility for the panels that have been
 described above.
 
-<<plmatrix,  fig.width=7, fig.height=7>>=
+<<plmatrix,  fig.width=10, fig.height=10>>=
 plmatrix(iris, smooth.group=Species, pcol=Species)
 @ 
 
@@ -325,7 +337,7 @@ When R objects obtained from fitting a model are fed into R's \T{plot}
 function, some fundamental diagnostic plots appear. 
 The figure shows the versions of these displays obtained by \T{plot.regr}.
 
-<<plotregr,  fig.width=7, fig.height=7>>=
+<<plotregr,  fig.width=8, fig.height=7.5>>=
 data(d.blast)
 rr <- 
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
@@ -409,11 +421,14 @@ Mahalanobis distances.
   defined as
 \[
   D\sups C_i = \frac{r_i^2}{p\wh\sigma^2}\cdot\frac{h_i}{(1-h_i)^2}
-    = \textstyle{1\over p} r_i^{*2} \frac{h_i}{1-h_i}
+    = {\textstyle 1\over p} r_i^{*2} \frac{h_i}{1-h_i}
 \;.
 \]
-  Contour lines are drawn for $D_i\sups C=\pm c^2$, where $c$ is given 
+  Since the mean of $h_i$ is $1/p$, an observation with this leverage
+  and a standardized residual of $1$ has $D\sups C=1\big/(p-1)$.
+  Contour lines are drawn for $D_i\sups C=\pm c^2\big/(p-1)$, where $c$ is given 
   by \T{ploptions("cookdistlines")}.
+  Note that this is different from standard R.
 }
 
 %% !!! verschieben?
@@ -439,7 +454,7 @@ for models does not show them.
 \T{plot.regr} does, unless \T{xvars=FALSE} is used as it was above.
 It does so by calling \T{plresx}, which can also be done directly.
 
-<<plresx, fig.width=7, fig.height=7>>=
+<<plresx, fig.width=8, fig.height=7.5>>=
 plresx(rr)
 @ 
 The input variables are often transformed before they are used 
@@ -451,7 +466,7 @@ may be more easily guessed if the untransformed version is used in the
 plot. The transformed variables can be called for by setting
 \T{transformed=TRUE}.
 
-<<plresx_trs, fig.width=7, fig.height=7>>=
+<<plresx_trs, fig.width=8, fig.height=7.5>>=
 plresx(rr, transformed=TRUE)
 @ 
 
@@ -478,10 +493,20 @@ fitcomp: use model.frame -> model.matrix -> lm.fit
 A missing interaction term between \T{x1} and \T{x2} may be found when
 examining a plot or residuals against these two variables.
 This is achieved by the function \T{plrex2x}.
+It produces a scatterplot of \T{x1} against \T{x2} and represents the
+residuals as line segments with positive or negative slope, according to
+their sign. The absolute value determines the length of the segment.
 
-!!!
+<<plres2x>>=
+data(d.blast)
+dd <- d.blast[as.numeric(d.blast$location)%in%c(1,3),]
+rr <- lm(log10(tremor)~log10(distance)+log10(charge)+location, data=dd)
+plres2x(~ log10(distance) + log10(charge), reg=rr, transformed=F,
+        pcol=location)
+@ 
 
-\subsection{Censored residuals, ordinal regression, 
+
+\subsection{Censored residuals, ordinal and binary regression, 
   conditional quantiles}
 
 In the case of censored observations or ordinal regression,
@@ -502,7 +527,15 @@ random number. It also stores the probability of the condition.
 
 These quantities are then used for plotting: the conditional median is 
 shown together with segments connecting the conditional quartiles.
-this results in residual plots like those shown in the figure.
+This results in residual plots like those shown in the figure.
+
+<<survresiduals>>=
+require(survival)
+data(lung)
+rr <- survreg(Surv(time,status) ~ age+sex+wt.loss, data=lung)
+plot.regr(rr, plotselect=c(default=0, resfit=1), xvar=FALSE, mf=c(1,1),
+          smooth.sim=0)
+@ 
 
 \subsection{Residuals for the Cox model}
 
@@ -523,7 +556,6 @@ They should be plotted against the linear predictor values
 
 %% !!!
 
-
 \Detail{
   The censored observations are shown with lighter color than the
   noncensored ones: their \T{pcol} is paled by applying \T{colorpale}
@@ -533,6 +565,46 @@ They should be plotted against the linear predictor values
   If all observations are censored, no paling is applied to the symbols, and
   \T{ploptions("condquant.pale")[1]} is used for the bars. 
 }
+
+\subsection{Ordinal and binary (logistic) regression}
+
+In ordinal regression, the response variable is modeled as a classified
+version of a continuous latent variable, which in turn follows a linear
+model with logistic (or normal) error distribution.
+According to this construction, the latent variable $\widetilde Y_i$, given the
+observed ordered variable $Y_i$ and the linear predictor $\eta_i$, 
+follows a truncated logistic (or normal) distribution. 
+As with censored variables, this yields conditional quantiles, which
+can be represented as described in the previous subsection.
+
+<<ordered>>=
+cat("!!!")  
+@ 
+
+A logistic regression can be seen as a special case of an ordinal regression.
+Therefore, conditional quantiles can also be generated for the residuals,
+and the respective displays can be generated.
+The following figure shows the residuals against linear predictor values,
+first with conditional quantiles, then with ``working'' residuals,
+one of the usual choices.
+
+<<resfitbin, figure.height=4>>=
+  data(d.babysurvival)
+  rr <- glm(Survival~Weight+Age+Apgar1,data=d.babysurvival,family=binomial)
+  plmfg(1,2)
+  plot.regr(rr, plotselect=c(resfit=2, default=0), xvar=FALSE)
+  plot.regr(rr, plotselect=c(resfit=2, default=0), condquant=FALSE, 
+            xvar=FALSE)
+@ 
+
+\Detail{If \T{condquant} is false, the type of residuals is selected by
+  the argument or ploption \T{glm.restype}.
+  Its default is \T{"working"}, because the linear approximation of the 
+  model corresponds to a weighted linear regression with the linear
+  predictor values and the working residuals as fitted values and residuals.
+  The weights are shown by the sizes of the plotting symbols.
+}
+
 %% ==============================================================
 \section{Options}
 A central motivation underlying the \T{plgraphics} package consists of
@@ -866,7 +938,7 @@ like \T{showd}, which displays a kind of summary of data.
 Let us start with the latter.
 
 \Tit{Displaying data by \T{showd}.}
-Other auxiliar functions include
+Other auxiliary functions include
 \T{clipat},
 \T{logst},
 \T{notna},
@@ -1000,6 +1072,18 @@ It is constant, $=d$, on the curve
 \]
 A rule suggests $d=4/(n-p)$ as a warning level.
 Curves are drawn for $d=\T{cookdistlines}^2/(n-p)$.
+
+\subsection{Modified methods for \T{residuals, fitted, predict}}
+Some methods for the extractor functions \T{residuals, fitted, predict}
+needed modifications and extensions.
+For example, \T{type="link"} is needed for \T{polr} models.
+The package contains a method \T{predict.regrpolr} which is used within the
+package and provides the additional type, but is otherwise compatible with
+\T{predict.polr} of the package \T{MASS}. It is exported.
+Similarly, there are the methods
+\T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
+  residuals.regrcoxph}.
+
 
 %% =================================================================
 {\small

@@ -4,11 +4,13 @@
 \alias{residuals.regrcoxph}
 % \alias{residuals.polr}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Residuals of a Binary or Ordered Regression}
-\description{
-  Calculates quartiles and random numbers according to the
+\title{Residuals of a Binary, Ordered, or Censored Regression}
+\description{Methods of \code{residuals} for classes
+  \code{polr, survreg} and \code{coxph},
+  calculating quartiles and random numbers according to the
   conditional distribution of residuals for the latent variable of a
-  binary or ordinal regression, given the observed response value.
+  binary or ordinal regression or a regression with censored response,
+  given the observed response value.
   See Details for an explanation.
 }
 \usage{
@@ -18,19 +20,24 @@
 \method{residuals}{regrcoxph}(object, type="CoxSnellMod", ...)
 }
 \arguments{
-  \item{object}{the result of \code{polr} or of
-    \code{glm(,family=binomial)} with binary data.}
-%%-   \item{na.action}{a list with component \code{na.action}, which
-%%-     determines the na.action for the residual component of
-%%\code{object} }
-\item{type}{type of residuals:
-  \code{"condquant"} for response type residuals augmented, for censored
-  observations, by conditional quantiles (see
-  \code{\link{condquant}}). 
+  \item{object}{the result of \code{polr}, of
+    \code{glm(,family=binomial)} with binary data
+    for the \code{regrpolr} method,
+    or of \code{survreg} or \code{coxph} for the respective methods.}
+  \item{type}{type of residuals:
+    \code{"condquant"} requires conditional quantiles (and more) of the
+    residuals of the model, see Details.\cr
+%%-  for the latent variable of binary or ordered regression,
+%%-  given the response.
+%%-  For regression with censored response, conditional quantiles
+%%-  are given for the observations with censored values.
+%%-  See \code{\link{condquant}} for more information.  
 %% or \code{"deviance"} for deviance residuals\cr
   For \code{residuals.regrsurvreg}, type \code{CoxSnellMod} yields
   a modified version of Cox-Snell residuals, also including
-  a \code{condquant} attribute, see Details.
+  a \code{condquant} attribute, see Details.\cr
+  Other \code{type}s are available according to the standard
+  methods of the \code{residuals} function.
   }
   \item{...}{arguments passed to standard methods of \code{residuals}}
 }

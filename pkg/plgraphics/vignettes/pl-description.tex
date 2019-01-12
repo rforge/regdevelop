@@ -65,8 +65,8 @@
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{pldescr}
-%% \VignetteEngine{knitr::knitr}
-%% \VignetteDepends{plgraphics}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{plgraphics}
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
 \def\wh#1{\widehat{#1}}
@@ -83,8 +83,8 @@
 \parskip 10pt
 
 \title{\vspace*{-10mm}
-'plgraphics': A user-oriented collection of graphical R-functions based on
- the 'pl' concept}
+`plgraphics': A user-oriented collection of graphical R-functions based on
+ the `pl' concept}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
@@ -100,6 +100,7 @@ production of useful graphics.
 
 \tableofcontents
 
+\pagebreak
 \section{Introduction}
 
 The plotting functionality is the historical origin of the R package.
@@ -445,11 +446,7 @@ The figure shows the versions of these displays obtained by \T{plot.regr}.
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
 \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in check.ploption(lnam, lopt): :check.ploption: argument 'condquant' not suitable. It should\\\#\#\ \  be of mode logical (or interpretable as such)}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in sqrt((1 - llx) * ldfres/llx): NaNs produced}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
 
 \end{knitrout}
@@ -531,11 +528,14 @@ Mahalanobis distances.
   defined as
 \[
   D\sups C_i = \frac{r_i^2}{p\wh\sigma^2}\cdot\frac{h_i}{(1-h_i)^2}
-    = \textstyle{1\over p} r_i^{*2} \frac{h_i}{1-h_i}
+    = {\textstyle 1\over p} r_i^{*2} \frac{h_i}{1-h_i}
 \;.
 \]
-  Contour lines are drawn for $D_i\sups C=\pm c^2$, where $c$ is given 
+  Since the mean of $h_i$ is $1/p$, an observation with this leverage
+  and a standardized residual of $1$ has $D\sups C=1\big/(p-1)$.
+  Contour lines are drawn for $D_i\sups C=\pm c^2\big/(p-1)$, where $c$ is given 
   by \T{ploptions("cookdistlines")}.
+  Note that this is different from standard R.
 }
 
 %% !!! verschieben?
@@ -566,13 +566,7 @@ It does so by calling \T{plresx}, which can also be done directly.
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mrow"{} is not a graphical parameter}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mcol"{} is not a graphical parameter}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx-1} 
 
 \end{knitrout}
@@ -590,13 +584,7 @@ plot. The transformed variables can be called for by setting
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mfig"{} is not a graphical parameter}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mrow"{} is not a graphical parameter}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in par(loldpar): "{}mcol"{} is not a graphical parameter}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
 
 \end{knitrout}
@@ -624,10 +612,26 @@ fitcomp: use model.frame -> model.matrix -> lm.fit
 A missing interaction term between \T{x1} and \T{x2} may be found when
 examining a plot or residuals against these two variables.
 This is achieved by the function \T{plrex2x}.
+It produces a scatterplot of \T{x1} against \T{x2} and represents the
+residuals as line segments with positive or negative slope, according to
+their sign. The absolute value determines the length of the segment.
 
-!!!
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(d.blast)}
+\hlstd{dd} \hlkwb{<-} \hlstd{d.blast[}\hlkwd{as.numeric}\hlstd{(d.blast}\hlopt{$}\hlstd{location)}\hlopt{%in%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),]}
+\hlstd{rr} \hlkwb{<-} \hlkwd{lm}\hlstd{(}\hlkwd{log10}\hlstd{(tremor)}\hlopt{~}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge)}\hlopt{+}\hlstd{location,} \hlkwc{data}\hlstd{=dd)}
+\hlkwd{plres2x}\hlstd{(}\hlopt{~} \hlkwd{log10}\hlstd{(distance)} \hlopt{+} \hlkwd{log10}\hlstd{(charge),} \hlkwc{reg}\hlstd{=rr,} \hlkwc{transformed}\hlstd{=F,}
+        \hlkwc{pcol}\hlstd{=location)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plres2x-1} 
 
-\subsection{Censored residuals, ordinal regression, 
+\end{knitrout}
+
+
+\subsection{Censored residuals, ordinal and binary regression, 
   conditional quantiles}
 
 In the case of censored observations or ordinal regression,
@@ -648,7 +652,22 @@ random number. It also stores the probability of the condition.
 
 These quantities are then used for plotting: the conditional median is 
 shown together with segments connecting the conditional quartiles.
-this results in residual plots like those shown in the figure.
+This results in residual plots like those shown in the figure.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{require}\hlstd{(survival)}
+\hlkwd{data}\hlstd{(d.cheese)}
+\hlstd{t.r} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Tobit}\hlstd{(Anzahl,} \hlnum{1}\hlstd{,} \hlkwc{log}\hlstd{=}\hlnum{TRUE}\hlstd{)}\hlopt{~}\hlstd{Temp}\hlopt{+}\hlstd{Bakt}\hlopt{+}\hlstd{Konz,} \hlkwc{data}\hlstd{=d.cheese,} \hlkwc{x}\hlstd{=T,}
+               \hlkwc{dist}\hlstd{=}\hlstr{"gaussian"}\hlstd{)}
+\hlkwd{plot.regr}\hlstd{(t.r,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
+          \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/survresiduals-1} 
+
+\end{knitrout}
 
 \subsection{Residuals for the Cox model}
 
@@ -669,7 +688,6 @@ They should be plotted against the linear predictor values
 
 %% !!!
 
-
 \Detail{
   The censored observations are shown with lighter color than the
   noncensored ones: their \T{pcol} is paled by applying \T{colorpale}
@@ -679,6 +697,71 @@ They should be plotted against the linear predictor values
   If all observations are censored, no paling is applied to the symbols, and
   \T{ploptions("condquant.pale")[1]} is used for the bars. 
 }
+
+\subsection{Ordinal and binary (logistic) regression}
+
+In ordinal regression, the response variable is modeled as a classified
+version of a continuous latent variable, which in turn follows a linear
+model with logistic (or normal) error distribution.
+According to this construction, the latent variable $\widetilde Y_i$, given the
+observed ordered variable $Y_i$ and the linear predictor $\eta_i$, 
+follows a truncated logistic (or normal) distribution. 
+As with censored variables, this yields conditional quantiles, which
+can be represented as described in the previous subsection.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{cat}\hlstd{(}\hlstr{"!!!"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## !!!
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+A logistic regression can be seen as a special case of an ordinal regression.
+Therefore, conditional quantiles can also be generated for the residuals,
+and the respective displays can be generated.
+The following figure shows the residuals against linear predictor values,
+first with conditional quantiles, then with ``working'' residuals,
+one of the usual choices.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{data}\hlstd{(d.babysurv)}
+  \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurv,}\hlkwc{family}\hlstd{=binomial)}
+  \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+  \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.glm(x, lnsims, glm.restype = glm.restype): :simresiduals: binomial distribution with unsuitable response.\\\#\#\ \  No residuals simulated}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in order(as.numeric(lgrp), lx): argument lengths differ}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/resfitbin-1} 
+\begin{kframe}\begin{alltt}
+  \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+            \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.glm(x, lnsims, glm.restype = glm.restype): :simresiduals: binomial distribution with unsuitable response.\\\#\#\ \  No residuals simulated}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in order(as.numeric(lgrp), lx): argument lengths differ}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/resfitbin-2} 
+
+\end{knitrout}
+
+\Detail{If \T{condquant} is false, the type of residuals is selected by
+  the argument or ploption \T{glm.restype}.
+  Its default is \T{"working"}, because the linear approximation of the 
+  model corresponds to a weighted linear regression with the linear
+  predictor values and the working residuals as fitted values and residuals.
+  The weights are shown by the sizes of the plotting symbols.
+}
+
 %% ==============================================================
 \section{Options}
 A central motivation underlying the \T{plgraphics} package consists of
@@ -1038,7 +1121,7 @@ like \T{showd}, which displays a kind of summary of data.
 Let us start with the latter.
 
 \Tit{Displaying data by \T{showd}.}
-Other auxiliar functions include
+Other auxiliary functions include
 \T{clipat},
 \T{logst},
 \T{notna},
@@ -1172,6 +1255,18 @@ It is constant, $=d$, on the curve
 \]
 A rule suggests $d=4/(n-p)$ as a warning level.
 Curves are drawn for $d=\T{cookdistlines}^2/(n-p)$.
+
+\subsection{Modified methods for \T{residuals, fitted, predict}}
+Some methods for the extractor functions \T{residuals, fitted, predict}
+needed modifications and extensions.
+For example, \T{type="link"} is needed for \T{polr} models.
+The package contains a method \T{predict.regrpolr} which is used within the
+package and provides the additional type, but is otherwise compatible with
+\T{predict.polr} of the package \T{MASS}. It is exported.
+Similarly, there are the methods
+\T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
+  residuals.regrcoxph}.
+
 
 %% =================================================================
 {\small

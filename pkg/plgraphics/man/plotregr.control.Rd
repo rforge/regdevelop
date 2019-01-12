@@ -10,7 +10,7 @@ Further Arguments to \code{plot.regr}
 \usage{
 plotregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   weights = NULL,
-  glm.restype = "working", smresid = TRUE,
+  glm.restype = "working", condquant = TRUE, smresid = TRUE,
   partial.resid = TRUE, cookdistlines = 1:2,
   leveragelim = c(0.99, 0.5), condprobRange = NULL,
   refline = TRUE, reflineband = FALSE, testlevel = 0.05,
@@ -39,6 +39,8 @@ plotregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
     See \code{?\link{residuals.regrpolr}} for an explanation.
     Warning: type "deviance" will not work with simulated smooths since
     NAs will emerge.}
+  \item{condquant}{logical: should conditional quantiles be shown for
+    censored observations, binary and ordered responses?}
   \item{smresid}{logical: Should residuals from smooth be used for
     'tascale' and 'qq' plots?}
   \item{partial.resid}{if TRUE (default),
