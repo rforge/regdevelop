@@ -124,11 +124,9 @@ pl.control <-
     if (inherits(lpldata, "pl-error"))
       stop("!pl.control! ", attr(lpldata, "message"))
     ## set varlabels in a special case
-    if (length(lxnames)==1 && is.language(lcx <- lcall$x) &&
-        length(as.formula(lcx))==2)
+    if (length(lxnames)==1 && is.formula(lcx <- lcall$x) && length(lcx)==2)
         attr(lpldata[[lxnames]], "varlabel") <- sub("~","",format(lcx))
-    if (length(lynames)==1 && is.language(lcy <- lcall$y) &&
-        length(as.formula(lcy))==2)
+    if (length(lynames)==1 && is.formula(lcy <- lcall$y) && length(lcy)==2)
         attr(lpldata[[lynames]], "varlabel") <- sub("~","",format(lcy))
     ##
     if (length(lgroup <- lpldata[["(group)"]]))
@@ -1162,7 +1160,7 @@ plsmooth <-
 }
 ## --------------------------------------------------------------
 plsmoothline <-
-  function(smoothline, x, y, plargs=NULL, ploptions=plargs$ploptions)
+  function(smoothline, x, y, plargs = NULL, ploptions = plargs$ploptions)
 {
   if (!is.list(smoothline)) {
     warning(":plsmoothline: 'smoothline' is not suitable. No smooth lines")
@@ -1175,10 +1173,15 @@ plsmoothline <-
   lgrp <- as.numeric(smoothline$group)
   if (lInogrp <- length(lgrp)==0 || length(unique(notna(lgrp)))<=1) {
     lgrp <- rep(1, NROW(lx))
+    lngrp <- 1
     lcol <- i.getploption("smoothline.col")
+    llty <- i.getploption("smoothline.lty")
   } else {
+    lngrp <- max(lgrp)
     lcol <- i.getploption("group.col")
+    llty <- rep(i.getploption("group.lty"), length=lngrp)
   }
+##  llty <- rep(llty, each=2) 
   lbd <- smoothline$yband
   lIband <- length(lbd)>0
   ## check if ordered
@@ -1187,6 +1190,7 @@ plsmoothline <-
     lx <- lx[lio]
     ly <- ly[lio,, drop=FALSE]
     lgrp <- lgrp[lio]
+    lngrp <- max(lgrp)
     if (lIband) {
       lbd <- lbd[lio]
       smoothline$ybandindex <- smoothline$ybandindex[lio]
@@ -1194,10 +1198,9 @@ plsmoothline <-
   }
   lx[lx<lrgx[1]|lx>lrgx[2]] <- NA
   lny <- ncol(ly)
-  lngrp <- max(lgrp)
-  llty <- rep(i.getploption("group.lty"), length=2*lngrp)
   ## may be a 2-vector or  a matrix of 2 rows
-  llwd <- i.getploption("linewidth")
+  llwd <- rep(c(i.getploption("smoothline.lwd"), 0.7), length=2)
+  llwid <- i.getploption("linewidth")
   lpale <- i.getploption("smoothline.pale")
   for (lgr in seq_len(lngrp)) {
     lig <- which(lgrp==lgr)
@@ -1209,21 +1212,17 @@ plsmoothline <-
       if (lndr) lxg[- ((lndr+1):(lng-lndr)) ] <- NA
       lcl <- lcol[min(lgr,length(lcol))]
       if (lny>1) 
-        matlines(lxg, ly[lig,-1], lty=llty[2*lgr],
-                 lwd=llwd[llty[2*lgr]],
+        matlines(lxg, ly[lig,-1], lty=llty[lgr],
+                 lwd=llwd[1]*llwd[2]*llwid[llty[lgr]],
                  col = colorpale(lcl, lpale))
-##      else
-      lines(lxg, ly[lig,1],
-            lty=llty[2*lgr-1], lwd=llwd[llty[2*lgr-1]],
-            col=lcl)  ## xxx
-    if (lIband) {
+      llw <- llwd[1]*llwid[llty[lgr]]
+      lines(lxg, ly[lig,1], lty=llty[lgr], lwd=llw, col=lcl)  ## xxx
+      if (lIband) {
       li <- smoothline$ybandindex[lig] ## separate upper and lower smooth
       if (any(li))
-        lines(lxg[li], lbd[lig[li]], lty=llty,
-              lwd=llwd/2, col = lcl) 
+        lines(lxg[li], lbd[lig[li]], lty=llty[lgr], lwd=llw/2, col = lcl) 
       if (any(!li))
-        lines(lxg[!li], lbd[lig[!li]], lty=llty,
-              lwd=llwd/2, col = lcl) 
+        lines(lxg[!li], lbd[lig[!li]], lty=llty, lwd=llw/2, col = lcl) 
     }
   }}
 }
@@ -1287,14 +1286,12 @@ plrefline <-
     }
   }
   ## draw reference lines
-  llty <- rep(i.def(ploptions$refline.lty, c(4,6)), length=2)
-  llwd <- rep(i.def(ploptions$refline.lwd, c(2,1)), length=2)
-  lcol <- rep(i.def(ploptions$refline.col, "darkgreen"), length=2)
+  llty <- rep(i.getploption("refline.lty"), length=2)
+  llwd <- rep(i.getploption("refline.lwd"), length=2)
+  lcol <- rep(i.getploption("refline.col"), length=2)
   matlines(lrfx, lrfy, lty=llty[1], col=lcol[1], lwd=llwd[1])
   if (lIrfyb)
-    matlines(lrfx, as.matrix(lrfy+lrfyb),
-             lty=ploptions$refline.lty[2], lwd=ploptions$refline.lwd[2],
-             col=lcol[2])
+    matlines(lrfx, as.matrix(lrfy+lrfyb), lty=llty[2], lwd=llwd[2], col=lcol[2])
 }
 ## =========================================================================
 plcoord <-
@@ -1577,7 +1574,8 @@ plsubset <-
 plyx <-
   function(x=NULL, y=NULL, group=NULL, data=NULL, type="p", panel=plpanel,
            xlab=NULL, ylab=NULL, 
-           markextremes=0, rescale=TRUE, mar=NULL, plargs=NULL, ...)
+           markextremes=0, rescale=TRUE, mar=NULL,
+           plargs = NULL, ploptions = NULL, ...)
 {
   lcl <- match.call()
   lcall <- sys.call() ## match.call modifies argument names
@@ -1595,6 +1593,7 @@ plyx <-
     lcall$.subdefault <- if (length(ldtnm)<30) ldtnm else ""
     ##      lcall$x <- x
     plargs <- do.call(pl.control, as.list(lcall[-1]), envir=parent.frame())
+    if (length(ploptions)) plargs$ploptions <- ploptions
   } ## else  eval(lcall[["plargs"]], sys.frame(1))
   ploptions <- plargs$ploptions
   ##
@@ -1718,7 +1717,7 @@ plyx <-
         }
         ## frame
         lop <- plframe(lxj, ly1, xlab=xlab, ylab=ylab,
-                      axcol=c(NA,lyaxcol,NA,NA), plargs=plargs)
+                      axcol=c(NA,lyaxcol,NA,NA), ploptions=ploptions)
         if (lIfirst) {
           loldp <- c(lop, loldp)
           on.exit(par(loldp[unique(names(loldp))]))
@@ -1726,50 +1725,51 @@ plyx <-
         lIfirst <- FALSE
         lrgold <- lrgy1
       ## group
-      if (lIgrp) {
-        if (lmar[3]>=1 | par("mfg")[1]==1)
-          pltitle(main=NULL, sub=lgrplab[lg], ##paste(lgrpname, lgrplab[lg], sep=": "),
-                  outer.margin=FALSE, xpd=TRUE,
-                  line=min(1.2*lcexgrp,par("mar")[3]-0.5*lcexgrp),
-                  cex=rep(lcexgrp,2))  ## !!! sub!
-        li <- which(lgroup==lgrp[lg])
-        lxjg <- lxj[li]
-        ly1g <- transferAttributes(ly1[li], ly1)
-        lyg <- transferAttributes(ly[li,], ly)
-        plargs$pldata <- pldata[li,]
-        if (length(lpch)==lnr) lpchg <- lpch[li]
-        if (length(lplab)==lnr) lplabg <- lplab[li]
-      }
-      if (lny>1) plargs$pldata$"(pcol)" <- attr(ly1g,"col")
-      panel(lxjg, ly1g, type=type, plargs=plargs)
-      ## multiple y
-      lusr <- par("usr")
-      if (lny>1) {
-        for (lj in 2:lny) {
-          lyjg <- lyg[,lj]
-          lrgj <- lrg[,lj]
-          lpcol <- attr(lyjg, "col") ##  the color must reflect the variable
-          if (!lIpch) lpchg <- attr(lyjg, "pch")
-          if (rescale) {
-            lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
-            par(usr=lusr)
-          }
-          if (lIsmooth) {
-            plargs$ploptions$smoothline.col <- lpcol
-            plsmooth(lxjg, lyjg, plargs=plargs)
-          }
-          plpoints(lxjg, lyjg, type=type, plargs=plargs,
-                   plab=lplab, pch=lpchg, col=lpcol)
-          ##!!!linecolor
-          lrgold <- lrgj
-          if (rescale & lj==2) {
-            lmfg <- par("mfg")
-            plaxis(4, ly[,lj], lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
-                   range=lrgj, col=lpcol, tickintervals=ploptions$tickintervals)
+        if (lIgrp) {
+          if (lmar[3]>=1 | par("mfg")[1]==1)
+            pltitle(main=NULL, sub=lgrplab[lg], ##paste(lgrpname, lgrplab[lg], sep=": "),
+                    outer.margin=FALSE, xpd=TRUE,
+                    line=min(1.2*lcexgrp,par("mar")[3]-0.5*lcexgrp),
+                    cex=rep(lcexgrp,2))  ## !!! sub!
+          li <- which(lgroup==lgrp[lg])
+          lxjg <- lxj[li]
+          ly1g <- transferAttributes(ly1[li], ly1)
+          lyg <- transferAttributes(ly[li,], ly)
+          plargs$pldata <- pldata[li,]
+          if (length(lpch)==lnr) lpchg <- lpch[li]
+          if (length(lplab)==lnr) lplabg <- lplab[li]
+        }
+        if (lny>1) plargs$pldata$"(pcol)" <- attr(ly1g,"col")
+        panel(lxjg, ly1g, type=type, plargs=plargs)
+         ## multiple y
+        lusr <- par("usr")
+        if (lny>1) {
+          for (lj in 2:lny) {
+            lyjg <- lyg[,lj]
+            lrgj <- lrg[,lj]
+            lpcol <- attr(lyjg, "col") ##  the color must reflect the variable
+            if (!lIpch) lpchg <- attr(lyjg, "pch")
+            if (rescale) {
+              lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
+              par(usr=lusr)
+            }
+            if (lIsmooth) {
+              plargs$ploptions$smoothline.col <- lpcol
+              plsmooth(lxjg, lyjg, plargs=plargs)
+            }
+            plpoints(lxjg, lyjg, type=type, plargs=plargs,
+                     plab=lplab, pch=lpchg, col=lpcol)
+            ##!!!linecolor
+            lrgold <- lrgj
+            if (rescale & lj==2) {
+              lmfg <- par("mfg")
+              plaxis(4, ly[,lj], lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
+                     range=lrgj, col=lpcol, tickintervals=ploptions$tickintervals)
+            }
           }
         }
       }
-    }}
+    }
   }
   }
   pltitle(plargs=plargs, show=0.5)
@@ -1818,7 +1818,7 @@ plotregr.control <-
            smooth.sim=NULL,
            xlabs = NULL, reslabs = NULL, markextremes = NULL, 
            ## multiple frames
-           mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0,
+           mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, multmar = NULL,
            oma = NULL, ... )
 { ## get data for plotting, collect and check arguments
   ## do preparations that are common to plot.regr_ and plresx
@@ -1904,12 +1904,12 @@ plotregr.control <-
   lynm <- if (nchar(lyexpr)>10) "Y" else lyexpr ## 
   lresname <- paste("res_", if (lmres>1) colnames(lres) else lynm, sep="")
   names(lres) <- lresname
-  ## --- variables to be evaluated in data
+  ## --- prepare  pl.control
   lcall <- as.list(match.call())[-1]
   ladrop <- c("xvar", "glm.restype", "smresid", "partial.resid",
               "cookdistlines", "leveragelim", "smooth", "smooth.sim",
               "refline", "reflineband", "testlevel", "xlabs", "reslabs",
-              "mf", "mfcol", "multnrow", "multncol", "oma")
+              "mf", "mfcol", "multnrow", "multncol", "multmar", "oma")
   lcall$y <- lres
   lcall <- c(as.list(quote(pl.control)),
              as.list(lcall[setdiff(names(lcall),ladrop)]))
@@ -1954,6 +1954,12 @@ plotregr.control <-
   lcall$data <- ldata
   lftext <- i.form2char(lform)
   lcall$.subdefault <- lftext
+  ## margins for multivariate regression
+  if (lmres>1) {
+    lmar <- i.getploption("mar")
+    lmar[2:4] <- rep(i.getploption("panelsep"), length=4)[2:4]
+    lcall$mar <- lmar
+  }
   mode(lcall) <- "call"
   ## -------------------------------------
   plargs <- eval(lcall, parent.frame())  ## pl.control
@@ -2073,7 +2079,7 @@ plotregr.control <-
       refline = refline,
       reflineband = reflineband, testlevel=testlevel,
       resplab = lresplab,
-      mf=mf, oma=oma #,
+      mf=mf, multnrow = multnrow, multncol = multncol, multmar = multmar, oma=oma #,
     ) )
   assign(".plargs", rr, pos=1)
   rr
@@ -2097,7 +2103,7 @@ i.argPlControl <- ##!!!
     "partial.resid", "cookdistlines", "leveragelim", "condprobRange", 
     "reflineband", "testlevel", "smooth.sim",
     "xlabs", "reslabs", 
-    "mf", "mfcol", "multnrow", "multncol", "oma"
+    "mf", "mfcol", "multnrow", "multncol", "multmar", "oma"
     )
 ## ====================================================================
 plot.regr <-
@@ -2184,7 +2190,7 @@ plot.regr <-
   ## fit
   lfit <- x$linear.predictor
   lfitname <- "linear predictor"
-  if (inherits(x, "polr")) lfit <- fitted.regrpolr(x)
+  if (inherits(x, "polr")) lfit <- fitted.regrpolr(x, type="link")
   if(is.null(lfit)) {
     lfit <- fitted(x)
     lfitname <- "fitted value"
@@ -2289,7 +2295,7 @@ plot.regr <-
       lyvar <- attr(lpldata, "yvar")
       ly <- lpldata[,lyvar]
       for (lj in seq_len(lmres)) {
-        plframe(ly[,lj],lfit[,lj], plargs=plargs)
+        plframe(ly[,lj],lfit[,lj], ploptions=ploptions)
         if (lpllevel>1)
           plsmooth(lfit[,lj], cbind(ly[,lj], lfit[,lj]+lsimres),
                    plargs=plargs, band=lpllevel>2)
@@ -2302,7 +2308,7 @@ plot.regr <-
   ## ---
   if(lpls=="resfit") {
     for (lj in seq_len(lmres)) {
-      plframe(lfit[,lj], lres[,lj], plargs=plargs) ## was plargs=plargs
+      plframe(lfit[,lj], lres[,lj], ploptions=ploptions)
       plargs$smooth <- lpllevel-1
 ##-      plpanel(lfit[,lj], lres[,lj], plargs=plargs, frame=TRUE, title=NA)
       if (lpllevel>1)
@@ -2342,7 +2348,7 @@ plot.regr <-
           }
         attr(labssrj, "condquant") <- attr(lstrj,"condquant")
         ##lattrj[["condquant"]]
-        plframe(lfitj, labssrj, ylab=labsresname[lj], plargs=plargsmod)
+        plframe(lfitj, labssrj, ylab=labsresname[lj], ploptions=ploptions)
         if (lpllevel>1) {
           lsimabsres <- if (lnsims) abs(lsimstres) else NULL
           plsmooth(lfitj, cbind(as.matrix(labssrj), lsimabsres), 
@@ -2473,6 +2479,7 @@ plot.regr <-
     if (plargs$rescol>1) {
       lpa <- plargs
       lpa$pldata <- lpa$residuals
+      lpa$mar <- NULL
       plmatrix(lres, panel=lpanel, plargs=lpa) #main=plargs$main, pch=plargs$pch
     }
   }
@@ -2488,7 +2495,7 @@ plot.regr <-
 ##-       plot(lxx,lyy, xlab="sqrt(Chisq.quantiles)",type="n",
 ##-            ylab = "Mahal.oulyingness")
       plframe(lxx,lyy, xlab="sqrt(Chisq.quantiles)",
-              ylab = "Mahal.oulyingness", plargs=plargs)
+              ylab = "Mahal.oulyingness", ploptions=ploptions)
       lines(lxx,lyy)
       ## !!! needs work!!!
       ##      if (ltxt) text(lxx,lyy, plab[lor]) # else points(lxx,lyy,pch=lplab[lor])
@@ -2726,7 +2733,8 @@ plresx <-
     }
     plmatrix(pldata[,lvars,drop=FALSE],lres, panel=lpanel,
              ##pch=plargs$plab, plcol=plargs$pldata$plcol,
-             nrow = plargs$multnrow, ncol = plargs$multncol, plargs=plargs) 
+             nrow = plargs$multnrow, ncol = plargs$multncol, mar = plargs$multmar,
+             plargs=plargs) 
     return()
   }
   ## ------------------------------------------------------------------
@@ -2781,7 +2789,7 @@ plresx <-
         plmboxes(lvv, lrs, data=pldata, mar=mar, plargs=lpla)
       } else {
 ##        attr(lvv, "plcoord") <- jitter(as.numeric(lvv), factor=ljitfac)
-        plframe(lvv,rr, plargs=plargs)
+        plframe(lvv,rr, ploptions=ploptions)
       }
       ## reference values
       if (lcmpj) {
@@ -2817,7 +2825,7 @@ plresx <-
       if (!lmbox) plpoints(lvv,rr, plargs=plargs)
     } else { # ---
 ## --- continuous explanatory variable
-      plframe(lvv,rr, plargs=plargs)
+      plframe(lvv,rr, ploptions=ploptions)
       if (lIsmooth) {
         if (lnsims>0)
           rr <- cbind(rr, if (refline && addcomp && lcmpj)
@@ -2992,9 +3000,13 @@ function(x, y=NULL, data=NULL, panel=plpanel,
     if (k %in% labm)
       mtext(txt, side=k, line=(0.5+1.2*(k %in% axm)), ...)
   }
+  lf.eq <- function(v1,v2) {
+    if (is.factor(v1)) is.factor(v2)&& all(notna(as.numeric(v1)==as.numeric(v2)))
+    else all(notna(v1==v2))
+  }
   ## ---
   oldpar <- par(c("mfrow","mar","cex","mgp")) ##, "ask"
-  lmfg <- par("mfg")
+##  lmfg <- par("mfg")
   if (!keeppar) on.exit(par(oldpar))
 ##---------------------- preparations --------------------------
 ##-   lcl <- match.call()
@@ -3015,7 +3027,7 @@ function(x, y=NULL, data=NULL, panel=plpanel,
           lcall$.subdefault <- as.character(substitute(data))
         data
       }
-    lcall$mar <- rep(i.def(mar, i.getploption("panelsep")), length=4 )
+##    lcall$mar <- rep(i.def(mar, i.getploption("panelsep")), length=4 )
     lcall$gensequence <- FALSE
     lcall$.environment. <- parent.frame()
     ##
@@ -3023,6 +3035,8 @@ function(x, y=NULL, data=NULL, panel=plpanel,
 ##    plargs$main <- lmain
   } else    plargs <- eval(lcall[["plargs"]], sys.frame(1))
   ploptions <- plargs$ploptions
+  ## margins, will be used by  plframe
+  ploptions$mar <- rep(i.def(mar, i.getploption("panelsep")), length=4 )
   if (length(xlab)|length(ylab))
     warning(":plmatrix: Arguments 'xlab' and 'ylab' not used. ",
             "Set 'varlabels' instead!")
@@ -3077,7 +3091,7 @@ function(x, y=NULL, data=NULL, panel=plpanel,
              1.5+(xaxmar==3)+(xlabmar==3)+lcexmain[1]*lImain,
              2+(yaxmar==4)+(ylabmar==4))
   ## set par
-  ## if (!keeppar) 
+  ## if (!keeppar)
   plmfg(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma, mar=mar) # , mgp=c(1,0.5,0)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
   lmfig <- par("mfg")
@@ -3111,8 +3125,8 @@ function(x, y=NULL, data=NULL, panel=plpanel,
       if (jd2<=nv2 & jd1<=nv1) {
         v1 <- ldata[,j1]
         lxlab <- i.def(attr(v1,"varlabel"), paste("V",j1,sep="."), valuefalse="")
-        if (!all(v1==v2, na.rm=TRUE)) { # not diagonal
-          plframe(v1, v2, xlab="", ylab="", plargs=plargs)
+        if (!lf.eq(v1,v2)) { # not diagonal
+          plframe(v1, v2, xlab="", ylab="", ploptions=ploptions) # plargs=plargs
           panel(v1,v2, indx=jd1, indy=jd2, plargs=plargs)
         }
         else {
@@ -3164,7 +3178,7 @@ plpanel <-
     }
   }
   ## ---
-  if (frame) plframe(x,y, plargs=plargs)
+  if (frame) plframe(x,y, ploptions=ploptions)
   if (lIsm)  plsmooth(x,y, plargs=plargs)
   ## refline
   if (length(lrfl <- i.getploption("refline")))
@@ -3214,7 +3228,7 @@ plmbox <-
   lx <- x[!is.na(x)]
   if (length(lx)==0) {
     if (warn>=0) warning(":plmbox: no non-missing data")
-    return(structure(NULL, q=lq, width=lwid))
+    return(structure(numeric(0), q=lq, width=lwid))
   } else { ## ----
   stopifnot(length(width)==1,length(wfac)<=1)
   if (is.null(probs))
@@ -3479,7 +3493,7 @@ plmboxes.default <-
   for (li in 1:lng) {
     if (is.na(at[li])) next
     lli <- llist[[li]]
-    if (length(lli )) {
+    if (length(notna(lli) )) {
       attributes(lli) <- lattr
       plmbox(lli,at[li]+lsep, probs=probs, outliers=outliers,
              horizontal=lhoriz,
@@ -3608,7 +3622,7 @@ plres2x <-
   ##---------------
   lplxx <- i.getploption("plextext")
   plframe(lx, ly, xlab=xlab[1], ylab=ylab[1], plextext=lplxx,
-          plargs=plargs)
+          ploptions=ploptions)
   ##--- draw symbols: ---
   lpanel(lx, ly, zz=lzj, lwd=llwd, col=lpcol)
   lmain <- plargs$main

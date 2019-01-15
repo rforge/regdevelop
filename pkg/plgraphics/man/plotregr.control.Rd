@@ -17,7 +17,8 @@ plotregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   smooth = 2, %% smoothPar = NA, smoothIter = NULL,
   smooth.sim = NULL,
   xlabs = NULL, reslabs = NULL, markextremes = NULL,
-  mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, oma = NULL, ...)
+  mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, multmar = NULL,
+  oma = NULL, ...)
 } %%    jitter = TRUE, jitterbinary = TRUE, mbox = TRUE,
 \arguments{
   \item{x}{regr %(or lm or glm)
@@ -82,6 +83,8 @@ plotregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   \item{mfcol}{if TRUE, the panel will be filled columnwise}
   \item{multnrow, multncol}{number of rows and columns of panels on
     one page, for residuals of multivariate regression only}
+  \item{multmar}{plot margins for scatterplot matrices in the case of
+    multivariate regression}
   \item{oma}{vector of length 4 giving the number of lines in the outer
     margin. If it is of length 2, they refer to top an right margins.}
   \item{...}{further arguments in the call, to be ignored by

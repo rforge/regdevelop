@@ -542,7 +542,7 @@ predict.regrpolr <-
   function (object, newdata=NULL, type = c("class", "probs", "link"), ...)
   ## type link added by WSt, newdata=NULL
 {
-  if (!inherits(object, "polr"))
+  if (!inherits(object, c("polr","regrpolr")))
     stop("not a \"polr\" object")
   type <- match.arg(type)
   if (length(newdata)==0) {

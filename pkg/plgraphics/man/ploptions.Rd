@@ -14,11 +14,12 @@ ploptions(x = NULL, default = NULL, list = NULL, ploptions = NULL,
 ploptionsDefault
 }
 \arguments{
-  \item{x}{option to query (if character) or set (if a named object).
-    It may be a character vector of options for if it is a query.\cr
-    For those ploptionsions that are lists, \code{x} must be a list, too.
-    It contains the components that should be modified, see the second
-    example below.
+  \item{x}{character (vector) of name(s) of ploptions.
+%%-     option to query (if character) or set (if a named object).
+%%-     It may be a character vector of options if it is a query.\cr
+%%-    For those ploptions that are lists, \code{x} must be a list, too.
+%%-     It contains the components that should be modified, see the second
+%%-     example below.
     If \code{x} is set, all further arguments will be ignored.
   }
   \item{list}{a named list of options to be set}
@@ -78,6 +79,18 @@ ploptionsDefault
       of either the x or y variable, the respective component will be
       used.
     }
+    \item{\code{smoothline.lty, smoothline.col}}{line type and color.
+      Note that if there is a \code{smooth.group} factor,
+      \code{group.lty} and \code{group.col} are used.
+    }
+    \item{\code{smoothline.lty}}{line type. Note that if there is a
+      \code{smooth.group} factor, \code{group.lty} is used.
+    }
+    \item{\code{smoothline.lwd}}{line width. If of length 2 (or more),
+      the second element is the factor by which the line width is
+      reduced for simulated smooths (that is, for the second to the last
+      column of \code{smoothline$y}). It defaults to 0.7.
+    }
     \item{smooth.xtrim}{proportion of fitted values to be trimmed off on
       both sides when drawing a smooth line, either a number or a function
       that takes the number of points as its argument.
@@ -100,8 +113,12 @@ ploptions("stamp")
 ploptions(c("jitterFactor", "gridlines"))
 
 ## set options
-ploptions(stamp=FALSE, basic.pch=0, basic.col=c.colors[-1])
-
-ploptions("stamp")
+ploptions(stamp=FALSE, basic.pch=0, basic.col=c.colors[-1],
+          anything="do what you want")
+ploptions(c("stamp", "anything"))
+ploptions(default=TRUE)
+t.plopt <- ploptions(smoothline.col="green", assign=FALSE)
+t.plopt$smoothline.col
+ploptions("smoothline.col") ## unchanged
 }
 \keyword{utilities}

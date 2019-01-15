@@ -9,7 +9,7 @@
 \usage{
 plyx(x, y = NULL, group = NULL, data = NULL, type = "p", panel = plpanel,
   xlab = NULL, ylab = NULL, markextremes = 0, rescale = TRUE,
-  mar = NULL, plargs = NULL, ...)
+  mar = NULL, plargs = NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,6 +38,9 @@ plyx(x, y = NULL, group = NULL, data = NULL, type = "p", panel = plpanel,
   }
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.
+  }
+  \item{ploptions}{list of pl options.
+    If \code{NULL}, it will be the respective component of \code{plargs}.
   }
   \item{\dots}{ more arguments, to be passed to \code{\link{pl.control}}
   }
