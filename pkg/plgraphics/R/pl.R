@@ -757,8 +757,8 @@ plframe <-
   abline(v=unique(c(lirgx[lnmodx>0], lrgx)),lty=3)
   lnmody <- c(attr(ly, "nmod"),0,0)[1:2]
   lirgy <- c(attr(ly, "innerrange"), lrgy)[1:2]
-  ## gridlines
-  lgrl <- i.getploption("gridlines")
+  ## grid
+  lgrl <- i.getploption("grid")
   ## !!! need attr("ticksat") -> otherwise, generate it!
   if (u.notfalse(lgrl)) {
     if (is.atomic(lgrl)) lgrlx <- lgrly <- lgrl
@@ -766,21 +766,21 @@ plframe <-
       if (length(lgnm <- names(lgrl))) {
         lgrlx <-
           if (length(lxnm <- attr(lx, "varname")) && lxnm%in%lgnm)
-            lgrl[[lxnm]]  else  ploptions("gridlines")
+            lgrl[[lxnm]]  else  ploptions("grid")
         lgrly <-
           if (length(lynm <- attr(ly, "varname")) && lynm%in%lgnm)
-            lgrl[[lynm]]  else  ploptions("gridlines")
+            lgrl[[lynm]]  else  ploptions("grid")
       } else {
         if(length(lgrl)!=2) {
-          warning(":plframe: unsuitable argument 'gridlines'")
-          lgrlx <- lgrly <- ploptions("gridlines")
+          warning(":plframe: unsuitable argument 'grid'")
+          lgrlx <- lgrly <- ploptions("grid")
         } else {
           lgrlx <- lgrl[[1]]
           lgrly <- lgrl[[2]]
         }
       }
     }
-    ## gridlines:x
+    ## grid:x
     if (u.true(lgrlx)) {
       lgrlx <- attr(x,"ticksat")
       if (length(lgrlx)<2)
@@ -790,10 +790,10 @@ plframe <-
     lgrlx <- clipat(lgrlx, lirgx)
     if (length(lgrlx)) 
       abline(v=lgrlx,
-             lty=i.getploption("gridlines.lty"),
-             lwd=i.getploption("gridlines.lwd"),
-             col=i.getploption("gridlines.col"))
-    ## gridlines:y
+             lty=i.getploption("grid.lty"),
+             lwd=i.getploption("grid.lwd"),
+             col=i.getploption("grid.col"))
+    ## grid:y
     if (u.true(lgrly)) {
       lgrly <- attr(y,"ticksat")
       if (length(lgrly)<2)
@@ -803,11 +803,11 @@ plframe <-
     grl <- clipat(lgrly, lirgy)
     if (length(lgrly)) 
       abline(h=lgrly,
-             lty=i.getploption("gridlines.lty"),
-             lwd=i.getploption("gridlines.lwd"),
-             col=i.getploption("gridlines.col"))
+             lty=i.getploption("grid.lty"),
+             lwd=i.getploption("grid.lwd"),
+             col=i.getploption("grid.col"))
   }
-  ## zeroline
+  ## zero line
   if (length(lzl <- ploptions$zeroline)) {
     lzl <- i.def(lzl, 0, TRUE, NA)
     if (is.atomic(lzl)) lzlx <- lzly <- lzl
@@ -2499,7 +2499,7 @@ plot.regr <-
       lines(lxx,lyy)
       ## !!! needs work!!!
       ##      if (ltxt) text(lxx,lyy, plab[lor]) # else points(lxx,lyy,pch=lplab[lor])
-      abline(0,1,lty = ploptions$gridlines.lty, col=ploptions$gridlines.col)
+      abline(0,1,lty = ploptions$grid.lty, col=ploptions$grid.col)
       pltitle(plargs=plargs, show=FALSE)
       stamp(sure=FALSE, ploptions=ploptions)
       par(lop)
@@ -3452,8 +3452,8 @@ plmboxes.default <-
     lmar[1+lhoriz] <- max(lxmar, lmar[1+lhoriz])
     plargs$ploptions$mar <- lmar
     plargs$ploptions$axes <- FALSE
-    if (u.true(ploptions$gridlines))
-      plargs$ploptions$gridlines <-
+    if (u.true(ploptions$grid))
+      plargs$ploptions$grid <-
         if(lhoriz) list(TRUE, at) else list(at, TRUE)
     ## ---------------------------------
     if (lhoriz)
@@ -4005,9 +4005,9 @@ c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
     markextremes = markextremes, ## is a function...
     ## title (mtext)
     title.cex=c(1.2,1,1), title.cexmin=0.6,
-    ## gridlines
-    gridlines = TRUE, gridlines.lty = 1, gridlines.lwd = 1,
-    gridlines.col = "gray85",
+    ## grid
+    grid = TRUE, grid.lty = 1, grid.lwd = 1,
+    grid.col = "gray85",
     zeroline = TRUE, zeroline.lty = 1, zeroline.lwd = 1,
     zeroline.col = "gray50",
     ## refline
@@ -4063,11 +4063,11 @@ ploptionsCheck <-
     plext=cnr(c(0,0.5)), plextext=cnr(c(0,0.5)),
     ## title (mtext)
     title.cex=cnr(c(0.1,5)), title.cexmin=cnr(c(0.1,5)),
-    ## gridlines
-    gridlines = list(clg(),cnr(),cln(NA)),
-    gridlines.lty = cnv(c.ltyvalues),
-    gridlines.lwd = cnr(c(0.1,5)),
-    gridlines.col = ccl(),
+    ## grid
+    grid = list(clg(),cnr(),cln(NA)),
+    grid.lty = cnv(c.ltyvalues),
+    grid.lwd = cnr(c(0.1,5)),
+    grid.col = ccl(),
     ## refline
     refline.lty = cnv(c.ltyvalues), refline.lwd = cnr(c(0.1,5)),
     refline.col = ccl(),

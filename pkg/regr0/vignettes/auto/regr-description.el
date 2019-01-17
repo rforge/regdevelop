@@ -20,5 +20,6 @@
     "fig:taordered"
     "fig:plmatrix"
     "fig:mboxes"
-    "fig:mboxes2")))
+    "fig:mboxes2"))
+ :latex)
 

@@ -1,6 +1,6 @@
-\name{allcoef}
-\alias{allcoef}
-\alias{print.allcoef}
+\name{termeffects}
+\alias{termeffects}
+\alias{print.termeffects}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 all coefficients of a model fit
@@ -9,8 +9,8 @@ all coefficients of a model fit
 A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
-allcoef(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
-\method{print}{allcoef}(x, columns=NULL, transpose=FALSE, ...)
+termeffects(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
+\method{print}{termeffects}(x, columns=NULL, transpose=FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -25,7 +25,7 @@ allcoef(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE,
   }
   
   Arguments for \code{print}:
-  \item{x}{object of class \code{allcoef}, produced by \code{allcoef(...)}}
+  \item{x}{object of class \code{termeffects}, produced by \code{termeffects(...)}}
   \item{columns}{the columns of the tables to be printed. \code{NULL}
   selects all the columns.}
   \item{transpose}{logical. should the tables be
@@ -49,7 +49,7 @@ Werner A. Stahel
   data(d.blast)
   r.blast <-
   regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-  allcoef(r.blast)
+  termeffects(r.blast)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

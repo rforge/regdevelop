@@ -15,6 +15,9 @@
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{regr-desc}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{regr0}
+%\VignetteIndexEntry{'regr0: Augmented Regression Analysis'}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}

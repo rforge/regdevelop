@@ -46,17 +46,6 @@
   \item{...}{Further arguments, passed to the smoothing function.
   }
 }
-\details{These functions are useful for generating the smooths enhancing
-  residual plots. (\code{smoothM}) generates a smooth for a single x
-  variable and multiple y's. It is used to draw smooths from simulated
-  residuals.
-  (\code{smoothMM}) is the wrapper for multivariate regression.
-  If argument \code{group} is specified, the smooths will be calculated
-  within the specified groups.
-
-  NA's in either \code{x} or any column of \code{y} cause dropping the
-  observation (equivalent to \code{na.omit}).
-}
 \value{
   \code{smoothM}: A list with components:  
   \item{x}{vector of x values, sorted, within levels of \code{group}
@@ -81,7 +70,17 @@
 %%-   For \code{smoothMM}, the value is a list of such lists, with a component
 %%-   for each column of \code{x}. 
 }
-\details{
+\details{These functions are useful for generating the smooths enhancing
+  residual plots. (\code{smoothM}) generates a smooth for a single x
+  variable and multiple y's. It is used to draw smooths from simulated
+  residuals.
+%%  (\code{smoothMM} is the wrapper for multivariate regression.)
+  If argument \code{group} is specified, the smooths will be calculated
+  within the specified groups.
+
+  NA's in either \code{x} or any column of \code{y} cause dropping the
+  observation (equivalent to \code{na.omit}).
+
   The smoothing function used to produce the smooth is
   \code{\link{smoothRegr}}, which relies \code{\link{loess}} by default.
   This may be changed via \code{options(smoothFunction = func)} where
@@ -110,6 +109,7 @@ abline(h=0)
 for (lg in 1:length(levels(r.smx$group))) {
   li <- as.numeric(r.smx$group)==lg 
   lines(r.smx$x[li],r.smx$y[li], col=lg+1, lwd=3)
+}
 
 ## example with data from stats
 data(swiss)
@@ -138,21 +138,6 @@ data(swiss)
     lines(r.sm$x[ligh], r.sm$yband[ligh], lty=2+2*lg, col=2+lg)
     lines(r.sm$x[ligl], r.sm$yband[ligl], lty=2+2*lg, col=2+lg)
   }
-
-}
-
-## use of simresiduals is missing
-
-## multivariate regression
-data(d.fossiles)
-r.mregr <-
-  regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
-                data=d.fossiles)
-r.msmooth <- smoothMM( fitted(r.mregr), residuals(r.mregr), resid=TRUE )
-showd(r.msmooth[[2]]$resid)
-r.msmresid <- sapply(r.msmooth, function(x) x$resid)
-  ## row.names are lost by sapply
-showd(r.msmresid)
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the

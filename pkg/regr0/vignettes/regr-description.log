@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  1 MAR 2018 15:17
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  16 JAN 2019 08:33
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**\nonstopmode\input{regr-description.tex}
+**\input ./regr-description.tex
 (./regr-description.tex
 (/scratch/local/app/teTeX/08.16/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
@@ -489,12 +489,12 @@ LaTeX Font Info:    Redeclaring font encoding OMS on input line 635.
 LaTeX Info: Redefining \[ on input line 2739.
 LaTeX Info: Redefining \] on input line 2740.
 )
-(./regr-desc.sty)
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-desc.sty)
 (/scratch/local/app/teTeX/08.16/texmf-dist/tex/latex/upquote/upquote.sty
 Package: upquote 2012/04/19 v1.3 upright-quote and grave-accent glyphs in verba
 tim
 )
-(./regr-description.aux)
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description.aux)
 \openout1 = `regr-description.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 74.
@@ -604,226 +604,182 @@ e
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package color Info: Redefining color shadecolor on input line 98.
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 137.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 135.
 
 (/scratch/local/app/teTeX/08.16/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 137.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 135.
  [1
 
 {/scratch/local/app/teTeX/08.16/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Package color Info: Redefining color shadecolor on input line 197.
+Package color Info: Redefining color shadecolor on input line 195.
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 199.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 197.
  [2]
 [3]
-Package color Info: Redefining color shadecolor on input line 312.
- [4] [5]
-Package color Info: Redefining color shadecolor on input line 454.
- [6]
-Package color Info: Redefining color shadecolor on input line 488.
- [7]
+Package color Info: Redefining color shadecolor on input line 317.
+ [4] [5] [6]
+Package color Info: Redefining color shadecolor on input line 466.
+Package color Info: Redefining color shadecolor on input line 500.
+ [7] [8]
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 585.
- [8]
-Overfull \hbox (1.01111pt too wide) in paragraph at lines 624--627
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 598.
+
+Overfull \hbox (1.01111pt too wide) in paragraph at lines 637--640
 \OT1/cmr/m/n/10.95 bel, if avail-able from \OT1/cmtt/m/n/10.95 options\OT1/cmr/
 m/n/10.95 . (This \OT1/cmtt/m/n/10.95 stamp \OT1/cmr/m/n/10.95 can be sup-press
 ed by set-ting \OT1/cmtt/m/n/10.95 userOptions(stamp=FALSE)\OT1/cmr/m/n/10.95 .
 ) 
  []
 
-Package color Info: Redefining color shadecolor on input line 639.
-<figure/taplot-1.pdf, id=41, 505.89pt x 505.89pt>
+[9]
+Package color Info: Redefining color shadecolor on input line 652.
+
+Underfull \hbox (badness 10000) in paragraph at lines 655--655
+[]\OT1/cmtt/m/n/10.95 ## Warning in plot.regr(r.blast, plotselect = c(resfit = 
+3, default = 0), xvars = F,
+ []
+
+<figure/taplot-1.pdf, id=44, 505.89pt x 505.89pt>
 File: figure/taplot-1.pdf Graphic file (type pdf)
  <use figure/taplot-1.pdf>
-Package pdftex.def Info: figure/taplot-1.pdf used on input line 640.
+Package pdftex.def Info: figure/taplot-1.pdf used on input line 656.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-<figure/taplot-2.pdf, id=42, 505.89pt x 505.89pt>
+<figure/taplot-2.pdf, id=45, 505.89pt x 505.89pt>
 File: figure/taplot-2.pdf Graphic file (type pdf)
  <use figure/taplot-2.pdf>
-Package pdftex.def Info: figure/taplot-2.pdf used on input line 642.
+Package pdftex.def Info: figure/taplot-2.pdf used on input line 658.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-<figure/taplot-3.pdf, id=43, 505.89pt x 505.89pt>
+<figure/taplot-3.pdf, id=46, 505.89pt x 505.89pt>
 File: figure/taplot-3.pdf Graphic file (type pdf)
  <use figure/taplot-3.pdf>
-Package pdftex.def Info: figure/taplot-3.pdf used on input line 644.
-(pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
-
-<figure/taplot-4.pdf, id=44, 505.89pt x 505.89pt>
-File: figure/taplot-4.pdf Graphic file (type pdf)
- <use figure/taplot-4.pdf>
-Package pdftex.def Info: figure/taplot-4.pdf used on input line 646.
+Package pdftex.def Info: figure/taplot-3.pdf used on input line 660.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
 
-LaTeX Warning: Float too large for page by 1337.58301pt on input line 650.
+LaTeX Warning: Float too large for page by 934.15439pt on input line 667.
 
-[9] [10] [11]
-Package color Info: Redefining color shadecolor on input line 855.
- <figure/xdist-1.pdf, id=56, 505.89pt x 505.89pt>
+[10] [11] [12]
+Package color Info: Redefining color shadecolor on input line 872.
+ <figure/xdist-1.pdf, id=60, 505.89pt x 505.89pt>
 File: figure/xdist-1.pdf Graphic file (type pdf)
 
 <use figure/xdist-1.pdf>
-Package pdftex.def Info: figure/xdist-1.pdf used on input line 864.
+Package pdftex.def Info: figure/xdist-1.pdf used on input line 881.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
 
-LaTeX Warning: Float too large for page by 5.54718pt on input line 870.
+LaTeX Warning: Float too large for page by 5.54718pt on input line 887.
 
-[12] [13]
-Package color Info: Redefining color shadecolor on input line 966.
- <figure/taordered-1.pdf, id=66, 505.89pt x 505.89pt>
+[13]
+Package color Info: Redefining color shadecolor on input line 983.
+
+Underfull \hbox (badness 10000) in paragraph at lines 993--993
+[]\OT1/cmtt/m/n/10.95 ## Warning in plot.regr(t.rr, plotselect = c(resfit = 3, 
+default = 0), xvars = F, :
+ []
+
+<figure/taordered-1.pdf, id=65, 505.89pt x 505.89pt>
 File: figure/taordered-1.pdf Graphic file (type pdf)
 
 <use figure/taordered-1.pdf>
-Package pdftex.def Info: figure/taordered-1.pdf used on input line 975.
+Package pdftex.def Info: figure/taordered-1.pdf used on input line 994.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-<figure/taordered-2.pdf, id=67, 505.89pt x 505.89pt>
+<figure/taordered-2.pdf, id=66, 505.89pt x 505.89pt>
 File: figure/taordered-2.pdf Graphic file (type pdf)
 
 <use figure/taordered-2.pdf>
-Package pdftex.def Info: figure/taordered-2.pdf used on input line 977.
+Package pdftex.def Info: figure/taordered-2.pdf used on input line 996.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-<figure/taordered-3.pdf, id=68, 505.89pt x 505.89pt>
+<figure/taordered-3.pdf, id=67, 505.89pt x 505.89pt>
 File: figure/taordered-3.pdf Graphic file (type pdf)
 
 <use figure/taordered-3.pdf>
-Package pdftex.def Info: figure/taordered-3.pdf used on input line 979.
-(pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
-
-<figure/taordered-4.pdf, id=69, 505.89pt x 505.89pt>
-File: figure/taordered-4.pdf Graphic file (type pdf)
-
-<use figure/taordered-4.pdf>
-Package pdftex.def Info: figure/taordered-4.pdf used on input line 981.
+Package pdftex.def Info: figure/taordered-3.pdf used on input line 998.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
 
-LaTeX Warning: Float too large for page by 1416.49965pt on input line 986.
+LaTeX Warning: Float too large for page by 1014.15442pt on input line 1006.
 
 [14]
-Package color Info: Redefining color shadecolor on input line 1062.
-
-Underfull \hbox (badness 10000) in paragraph at lines 1068--1069
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1070--1071
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1072--1073
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1074--1075
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1076--1077
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1078--1079
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 1080--1080
-[]\OT1/cmtt/m/n/10.95 ## Warning in plot.xy(xy.coords(x, y), type = type, ...):
- "pcol" is not a graphical
- []
-
-<figure/plmatrix-1.pdf, id=73, 505.89pt x 505.89pt>
+Package color Info: Redefining color shadecolor on input line 1082.
+ <figure/plmatrix-1.pdf, id=71, 505.89pt x 505.89pt>
 File: figure/plmatrix-1.pdf Graphic file (type pdf)
 
 <use figure/plmatrix-1.pdf>
-Package pdftex.def Info: figure/plmatrix-1.pdf used on input line 1081.
+Package pdftex.def Info: figure/plmatrix-1.pdf used on input line 1087.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
-
-
-LaTeX Warning: Float too large for page by 153.54724pt on input line 1089.
-
-Package color Info: Redefining color shadecolor on input line 1110.
-<figure/mboxes-1.pdf, id=74, 505.89pt x 505.89pt>
+Package color Info: Redefining color shadecolor on input line 1116.
+ <figure/mboxes-1.pdf, id=72, 505.89pt x 505.89pt>
 File: figure/mboxes-1.pdf Graphic file (type pdf)
- <use figure/mboxes-1.pdf>
-Package pdftex.def Info: figure/mboxes-1.pdf used on input line 1115.
+
+<use figure/mboxes-1.pdf>
+Package pdftex.def Info: figure/mboxes-1.pdf used on input line 1121.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
+ [15]
+Package color Info: Redefining color shadecolor on input line 1139.
 
-
-LaTeX Warning: Reference `fig:mboxes' on page 15 undefined on input line 1124.
-
-Package color Info: Redefining color shadecolor on input line 1133.
-<figure/mboxes2-1.pdf, id=75, 505.89pt x 505.89pt>
+<figure/mboxes2-1.pdf, id=76, 505.89pt x 505.89pt>
 File: figure/mboxes2-1.pdf Graphic file (type pdf)
  <use figure/mboxes2-1.pdf>
-Package pdftex.def Info: figure/mboxes2-1.pdf used on input line 1139.
+Package pdftex.def Info: figure/mboxes2-1.pdf used on input line 1145.
 (pdftex.def)             Requested size: 483.69684pt x 483.70361pt.
 
-[15] [16]
-Underfull \hbox (badness 10000) in paragraph at lines 1225--1228
+[16]
+Underfull \hbox (badness 10000) in paragraph at lines 1231--1234
 
  []
 
-[17] [18 <./figure/taplot-1.pdf> <./figure/taplot-2.pdf> <./figure/taplot-3.pdf
-> <./figure/taplot-4.pdf>] [19 <./figure/xdist-1.pdf>] [20 <./figure/taordered-
-1.pdf> <./figure/taordered-2.pdf> <./figure/taordered-3.pdf> <./figure/taordere
-d-4.pdf>] [21 <./figure/plmatrix-1.pdf>] [22 <./figure/mboxes-1.pdf>] [23 <./fi
-gure/mboxes2-1.pdf>] (./regr-description.aux)
-
-LaTeX Warning: There were undefined references.
-
- ) 
+[17] [18 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taplot-
+1.pdf> </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taplot-2.
+pdf> </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taplot-3.pd
+f>] [19 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/xdist-1.
+pdf>] [20 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taorde
+red-1.pdf> </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taord
+ered-2.pdf> </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figure/taor
+dered-3.pdf>] [21 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/figur
+e/plmatrix-1.pdf>] [22 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/
+figure/mboxes-1.pdf>] [23 </scratch/users/stahel/R/regdevelop/pkg/regr0/vignett
+es/figure/mboxes2-1.pdf>]
+(/scratch/users/stahel/R/regdevelop/pkg/regr0/vignettes/regr-description.aux) )
+ 
 Here is how much of TeX's memory you used:
- 3225 strings out of 493014
- 44143 string characters out of 6130583
- 123636 words of memory out of 5000000
- 6679 multiletter control sequences out of 15000+600000
+ 3214 strings out of 493014
+ 44267 string characters out of 6130583
+ 123592 words of memory out of 5000000
+ 6669 multiletter control sequences out of 15000+600000
  14003 words of font info for 52 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,7n,31p,320b,300s stack positions out of 5000i,500n,10000p,200000b,80000s
-</scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmb
-x10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmbx12.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmex10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/publ
-ic/amsfonts/cm/cmitt10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/typ
-e1/public/amsfonts/cm/cmmi10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fon
-ts/type1/public/amsfonts/cm/cmmi12.pfb></scratch/local/app/teTeX/08.16/texmf-di
-st/fonts/type1/public/amsfonts/cm/cmmi8.pfb></scratch/local/app/teTeX/08.16/tex
-mf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></scratch/local/app/teTeX/08
-.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></scratch/local/app/teT
-eX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></scratch/local/ap
-p/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></scratch/loc
-al/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></scratch
-/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></s
-cratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pf
-b></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmt
-i10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/
-cm/cmtt10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/ams
-fonts/cm/cmtt12.pfb>
-Output written on regr-description.pdf (23 pages, 517025 bytes).
+ 40i,7n,31p,309b,300s stack positions out of 5000i,500n,10000p,200000b,80000s
+</scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx1
+0.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmbx12.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmex10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public
+/amsfonts/cm/cmitt10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1
+/public/amsfonts/cm/cmmi10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts
+/type1/public/amsfonts/cm/cmmi12.pfb></scratch/local/app/teTeX/08.16/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmmi8.pfb></scratch/local/app/teTeX/08.16/texmf
+-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></scratch/local/app/teTeX/08.1
+6/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></scratch/local/app/teTeX
+/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></scratch/local/app/
+teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr17.pfb></scratch/local
+/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></scratch/l
+ocal/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></scr
+atch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+</scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmti1
+0.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm
+/cmtt10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfo
+nts/cm/cmtt12.pfb>
+Output written on regr-description.pdf (23 pages, 603066 bytes).
 PDF statistics:
- 221 PDF objects out of 1000 (max. 8388607)
- 153 compressed objects within 2 object streams
+ 209 PDF objects out of 1000 (max. 8388607)
+ 145 compressed objects within 2 object streams
  0 named destinations out of 1000 (max. 500000)
- 61 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 51 words of extra memory for PDF output out of 10000 (max. 10000000)
 
