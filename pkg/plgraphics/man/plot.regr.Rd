@@ -174,20 +174,30 @@ plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
 }
 \seealso{plotregr.control, plot.lm}
 \examples{
-  r.savings <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
-  plot.regr(r.savings)
+r.savings <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
+plot.regr(r.savings)
 
-  data(d.blast)
-  r.blast <-
-       lm(log10(tremor)~location+log10(distance)+log10(charge),
-            data=d.blast)
-  plot.regr(r.blast, sequence=TRUE, transformed=TRUE) 
+data(d.blast)
+r.blast <-
+     lm(log10(tremor)~location+log10(distance)+log10(charge),
+          data=d.blast)
+plot.regr(r.blast, sequence=TRUE, transformed=TRUE) 
 
-  data(d.fossiles)
-  r.foss <-
-    lm(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
-    data=d.fossiles)
-  plot.regr(r.foss, plotselect=c(resfit=3, resmatrix=1, qqmult=1),xvar=FALSE)
+data(d.fossiles)
+r.foss <-
+  lm(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
+  data=d.fossiles)
+plot.regr(r.foss, plotselect=c(resfit=3, resmatrix=1, qqmult=1))
+
+data(d.babysurvival)
+rr <- glm(Survival~Weight+Age+Apgar1, data=d.babysurvival, family=binomial)
+plot.regr(rr, xvar= ~Weight, cex.plab=0.7, ylim=c(-5,5))
+plot.regr(rr, condquant=FALSE)
+
+data(housing, package="MASS")
+rr <- MASS::polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
+plot.regr(rr, factor.show="jitter")
+
 }
 \keyword{hplot}
 \keyword{regression}

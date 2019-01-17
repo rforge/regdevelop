@@ -691,7 +691,7 @@ genvarattributes <-
 }
 ## =====================================================================
 plframe <-
-  function(x, y, xlab=NULL, ylab=NULL, plextext=NULL,
+  function(x, y, xlab=NULL, ylab=NULL, ticklabels = TRUE, plextext=NULL,
            axcol=rep(1,4), plargs=NULL, ploptions=plargs$ploptions)
 {
   ## -------------------
@@ -723,6 +723,7 @@ plframe <-
     list(x = lx, xx = lxx, range = lrg)
   }
   ## ---
+  lIlab <- as.logical(rep(ticklabels, length=4))
   lext <- rep(i.getploption("plext"),length=4)
   plextext <- rep(i.def(plextext, 0, i.getploption("plextext"), 0), length=4)
   axcol <- rep(i.def(axcol,1), length=4)
@@ -834,17 +835,17 @@ plframe <-
   if (u.notfalse(laxes)) {
     ltint <- i.getploption("tickintervals")[1]
     if (1%in%laxes)
-      plaxis(1, lx, lab=lmar[1]>=lmgp[2]+1 | lmfg[1]==lmfg[3], range=lxrg,
-             col=axcol[1], tickintervals=ltint)
+      plaxis(1, lx, lab = lIlab[1] && (lmar[1]>=lmgp[2]+1 | lmfg[1]==lmfg[3]),
+             range=lxrg, col=axcol[1], tickintervals=ltint)
     if (2%in%laxes)
-      plaxis(2, ly, lab=lmar[2]>=lmgp[2]+1 | lmfg[2]==1, range=lyrg,
-             col=axcol[2], tickintervals=ltint)
+      plaxis(2, ly, lab = lIlab[2] && (lmar[2]>=lmgp[2]+1 | lmfg[2]==1), 
+             range=lyrg, col=axcol[2], tickintervals=ltint)
     if (3%in%laxes)
-      plaxis(3, lx, lab=lmar[3]>=lmgp[2]+1 | lmfg[1]==1, range=lxrg,
-             col=axcol[3], tickintervals=ltint)
+      plaxis(3, lx, lab = lIlab[3] && (lmar[3]>=lmgp[2]+1 | lmfg[1]==1), 
+             range=lxrg, col=axcol[3], tickintervals=ltint)
     if (4%in%laxes)
-      plaxis(4, ly, lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4], range=lyrg,
-             col=axcol[4], tickintervals=ltint)
+      plaxis(4, ly, lab = lIlab[4] && (lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4]),
+             range=lyrg, col=axcol[4], tickintervals=ltint)
   }
   invisible(lop)
 }
@@ -2995,10 +2996,10 @@ function(x, y=NULL, data=NULL, panel=plpanel,
 ##             possibly on seeral pages
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date: 23 Jul 93; minor bug-fix+comments:
-  lf.axis <- function(k, axm, labm, txt, ...) {
-    if (k %in% axm) axis(k)
+  lf.axis <- function(k, x, axm, labm, txt, ...) {
+    if (k %in% axm) plaxis(k, x, varlabel="", ploptions=ploptions)
     if (k %in% labm)
-      mtext(txt, side=k, line=(0.5+1.2*(k %in% axm)), ...)
+      mtext(txt, side=k, line=(1.5+(k %in% axm)), ...)
   }
   lf.eq <- function(v1,v2) {
     if (is.factor(v1)) is.factor(v2)&& all(notna(as.numeric(v1)==as.numeric(v2)))
@@ -3079,12 +3080,12 @@ function(x, y=NULL, data=NULL, panel=plpanel,
   lmain <- plargs$main
   lImain <- !( (length(lmain)==0||lmain=="") & is.logical(lsub)&&lsub )
   ## --- position of tick marks and axis labels, oma
-  if (u.nuna(xaxmar)) xaxmar <- 1+(nv1*nv2>1)
+  xaxmar <- i.def(xaxmar, 1+(nv1*nv2>1))
   xaxmar <- ifelse(xaxmar>1,3,1)
-  if (u.nuna(yaxmar)) yaxmar <- 2+(nv1*nv2>1)
+  yaxmar <- i.def(yaxmar, 2+(nv1*nv2>1))
   yaxmar <- ifelse(yaxmar>2,4,2)
-  if (u.nuna(xlabmar)) xlabmar <- if (nv1*nv2==1) xaxmar else 4-xaxmar
-  if (u.nuna(ylabmar)) ylabmar <- if (nv1*nv2==1) yaxmar else 6-yaxmar
+  xlabmar <- i.def(xlabmar, if (nv1*nv2==1) xaxmar else 4-xaxmar )
+  ylabmar <- i.def(ylabmar, if (nv1*nv2==1) yaxmar else 6-yaxmar )
   lcexmain <- i.getploption("title.cex")
   if (length(oma)!=4)
     oma <- c(2+(xaxmar==1)+(xlabmar==1), 2+(yaxmar==2)+(ylabmar==2),
@@ -3095,8 +3096,8 @@ function(x, y=NULL, data=NULL, panel=plpanel,
   plmfg(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma, mar=mar) # , mgp=c(1,0.5,0)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
   lmfig <- par("mfg")
-  lnr <- lmfig[1]
-  lnc <- lmfig[2]
+  lnr <- lmfig[3]
+  lnc <- lmfig[4]
   lnpgr <- ceiling(nv2/lnr)
   lnpgc <- ceiling(nv1/lnc)
   ## cex
@@ -3126,7 +3127,8 @@ function(x, y=NULL, data=NULL, panel=plpanel,
         v1 <- ldata[,j1]
         lxlab <- i.def(attr(v1,"varlabel"), paste("V",j1,sep="."), valuefalse="")
         if (!lf.eq(v1,v2)) { # not diagonal
-          plframe(v1, v2, xlab="", ylab="", ploptions=ploptions) # plargs=plargs
+          plframe(v1, v2, xlab="", ylab="", ticklabels = FALSE,
+                  ploptions=ploptions) # plargs=plargs
           panel(v1,v2, indx=jd1, indy=jd2, plargs=plargs)
         }
         else {
@@ -3138,10 +3140,10 @@ function(x, y=NULL, data=NULL, panel=plpanel,
       ## if (axes) {
         usr <- par("usr")
         lat=c(mean(usr[1:2]),mean(usr[3:4]))
-        if (jr==lnr||jd2==nv2) lf.axis(1, xaxmar, xlabmar, lxlab)
-        if (jc==1) lf.axis(2, yaxmar, ylabmar, lylab)
-        if (jr==1) lf.axis(3, xaxmar, xlabmar, lxlab)
-        if (jc==lnc||jd1==nv1) lf.axis(4, yaxmar, ylabmar, lylab)
+        if (jr==lnr||jd2==nv2) lf.axis(1, v1, xaxmar, xlabmar, lxlab)
+        if (jc==1) lf.axis(2, v2, yaxmar, ylabmar, lylab)
+        if (jr==1) lf.axis(3, v1, xaxmar, xlabmar, lxlab)
+        if (jc==lnc||jd1==nv1) lf.axis(4, v2, yaxmar, ylabmar, lylab)
         ## }
         ## box()
         if (lImain)   pltitle(plargs=plargs, show=NA)

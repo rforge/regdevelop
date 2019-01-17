@@ -16,7 +16,7 @@
   based on the 'pl' paradigm
 }
 \usage{
-plframe(x, y, xlab = NULL, ylab = NULL, plextext = NULL,
+plframe(x, y, xlab = NULL, ylab = NULL, ticklabels = TRUE, plextext = NULL,
   axcol = rep(1, 4), plargs = NULL, ploptions = plargs$ploptions)
 
 pltitle(main=NULL, sub=NULL, cex=NULL, cexmin=NULL, 
@@ -57,6 +57,7 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
   \item{plextext}{extension of the plotting area beyond the possibly
     already extended range. This helps to accomodate sybmbols.
   }
+  \item{ticklabels}{logical: should tick labels be shown?}
   \item{side}{For \code{pltitle}: in which margin should the text
     be shown?}
   \item{cex}{character size. May be vector of length 3, giving size for
