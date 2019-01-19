@@ -1,5 +1,5 @@
 ## library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
-library(regr0, lib="~/R/regdevelop/pkg/regr0.Rcheck")
+library(regr0) ##, lib="~/R/regdevelop/pkg/regr0.Rcheck")
 ## library(regr0, lib="/u/stahel/R/regdevelop/pkg/regr0_1.0-5.tar.gz")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
