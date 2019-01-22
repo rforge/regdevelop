@@ -183,10 +183,10 @@ r.blast <-
           data=d.blast)
 plot.regr(r.blast, sequence=TRUE, transformed=TRUE) 
 
-data(d.fossiles)
+data(d.fossileSamples)
 r.foss <-
-  lm(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
-  data=d.fossiles)
+  lm(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region+N,
+  data=d.fossileSamples)
 plot.regr(r.foss, plotselect=c(resfit=3, resmatrix=1, qqmult=1))
 
 data(d.babysurvival)

@@ -198,9 +198,9 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{smoothlines.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smoothline.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
 
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{smooth.group}\hlstd{=Species,}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
      \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
@@ -299,6 +299,23 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multipley-1} 
+
+\end{knitrout}
+
+The following plot shows a more elaborate example of a time series plot,
+see ... for details about the generation of a time axis and
+the additional arguments of \T{plyx}, respectively
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{data}\hlstd{(d.river)}
+  \hlstd{t.i} \hlkwb{<-} \hlstd{d.river}\hlopt{$}\hlstd{date} \hlopt{<} \hlkwd{as.Date}\hlstd{(}\hlstr{"2010-03-31"}\hlstd{)}
+  \hlkwd{plyx}\hlstd{(O2}\hlopt{+}\hlstd{T}\hlopt{+}\hlstd{ra}\hlopt{~}\hlstd{date,} \hlkwc{data}\hlstd{=d.river[t.i} \hlopt{&} \hlstd{d.river}\hlopt{$}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,],}
+    \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx-time-1} 
 
 \end{knitrout}
 
@@ -658,10 +675,9 @@ This results in residual plots like those shown in the figure.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(survival)}
-\hlkwd{data}\hlstd{(d.cheese)}
-\hlstd{t.r} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Tobit}\hlstd{(Anzahl,} \hlnum{1}\hlstd{,} \hlkwc{log}\hlstd{=}\hlnum{TRUE}\hlstd{)}\hlopt{~}\hlstd{Temp}\hlopt{+}\hlstd{Bakt}\hlopt{+}\hlstd{Konz,} \hlkwc{data}\hlstd{=d.cheese,} \hlkwc{x}\hlstd{=T,}
-               \hlkwc{dist}\hlstd{=}\hlstr{"gaussian"}\hlstd{)}
-\hlkwd{plot.regr}\hlstd{(t.r,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
+\hlkwd{data}\hlstd{(lung)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
+\hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
           \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -730,26 +746,18 @@ one of the usual choices.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-  \hlkwd{data}\hlstd{(d.babysurv)}
-  \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurv,}\hlkwc{family}\hlstd{=binomial)}
+  \hlkwd{data}\hlstd{(d.babysurvival)}
+  \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
   \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
   \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.glm(x, lnsims, glm.restype = glm.restype): :simresiduals: binomial distribution with unsuitable response.\\\#\#\ \  No residuals simulated}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in order(as.numeric(lgrp), lx): argument lengths differ}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-1} 
 \begin{kframe}\begin{alltt}
   \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
             \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.glm(x, lnsims, glm.restype = glm.restype): :simresiduals: binomial distribution with unsuitable response.\\\#\#\ \  No residuals simulated}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in order(as.numeric(lgrp), lx): argument lengths differ}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-2} 
 
 \end{knitrout}
@@ -904,18 +912,17 @@ The components of these lists include
   default is the value 0 for both axes, and the properties are independent
   of those for \T{gridlines};
 \item
-  a group \T{refline}. A \T{refline} is set iby some high level 
-  pl functions as a vector giving intercept and slope of a straight line, 
-  or a function that returns this list, such as \T{lm};
+  a group \T{refline}, again setting the properties \T{lty, lwd, col},
+  to be used in \T{plrefline};
 \item
   a group \T{smoothline}, analogous to \T{refline}, used to draw smooths
-  when \T{smooth} is \T{TRUE};
+  when \T{smooth} is \T{TRUE} by calling \T{plsmoothline};
   %% usually generated by setting \T{smooth} to \T{TRUE}.
 \item
   a group \T{smooth}. If \T{smooth} is \T{TRUE}, a smoothing function 
   with default \Hneed{80mm} \T{ploptions("smooth.function")} 
   is called to calculate a
-  smooth line and show it according toe the \T{smoothline} properties.
+  smooth line and show it according toe the \T{smoothline} properties;
 \item
   a group \T{bar} needed to show reference values for levels of factors
   used as explanatory variables in regression diagnostic plots;
@@ -1028,8 +1035,8 @@ The elements attached to variables are
 \end{itemize}
 These elements are stored as attributes of the variables,
 e.g., \T{attr(var, "axisat")}.
-They can be set or generated by the function \T{genvarattributes} and then
-modified before calling the high level pl function, such as \T{plyx}.
+They can be either set (or generated by the function \T{genvarattributes} and 
+then modified) before calling the high level pl function, such as \T{plyx}.
 Those that are needed and have not been stored beforehand will be 
 generated by \T{pl.control} when calling such a function.
 \begin{knitrout}
@@ -1045,7 +1052,6 @@ generated by \T{pl.control} when calling such a function.
 \includegraphics[width=\maxwidth]{figure/varattributes-1} 
 
 \end{knitrout}
-
 
 \T{getvariables}
 \T{genvarattributes}
@@ -1092,7 +1098,10 @@ ranges and draws gridlines and axes, the latter by calling \T{plaxis}.
   \T{plsmooth} and \T{plsmlines} generate a smooth line and draws it 
   in the plot, respectively.
 \item
-  \T{plrefline} adds reference lines (straight lines or curves) to a plot
+  \T{plrefline} adds reference lines (straight lines or curves) to a plot.
+  It is used by \T{plot.regr} and \T{plresx}.
+%%-   as a vector giving intercept and slope of a straight line.
+%%-   or a function that returns this list, such as \T{lm};
 \item
   \T{pltitle} adds a title. By default, the character size 
   (given by the ploption \T{"title.cex"} is descreased
@@ -1156,7 +1165,7 @@ residuals in pargs are data.frame
 variable colors, ... stored in pdata
 generated in pl.control avoiding elements already in use 
 
-\subsection{Components of plptions}
+\subsection{Components of ploptions}
 
 \Tit{innerrange}
 \T{innerrange} is a logical, indicating if inner ranges

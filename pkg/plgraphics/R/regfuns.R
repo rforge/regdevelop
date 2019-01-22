@@ -32,7 +32,7 @@ residuals.regrcoxph <- function(object, type="CoxSnellMod", ...)
   ## Author: Werner Stahel, Date: Aug 2010
   type <- i.def(type, "CoxSnellMod", valuefalse="")
   if (type=="") return()
-  if (type!="CoxSnellMod") {
+  if (type%nin%c("CoxSnellMod","condquant")) {
     if (!inherits(object, "coxph")) {
       warning(":residuals.regrcoxph: 'object' does not inherit from 'coxph'")
       return()

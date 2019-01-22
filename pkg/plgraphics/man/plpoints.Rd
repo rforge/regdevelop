@@ -31,7 +31,7 @@ plpoints(x, y, type="p", plab=NULL, pch=NULL, col=NULL, psize=NULL, lty=NULL,
 
 plbars(x, y, plargs = NULL, ploptions = plargs$ploptions)
 
-plsmooth(x, y, band=NULL, plargs = NULL, ploptions = plargs$ploptions)
+plsmooth(x, y, band=NULL, power = NULL, plargs = NULL, ploptions = plargs$ploptions)
 plsmoothline(smoothline, x, y, plargs=NULL, ploptions = plargs$ploptions)
 
 plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
@@ -100,6 +100,9 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
   \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
   \item{band}{logical: should a band (e.g., a confidence band)
     be drawn together with the smooth?
+  }
+  \item{power}{for \code{plsmooth}: smooth will be calcutated for
+    \code{y^power} and the back-transformed. Usually, \code{power=0}.
   }
   \item{refline}{for \code{plrefline}:
     A vector giving intercept and slope of a straight line, 

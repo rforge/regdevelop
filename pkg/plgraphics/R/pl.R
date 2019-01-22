@@ -651,13 +651,13 @@ genvarattributes <-
             lnmod <- c(attr(lvv, "nmod"), 0, 0)[1:2]
             lrg <- ifelse(lnmod>0, lrg, lplrg) 
           }
+        } else { ## end inner range
+          if (is.null(lrg))  
+            lrg <- i.extendrange(range(lvvv, na.rm=TRUE), i.getploption("plext"))
         }
-        if (is.null(lrg)) { ## no inner range
-          plext <- i.getploption("plext")
-          lrg <- i.extendrange(range(lvvv, na.rm=TRUE), plext)
-          if (replace && is.null(attr(lvv,"plrange")))
-            attr(lvv, "plrange") <- lrg
-        }
+        ## set plrange
+        if (replace || is.null(attr(lvv,"plrange")))
+          attr(lvv, "plrange") <- lrg
         ## ticks
         ltint <- min(max(tickintervals[1],3)+sum(lnmod>0),20)
         lat <- clipat(pretty(lrg, n=ltint, min.n=ltint-2), lrg)
@@ -699,14 +699,6 @@ plframe <-
     lx <- if (is.data.frame(x)) setNames(x[,1], row.names(x)) else x 
     if (length(lx)==0)
       stop("!plframe! unsuitable argument 'x' or 'y'")
-##-     lxx <- if(length(lnv <- attr(lx, "numvalues"))>0) {
-##-       if (length(names(lx))>0 & length(names(lnv))>0)
-##-         lnv[names(lx)] else {
-##-           if (length(lx)!=length(lnv))
-##-             stop("!plframe! unsuitable attribute 'numvalues'")
-##-           lnv
-##-         }
-    ##-     } else lx
     lxx <- i.def(i.def(attr(lx,"numvalues"), attr(lx,"plcoord")), lx)
     lrg <- attr(lx,"plrange")
     if (length(lrg)==0)
@@ -732,7 +724,7 @@ plframe <-
   lx <- lcoord$x
   lxx <- lcoord$xx
   lrgx <- lcoord$range
-  lcoord <- lf.getcoord(y, lext)
+  lcoord <- lf.getcoord(y, lext[3:4])
   ly <- lcoord$x
   lyy <- lcoord$xx
   lrgy <- lcoord$range
@@ -1148,13 +1140,15 @@ plmark <-
 }
 ## -----------------------------------------------------------------
 plsmooth <-
-  function(x, y, band=NULL, plargs=NULL, ploptions=plargs$ploptions)
+  function(x, y, band=NULL, power = NULL, plargs=NULL, ploptions=plargs$ploptions)
 {
   lIsm <- i.getploption("smooth")
   lsm <- NULL
   if (lIsm) {
+    power <- i.def(power, 1,1,1)
     band <- i.def(i.def(band, lIsm>=2), FALSE, TRUE, FALSE)
-    lsm <- gensmooth(x, y, band=band, plargs=plargs, ploptions=ploptions)
+    lsm <- gensmooth(x, y, band=band, power=power,
+                     plargs=plargs, ploptions=ploptions)
     plsmoothline(lsm, x, y, plargs=plargs, ploptions=ploptions)
   }
   invisible(lsm)
@@ -1857,12 +1851,12 @@ plotregr.control <-
                       function(x) all(x==notna(x)[1], na.rm=TRUE ) ) )
   if (lres0)
     stop("!plot.regr/plresx! all residuals are equal -> no residual plots")
-  lnr <- nrow(lres)
+  lnres <- nrow(lres)
   ## --- ldfres 
   ldfres <- df.residual(x)
   if (is.null(ldfres)) {
-    warning(":plot.regr: bug: no df of residuals. setting n-1")
-    ldfres <- lnr-1
+  ##  warning(":plot.regr: bug: no df of residuals. setting n-1")
+    ldfres <- lnres-length(x$coefficients)
   }
   ## --- sigma
   lsigma <- x$sigma
@@ -1941,10 +1935,10 @@ plotregr.control <-
         if (length(ldata)==0)  stop("!plotregr.control! No data found")
       }
   ##
-      if (lnr!=nrow(ldata)) {
+      if (lnres!=nrow(ldata)) {
         if (class(lnaaction)=="omit") ldata <- ldata[-lnaaction,]
         ##    if (lnr!=nrow(ldata)) ldata <- x$model ## needs at least a warning!
-        if (lnr!=nrow(ldata))
+        if (lnres!=nrow(ldata))
           stop("!plotregr.control! nrow of residuals and data do not agree.")
       }
     }
@@ -2020,7 +2014,7 @@ plotregr.control <-
   ## --- simulated residuals
   ## when using  smooth.group , default is  0
   lnsims <- i.def(smooth.sim, 19, 19, 0)
-##  if (inherits(x, c("nls", "nlm", "survreg", "polr", "coxph"))) lnsims <- 0
+  if (inherits(x, c("mlm", "polr", "survreg", "coxph"))) lnsims <- 0
   if (lmres>1) lnsims <- 0 # !!! not yet programmed for mlm
   if (lnsims>0 & !inherits(x, c("lm","glm","nls"))) {
     warning(":plot.regr/simresiduals: ",
@@ -2327,10 +2321,10 @@ plot.regr <-
 ## ---
   if(lpls=="absresfit")
     if(length(lstres)) {
-      plargsmod <- plargs
+      ploptsmod <- ploptions
       lplext <- rep(ploptions("plext"), length=4)
       lplext[3] <- 0
-      plargsmod$ploptions$plext <- lplext
+      ploptsmod$plext <- lplext
       lir <- i.def(i.getploption("innerrange"))
       for (lj in seq_len(lmres)) {
         lfitj <- lfit[,lj]
@@ -2339,24 +2333,23 @@ plot.regr <-
         if (lir && length(lirgj <- lattrj$innerrange)) {
           lirgj <- c(0, max(abs(as.numeric(lirgj))) )
           labssrj <-
-            genvarattributes(as.data.frame(abs(lstrj)),
-                             innerrange.limits=lirgj)
+            genvarattributes(as.data.frame(abs(lstrj)), innerrange.limits=lirgj)[,1]
         } else {
-          lirgj <- c(0, max(abs(lattrj$plrange)))
-          labssrj <-
-            genvarattributes(as.data.frame(abs(lstrj)))
-          attr(labssrj, "plrange") <- lirgj
-          }
+   ##       lirgj <- c(0, max(abs(lattrj$plrange)))
+          labssrj <- genvarattributes(as.data.frame(abs(lstrj)))[,1]
+   ##       attr(labssrj, "plrange") <- lirgj
+        }
+        attr(labssrj, "plrange")[1] <- 0
         attr(labssrj, "condquant") <- attr(lstrj,"condquant")
-        ##lattrj[["condquant"]]
-        plframe(lfitj, labssrj, ylab=labsresname[lj], ploptions=ploptions)
+        ##
+        plframe(lfitj, labssrj, ylab=labsresname[lj], ploptions=ploptsmod)
         if (lpllevel>1) {
           lsimabsres <- if (lnsims) abs(lsimstres) else NULL
-          plsmooth(lfitj, cbind(as.matrix(labssrj), lsimabsres), 
-                   plargs=plargsmod, band=lpllevel>2)
+          plsmooth(lfitj, cbind(as.matrix(labssrj), lsimabsres), power=0.5,
+                   plargs=plargs, band=lpllevel>2)
           }
-        plpoints(lfitj, labssrj, plargs=plargsmod, condquant=0,
-               plab=if(lIrpl) lresplab[,lj]) 
+        plpoints(lfitj, labssrj, condquant=0, ## plargs=plargsmod, 
+               plab=if(lIrpl) lresplab[,lj], plargs=plargs) 
         pltitle(plargs=plargs, show=FALSE)
       }
     }  else
@@ -2437,7 +2430,9 @@ plot.regr <-
     if (diff(range(llev,na.rm=TRUE))<0.001)
       warning(":plot.regr: all leverage elements equal, no leverage plot")
     else {
-      llevpl <- plcoord(llev, c(0,0.5), ploptions=ploptions)
+      llevpl <-
+        genvarattributes(data.frame(leverages=plcoord(llev, c(0,0.5),
+                                      ploptions=ploptions)) )[,1]
       lstres <- genvarattributes(lstres, varlabels = lstresname)
       ## mark extremes
       lmx <- ploptions$markextremes
