@@ -4,8 +4,9 @@
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Panel function for multiple plots}
 \description{
-  Draw a scatterplot or multibox plot after \code{pl.control} has been
-  called. 
+  Draw a scatterplot or multibox plot, usuallly after \code{pl.control}
+  and \code{plframe} have been called. 
+  May also be used to augment an existing plot.
 }
 \usage{
 plpanel(x, y, indx = NULL, indy = NULL, type = "p", frame = FALSE,
@@ -40,6 +41,21 @@ panelSmooth(x, y, indx, indy, plargs=.plargs, ploptions=plargs$ploptions, ...)
   \code{plargs$ploptions$factor.show == "mbox"}.\cr
   Grouping, reference and smooth lines and properties of the points
   are determined by the component of \code{plargs} in \code{plpanel}.
+
+  This function is usually called by the high level pl functions
+  \code{\link{plyx}} and \code{\link{plmatrix}}.
+  A different suitable function can be used by setting their
+  argument \code{panel}.
+
+  The first arguments, \code{x} and \code{y},
+  can be formulas, and an argument \code{data} can be given.
+  These arguments then have the same meaning as in \code{\link{plyx}},
+  with the restriction that only one variable should result for
+  the \code{x} and \code{y} coordinates in the plot.
+  When \code{frame} is true, \code{plpanel} can be used instead of
+  \code{\link{plyx}} for generating a single plot.
+  Note that \code{plpanel} does not set \code{.plargs} in the
+  global environment, in contrast to \code{plyx}.
 }
 \value{
   none

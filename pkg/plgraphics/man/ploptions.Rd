@@ -113,8 +113,7 @@ ploptions("stamp")
 ploptions(c("jitterFactor", "gridlines"))
 
 ## set options
-ploptions(stamp=FALSE, basic.pch=0, basic.col=c.colors[-1],
-          anything="do what you want")
+ploptions(stamp=FALSE, pch=0, col=c.colors[-1], anything="do what you want")
 ploptions(c("stamp", "anything"))
 ploptions(default=TRUE)
 t.plopt <- ploptions(smoothline.col="green", assign=FALSE)

@@ -6,7 +6,8 @@ importFrom("stats",
            binomial, coef, coefficients, contr.sum, contr.poly,
            dcauchy, delete.response, deviance, df.residual,
            dist, dlogis, dnorm, 
-           formula, glm.fit, hat, hatvalues, lm, lm.fit, lm.wfit, loess,
+           family, formula, glm.fit, hat, hatvalues,
+           lm, lm.fit, lm.wfit, loess,
            mad, mahalanobis, median, model.frame, model.matrix,
            ## model.weights, model.extract, 
            na.exclude, na.pass, 
@@ -27,6 +28,7 @@ importFrom("MASS", polr)
 ## importFrom("nnet", multinom, nnet.default)
 importFrom("survival", coxph, survreg, Surv)
 
+importFrom("lme4", lmer) ## , family.merMod
 ## importFrom("robustbase", lmrob)
 
 ## importFrom("quantreg", rq)
@@ -51,7 +53,7 @@ export(asinp,
        plyx, plmatrix, plmfg, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
-       plframe, pltitle, plaxis, plpoints, plbars, 
+       plframe, pltitle, plaxis, plpoints, pllines, plbars, 
        plsmooth, plsmoothline, plrefline, plsubset, 
        plot.regr, plotregr.control, 
        plres2x, plresx, plfitpairs, 
@@ -90,3 +92,5 @@ S3method(residuals, regrsurvreg)
 S3method(residuals, regrcoxph)
 S3method(nobs, survreg)
 S3method(nobs, coxph)
+
+## S3method(family, merMod)

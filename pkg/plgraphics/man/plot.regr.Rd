@@ -160,6 +160,9 @@ plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
   one of "yfit", "resfit", "absresfit", "absresweight", "(xvar)" or
   names of x variables provided by the \code{xvar} argument.
   A component "(xvar)" selects the first x variable.
+
+  There is an hidden argument \code{innerrange.fit} that allows
+  for fixing an inner range for plotting the fitted values.
 }
 
 \value{
@@ -182,6 +185,7 @@ r.blast <-
      lm(log10(tremor)~location+log10(distance)+log10(charge),
           data=d.blast)
 plot.regr(r.blast, sequence=TRUE, transformed=TRUE) 
+plot.regr(r.blast, xvar=FALSE, innerrange.fit=c(0.3,1.2))
 
 data(d.fossileSamples)
 r.foss <-

@@ -47,7 +47,7 @@ production of useful graphics.
 \end{abstract}
 
 <<preliminary, echo=FALSE, out=FALSE>>=
-library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+library(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 options(warn=1)
 knitr::opts_chunk$set(fig.width=8, fig.height=6)
 @ 
@@ -137,7 +137,7 @@ The line type, width and color are modified by respective arguments.
 Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 
 <<plyx_smooth, fig.width=8, fig.height=4>>=
-plmfg(1,2)
+plmfg(1,2, mar=c(3,3,1,1))
 plyx(Sepal.Width~Sepal.Length, data=iris, smoothline.col="red")
 
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth.group=Species,
@@ -148,8 +148,8 @@ lines to be the same.
 The call to \T{plmfg} splits the screen essentially like 
 \T{par(mfrow=c(1,2))}.
 
-The function \T{plmfg} splits the figure region into multiple figures 
-(by setting \T{par(mrow=...)}).
+%%- The function \T{plmfg} splits the figure region into multiple figures 
+%%- (by setting \T{par(mrow=...)}).
 
 \Tit{Groups.}
 If the argument \T{group} is specified, separate plots will be generated
@@ -157,8 +157,7 @@ for the different groups, thereby maintaining the plot ranges.
 
 <<plyx_group, fig.width=8, fig.height=7.5>>=
 plmfg(2,2)
-
-plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, group=Species)
+plyx(Sepal.Width~Sepal.Length, data=iris, group=Species)
 @ 
 %% !!! farbe stimmt nicht -- und lty wohl auch nicht.
 
@@ -184,7 +183,9 @@ plotted without and with inner plotting limits.
 data(d.blast)
 dd <- d.blast
 dd$distance[2] <- 200
-plmfg(1,3)
+
+plmfg(1,3, mar=c(3,3,1,1))
+
 plyx( tremor~distance, data=dd, innerrange=FALSE)
 plyx( tremor~distance, data=dd)
 plyx( tremor~distance, data=dd, innerrange.factor=5)
@@ -227,13 +228,14 @@ the additional arguments of \T{plyx}, respectively
 <<plyx-time>>=
   data(d.river)
   t.i <- d.river$date < as.Date("2010-03-31")
-  plyx(O2+T+ra~date, data=d.river[t.i & d.river$hour==14,], 
-    smooth.par=0.5, smooth.xtrim=0.03)
+  t.d <- d.river[t.i & d.river$hour==14,]
+  plyx(T+O2+ra+Q~date, data=t.d, smooth.par=0.5, smooth.xtrim=0.03,
+       smoothline.lty=1, sub="river data")
 @ 
 
 If multiple x variables are given, a separate plot is drawn for each of them.
 <<plyx-multiplex, fig.width=8, fig.height=4>>=
-plmfg(1,2)
+plmfg(1,2, mar=c(3,3,3,1))
 plyx(Sepal.Width~Sepal.Length+Petal.Length, data=iris, 
      smooth.group=Species, pcol=Species)
 @ 
@@ -252,7 +254,8 @@ Extreme points are often of interest. They can easily be identified if they
 are labelled. This is achieved by setting the argument \T{markextremes}.
 
 <<markextremes, fig.width=8, fig.height=4>>=
-plmfg(1,2)
+plmfg(1,2, mar=c(3,3,3,1))
+
 plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, 
      markextremes=0.1, cex=0.7)
 ## different proportions marked in different margins:
@@ -278,6 +281,16 @@ plmboxes(Petal.Length~Species, data=iris)
 %% !!! ausreisser verschwindet
 
 \Tit{Censored data}
+Censored data is shown with special symbols, determined by the ploption
+\T{censored.pch}. The default for this option contains 8 elements
+corresponding to the combined cases of no, right and left censoring of 
+the x and y variables.
+
+<<censored>>=
+data(lung, package="survival")
+plmfg(1,2,mar=c(3,3,1,1))
+plyx(Surv(time,status) ~ age+wt.loss, data=lung, pcol=sex)
+@ 
 
 \Tit{Raw or transformed variables?}
 Simple formulas just include names of variables on both sides of the $\sim$
@@ -591,7 +604,7 @@ one of the usual choices.
 <<resfitbin, figure.height=4>>=
   data(d.babysurvival)
   rr <- glm(Survival~Weight+Age+Apgar1,data=d.babysurvival,family=binomial)
-  plmfg(1,2)
+  plmfg(1,2, mar=c(3,3,3,1))
   plot.regr(rr, plotselect=c(resfit=2, default=0), xvar=FALSE)
   plot.regr(rr, plotselect=c(resfit=2, default=0), condquant=FALSE, 
             xvar=FALSE)
@@ -620,7 +633,7 @@ like R's graphical ``parameters'' and other options are determined by the
 functions \T{par} and \T{options}.
 
 <<ploptions>>=
-t.plopt <- ploptions(basic.col="magenta", basic.pch=3, smoothlines.lty=3)
+t.plopt <- ploptions(col="magenta", pch=3, smoothlines.lty=3)
 plyx(Sepal.Width~Sepal.Length, data=iris)
 ## restore the old optios
 ploptions(list=attr(t.plopt, "old"))
@@ -681,11 +694,11 @@ The components of these lists include
   \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
   observations is available. Alternatively, a fixed scalar can be given.
 \item
-  a group of components with ``group name'' \T{basic}:
-  \T{basic.pch, basic.cex, basic.cex.plab, basic.lty, basic.lwd, basic.col}.\\
-  \T{basic.cex} is a factor which will be applied to \T{cex} above for
-  showing points by a single symbol (\T{basic.pch}),\\
-  \T{basic.cex.plab} is an additional factor applied for the points that
+  a group of basic components:
+  \T{pch, cex, cex.pch, cex.plab, lty, lwd, col}.\\
+  \T{cex} is a factor which will be applied to \T{cex.pch} above for
+  showing points by a single symbol (\T{pch}),\\
+  \T{cex.plab} is an additional factor applied for the points that
   are shown by \T{plab}.
 \item
   a group of compnents named \T{group} (\T{group.pch, ...}).
@@ -815,7 +828,7 @@ They are generated in \T{pl.control} when the respective arguments
 argument \T{data}.)
 <<plyx_pattr>>=
 plyx(Sepal.Width~Sepal.Length, data=iris, 
-     pch=Species, psize=Petal.Length^2, pcol=Species)
+     pch=Species, psize=Petal.Length, pcol=Species)
 
 table(.plargs$pldata[,"(pch)"])
 @ 
@@ -897,7 +910,7 @@ ranges and draws gridlines and axes, the latter by calling \T{plaxis}.
   Values \T{NA} or \T{""} being replaced by the plotting symbol in \T{pch}.\\
   The size of the plotting symbols or strings is determined by
   \T{plargs\$pldata[,"psize"]} if available and by the ploptions
-  \T{cex} and \T{basic.cex}.
+  \T{cex} and \T{cex.pch}.
 
   censored
 \item
@@ -1085,12 +1098,30 @@ Similarly, there are the methods
 \T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
   residuals.regrcoxph}.
 
+\subsection{Missing values in residual analysis}
+Model fitting functions in R support two different ways of dealing with
+missing values. The default is determined by the value \T{na.omit}
+of the argument \T{na.action}. 
+This leads to residuals as extracted by the \T{residuals} function
+and other analogous results that do not contain the observations with 
+missing values in the data used for fitting.
+As a consequence, they cannot be readily combined with variables from the
+dataset. 
+The alternative choice, \T{na.action=na.exclude}, corrects this flaw.
+Vectors of residuals will contain \T{NA}s where appropriate and have 
+the same length as the variables in the data.
+
+The pl functions \T{plot.regr, plresx, plres2x} work with the extended
+version. This is reflected in \T{.plargs\$pldata} and allows for
+combining that data.frame with the original dataset.
 
 %% =================================================================
+\vspace{10mm}\noindent
 {\small
 \Tit{This is the end} of the story for the time being. I hope that you will
-get into using \T{regr} and have good success with your data analyses.
+get into using \T{plgraphics} and have good success with your data analyses.
 Feedback is highly appreciated.
+
 
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
 }

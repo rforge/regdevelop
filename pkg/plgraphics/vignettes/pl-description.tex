@@ -197,7 +197,7 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smoothline.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
@@ -212,8 +212,8 @@ lines to be the same.
 The call to \T{plmfg} splits the screen essentially like 
 \T{par(mfrow=c(1,2))}.
 
-The function \T{plmfg} splits the figure region into multiple figures 
-(by setting \T{par(mrow=...)}).
+%%- The function \T{plmfg} splits the figure region into multiple figures 
+%%- (by setting \T{par(mrow=...)}).
 
 \Tit{Groups.}
 If the argument \T{group} is specified, separate plots will be generated
@@ -223,8 +223,7 @@ for the different groups, thereby maintaining the plot ranges.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plmfg}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{)}
-
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{group}\hlstd{=Species)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{group}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_group-1} 
@@ -256,7 +255,9 @@ plotted without and with inner plotting limits.
 \hlkwd{data}\hlstd{(d.blast)}
 \hlstd{dd} \hlkwb{<-} \hlstd{d.blast}
 \hlstd{dd}\hlopt{$}\hlstd{distance[}\hlnum{2}\hlstd{]} \hlkwb{<-} \hlnum{200}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)}
+
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
+
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd)}
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange.factor}\hlstd{=}\hlnum{5}\hlstd{)}
@@ -311,8 +312,9 @@ the additional arguments of \T{plyx}, respectively
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.river)}
   \hlstd{t.i} \hlkwb{<-} \hlstd{d.river}\hlopt{$}\hlstd{date} \hlopt{<} \hlkwd{as.Date}\hlstd{(}\hlstr{"2010-03-31"}\hlstd{)}
-  \hlkwd{plyx}\hlstd{(O2}\hlopt{+}\hlstd{T}\hlopt{+}\hlstd{ra}\hlopt{~}\hlstd{date,} \hlkwc{data}\hlstd{=d.river[t.i} \hlopt{&} \hlstd{d.river}\hlopt{$}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,],}
-    \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{)}
+  \hlstd{t.d} \hlkwb{<-} \hlstd{d.river[t.i} \hlopt{&} \hlstd{d.river}\hlopt{$}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,]}
+  \hlkwd{plyx}\hlstd{(T}\hlopt{+}\hlstd{O2}\hlopt{+}\hlstd{ra}\hlopt{+}\hlstd{Q}\hlopt{~}\hlstd{date,} \hlkwc{data}\hlstd{=t.d,} \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{,}
+       \hlkwc{smoothline.lty}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{sub}\hlstd{=}\hlstr{"river data"}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-time-1} 
@@ -323,7 +325,7 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Petal.Length,} \hlkwc{data}\hlstd{=iris,}
      \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
@@ -348,7 +350,8 @@ are labelled. This is achieved by setting the argument \T{markextremes}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
+
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlnum{0.1}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
 \hlcom{## different proportions marked in different margins:}
@@ -680,7 +683,9 @@ This results in residual plots like those shown in the figure.
 \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
           \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
 \end{alltt}
-\end{kframe}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in condquant(llim, ldist, lsig): :condquant: probabilities <0 or >1}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/survresiduals-1} 
 
 \end{knitrout}
@@ -748,7 +753,7 @@ one of the usual choices.
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.babysurvival)}
   \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
-  \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
+  \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
   \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -787,7 +792,7 @@ functions \T{par} and \T{options}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{basic.col}\hlstd{=}\hlstr{"magenta"}\hlstd{,} \hlkwc{basic.pch}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{smoothlines.lty}\hlstd{=}\hlnum{3}\hlstd{)}
+\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{col}\hlstd{=}\hlstr{"magenta"}\hlstd{,} \hlkwc{pch}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{smoothlines.lty}\hlstd{=}\hlnum{3}\hlstd{)}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris)}
 \end{alltt}
 \end{kframe}
@@ -854,11 +859,11 @@ The components of these lists include
   \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
   observations is available. Alternatively, a fixed scalar can be given.
 \item
-  a group of components with ``group name'' \T{basic}:
-  \T{basic.pch, basic.cex, basic.cex.plab, basic.lty, basic.lwd, basic.col}.\\
-  \T{basic.cex} is a factor which will be applied to \T{cex} above for
-  showing points by a single symbol (\T{basic.pch}),\\
-  \T{basic.cex.plab} is an additional factor applied for the points that
+  a group of basic components:
+  \T{pch, cex, cex.pch, cex.plab, lty, lwd, col}.\\
+  \T{cex} is a factor which will be applied to \T{cex.pch} above for
+  showing points by a single symbol (\T{pch}),\\
+  \T{cex.plab} is an additional factor applied for the points that
   are shown by \T{plab}.
 \item
   a group of compnents named \T{group} (\T{group.pch, ...}).
@@ -990,7 +995,7 @@ argument \T{data}.)
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,}
-     \hlkwc{pch}\hlstd{=Species,} \hlkwc{psize}\hlstd{=Petal.Length}\hlopt{^}\hlnum{2}\hlstd{,} \hlkwc{pcol}\hlstd{=Species)}
+     \hlkwc{pch}\hlstd{=Species,} \hlkwc{psize}\hlstd{=Petal.Length,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_pattr-1} 
@@ -1088,7 +1093,7 @@ ranges and draws gridlines and axes, the latter by calling \T{plaxis}.
   Values \T{NA} or \T{""} being replaced by the plotting symbol in \T{pch}.\\
   The size of the plotting symbols or strings is determined by
   \T{plargs\$pldata[,"psize"]} if available and by the ploptions
-  \T{cex} and \T{basic.cex}.
+  \T{cex} and \T{cex.pch}.
 
   censored
 \item
@@ -1276,12 +1281,30 @@ Similarly, there are the methods
 \T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
   residuals.regrcoxph}.
 
+\subsection{Missing values in residual analysis}
+Model fitting functions in R support two different ways of dealing with
+missing values. The default is determined by the value \T{na.omit}
+of the argument \T{na.action}. 
+This leads to residuals as extracted by the \T{residuals} function
+and other analogous results that do not contain the observations with 
+missing values in the data used for fitting.
+As a consequence, they cannot be readily combined with variables from the
+dataset. 
+The alternative choice, \T{na.action=na.exclude}, corrects this flaw.
+Vectors of residuals will contain \T{NA}s where appropriate and have 
+the same length as the variables in the data.
+
+The pl functions \T{plot.regr, plresx, plres2x} work with the extended
+version. This is reflected in \T{.plargs\$pldata} and allows for
+combining that data.frame with the original dataset.
 
 %% =================================================================
+\vspace{10mm}\noindent
 {\small
 \Tit{This is the end} of the story for the time being. I hope that you will
-get into using \T{regr} and have good success with your data analyses.
+get into using \T{plgraphics} and have good success with your data analyses.
 Feedback is highly appreciated.
+
 
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
 }

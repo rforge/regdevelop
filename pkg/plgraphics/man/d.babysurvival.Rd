@@ -43,7 +43,7 @@
 \examples{
 data(d.babysurvival)
 summary(d.babysurvival)
-rr <- glm(Survival~., data=d.babysurvival, family="binomial")
+rr <- glm(Survival~Weight+Age+Apgar1, data=d.babysurvival, family="binomial")
 plot.regr(rr, xvar= ~Age+Apgar1)
 }
 \keyword{datasets}

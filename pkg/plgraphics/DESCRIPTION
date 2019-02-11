@@ -4,7 +4,7 @@ Title: User Oriented Plotting Functions
 Version: 0.5
 Author: Werner A. Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
-Imports: stats, utils, graphics, grDevices, MASS, survival
+Imports: stats, utils, graphics, grDevices, MASS, survival, lme4
 Suggests: knitr
 Description: Plots with high flexibility and easy handling, including
   informative regression diagnostics for many models.

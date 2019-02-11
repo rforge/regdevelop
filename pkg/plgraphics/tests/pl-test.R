@@ -14,10 +14,10 @@ ploptionsDefault$linewidth
 t.plo <- ploptions(default="linewidth")
 ploptions("linewidth")
 
-t.plo <- ploptions(basic.col="magenta", smoothlines.col="darkgreen", assign=F)
+t.plo <- ploptions(col="magenta", smoothlines.col="darkgreen", assign=F)
 attr(t.plo, "old")
-ploptions("basic.col")
-t.plo$basic.col
+ploptions("col")
+t.plo$col
 
 plmfg(2,2)
 plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo)
@@ -44,7 +44,7 @@ t.plargs <- pl.control(~Species+Petal.Length, ~Sepal.Width+Sepal.Length,
 t.plargs$ploptions$group.col <- c("magenta","orange","cyan")
 plpanel(iris$Petal.Length, iris$Petal.Width, plargs=t.plargs, frame=TRUE)
 
-t.plo <- ploptions(basic.col="blue")
+t.plo <- ploptions(col="blue")
 plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo)
 plyx(Sepal.Width~Sepal.Length, data=iris)
 

@@ -439,7 +439,7 @@ u.nuna <- function(x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
 "%nin%" <- function(x,y) !x%in%y
 u.notfalse <-
   function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
-u.debug <- function() u.true(getOption("debug"))
+u.debug <- function() u.true(ploptions("debug"))
 u.asformula <- function(x) {
   if (is.formula(x)) return(x)
   if (is.character(x)) as.formula(paste("~",paste(x,collapse="+")))
@@ -484,3 +484,36 @@ c.months <- c("January", "February", "March", "April", "May", "June",
         "December")
 c.mon <- substring(c.months,1,3)
 c.quarters <- c("I","II","III","IV")
+## ==========================================================================
+i.naresid.exclude <- function (omit, x, ...) 
+{ ## can be replaced by  naresid  when naresid allows for data.frames
+  if(length(omit) == 0) return(x) ##!!!
+  if(!is.numeric(omit)) 
+    stop("invalid argument 'omit'")
+  if (is.null(x)) 
+    return(x)
+  if (is.matrix(x)|is.data.frame(x)) { ##!!!
+    n <- nrow(x)
+    temp <- rownames(x)
+    keep <- rep.int(NA, n + length(omit))
+    keep[-omit] <- 1L:n
+    x <- x[keep, , drop = FALSE]
+    if (length(temp)) {
+      keep[omit] <- n+1:length(omit)
+      rown <- c(temp, names(omit))[keep]
+      if (!u.notfalse(any(duplicated(rown)))) rownames(x) <- rown
+    }
+  }
+  else {
+    n <- length(x)
+    keep <- rep.int(NA, n + length(omit))
+    keep[-omit] <- 1L:n
+    x <- x[keep]
+    temp <- names(x)
+    if (length(temp)) {
+      temp[omit] <- names(omit)
+      names(x) <- temp
+    }
+  }
+  x
+}

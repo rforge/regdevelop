@@ -254,6 +254,7 @@ fitcomp <-
     lobj[["terms"]] <- lterms <- delete.response(terms(object))
     lobj[["x"]] <- model.matrix(lobj, structure(xm, terms=lterms))
     lobj[["offset"]] <- NULL
+    lobj[["na.action"]] <- NULL
     ## somehow, it needs the  terms  in both places...
     lprm <- c(predict(structure(lobj, class=class(object)), type=ltype))
   } else 
@@ -380,20 +381,27 @@ i.findformfac <- function(formula) {
         paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
 }
 ## =======================================================================
-leverage <- function(object, na.action=object$na.action)
+leverage <- function(object)
 {
   ## Purpose:  extract leverages
   ## Author: Werner Stahel, Date: 10 Nov 2010, 09:31
+  lnaaction <- object$na.action
   lh <- object$leverage
-  lnm <- names(i.def(object$residuals,object$resid))
+  lnm <- names(i.def(object$residuals, object$resid))
   if (is.null(object$rank)) object$rank <- length(coefficients(object))
   if (is.null(lh)) {
     lqr <- object$qr
     if (is.null(lqr)) {
-      if (length(lx <- object[["x"]])==0)
-        if (inherits(object, "lm")) lx <- model.matrix(object)
-        else if(length(ld <- object$model))
-          lx <- model.matrix(formula(object), data=object$model)
+      if (length(lx <- object[["x"]])==0) {
+        if (inherits(object, "regrMer"))
+          lx <- model.matrix(terms(object$model),object$model)
+        else {
+          if (inherits(object, "lm"))
+            lx <- model.matrix(object)
+          else if(length(ld <- object$model))
+            lx <- model.matrix(formula(object), data=object$model)
+        }
+      }
       if (length(lx))
         lqr <- qr(if (length(lwgt <- object$weights)) sqrt(lwgt)*lx else lx)
     }
@@ -417,21 +425,25 @@ leverage <- function(object, na.action=object$na.action)
       lh <- setNames(hat(lx, intercept=FALSE), lnm)
   }
   if (length(lh)==0) message("*leverage* no model.matrix found -> no leverages",
-                             ". call fitting function with 'x=TRUE'")
-  if (length(lh) & u.notfalse(na.action)) lh <- naresid(na.action, lh)
+              ". call fitting function with 'x=TRUE'")
+  
+  if (length(lh)) lh <- naresid(lnaaction, lh)
   lh
 }
 ## ==========================================================================
 i.stres <-
-  function(x, residuals=x$residuals, sigma=x$sigma, weights=x$weights,
+  function(x, residuals=NULL, sigma=x$sigma, weights=NULL,
            leveragelim = c(0.99, 0.5))
 { ## sigma=x$sigma, 
   ## Purpose:  calculate  hat  and  standardized residuals
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Mar 2018, 15:45
-  leveragelim <- i.def(leveragelim, c(0.99, 0.5), valuefalse=c(0.99, 0.5))
+  leveragelim <- i.getplopt(leveragelim)
+  lnaaction <- x$na.action
+  if (is.null(residuals)) residuals <- naresid(lnaaction, x$residuals)
   lres <- as.data.frame(residuals)
   lmres <- ncol(lres)
+  if (is.null(weights)) weights <- naresid(lnaaction, x$weights)
   if (is.null(sigma)||(!is.finite(sigma))||sigma<=0) {
     if (!(inherits(x, "glm") && x$family$family%in%c("binomial","poisson") ||
           inherits(x, "polr")))
@@ -441,13 +453,13 @@ i.stres <-
   sigma <- rep(i.def(sigma, x$sigma), length=lmres)
   ## --- leverage
   llev <- x$leverage
-  if (length(llev)==0) llev <- leverage(x, na.action=FALSE)
+  llev <- if (length(llev)) naresid(lnaaction, llev) else leverage(x)
   if (length(llev)==0)
     return(list(leverage = NULL,
                 stresiduals = sweep(lres,2,sigma,"/"), strratio = 1/sigma))
   ##
   llevlim <- leveragelim[1]
-  if (mean(llev)>llevlim) {
+  if (mean(llev,na.rm=TRUE)>llevlim) {
     warning(":i.stres: leveragelim not suitable. I use 0.99")
     llevlim <- 0.99
   }
@@ -641,8 +653,8 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
         warning(":simresiduals: data not found -> No simulated residuals")
         return(NULL)
       }
+      if (length(lnaaction)) ldata <- ldata[-lnaaction,]
   }
-  if (length(lnaaction)) ldata <- ldata[-lnaaction,]
   lfit <- object$fitted.values
   ## prepare call
   lform <- update(formula(object), .Y. ~.)
@@ -650,7 +662,7 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
   environment(lform) <- environment()
   lcl <- call("glm", formula=lform, data=as.name("ldata"),
               family=object$family, start=object$coef, model=FALSE,
-              y=FALSE, na.action=lcall$na.action)
+              y=FALSE) ## na.action
   lfam <- object$distrname
   if (length(lfam)==0) lfam <- object$family$family
   if (is.null(lfam)) lfam <- ""
@@ -698,8 +710,7 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
           residuals.regrpolr(lrs)[,"random"] else
           residuals(lrs, type=glm.restype)
   }
-  ##  naresid(lnaaction, lsimres)
-  lsimres
+  naresid(lnaaction, lsimres)
 }
 ## ======================================================================
 simresiduals.default <-
@@ -727,7 +738,8 @@ simresiduals.default <-
     ## get_all_vars  contains  weights  without parentheses -> danger!
     return(NULL)
   }
-  ldata <- object$allvars
+  lnaaction <- object$na.action
+  ldata <- object$allvars ## NAs dropped
   if (is.null(ldata)) {
       ldata <- if (u.debug())  eval(lcall$data)  else
       try(eval(lcall$data))
@@ -735,12 +747,13 @@ simresiduals.default <-
         warning(":simresiduals: data not found -> No simulated residuals")
         return(NULL)
       }
+      if (length(lnaaction)) ldata <- ldata[-lnaaction,]
   }
-  if ("omit"==class(lnaaction <- object$na.action)) {
-    lkeep <- rep(TRUE, nrow(ldata))
-    lkeep[lnaaction] <- FALSE
-    ldata <- ldata[lkeep,]
-  }
+##-   if ("omit"==class(lnaaction <- object$na.action)) {
+##-     lkeep <- rep(TRUE, nrow(ldata))
+##-     lkeep[lnaaction] <- FALSE
+##-     ldata <- ldata[lkeep,]
+##-   }
 ##  lcall$na.action <- NULL
 ##-   lfit <- object$fitted.values
 ##-   if (is.null(lfit)) lfit <- object$linear.predictors
@@ -827,7 +840,7 @@ simresiduals.default <-
     lsimres[,lr] <- lrsr
   }
   ##naresid(lnaaction, lsimres)
-  lsimres
+  naresid(lnaaction, lsimres)
 }
 ## ==========================================================================
 

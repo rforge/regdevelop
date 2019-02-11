@@ -12,7 +12,7 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
   cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
   ycol = NULL, ylty = NULL, ypch = NULL, 
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
-  ploptions = NULL, .environment. = parent.frame(), ... )
+  ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -66,15 +66,35 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
   \item{.environment.}{used by the calling function to provide the
     environment for evaluating \code{x} and \code{y}
   }
-  \item{\dots}{further arguments, !!!
-}
+  \item{assign}{logical: should the result of \code{pl.control} be
+    assigned to \code{.plargs} in the global environment?
+    This will be done for high level pl functions, but avoided for low
+    level ones. It allows for reusing the settings and helps debug
+    unexpected behavior.
+  }
+  \item{\dots}{further arguments. These may include:
+    \itemize{
+      \item{\code{psize, plab, pch, pcol, group, smooth.group,
+	smooth.weights}}{these specify graphical elements for each
+	observation (row of \code{data}).
+	the respective columns are added to the \code{pldata}
+	data.frame.}
+      \item{}{any further ... arguments will be passed on to
+	\code{ploptions}. The respective settings will be used
+	in the calling pl function, but not permanently stored
+	in \code{.ploptions}
+      }
+    }
+  }
 }
 \details{
   !!!
 
   The argument \code{subset} should be used instead of
   \code{data[subset,]} if the dataset \code{data} contains variable
-  attributes like \code{varlabel, ticksat, ...}
+  attributes like \code{varlabel, ticksat, ...}.
+  The argument is evaluated in the dataset defined by \code{data},
+  i.e., variable names may be used to define the subset.
   
 }
 \value{A list containing all the arguments, possibly in modified form.

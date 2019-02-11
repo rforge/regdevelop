@@ -7,19 +7,13 @@
   \code{na.action} component if available
 }
 \usage{
-leverage(object, na.action=object$na.action)
+leverage(object)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{
     an object containing a component \code{fit$leverage} and possibly
     a component \code{fit$na.action}
-  }
-  \item{na.action}{if \code{FALSE}, the result will not be expanded
-    to have the same number of observations as the data to which the
-    model has been fitted (in case of NA's in the data). Otherwise,
-    it is the \code{na.action} object that regulates such an expansion,
-    see \code{\link{na.exclude}}.
   }
 }
 \value{
