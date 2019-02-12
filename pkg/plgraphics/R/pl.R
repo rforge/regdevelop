@@ -2267,6 +2267,10 @@ plot.regr <-
                  famgauss=plargs$famgauss, famglm=inherits(x,"glm"),
                  famcount=plargs$famcount)
     )
+  ## -----------------------------------
+  lplsel <- lplsel[is.na(lplsel)|lplsel>0]
+  lnplsel <- sum(names(lplsel)%in%
+                c("yfit","resfit","absresfit","qq","absresweight") )
   ## ---------------------------
   ## simulated residuals
 ##-   lsimres <- NULL
@@ -2309,7 +2313,7 @@ plot.regr <-
 ##-   if (is.null(llev)) llev <- leverage(x)
   lresplab <- plargs$resplab
   lIrpl <- length(lresplab)>0
-  if (any(c(lplsel[c("absresfit","qq","leverage")],0)>0)) {
+  if (any(c("absresfit","qq","leverage")%in%names(lplsel))) {
   ##  lstres <- as.data.frame(as.matrix(lres)*lstrratio)
     lstresname <- paste("st.", lresname, sep = "")
     labsresname <- paste("|st.",lresname,"|", sep="")
@@ -2340,14 +2344,15 @@ plot.regr <-
   ## --- multiple frames xxx
   lmf <- plargs$mf  ## i.def(lmf, TRUE, TRUE, FALSE)
   if (length(lmf)) {
-    if (is.logical(lmf)&&lmf)
+    if (u.true(lmf)) ## is.logical(lmf)&&lmf)
       lmf <- if (lmres>1) {
                if (lmres<=4) c(NA, lmres) else lmres
-             } else  c(NA, 2)
-    }
+             } else {
+               if (lnplsel<=2) c(1,lnplsel) else c(NA, 2)
+             }
+  }
   if (length(lmf)==2 && is.na(lmf[1])) {
-    lmf1 <- sum(names(lplsel)%in%
-                c("yfit","resfit","absresfit","qq","absresweight") )
+    lmf1 <- lnplsel
     if(lmf1>lmf[2]+1) lmf1 <- lmf[2]
     lmf[1] <- lmf1
   }
@@ -2361,8 +2366,6 @@ plot.regr <-
     } else par(oma=loma) ## , ask=plargs$ask
   on.exit(par(loldpar), add=TRUE)
   lnewplot <- TRUE ## !!!
-  ## -----------------------------------
-  lplsel <- lplsel[is.na(lplsel)|lplsel>0]
   ## --------------------------------------------------------------------------
   ## start plots
   if (length(lplsel))
@@ -3904,13 +3907,13 @@ ploptions <-
     if (u.true(default)) default <- "all"
     if (!is.character(default))
       stop("!ploptions! Argument 'default' must be of mode character or logical")
-    if (default=="all") return(ploptions(list=ploptionsDefault, assign=assign))
+    if (default[1]=="all") return(ploptions(list=ploptionsDefault, assign=assign))
     ## resets all available components
-    if (default=="unset")
+    if (default[1]=="unset")
       return(ploptions(list=ploptionsDefault[names(ploptionsDefault)%nin%
                                              names(loldo)],
                        assign=assign) )
-    if (default!="") {
+    if (any(default!="")) {
       llopt <- ploptionsDefault[default[default%in%names(ploptionsDefault)]]
       return( ploptions(list=llopt) )
     }
@@ -4118,8 +4121,8 @@ c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
     variables.lcol=c.colors,
     ## censored
     censored.pch =  c(62, 60, 24, 32, 32, 25, 32, 32),
-    censored.size=1.3, censored.pale = 0.3,
     ##                 >,  <, Delta, q,q, nabla, q,quadrat 
+    censored.size=1.3, censored.pale = 0.3,
     ## frame
     axes = 1:2, mar=c(3.1,3.1,3.1,1.1), oma=c(2.1,2.1,3.1,2.1), mgp=c(2,0.8,0),
     panelsep = 0.5, 

@@ -136,10 +136,10 @@ plot(r.survey, plotselect=c(resfit=3, default=0), xvars=F, mf=c(1,1))
 
 ## ========================================================================
 ## multivariate regression
-data(d.fossileSamples)
+data(d.fossiles)
 r.mregr <-
   regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
-                data=d.fossileSamples)
+                data=d.fossiles)
 plot(r.mregr)
 ## ========================================================================
 ## Baby Survival

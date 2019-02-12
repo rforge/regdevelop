@@ -1,5 +1,34 @@
+##- Functions in  regfuns.R
+##-
+##- residuals.regr
+##- residuals.regrcoxph
+##- residuals.regrsurvreg
+##- nobs.survreg
+##- nobs.coxph
+##- residuals.regrpolr
+##- fitted.regr
+##- predict.regrpolr
+##- fitted.regrpolr
+##- 
+##- linear.predictors
+##- fitcomp
+##- condquant
+##- Tobit
+##- 
+##- i.findformfac
+##- i.stres
+##- 
+##- simresiduals
+##- simresiduals.glm
+##- simresiduals.default
+##- 
+##- drevgumbel
+##- prevgumbel
+##- qrevgumbel
+##- rrevgumbel
+
 ## ===================================================================
-residuals.regr <- function(object, type=NULL, standardized=FALSE, ...)
+residuals.regr <- function (object, type=NULL, standardized=FALSE, ...)
 {
 ##-   if (!is.na(pmatch(type,"condquant"))) {
 ##-     ## this seems to apply only if residuals.regr is called explicitly
@@ -25,7 +54,7 @@ residuals.regr <- function(object, type=NULL, standardized=FALSE, ...)
   rr
 }
 ## ===================================================================
-residuals.regrcoxph <- function(object, type="CoxSnellMod", ...)
+residuals.regrcoxph <- function (object, type="CoxSnellMod", ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
@@ -61,7 +90,7 @@ residuals.regrcoxph <- function(object, type="CoxSnellMod", ...)
   structure( naresid(lnaaction, lres), condquant=lr, type=type)
 }
 ## ===================================================================
-residuals.regrsurvreg <- function(object, type="condquant", ...)
+residuals.regrsurvreg <- function (object, type="condquant", ...)
 {
   ## Purpose:    conditional quantiles and random numbers for censored obs
   ## ----------------------------------------------------------------------
@@ -108,22 +137,23 @@ residuals.regrsurvreg <- function(object, type="condquant", ...)
   structure( naresid(lnaaction, lres), condquant=lr, type=type, family=ldist)
 }
 ## ==============================================================
-nobs.survreg <- function(object, ...) { ##use.fallback = TRUE
+nobs.survreg <- function (object, ...) { ##use.fallback = TRUE
   lnobs <- length(object$linear.predictors)
   if (lnobs==0) lnobs <- NROW(residuals(object))
   lnobs
 }
-nobs.coxph <- function(object, ...) {
+nobs.coxph <- function (object, ...) {
   object$n
 }
 ## ===================================================================
-residuals.regrpolr <- function(object, type="condquant", ...) ## na.action=object, 
+residuals.regrpolr <- function (object, type="condquant", ...) ## na.action=object, 
 {
   ## Purpose:   residuals for cumulative logit regression
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  2 Oct 2007, 11:31
-  if (!((lpolr <- inherits(object, "polr"))|
-        (lbin <- inherits(object, "glm")&&object$family=="binomial")))
+  lbin <- inherits(object, "glm") && object$family$family=="binomial" &&
+    length(unique(object$y))==2
+  if (!((lpolr <- inherits(object, "polr")) | lbin))
     stop ("!residuals.regrpolr! unsuitable first argument")
   type <- i.def(type, "condquant")[1]
   if (type!="condquant") return(residuals(object, type=type))
@@ -154,7 +184,95 @@ residuals.regrpolr <- function(object, type="condquant", ...) ## na.action=objec
 }
 ## residuals.polr <- residuals.regrpolr
 ## ===========================================================================
-linear.predictors <- function(object) {
+fitted.regr <-
+  function (object, type=NULL, ...)
+{
+  if (is.null(type)&&pmatch("fitted",names(object),nomatch=0))
+    return( naresid(object$na.action, object$fitted) )
+  lres <- object$residuals
+  if (inherits(lres, "condquant"))
+    structure(lres[,"fit"], names=row.names(lres))  else  {
+      class(object) <- c(paste("regr",class(object)[1], sep=""),
+                         setdiff(class(object), "regr"))
+      predict(object, type=type, ...)
+    }
+}
+
+## ======================================================================
+predict.regrpolr <-
+  function (object, newdata=NULL, type = c("class", "probs", "link"), ...)
+  ## type link added by WSt, newdata=NULL
+{
+  if (!inherits(object, c("polr","regrpolr")))
+    stop("not a \"polr\" object")
+  type <- match.arg(type)
+  if (length(newdata)==0) {
+    if (type=="link")
+      eta <- fitted(object, type="link", na.action=NULL)
+    Y <- object$fitted
+    na.action <- object$na.action
+  }
+  else {
+    na.action <- NULL
+    newdata <- as.data.frame(newdata)
+    Terms <- delete.response(object$terms)
+    attr(Terms, "intercept") <- 1
+    environment(Terms) <- environment() ## ! WSt
+    m <- model.frame(Terms, newdata, na.action = function(x) x,
+                     xlev = object$xlevels)
+    if (!is.null(cl <- attr(Terms, "dataClasses")))
+      .checkMFClasses(cl, m)
+    X <- model.matrix(Terms, m, contrasts = object$contrasts)
+    ## changed by WSt
+    coef <- coefficients(object)
+    eta <- drop(X[,-1] %*% coef) ## without the intercept
+    n <- nrow(X)
+    q <- length(object$zeta)
+    ##  pgumbel <- function(q) exp(pweibull(log(q))) # ???
+    pfun <- switch(object$method, logistic = plogis, probit = pnorm,
+                   cloglog = prevgumbel, cauchit = pcauchy)
+    cumpr <- matrix(pfun(matrix(object$zeta, n, q, byrow = TRUE) - eta), , q)
+    Y <- t(apply(cumpr, 1, function(x) diff(c(0, x, 1))))
+    dimnames(Y) <- list(rownames(X), object$lev)
+  }
+##-     if (newdata) && !is.null(object$na.action))
+##-         Y <- napredict(object$na.action, Y)
+  switch(type, class = {
+    Y <- factor(max.col(Y), levels = seq_along(object$lev),
+                labels = object$lev)
+  }, probs = {
+  }, link = { Y <- eta })
+  Y <- napredict(na.action,Y)
+  drop(Y)
+}
+## ===================================================================
+fitted.regrpolr <- function (object, type= c("class", "probs", "link"), ...) {
+  if (pmatch(type,"link",nomatch=0)) {
+    lfit <- object$linear.predictor
+    if (length(lfit)==0) { # if called by original polr
+      Terms <- delete.response(object$terms)
+      environment(Terms) <- environment() ## ! WSt
+      ## from predict.polr
+      m <- object$model
+      if (length(m)==0)
+        m <- model.frame(Terms, object$data, na.action = function(x) x,
+                         xlev = object$xlevels)
+      if (!is.null(cl <- attr(Terms, "dataClasses")))
+        .checkMFClasses(cl, m)
+      X <- model.matrix(Terms, m, contrasts = object$contrasts)
+      xint <- match("(Intercept)", colnames(X), nomatch = 0)
+      if (xint > 0)  X <- X[, -xint, drop = FALSE]
+      lfit <- drop(X %*% object$coefficients)
+    }
+  } else 
+    lfit <- object$fitted
+  if (type=="class")
+    lfit <- factor(max.col(lfit), levels = seq_along(object$lev),
+            labels = object$lev)
+  napredict(object$na.action,lfit)
+}
+## ==========================================================================
+linear.predictors <- function (object) {
   llp <- object$linear.predictors
   if (is.null(llp)) llp <- object$fitted.values
   if (is.null(llp))
@@ -164,7 +282,7 @@ linear.predictors <- function(object) {
 linpred <- linear.predictors
 ## ===========================================================================
 fitcomp <-
-  function(object, data=NULL, vars=NULL, transformed=FALSE, 
+  function (object, data=NULL, vars=NULL, transformed=FALSE, 
            se=FALSE,  xm=NULL, xfromdata=FALSE, noexpand=NULL, nxcomp=51)
 {
   ## Purpose:    components of a fit
@@ -370,7 +488,94 @@ fitcomp <-
   list(comp=lcomp, x=lx[,lvars,drop=FALSE], xm=xm[,lvars,drop=FALSE], se=lcse)
 }
 ## ==========================================================================
-i.findformfac <- function(formula) {
+condquant <- function (x, dist="normal", sig=1, randomrange=0.9)
+{
+  ## Purpose:   conditional quantiles and random numbers
+  ## works only for centered scale families
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date: 24 Oct 2008, 09:30
+  if (length(x)==0) stop("!condquant! bug: no data")
+  ## functions for calculating probab. and quantiles
+  fp <- switch(dist, normal=pnorm, gaussian=pnorm, unif=function(x) x,
+               logis=plogis, logistic=plogis, revgumbel=prevgumbel)
+  if (is.null(fp)) stop(paste("!condquant! distribution ", dist, " not known"))
+  fq <- switch(dist, normal=qnorm, gaussian=qnorm, unif=function(x) x,
+               logis=qlogis, logistic=qlogis, revgumbel=qrevgumbel)
+  ##
+  x <- rbind(x)  ## rbind for a single observation -> vector x
+  lii <- which(x[,1]!=x[,2])
+  rr <- structure(matrix(lii,length(lii),6),
+                  dimnames=
+                    list(row.names(x)[lii],
+                         c("median","lowq","uppq","random","prob","index")),
+                  class="condquant")
+  if (length(lii)==0) {
+    message(":condquant: All intervals of length 0. ",
+            "I return a matrix with 0 lines")
+    return(rr)
+  }
+  lx <- t(apply(x[lii,], 1,sort))
+  lp <- fp(lx/sig)
+  lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
+  lprand <- lp[,1]+(lp[,2]-lp[,1])*
+    runif(nrow(lp),(1-randomrange)/2,(1+randomrange)/2)
+  rr[,1:4] <- cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
+                    uppq=fq(lpp[,3]), random=fq(lprand))*sig
+  rr[,5] <- lp[,2]-lp[,1]
+  if (any(lp0 <- lp[,2]<=0)) rr[lp0,1:4] <- matrix(lx[lp0,2],sum(lp0),4)
+  if (any(lp1 <- lp[,1]>=1)) rr[lp1,1:4] <- matrix(lx[lp1,1],sum(lp1),4)
+  if (any(c(lp0,lp1)))
+    warning(":condquant: probabilities <0 or >1")
+  ##
+  rr
+}
+## =========================================================================
+Tobit <- function (data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
+{
+  ## Purpose:   create a Surv object for tobit regression
+  ## ----------------------------------------------------------------------
+  ## Arguments:
+  ## ----------------------------------------------------------------------
+  ## Author: Werner Stahel, Date:  1 Jan 2010, 21:49
+##  require(survival)  ## !?!
+  ltrs <- as.character(substitute(transform))
+  data <- pmax(data,limit)
+  lright <- !is.null(limhigh)
+  if (lright) data <- pmin(data, limhigh)
+  if (log[1]) { ## model.frame  evaluates  log  in  data ! Whence [1]
+      transform <- logst
+      ltrs <- "logst"
+  }
+  if (!is.null(transform)) {
+    if (is.character(transform)) transform <- get(transform)
+    if (!is.function(transform))
+      stop("!Tobit! argument 'transform' does not yield a function")
+    ldt <- transform(c(limit,limhigh,data), ...)
+    data <- ldt[-1]
+    limit <- ldt[1]
+    if (lright) {
+      limhigh <- ldt[2]
+      data <- data[-1]
+    }
+  }
+  if (sum(data<=limit,na.rm=TRUE)==0)
+    warning(":Tobit: no observation <= `limit`")
+  if (lright&&sum(data>=limhigh,na.rm=TRUE)<=1)
+    warning(":Tobit: no observation >= `limhigh`")
+  if (lright) { 
+    rr <- survival::Surv(time = data, time2=data,
+                         event = (data<=limit) + (data<limhigh),
+                         type="interval")
+    rr[,2] <- rr[,1]
+    } else
+      rr <- survival::Surv(data, event = data>limit, type="left")
+  structure(rr, distribution="gaussian", transform=ltrs,
+            limit=c(limit,limhigh), class=c(class(rr), "matrix"))
+}
+## ==========================================================================
+i.findformfac <- function (formula) {
   ## find variable involved in explicit factor terms in formula
   lfo <- format(formula)
   lmf <- c(gregexpr("(factor *\\([^)]*\\))", lfo),
@@ -381,7 +586,7 @@ i.findformfac <- function(formula) {
         paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
 }
 ## =======================================================================
-leverage <- function(object)
+leverage <- function (object)
 {
   ## Purpose:  extract leverages
   ## Author: Werner Stahel, Date: 10 Nov 2010, 09:31
@@ -432,7 +637,7 @@ leverage <- function(object)
 }
 ## ==========================================================================
 i.stres <-
-  function(x, residuals=NULL, sigma=x$sigma, weights=NULL,
+  function (x, residuals=NULL, sigma=x$sigma, weights=NULL,
            leveragelim = c(0.99, 0.5))
 { ## sigma=x$sigma, 
   ## Purpose:  calculate  hat  and  standardized residuals
@@ -444,7 +649,7 @@ i.stres <-
   lres <- as.data.frame(residuals)
   lmres <- ncol(lres)
   if (is.null(weights)) weights <- naresid(lnaaction, x$weights)
-  if (is.null(sigma)||(!is.finite(sigma))||sigma<=0) {
+  if (is.null(sigma)||(!all(is.finite(sigma)))||any(sigma<=0)) {
     if (!(inherits(x, "glm") && x$family$family%in%c("binomial","poisson") ||
           inherits(x, "polr")))
       warning(":i.stres: sigma is missing or <=0. I use sigma=1")
@@ -491,145 +696,13 @@ i.stres <-
        strratio = lstrratio)
 }
 ## ===================================================================
-condquant <- function(x, dist="normal", sig=1, randomrange=0.9)
-{
-  ## Purpose:   conditional quantiles and random numbers
-  ## works only for centered scale families
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date: 24 Oct 2008, 09:30
-  if (length(x)==0) stop("!condquant! bug: no data")
-  ## functions for calculating probab. and quantiles
-  fp <- switch(dist, normal=pnorm, gaussian=pnorm, unif=function (x) x,
-               logis=plogis, logistic=plogis, revgumbel=prevgumbel)
-  if (is.null(fp)) stop(paste("!condquant! distribution ", dist, " not known"))
-  fq <- switch(dist, normal=qnorm, gaussian=qnorm, unif=function (x) x,
-               logis=qlogis, logistic=qlogis, revgumbel=qrevgumbel)
-  ##
-  x <- rbind(x)  ## rbind for a single observation -> vector x
-  lii <- which(x[,1]!=x[,2])
-  rr <- structure(matrix(lii,length(lii),6),
-                  dimnames=
-                    list(row.names(x)[lii],
-                         c("median","lowq","uppq","random","prob","index")),
-                  class="condquant")
-  if (length(lii)==0) {
-    message(":condquant: All intervals of length 0. ",
-            "I return a matrix with 0 lines")
-    return(rr)
-  }
-  lx <- t(apply(x[lii,], 1,sort))
-  lp <- fp(lx/sig)
-  lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
-  lprand <- lp[,1]+(lp[,2]-lp[,1])*
-    runif(nrow(lp),(1-randomrange)/2,(1+randomrange)/2)
-  rr[,1:4] <- cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
-                    uppq=fq(lpp[,3]), random=fq(lprand))*sig
-  rr[,5] <- lp[,2]-lp[,1]
-  if (any(lp0 <- lp[,2]<=0)) rr[lp0,1:4] <- matrix(lx[lp0,2],sum(lp0),4)
-  if (any(lp1 <- lp[,1]>=1)) rr[lp1,1:4] <- matrix(lx[lp1,1],sum(lp1),4)
-  if (any(c(lp0,lp1)))
-    warning(":condquant: probabilities <0 or >1")
-  ##
-  rr
-}
-## ==========================================================================
-fitted.regr <-
-  function (object, type=NULL, ...)
-{
-  if (is.null(type)&&pmatch("fitted",names(object),nomatch=0))
-    return( naresid(object$na.action, object$fitted) )
-  lres <- object$residuals
-  if (inherits(lres, "condquant"))
-    structure(lres[,"fit"], names=row.names(lres))  else  {
-      class(object) <- c(paste("regr",class(object)[1], sep=""),
-                         setdiff(class(object), "regr"))
-      predict(object, type=type, ...)
-    }
-}
-
-## ======================================================================
-predict.regrpolr <-
-  function (object, newdata=NULL, type = c("class", "probs", "link"), ...)
-  ## type link added by WSt, newdata=NULL
-{
-  if (!inherits(object, c("polr","regrpolr")))
-    stop("not a \"polr\" object")
-  type <- match.arg(type)
-  if (length(newdata)==0) {
-    if (type=="link")
-      eta <- fitted(object, type="link", na.action=NULL)
-    Y <- object$fitted
-    na.action <- object$na.action
-  }
-  else {
-    na.action <- NULL
-    newdata <- as.data.frame(newdata)
-    Terms <- delete.response(object$terms)
-    attr(Terms, "intercept") <- 1
-    environment(Terms) <- environment() ## ! WSt
-    m <- model.frame(Terms, newdata, na.action = function(x) x,
-                     xlev = object$xlevels)
-    if (!is.null(cl <- attr(Terms, "dataClasses")))
-      .checkMFClasses(cl, m)
-    X <- model.matrix(Terms, m, contrasts = object$contrasts)
-    ## changed by WSt
-    coef <- coefficients(object)
-    eta <- drop(X[,-1] %*% coef) ## without the intercept
-    n <- nrow(X)
-    q <- length(object$zeta)
-    ##  pgumbel <- function(q) exp(pweibull(log(q))) # ???
-    pfun <- switch(object$method, logistic = plogis, probit = pnorm,
-                   cloglog = prevgumbel, cauchit = pcauchy)
-    cumpr <- matrix(pfun(matrix(object$zeta, n, q, byrow = TRUE) - eta), , q)
-    Y <- t(apply(cumpr, 1, function(x) diff(c(0, x, 1))))
-    dimnames(Y) <- list(rownames(X), object$lev)
-  }
-##-     if (newdata) && !is.null(object$na.action))
-##-         Y <- napredict(object$na.action, Y)
-  switch(type, class = {
-    Y <- factor(max.col(Y), levels = seq_along(object$lev),
-                labels = object$lev)
-  }, probs = {
-  }, link = { Y <- eta })
-  Y <- napredict(na.action,Y)
-  drop(Y)
-}
-## ===================================================================
-fitted.regrpolr <- function(object, type= c("class", "probs", "link"), ...) {
-  if (pmatch(type,"link",nomatch=0)) {
-    lfit <- object$linear.predictor
-    if (length(lfit)==0) { # if called by original polr
-      Terms <- delete.response(object$terms)
-      environment(Terms) <- environment() ## ! WSt
-      ## from predict.polr
-      m <- object$model
-      if (length(m)==0)
-        m <- model.frame(Terms, object$data, na.action = function(x) x,
-                         xlev = object$xlevels)
-      if (!is.null(cl <- attr(Terms, "dataClasses")))
-        .checkMFClasses(cl, m)
-      X <- model.matrix(Terms, m, contrasts = object$contrasts)
-      xint <- match("(Intercept)", colnames(X), nomatch = 0)
-      if (xint > 0)  X <- X[, -xint, drop = FALSE]
-      lfit <- drop(X %*% object$coefficients)
-    }
-  } else 
-    lfit <- object$fitted
-  if (type=="class")
-    lfit <- factor(max.col(lfit), levels = seq_along(object$lev),
-            labels = object$lev)
-  napredict(object$na.action,lfit)
-}
-## ==========================================================================
-simresiduals <- function(object, ...)  UseMethod("simresiduals")
+simresiduals <- function (object, ...)  UseMethod("simresiduals")
   ## Purpose:   simulate residuals according to regression model
   ##            by permuting residuals of actual model or by random numbers
   ## ----------------------------------------------------------------------
   ## Arguments:  simfunction: how are residuals generated?
 ## ---------------------------------------------------------------------
-simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
+simresiduals.glm <- function (object, nrep=19, simfunction=NULL,
                              glm.restype="working", ...)
 {
   lcall <- object$call
@@ -714,7 +787,7 @@ simresiduals.glm <- function(object, nrep=19, simfunction=NULL,
 }
 ## ======================================================================
 simresiduals.default <-
-  function(object, nrep=19, simfunction=NULL, stresiduals=NULL,
+  function (object, nrep=19, simfunction=NULL, stresiduals=NULL,
            sigma=object$sigma, ...)
   ## glm.restype="deviance")
 {
@@ -874,47 +947,3 @@ rrevgumbel <- function (n, location = 0, scale = 1)
         stop("\"scale\" must be positive")
     location + scale * log(-log(runif(n)))
 }
-## =========================================================================
-Tobit <- function(data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)
-{
-  ## Purpose:   create a Surv object for tobit regression
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date:  1 Jan 2010, 21:49
-##  require(survival)  ## !?!
-  ltrs <- as.character(substitute(transform))
-  data <- pmax(data,limit)
-  lright <- !is.null(limhigh)
-  if (lright) data <- pmin(data, limhigh)
-  if (log[1]) { ## model.frame  evaluates  log  in  data ! Whence [1]
-      transform <- logst
-      ltrs <- "logst"
-  }
-  if (!is.null(transform)) {
-    if (is.character(transform)) transform <- get(transform)
-    if (!is.function(transform))
-      stop("!Tobit! argument 'transform' does not yield a function")
-    ldt <- transform(c(limit,limhigh,data), ...)
-    data <- ldt[-1]
-    limit <- ldt[1]
-    if (lright) {
-      limhigh <- ldt[2]
-      data <- data[-1]
-    }
-  }
-  if (sum(data<=limit,na.rm=TRUE)==0)
-    warning(":Tobit: no observation <= `limit`")
-  if (lright&&sum(data>=limhigh,na.rm=TRUE)<=1)
-    warning(":Tobit: no observation >= `limhigh`")
-  if (lright) { 
-    rr <- survival::Surv(time = data, time2=data,
-                         event = (data<=limit) + (data<limhigh),
-                         type="interval")
-    rr[,2] <- rr[,1]
-    } else
-      rr <- survival::Surv(data, event = data>limit, type="left")
-  structure(rr, distribution="gaussian", transform=ltrs,
-            limit=c(limit,limhigh), class=c(class(rr), "matrix"))
-}
-

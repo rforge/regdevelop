@@ -34,7 +34,6 @@ importFrom("lme4", lmer) ## , family.merMod
 ## importFrom("quantreg", rq)
 
 export(asinp, 
-       BR, DB, IR,
        c.mon, c.months, c.weekdays, c.colors, 
        cexSize, colorpale, condquant,
        clipat,
