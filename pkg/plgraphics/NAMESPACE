@@ -2,6 +2,7 @@ importFrom("stats",
            ## S3 Generics for which we define methods:
            add1, drop1, fitted, predict, residuals,
            .checkMFClasses, .getXlevels, IQR,
+           aggregate, as.dist, ## for xdistResdiff
            add.scope, as.formula,
            binomial, coef, coefficients, contr.sum, contr.poly,
            dcauchy, delete.response, deviance, df.residual,
@@ -33,7 +34,8 @@ importFrom("lme4", lmer) ## , family.merMod
 
 ## importFrom("quantreg", rq)
 
-export(asinp, 
+export(DB,
+       asinp, 
        c.mon, c.months, c.weekdays, c.colors, 
        cexSize, colorpale, condquant,
        clipat,
@@ -54,7 +56,7 @@ export(asinp,
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, pllines, plbars, 
        plsmooth, plsmoothline, plrefline, plsubset, 
-       plot.regr, plotregr.control, 
+       plot.regr, plotregr.control, plot.xdistResscale,
        plres2x, plresx, plfitpairs, 
        predict.regrpolr, ## predict.regr, predict.mlm, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
@@ -70,10 +72,12 @@ export(asinp,
        ## require-ing the package survreg
        Tobit,
        tit, "tit<-", transferAttributes, 
-       varattributes, warn
+       varattributes, warn,
+       xdistResdiff, xdistResscale
        )
 
 S3method(plot, regr)
+S3method(plot, xdistResscale)
 S3method(plmboxes, default)
 S3method(plmboxes, formula)
 S3method(simresiduals, default)

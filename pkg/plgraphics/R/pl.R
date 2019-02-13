@@ -2255,11 +2255,12 @@ plot.regr <-
     stop("!plot.regr! I do not know how to plot residuals of a multinomial regression")
   lglm <- inherits(x, "glm")
   lbinary <- lglm && length(unique(plargs$y))==2 ## binary binomial
-  lcensored <- inherits(plargs$y, "Surv")
+  lcensored <- inherits(x[["y"]], "Surv")
   lnnls <- !inherits(x, "nls")
   if (u.true(plargs$famcount)) plargs$ploptions$smooth.iter <- 0
   condquant <- NULL
   lIcq <- u.true(i.getploption("condquant")) & (lbinary|lcensored)
+  ## -----------------------------------
   ## plot selection
   lplsel <- unlist(
     i.plotselect(plotselect, smooth=plargs$smooth, Iwgt=lIwgt,
@@ -2267,7 +2268,6 @@ plot.regr <-
                  famgauss=plargs$famgauss, famglm=inherits(x,"glm"),
                  famcount=plargs$famcount)
     )
-  ## -----------------------------------
   lplsel <- lplsel[is.na(lplsel)|lplsel>0]
   lnplsel <- sum(names(lplsel)%in%
                 c("yfit","resfit","absresfit","qq","absresweight") )
@@ -2399,7 +2399,7 @@ plot.regr <-
     for (lj in seq_len(lmres)) {
       plframe(lfit[,lj], lres[,lj], ploptions=ploptions)
       plargs$smooth <- lpllevel-1
-##-      plpanel(lfit[,lj], lres[,lj], plargs=plargs, frame=TRUE, title=NA)
+      ##-      plpanel(lfit[,lj], lres[,lj], plargs=plargs, frame=TRUE, title=NA)
       if (lpllevel>1)
         plsmooth(lfit[,lj], cbind(lres[,lj], lsimres),
                  plargs=plargs, band=lpllevel>2)
@@ -2487,9 +2487,9 @@ plot.regr <-
     for (lj in seq_len(lmres)) {
       llr <- lstres[,lj]
       lIcqj <- length(lcq <- attr(llr, "condquant"))>0
-      lIcq <- lIcq | lIcqj
+      lIcqu <- lIcq | lIcqj
       lpch <-
-        if (lIcqj) i.pchcens(plargs, lcq) else ploptions$pch[1]
+        if (lIcqu) i.pchcens(plargs, lcq) else ploptions$pch[1]
       lxy <- qqnorm(llr, ylab = lstresname[lj], main="", type="n")
       lquart <- quantile(llr, c(0.25,0.75), na.rm=TRUE)
       plrefline(c(0, diff(lquart)/(2*qnorm(0.75))), plargs=plargs)
@@ -3778,6 +3778,7 @@ plfitpairs <- function(object, ssize=0.02, main=NULL, ...)
 ##  "plfitpairs done"
 }
 ## ============================================================================
+## ============================================================================
 plmfg <-
   function(mfrow=NULL, mfcol=NULL, mft=NULL, nrow=NULL, ncol=NULL, row=TRUE,
            oma=NULL, mar=NULL, mgp=NULL, ...)
@@ -3820,7 +3821,7 @@ plmfg <-
   loldo <- ploptions(c("mar","mgp"))
   if (length(mar)+length(mgp)) {
     if (length(mar)) ploptions(mar=mar)
-    if (length(mgp)) ploptions(mar=mgp)
+    if (length(mgp)) ploptions(mgp=mgp)
   }
   invisible(
     structure(list(mfig = lmfg, mrow = if (row) lmfg, mcol = if(!row) lmfg,
@@ -3868,7 +3869,6 @@ legendr <- function(x=0.05,y=0.95,legend, ...) {
   ly <- lusr[3] + y*diff(lusr[3:4])
   legend(lx,ly,legend, ...)
 }
-
 ## ======================================================================
 colorpale <- function(col=NA, pale=0.3, ...)
 {
