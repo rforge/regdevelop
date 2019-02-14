@@ -973,12 +973,12 @@ plpoints <-
   function(x = NULL, y = NULL, type = "p",
            plab = NULL, pch = NULL,
            col = NULL, lty = NULL, lwd = NULL, psize = NULL,
-           condquant = TRUE,
            plargs = NULL, ploptions = plargs$ploptions, ...)
 {
   if (is.null(plargs)) 
     plargs <- get(".plargs", ".GlobalEnv") ## list in calling fn
   pldata <- plargs$pldata
+  condquant <- i.getploption("condquant")
   ## intro, needed if formulas are used or data is given or ...
   lcl <- match.call()
   lcall <- sys.call() ## match.call modifies argument names
@@ -1006,8 +1006,7 @@ plpoints <-
   lattry <- attributes(y)
   ly <- i.def(lattry$plcoord, i.def(lattry$numvalues, y))
   ## condquant
-  condquant <- i.def(condquant, 1, 1, 0) 
-  lIcq <- length(condquant)>0  ## condquant representation by bars
+  lIcq <- condquant>0  ## condquant representation by bars
   lIcqx <- length(lcqx <- lattrx$condquant) >0
   lIcqy <- length(lcqy <- lattry$condquant) >0
   lIcensx <- inherits(x, "Surv")
@@ -1054,7 +1053,7 @@ plpoints <-
     }
   }
   ## condquant
-  if (lIcq) {
+  if (lIcq & (lIcqx|lIcqy)) {
     lpale <- rep(c(i.getploption("condquant.pale"), 0.5), length=2)
     lix <- if(lIcqx) lcqx[,"index"]
     liy <- if(lIcqy) lcqy[,"index"]
@@ -1062,7 +1061,7 @@ plpoints <-
     if (length(lixy)==lnr) lpale <- c(1,lpale[1]) ## all observations are cq
     pcol[lixy] <- colorpale(pcol[lixy], lpale[1])
     if (lIcqx) {
-      li <- lix %nin% liy
+      li <- lix %nin% liy ## why?
       if (any(li)) {
         lsg <- if(length(lrgx <- lattrx$innerrange))
                  plcoord(lcqx[li,2:3], range=lrgx, ploptions=ploptions)
@@ -1084,22 +1083,7 @@ plpoints <-
       }
     }
   }
-##-     if (condquant>0) {
-##-       if (lIcqx) 
-##-         x[lcqix <- lcqx[,"index"]] <- NA
-##-       if (lIcqy) 
-##-         y[lcqiy <- lcqy[,"index"]] <- NA
-##-       if (lIcqx) plbars(lcqx[,1:3], y[lcqix], plargs=plargs, ploptions=ploptions)
-##-       if (lIcqy) {
-##-         if(length(lrgy <- lattry$innerrange))
-##-           lcqy <- plcoord(lcqy[,1:3], range=lrgy, ploptions=ploptions)
-##-         plbars(x[lcqiy], lcqy, plargs=plargs, ploptions=ploptions)
-##-       }
-##-     } else {
-##-       pch[lcqx[,"index"]] <- lpchcq[1]
-##-       pch[lcqy[,"index"]] <- lpchcq[2]
-##-       pch[intersect(lcqx[,"index"],lcqy[,"index"])] <- lpchcq[3]
-##-     }
+  ## ---
   lIpl <- (length(plab)>0) && any(!is.na(plab))
   plab <- as.character(plab)
   ## --- plot!
@@ -2850,20 +2834,21 @@ plresx <-
   lrpl <- plargs$resplab
   if (lIrpl <- length(lrpl)>0) lrpl <- lrpl[,1]
   lpla <- plargs
+  lr <- lres
+  browser()
+  ## if (inherits(lr, "condquant")) lr <- lr[,1,drop=FALSE]
   ## --- loop --- plresx
   for (lj in 1:lnvars) {
     lv <- unname(lvars[lj])
     lvr <- lvars[lj] ## if (transformed) lvars[lj] else lrawv[lj]
     lcmpj <- terminmodel[lj] && refline && lInnls
     lci <- if (lcmpj&refline) lcompy[, lvr] else 0 ## !!!
-    rr <- lres
-    if (inherits(rr, "condquant")) rr <- rr[,1,drop=FALSE]
     if (plargs$partial.resid) 
       if (refline && addcomp && lcmpj) {
-        rr <- rr+lcompdt[, lvr]
+        lr <- lr+lcompdt[, lvr]
       }
     lvv <- pldata[, lv]
-    ##    lpa$pldata <- cbind(rr, lvv, pldata)
+    ##    lpa$pldata <- cbind(lr, lvv, pldata)
     mar <- i.def(plargs[["mar"]], c(NA, par("mar")[-1]))
     ## ---
     if (is.null(attr(lvv, "varlabel")))  attr(lvv, "varlabel") <- lv
@@ -2873,14 +2858,14 @@ plresx <-
       lvv <- structure(lvv, varlabel=attr(lvv, "varlabel"))
       ll <- levels(lvv)
       lnl <- length(ll)
-      lrs <- rr[[1]]
+      lrs <- lr[[1]]
       if (lmbox) {
-        ##       if (lIcq) rr <- lres[,"random"]
+        ##       if (lIcq) lr <- lres[,"random"]
         attr(lpla$pldata,"xvar") <- lv
         plmboxes(lvv, lrs, data=pldata, mar=mar, plargs=lpla)
       } else {
 ##        attr(lvv, "plcoord") <- jitter(as.numeric(lvv), factor=ljitfac)
-        plframe(lvv,rr, ploptions=ploptions)
+        plframe(lvv,lr, ploptions=ploptions)
       }
       ## reference values
       if (lcmpj) {
@@ -2913,17 +2898,17 @@ plresx <-
                 col=last(ploptions$refline.col))
         }
       }
-      if (!lmbox) plpoints(lvv,rr, plargs=plargs)
+      if (!lmbox) plpoints(lvv,lr, plargs=plargs)
     } else { # ---
 ## --- continuous explanatory variable
-      plframe(lvv,rr, ploptions=ploptions)
+      plframe(lvv,lr, ploptions=ploptions)
       if (lIsmooth) {
         if (lnsims>0)
-          rr <- cbind(rr, if (refline && addcomp && lcmpj)
+          lr <- cbind(lr, if (refline && addcomp && lcmpj)
                             lsimres+lcompdt[, lvr] else lsimres )
-##-         if (inherits(rr, "condquant"))
-##-           rr <- rr[,1]
-        plsmooth(lvv, rr, plargs=plargs, band=plargs$smooth>=2) ## was lpa
+##-         if (inherits(lr, "condquant"))
+##-           lr <- lr[,1]
+        plsmooth(lvv, lr, plargs=plargs, band=plargs$smooth>=2) ## was lpa
       }
       ## refline
       if (refline && lcmpj) {
@@ -2931,11 +2916,11 @@ plresx <-
         lrefyb <-
           if (plargs$reflineband)
             outer(lqnt*lcompse[,lvr], c(-1,1))  else  NULL
-        plrefline(list(x=lrefx, y=lci, band=lrefyb), x=lvv, y=rr,
+        plrefline(list(x=lrefx, y=lci, band=lrefyb), x=lvv, y=lr,
                    plargs=plargs)
       }
       ## points
-      plpoints(lvv,rr, plargs=plargs, plab=if (lIrpl) lrpl)
+      plpoints(lvv,lr, plargs=plargs, plab=if (lIrpl) lrpl)
     } ## ends  if factor else 
   }
   invisible(plargs)
@@ -3819,10 +3804,8 @@ plmfg <-
               par(mfrow=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
             else par(mfcol=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
   loldo <- ploptions(c("mar","mgp"))
-  if (length(mar)+length(mgp)) {
-    if (length(mar)) ploptions(mar=mar)
-    if (length(mgp)) ploptions(mgp=mgp)
-  }
+  if (length(mar)) ploptions(mar=mar)
+  if (length(mgp)) ploptions(mgp=mgp)
   invisible(
     structure(list(mfig = lmfg, mrow = if (row) lmfg, mcol = if(!row) lmfg,
                    mar=mar, mgp=mgp, oma=oma), old=loldo, oldpar=oldpar)
@@ -3947,7 +3930,7 @@ i.getplopt <- function(opt, plo=ploptions) {
   lopt <- opt 
   if (is.function(plo)) plo <- NULL
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- plo[[opt]]
+    lopt <- plo[[lnam]]
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
     lopt <- ploptions(lnam)
   else unlist(check.ploption(lnam, lopt))   ## check

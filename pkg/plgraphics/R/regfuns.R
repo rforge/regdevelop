@@ -82,10 +82,11 @@ residuals.regrcoxph <- function (object, type="CoxSnellMod", ...)
   lii <- lst!=1
   li <- which(lii)
   if (length(li)) {
-      llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
-      lr <- condquant(llim, "normal", sig=1) ## ???
-      lres[li] <- lr[,"median"]
-      lr[,'index'] <- which(naresid(lnaaction, lii))
+    llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
+    lr <- condquant(llim, "normal", sig=1) ## ???
+    lr[,"index"] <- li
+    lres[li] <- lr[,"median"]
+    lr[,'index'] <- which(naresid(lnaaction, lii))
   } else lr <- NULL
   structure( naresid(lnaaction, lres), condquant=lr, type=type)
 }
@@ -99,12 +100,12 @@ residuals.regrsurvreg <- function (object, type="condquant", ...)
   ## Author: Werner Stahel, Date: 24 Oct 2008, 10:16
   type <- i.def(type, "condquant", valuefalse="")
   if (type=="") return()
-  if (type!="condquant") {
-    if (!inherits(object, "survreg")) {
-      warning(":residuals.regrsurvreg: 'object' does not inherit from 'survreg'")
-      return()
-    } ## $residuals <- object$resid.orig
-    return( residuals(object, ...) )
+  if (type!="condquant")
+    return( residuals(object, type=type, ...) )
+  if (!inherits(object, "survreg")) {
+    warning(":residuals.regrsurvreg: 'object' does not inherit from 'survreg'.",
+            " I use usual residuals")
+    return(residuals(object, ...) )
   }
   lnaaction <- object$na.action
   ldist <- if (length(object$dist)>0) object$dist  else  "normal"
@@ -133,10 +134,10 @@ residuals.regrsurvreg <- function (object, type="condquant", ...)
   if (length(li)) {
     llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
     lr <- condquant(llim, ldist, lsig)
+    lr[,"index"] <- li
     lres[li] <- lr[,"median"]
     ## lr[,'index'] <- which(naresid(lnaaction, lii)) ## !! not needed (?)
   } else lr <- NULL
-  browser()
   structure(lres, condquant=lr, type=type, family=ldist)
 }
 ## ==============================================================
@@ -304,6 +305,8 @@ fitcomp <-
         data <- eval(object$call$data)
     }
   }
+##  llog <- inherits(object, c("survreg")) &&
+##    object$dist %in% c("weibull","lognormal","loglogistic") ## log(predictions)
   if (se & inherits(object, c("polr"))) {
     warning(":fitcomp: standard errors for fit not available for ",
             paste(class(object), collapse="  "), "models. 'se' set to FALSE")
@@ -367,7 +370,8 @@ fitcomp <-
     lterms <- attr(lmf,"terms")
     attr(object$terms,"predvars") <- attr(lterms,"predvars")
   }
-  ltype <- if (inherits(object,"coxph")) "lp"  else "response"
+  ltype <- if (inherits(object,c("survreg","coxph"))) "lp"  else "response"
+  ## lp = linear predictor
   if (inherits(object, c("glm", "polr"))) ltype <- "link"
   if (inherits(object, "polr")) class(object) <- "regrpolr"
   if (ltransf) {
@@ -429,7 +433,7 @@ fitcomp <-
   ## ------------------------
   for (lv in lvcomp) {
     if (xfromdata) {
-      ld <- lxm
+      ld <- lxm  ## suitable dimension
       ld[,lv] <- ldata[,lv]
       lfc <- sapply(ld,is.factor) # eliminate extra levels of factors
       if (any(lfc)) ld[lfc] <- lapply(ld[lfc], factor)
@@ -448,7 +452,7 @@ fitcomp <-
           lpr <- predict(structure(lobj, class=class(object)), scale=lsigma, 
                      type=ltype, se.fit=se)
         } else 
-          lpr <- try( predict(object, newdata=ld, se.fit = se),
+          lpr <- try( predict(object, newdata=ld, type=ltype, se.fit = se),
                      silent=TRUE)
         if (class(lpr)=="try-error") {
           warning(":fitcomp: no fitcomp for variable  ", lv)
@@ -479,6 +483,10 @@ fitcomp <-
       lcse[,lv,] <- lpr$se.fit
     } else lcomp[,lv,] <- lpr
   }
+##-   if (llog) {
+##-     lcomp <- log(lcomp)
+##-     lprm <- log(lprm)
+##-   }
   if (lny==1) {
     dim(lcomp) <- dim(lcomp)[1:2]
     dimnames(lcomp) <- dimnames(lx[,lvcomp,drop=FALSE])
