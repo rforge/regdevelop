@@ -29,7 +29,7 @@ plaxis(axis, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
 
 plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL,
   lty=NULL, lwd=NULL, psize=NULL,
-  condquant = TRUE, plargs = NULL, ploptions = plargs$ploptions, ...)
+  plargs = NULL, ploptions = plargs$ploptions, ...)
 
 pllines(x, y, type="l", ...)
 
@@ -94,13 +94,13 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
     and line type. %% to be used for \code{plpoints}.
     Overrides other settings, defined in \code{plargs}.
   }
-  \item{condquant}{logical: should bars be drawn for censored data?
-    If \code{FALSE}, censored observations will be set to the median of
-    the conditional distribution and shown by a different plotting
-    character, see argument \code{censored} of
-    \code{\link{ploptions}}.
-    If \code{NULL}, the standard plotting character will be used.
-  }
+%%-   \item{condquant}{logical: should bars be drawn for censored data?
+%%-     If \code{FALSE}, censored observations will be set to the median of
+%%-     the conditional distribution and shown by a different plotting
+%%-     character, see argument \code{censored} of
+%%-     \code{\link{ploptions}}.
+%%-     If \code{NULL}, the standard plotting character will be used.
+%%-   }
   \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
   \item{band}{logical: should a band (e.g., a confidence band)
     be drawn together with the smooth?

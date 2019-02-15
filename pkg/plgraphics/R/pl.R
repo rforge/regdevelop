@@ -2253,8 +2253,9 @@ plot.regr <-
                  famcount=plargs$famcount)
     )
   lplsel <- lplsel[is.na(lplsel)|lplsel>0]
-  lnplsel <- sum(names(lplsel)%in%
-                c("yfit","resfit","absresfit","qq","absresweight") )
+  lnplsel <- length(lplsel)
+##-   lnplsel <- sum(names(lplsel)%in%
+##-                 c("yfit","resfit","absresfit","qq","absresweight") )
   ## ---------------------------
   ## simulated residuals
 ##-   lsimres <- NULL
@@ -2311,12 +2312,26 @@ plot.regr <-
         if (lna <- sum(is.na(lfsmr)&!is.na(lres[,lj])))
           warning(":plot.regr: residuals from smooth have ",
                   round(100*lna/lnobs,1), " % additional NAs")
-        lstres[,lj] <- lstrsj <-
-          lfsmr * lstrratio[,lj] ## !!! * f(leverage of smooth)
+        lstres[,lj] <- lfsmr * lstrratio[,lj] ## !!! * f(leverage of smooth)
+        if (lIcq) {
+          lcq <- attr(lrsj, "condquant")
+          if (length(lcq)) {
+            li <- lcq[,"index"]
+            lcq[,1:4] <- ( lcq[,1:4]-lcq[,1]+lfsmr[li] ) *lstrratio[li,lj]
+            ## attr(lfsmr, "condquant") <- lcq
+            attr(lstres[,lj], "condquant") <- lcq
+          }
+        } else {
+          if (lIcq) {
+            lcq <- attr(lrsj, "condquant")
+            if (length(lcq)) {
+              lcq[,1:4] <- lcq[,1:4]*lstrratio[lcq[,"index"],lj]
+              attr(lstres[,lj], "condquant") <- lcq
+            }
+          }
+        }
+        if (lnsims) lsimstres <- lsimres * lstrratio[,lj] ## index needed for multiv
       }
-##-       if (length(lcqj <- attr(lres[,lj], "condquant")))
-##-         attr(lstres[,lj], "condquant") <- lcqj[,"index",drop=FALSE] 
-      if (lnsims) lsimstres <- lsimres * lstrratio[,lj] ## index needed for multiv
     }
     if (plargs$smresid) {
       lstresname <- paste("st.sm.", lresname, sep = "")
@@ -2336,7 +2351,7 @@ plot.regr <-
              }
   }
   if (length(lmf)==2 && is.na(lmf[1])) {
-    lmf1 <- lnplsel
+    lmf1 <- ceiling(lnplsel/lmf[2])
     if(lmf1>lmf[2]+1) lmf1 <- lmf[2]
     lmf[1] <- lmf1
   }
@@ -2835,8 +2850,6 @@ plresx <-
   if (lIrpl <- length(lrpl)>0) lrpl <- lrpl[,1]
   lpla <- plargs
   lr <- lres
-  browser()
-  ## if (inherits(lr, "condquant")) lr <- lr[,1,drop=FALSE]
   ## --- loop --- plresx
   for (lj in 1:lnvars) {
     lv <- unname(lvars[lj])
@@ -2877,13 +2890,13 @@ plresx <-
           if (any(attr(lcilp,"nmod"))) {
             liout <- lcilp!=lcil
             lrsout <- pmax(pmin(lcilp[liout], lrsrg[2]), lrsrg[1])
-            segments(lx[liout]-0.4, lrsout, lx[liout]+0.4, lrsout,
+            segments(lx[liout]-0.45, lrsout, lx[liout]+0.45, lrsout,
                      lty=ploptions$refline.lty, lwd = ploptions$refline.lwd,
                      col=ploptions$refline.col[1])
             lcil[liout] <- NA
           }
         }
-        segments(lx-0.4, lcil, lx+0.4, lcil,
+        segments(lx-0.45, lcil, lx+0.45, lcil,
                  lty=ploptions$refline.lty[1],
                  lwd = ploptions$refline.lwd[1],
                  col=ploptions$refline.col[1])
@@ -3472,21 +3485,16 @@ plmboxes.default <-
   llwd <- modarg(lwd, c(med=3, range=2))
   ## data
   ## preliminary 
-  lx <- transferAttributes(factor(x[,1]),x[,1]) # unused levels are dropped
-  llr <- ncol(x)>=2 ## asymmetrix mboxes required for binary factor
+  llr <- ncol(x)>=2 ## asymmetric mboxes required for binary (second) factor
   if (llr && length(unique(x[,2]))!=2) {
     warning(":plmboxes: second x-variable must be binary. I ignore it.")
     x <- x[,1, drop=FALSE]
     llr <- FALSE
   }
+  x[,1] <- lx <- transferAttributes(factor(x[,1]),x[,1], except="levels")
+                                        # unused levels are dropped
   llist <- split(y,x)
-  asymbox <-
-    i.def(asymbox, length(unique(x[,1]))==2, valuetrue=TRUE) && ncol(x)==1
-  if (asymbox) {
-    llev <- ""
-    llev2 <- c(levels(x[,1]),"","")[1:2]
-    llr <- TRUE
-  } else llev <- levels(lx)
+  llev <- levels(lx)
   lng <- length(llev)
   lnn <- sapply(llist,length)
   lsd <- mean(sapply(llist,mad,na.rm=TRUE),na.rm=TRUE)
@@ -3502,11 +3510,23 @@ plmboxes.default <-
 ##  if (xlab=="1") xlab <- ""
   ylab <- i.def(ylab, attr(y, "varlabel"), valuefalse="")
   ## position
-  if (is.null(at)) at <- 1:lng else
-    if (length(at)!=lng) {
+  if (lnat <- length(at)) {
+    if (lnat!=lng) {
       warning(":plmboxes: 'x' has wrong length")
-      at <- at[1:lng] ## may produce NAs
+      at <- if (lnat>lng) at[1:lng] else NULL
+    }
   }
+  if (is.null(at)) at <- 1:lng
+  asymbox <-
+    i.def(asymbox, TRUE) && length(unique(x[,1]))==2 && ncol(x)==1
+  if (asymbox) {
+    llr <- TRUE
+    lng <- 1
+  }
+##-     llev <- ""
+##-     llev2 <- c(levels(x[,1]),"","")[1:2]
+  ##-   } else
+  lpos <- if(asymbox) rep(mean(at),2) else at
   ## probabilities
   if (is.null(probs))
       probs <- if (sum(!is.na(y))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
@@ -3531,8 +3551,11 @@ plmboxes.default <-
     xlim <- lusr[1:2]
     ylim <- lusr[3:4]
   } else {
-    if(u.nuna(xlim)) xlim <- ## better: NAs -> default value
-      range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5
+    lxldf <- i.extendrange(
+      range(at, na.rm=TRUE)+ max(width[c(1,length(width))])*c(-1,1)*0.5,
+      i.getploption("plext"))
+    xlim <- i.def(xlim, lxldf, valuefalse=lxldf)
+    if (any(li <- is.na(xlim))) xlim[li] <- lxldf[li]
     if (lIna <- !is.null(na.pos)) {
       lyat <- lyat[lyat>max(na.pos)]
       if (length(lyat)<3)
@@ -3564,10 +3587,10 @@ plmboxes.default <-
       axis(1+lhoriz, at=at, labels=llev, las=2*as.logical(labelsperp))
       if(lIna && anyNA(y)) 
         mtext("NA", 2-lhoriz,1, at=mean(na.pos), las=2) 
-      if (asymbox) {
-        mtext(llev2[1], 1+lhoriz,1, at=0.75)
-        mtext(llev2[2], 1+lhoriz,1, at=1.25)
-      }
+##-       if (asymbox) {
+##-         mtext(llev2[1], 1+lhoriz,1, at=0.75)
+##-         mtext(llev2[2], 1+lhoriz,1, at=1.25)
+##-       }
       mtext(xlab, side=1+lhoriz, line=ploptions$mar[1+lhoriz]-1)
       plaxis(2-lhoriz, x=y)
     }
@@ -3594,18 +3617,21 @@ plmboxes.default <-
   for (li in 1:lng) {
     if (is.na(at[li])) next
     lli <- llist[[li]]
-    if (length(notna(lli) )) {
+    if (length(lli)) {
       attributes(lli) <- lattr
-      plmbox(lli,at[li]+lsep, probs=probs, outliers=outliers,
+      plmbox(lli,lpos[li]+lsep, probs=probs, outliers=outliers,
              horizontal=lhoriz,
-             wfac=lfac[li], adj=0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
+             wfac=lfac[li], adj=1-0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
              widthfac=lwfac, colors=lcol, lwd=llwd, warn=-1)
-      if (llr) { ## second half of asymmetrix  mbox
-        if (length(llir <- llist[[li+lng]]))
-          plmbox(llir,at[li]-lsep,probs=probs, outliers=outliers,
-                 horizontal=lhoriz,
-                 wfac=lfac[li], adj=1, na.pos=na.pos, extquant=TRUE,
-                 widthfac=lwfac, colors=lcol, warn=-1)
+    }
+    if (llr) { ## second half of asymmetrix  mbox
+      llir <- llist[[li+lng]]
+      if (length(llir)) {
+        attributes(llir) <- lattr
+        plmbox(llir,lpos[li]-lsep,probs=probs, outliers=outliers,
+               horizontal=lhoriz,
+               wfac=lfac[li], adj=0, na.pos=na.pos, extquant=TRUE,
+               widthfac=lwfac, colors=lcol, warn=-1)
       }
     }
   }
@@ -4138,7 +4164,7 @@ c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
     ## time axes
     timerangelim = c(year=365*4, month=30*12, day=4),
     ## condquant
-    condquant = TRUE, condquant.pale = c(0.5, 0.5), condprob.range = c(0,1),
+    condquant = TRUE, condprob.range = c(0,1), condquant.pale = c(0.5, 0.5), 
     ## plotregr
     functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelim = c(0.99,0.5)
   )

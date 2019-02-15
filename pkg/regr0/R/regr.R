@@ -5635,13 +5635,13 @@ plmboxes <- function(formula, data, width=1, at=NULL,
     if (length(lli <- llist[[li]])) 
     plmbox(lli,at[li]-lsep, probs=probs, outliers=outliers, wfac=lfac[li],
 ##           adj=0.5*(1+llr), na.pos=na.pos, minheight=minheight, extquant=TRUE,
-           adj=0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
+           adj=1-0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
            ilim=if(ljlim) ilim, ilimext=ilimext, 
            widthfac=lwfac, colors=lcol, lwd=llwd, warn=-1)
     if (llr) ## second half of asymmetrix  mbox
       if (length(llir <- llist[[li+lng]]))
         plmbox(llir,at[li]+lsep,probs=probs, outliers=outliers, wfac=lfac[li],
-               adj=1, na.pos=na.pos, extquant=TRUE,
+               adj=0, na.pos=na.pos, extquant=TRUE,
                ilim=ilim, ilimext=ilimext, 
                widthfac=lwfac, colors=lcol, warn=-1)
   }

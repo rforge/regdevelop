@@ -6,7 +6,7 @@
 \description{Attach the attributes of an object to another object
 }
 \usage{
-transferAttributes(x, xbefore)
+transferAttributes(x, xbefore, except = NULL)
 }
 
 \arguments{
@@ -14,6 +14,7 @@ transferAttributes(x, xbefore)
   }
   \item{xbefore}{the object which delvers the attributes
   }
+  \item{except}{names of attributes that will not be transferred}
 }
 \value{Object \code{x} with attributes from \code{xbefore} (and possibly
   some that it already had)

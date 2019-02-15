@@ -426,10 +426,10 @@ getmeth <- function (fn,mt)  getS3method(as.character(substitute(fn)),
 DB <- function (on=TRUE) options(error=if(on) recover else NULL, warn=on)
 
 ## ---------------------------------------------------------------------
-transferAttributes <- function (x, xbefore)
+transferAttributes <- function (x, xbefore, except=NULL)
 {
   lattr <- attributes(xbefore)
-  latnm <- c("class", "names", "dim", "dimnames", "row.names")
+  latnm <- c("class", "names", "dim", "dimnames", "row.names", except)
   attributes(x) <-
     c(attributes(x)[latnm],lattr[setdiff(names(lattr), latnm)])
   if (is.list(x) & is.list(xbefore) && all(names(x)==names(xbefore)))

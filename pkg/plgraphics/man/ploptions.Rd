@@ -83,9 +83,6 @@ ploptionsDefault
       Note that if there is a \code{smooth.group} factor,
       \code{group.lty} and \code{group.col} are used.
     }
-    \item{\code{smoothline.lty}}{line type. Note that if there is a
-      \code{smooth.group} factor, \code{group.lty} is used.
-    }
     \item{\code{smoothline.lwd}}{line width. If of length 2 (or more),
       the second element is the factor by which the line width is
       reduced for simulated smooths (that is, for the second to the last
@@ -95,6 +92,24 @@ ploptionsDefault
       both sides when drawing a smooth line, either a number or a function
       that takes the number of points as its argument.
       The default is the simple function \code{2^log10(n)/n}.
+    }
+    \item{condquant...}{Conditional quantiles for censored residuals.
+      \itemize{
+	\item{condquant}{logical: should bars be drawn for censored residuals?
+	  If \code{FALSE}, censored observations will be set to the median of
+	  the conditional distribution and shown by a different plotting
+	  character, see argument \code{censored} of
+	  \code{\link{ploptions}}.
+	  If \code{NULL}, the standard plotting character will be used.
+	}
+	\item{condquant.probrange}{range for probabilities.
+	  If the probability corresponding to the censored part of the
+	  distribution is outside the range, bars will not be drawn.}
+	\item{condquant.pale}{factor by which the \code{pcol} color
+	  will be paled to show the points (\code{condquant.pale[1]})
+	  and the bars (\code{...[2]}).
+	}
+      }
     }
   }
 }
