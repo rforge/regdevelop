@@ -12,7 +12,7 @@
 \usage{
 getvariables(formula, data = NULL, transformed = TRUE,
   envir = parent.frame(), ...)
-getvarnames(formula, transformed = FALSE)
+getvarnames(formula, data = NULL, transformed = FALSE)
 }
 \arguments{
   \item{formula}{a model 'formula' or 'terms' object or an R object.}

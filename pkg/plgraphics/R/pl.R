@@ -59,7 +59,7 @@ pl.control <-
       }
     }
     if (is.null(lxnames)) {
-      lvars <- getvarnames(lform, transformed=transformed)
+      lvars <- getvarnames(lform, data=data, transformed=transformed)
       lxnames <- lvars$xvar
       lynames <- lvars$yvar
     }
@@ -88,8 +88,8 @@ pl.control <-
         else stop("!pl.control! Unsuitable argument 'y'")
       }
     }
-    if (is.null(lynames))
-      lynames <- getvarnames(lyform, transformed=transformed)$varnames
+    if (is.null(lynames)) lynames <-
+      getvarnames(lyform, data=data, transformed=transformed)$varnames
     if (is.null(lyform))
       lyform <- as.formula(paste("~", paste(lynames, collapse="+")))
     environment(lyform) <- environment() ## ?
@@ -219,6 +219,19 @@ pl.control <-
   ## factors -> legend!!!
   ##     if (is.factor(lplab)) as.numeric(lplab) else lplab 
   ## now, lplabel always useful
+  ## convert logical to  1  and  2
+  ## group
+  lgroup <- lpldata$"(group)"
+  if (length(lgroup) && is.logical(lgroup))
+    lpldata[,"(group)"] <- lgroup+1
+  ## pcol
+  lpcol <- lpldata$"(pcol)"
+  if (length(lpcol) && is.logical(lpcol))
+    lpldata[,"(pcol)"] <- lpcol+1
+  ## pcol
+  lsmgrp <- lpldata$"(smooth.group)"
+  if (length(lsmgrp) && is.logical(lsmgrp))
+    lpldata[,"(smooth.group)"] <- lsmgrp+1
   ## ----------------------------------------------------
   ## more ploptions
   ##
@@ -269,7 +282,7 @@ pl.control <-
 
 ## ===================================================================
 getvarnames <-
-  function(formula, transformed=FALSE)
+  function(formula, data = NULL, transformed=FALSE)
 { ## get  varnames 
   if (is.character(formula))
     return(list(varnames=formula, xvar=formula, yvar=NULL))
@@ -284,9 +297,16 @@ getvarnames <-
     ## attr(..."variables") is language
     else all.vars(formula[1:2])
   if (length(formula)==3) {
-    lyv <- lxv
+    lyv <- lxv 
     lxv <- if (transformed) rownames(attr(terms(formula[-2]), "factors"))
            else all.vars(formula[-2])
+    if ("." %in% lxv) {
+      if (length(data)==0)
+        stop("!getvarnames! '.' in formula and no 'data'")
+      formula <- terms(formula, data=data)
+      lxv <- if (transformed) rownames(attr(terms(formula[-2]), "factors"))
+             else all.vars(formula[-2])
+    }
     lvnm <- c(lxv, lvnm)
   }
   list(varnames=lvnm, xvar=lxv, yvar=lyv)
@@ -298,13 +318,14 @@ getvariables <-
 {
   ## similar to get_all_vars , different error handling; generate is.fac
   if (is.list(formula)) {
-    lvnm <- getvarnames(formula[[1]], transformed=transformed)
+    lvnm <- getvarnames(formula[[1]], data=data, transformed=transformed)
     lvnmy <- if (length(lfoy <- formula[[2]]))
-               getvarnames(lfoy, transformed=transformed)  else NULL
+               getvarnames(lfoy, data=data, transformed=transformed)  else NULL
     lvarnames <- unique(c(lvnm$varnames, lvnmy$varnames))
 ##    lenv <- environment(formula[[1]])
   } else {
-    lvnm <- if (length(formula)) getvarnames(formula, transformed=transformed)
+    lvnm <- if (length(formula))
+              getvarnames(formula, data=data, transformed=transformed)
     lvnmy <- NULL
     lvarnames <- lvnm$varnames
 ##    lenv <- environment(formula)
@@ -312,12 +333,15 @@ getvariables <-
   ## data
   if (length(data)==0) 
     data <- environment(formula)
-  else if (!is.data.frame(data) && !is.environment(data) && 
+  else {
+    if (!is.data.frame(data) && !is.environment(data) && 
            !is.null(attr(data, "class"))) 
-    data <- as.data.frame(data)
-  else if (is.array(data)) 
-    stop("!getvariables! 'data' must be a data.frame, not a matrix or an array")
-  ##
+      data <- as.data.frame(data)
+    else {
+      if (is.array(data)) 
+        stop("!getvariables! 'data' must be a data.frame, not a matrix or an array")
+    }
+  }##
   lenv <- envir ## parent.frame() # environment(formula)
   rownames <- .row_names_info(data, 0L)
   rr <- NULL
@@ -1028,6 +1052,7 @@ plpoints <-
     lgrpcol <- i.getploption("group.col")
     if (is.factor(lpcol)) lpcol <- as.numeric(lpcol)
     if (is.numeric(lpcol)) lpcol <- rep(lgrpcol, length=max(lpcol))[lpcol]
+    if (is.logical(lpcol)) lpcol <- lgrpcol[lpcol+1]
   } else lpcol <- i.getploption("col")[1]
   pcol <- rep( lpcol, length=lnr)
   lty <- i.def(lty, i.getploption("lty"))
@@ -1712,7 +1737,7 @@ plyx <-
     if (lny>1) loma[4] <- max(lmgp[1]+1, loma[4])
     if (lnx>1) {
       lmfig <- plmfg(lnx, lngrp, oma=loma)
-      loldp <- lmfig$oldpar
+      loldp <- attr(lmfig, "oldpar")
       lnr <- lmfig$mfig[1]
       lnc <- lmfig$mfig[2]
       lnpgr <- ceiling(lnx/lnr)
@@ -1911,7 +1936,8 @@ plotregr.control <-
     lrs <- i.stres(x, residuals=lres, leveragelim=llevlim)
     attributes(lres) <- c(attributes(lres), lrs)
     lstres <- attr(lres, "stresiduals")
-    if (is.null(llev)) llev <- lrs$leverage
+    ## if (is.null(llev))
+    llev <- lrs$leverage
   } ## else lstres <- lres
   else llev <- naresid(lnaaction, llev)
   ##  if (class(lnaaction)=="exclude") lstres <- i.naresid.exclude(lnaaction, lstres)
@@ -1932,7 +1958,7 @@ plotregr.control <-
           stop("!plotregr.control! Inadequate argument 'xvar'")
       }
     }
-    lxvar <- getvarnames(lxf, transformed=TRUE)$xvar
+    lxvar <- getvarnames(lxf, data=data, transformed=TRUE)$xvar
     lxvraw <- u.allvars(lxvar)
   } else lxvar <- NULL
   ## residual names
@@ -2201,6 +2227,7 @@ plot.regr <-
   mode(lcall) <- "call"
   plargs <- eval(lcall, parent.frame())
   ## -------------------------------------------------------------------
+  ## all these results from  plotregr.control  include the  na.action  observations
   lres <-  plargs$residuals
   lmres <- plargs$rescol
   lpldata <- plargs$pldata
@@ -3132,6 +3159,14 @@ function(x, y=NULL, data=NULL, panel=plpanel,
   ## -----------------------------------------------
   ## data and bookkeeping
   pldata <- plargs$pldata
+  lgrp <- c("(group)","(pcol)") %in% names(pldata)
+  ## if  group , generate  pcol
+  if ("(group)"%in%names(pldata)) {    
+    if (!"(pcol)"%in%names(pldata))
+      plargs$pldata[,"(pcol)"] <- pldata[,"(group)"]
+##-     if (!"(smooth.group)"%in%names(pldata))
+##-       plargs$pldata[,"(smooth.group)"] <- pldata[,"(group)"]
+  }
   if (is.null(plargs$main)) plargs$main <- plargs$dataLabel
   xvar <- i.def(attr(pldata,"xvar"), names(pldata))
   nv1 <- length(xvar)
@@ -3181,8 +3216,9 @@ function(x, y=NULL, data=NULL, panel=plpanel,
              2+(yaxmar==4)+(ylabmar==4))
   ## set par
   ## if (!keeppar)
-  plmfg(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma, mar=mar) # , mgp=c(1,0.5,0)
+  loldp <- plmfg(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma, mar=mar) # , mgp=c(1,0.5,0)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
+  ## on.exit(par(attr(loldp, "oldp")))
   lmfig <- par("mfg")
   lnr <- lmfig[3]
   lnc <- lmfig[4]
@@ -3427,8 +3463,8 @@ plmboxes.formula <-
   function(x, data, ...)
 {
   ldt <- genvarattributes(getvariables(x, data))
-##-   l1asymbox <- length(x[[3]])>1 && as.character(x[[3]][[2]])=="1"
-##-   if (l1asymbox)
+##-   l1backback <- length(x[[3]])>1 && as.character(x[[3]][[2]])=="1"
+##-   if (l1backback)
 ##-     ldt <- data.frame(transferAttributes(ldt[,1]),0,
 ##-                       transferAttributes(ldt[,2]))
   ldtnm <- substitute(data)
@@ -3440,7 +3476,7 @@ plmboxes.formula <-
 ## ------------------------------------------------------------
 plmboxes.default <-
   function(x, y, data, width=1, at=NULL, horizontal = FALSE,
-    probs=NULL, outliers=TRUE, na=FALSE, asymbox=NULL,
+    probs=NULL, outliers=TRUE, na=FALSE, backback=NULL,
     refline=NULL, add=FALSE, 
     xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL, 
     labelsperp=FALSE, xmar=NULL, 
@@ -3517,16 +3553,16 @@ plmboxes.default <-
     }
   }
   if (is.null(at)) at <- 1:lng
-  asymbox <-
-    i.def(asymbox, TRUE) && length(unique(x[,1]))==2 && ncol(x)==1
-  if (asymbox) {
+  backback <-
+    i.getplopt(backback) && length(notna(unique(x[,1])))==2 && NCOL(x)==1
+  if (backback) {
     llr <- TRUE
     lng <- 1
   }
 ##-     llev <- ""
 ##-     llev2 <- c(levels(x[,1]),"","")[1:2]
   ##-   } else
-  lpos <- if(asymbox) rep(mean(at),2) else at
+  lpos <- if(backback) rep(mean(at),2) else at
   ## probabilities
   if (is.null(probs))
       probs <- if (sum(!is.na(y))/(lng*(1+llr))<20) c(0.1,0.5,1)/2 else
@@ -3587,7 +3623,7 @@ plmboxes.default <-
       axis(1+lhoriz, at=at, labels=llev, las=2*as.logical(labelsperp))
       if(lIna && anyNA(y)) 
         mtext("NA", 2-lhoriz,1, at=mean(na.pos), las=2) 
-##-       if (asymbox) {
+##-       if (backback) {
 ##-         mtext(llev2[1], 1+lhoriz,1, at=0.75)
 ##-         mtext(llev2[2], 1+lhoriz,1, at=1.25)
 ##-       }
@@ -3830,8 +3866,14 @@ plmfg <-
               par(mfrow=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
             else par(mfcol=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
   loldo <- ploptions(c("mar","mgp"))
-  if (length(mar)) ploptions(mar=mar)
-  if (length(mgp)) ploptions(mgp=mgp)
+  if (length(mar)) {
+    ploptions(mar=mar)
+    oldpar <- c(oldpar, list(mar=par("mar")))
+  }
+  if (length(mgp)) {
+    ploptions(mgp=mgp)
+    oldpar <- c(oldpar, list(mgp=par("mgp")))
+  }
   invisible(
     structure(list(mfig = lmfg, mrow = if (row) lmfg, mcol = if(!row) lmfg,
                    mar=mar, mgp=mgp, oma=oma), old=loldo, oldpar=oldpar)
@@ -4112,8 +4154,11 @@ cln <- function(values=NA) list("check.listnum", values=values)
 c.pchvalues <- 0:180
 c.ltyvalues <- 1:6
 ## ==========================================================================
-c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
-              "olivedrab", "burlywood", "violet")
+c.colors <- c("black","red3","deepskyblue3","darkgreen",
+              "orange2","purple2","blue2","green3","brown",
+              "violet", "aquamarine3", "brown3") ## "darkgoldenrod3", "burlywood", 
+##- c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
+##-               "olivedrab", "burlywood", "violet")
 ## ----------------------------------------------------------------------
 .ploptions <- ploptionsDefault <-
   list(
@@ -4135,7 +4180,9 @@ c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
     ## frame
     axes = 1:2, mar=c(3.1,3.1,3.1,1.1), oma=c(2.1,2.1,3.1,2.1), mgp=c(2,0.8,0),
     panelsep = 0.5, 
-    tickintervals = c(7,3), xlab = "", ylab = "", stamp=1, mfgtotal = 30, 
+    tickintervals = c(7,3), xlab = "", ylab = "",
+    stamp=1, doc=TRUE, 
+    mfgtotal = 30, 
     innerrange = TRUE, innerrange.factor=4, innerrange.ext=0.1,
     innerrange.function = "robrange", 
     plext=0.05, plextext=0.03,
@@ -4160,7 +4207,7 @@ c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
     ## bars
     bar.lty = 1, bar.lwd = c(2,0.5), bar.col = "burlywood4",
     ## factors
-    factor.show = "mbox", jitter = TRUE, jitter.factor = 2,
+    factor.show = "mbox", backback = TRUE, jitter = TRUE, jitter.factor = 2,
     ## time axes
     timerangelim = c(year=365*4, month=30*12, day=4),
     ## condquant
@@ -4218,7 +4265,8 @@ ploptionsCheck <-
     bar.lty = cnv(c.ltyvalues), bar.lwd = cnr(c(0.1,5)), bar.col = ccl(),
     bar.midpointwidth = cnr(c(0.1,5)),
     ## factors
-    factor.show = ccv(c("mbox","jitter","asis","")), jitter = clg(),
+    factor.show = ccv(c("mbox","jitter","asis","")), backback = clg(),
+    jitter = clg(),
     jitter.factor = cnr(c(0.1,5)),
     ## time axes
     ## timerangelim = c(year=365*4, month=30*12, day=4),

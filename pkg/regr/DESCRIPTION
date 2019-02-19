@@ -1,0 +1,14 @@
+Package: regr
+Type: Package
+Title: Building regression models
+Version: 1.0-5
+Author: Werner Stahel
+Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
+Imports: stats, graphics, plgraphics,
+  MASS, nnet, survival, robustbase, quantreg, leaps
+Description: Perform efficient model building for many kinds of
+ regression models.
+ Input, numerical output and model building functions for these models are
+ unified in a user-friendly way.
+License: GPL-2
+LazyLoad: yes

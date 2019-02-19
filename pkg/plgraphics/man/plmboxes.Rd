@@ -19,7 +19,7 @@ plmboxes(x, ...)
 \method{plmboxes}{formula}(x, data, ...)
 
 \method{plmboxes}{default}(x, y, data, width=1, at=NULL, horizontal=FALSE,
-    probs=NULL, outliers=TRUE, na=FALSE, asymbox=NULL, refline=NULL,
+    probs=NULL, outliers=TRUE, na=FALSE, backback=NULL, refline=NULL,
     add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsperp=FALSE, xmar=NULL,
     widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, plargs = NULL,
@@ -79,7 +79,7 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     the position of the box is at that value (with a generated width) or
     between the 2 values, respectively.
   }
-  \item{asymbox}{logical: Should a single, asymmetric multibox be
+  \item{backback}{logical: Should two back-to-back multiboxes be
     displayed if the (single) x factor is binary?
   }
   \item{refline}{vertical positions of any horizontal reference lines
