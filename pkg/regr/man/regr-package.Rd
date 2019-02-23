@@ -35,13 +35,13 @@ base R functions \code{lm}, \code{glm}, \code{polr} etc. -- it should
 be more informative for the task of model building.
 
 The next most important function is the \code{plot} method for results
-of \code{regr} (see \code{\link{plot.regr}}), which gives more complete
+of \code{regr} (called \code{\link{plregr}}), which gives more complete
 regression diagnostic plots than the specific plot methods of the
 mentioned \dQuote{base} \R functions.
 
 An important part of residual analysis which is often neglected is
 plotting residuals versus explanatory variables, often called \emph{term
-plots}.  This is part of \code{\link{plot.regr}}, but can also be called
+plots}.  This is part of \code{plregr}, but can also be called
 independently by calling \code{\link{plresx}}.
 
 If a \code{regr} result is printed, the output is more informative than

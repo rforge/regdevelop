@@ -56,14 +56,14 @@ export(DB,
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, pllines, plbars, 
        plsmooth, plsmoothline, plrefline, plsubset, 
-       plot.regr, plotregr.control, plot.xdistResscale,
+       plregr, plregr.control, plot.xdistResscale,
        plres2x, plresx, plfitpairs, 
        predict.regrpolr, ## predict.regr, predict.mlm, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
-       ## residuals.regr, residuals.polr, 
-       residuals.regrpolr, residuals.regrcoxph, 
-       residuals.regrsurvreg,
+       ## residuals.regr, 
+       residuals.polr, residuals.regrpolr,
+       residuals.regrcoxph, residuals.regrsurvreg,
        robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
        smoothRegr, smoothxtrim, stamp,
        sumna,
@@ -76,7 +76,7 @@ export(DB,
        xdistResdiff, xdistResscale
        )
 
-S3method(plot, regr)
+S3method(plot, regr, plregr) ## only used in the regr package
 S3method(plot, xdistResscale)
 S3method(plmboxes, default)
 S3method(plmboxes, formula)
@@ -87,7 +87,7 @@ S3method(simresiduals, glm)
 ##S3method(fitted, regr)
 ##S3method(predict, regr)
 ##S3method(predict, mlm)
-## S3method(residuals, polr)
+S3method(residuals, polr)
 S3method(fitted, regrpolr)
 S3method(predict, regrpolr)
 S3method(residuals, regrpolr)

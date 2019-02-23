@@ -117,7 +117,7 @@ of the models used in the plot.
 \code{\link{regsubsets}}, \code{\link{leaps}}, \code{\link{step}}, 
 }
 \examples{
-data(d.birthrates)
+data(d.birthrates, package="plgraphics")
 t.formula <- fertility ~ catholic + single24 + single49 + eAgric + eIndustry +
 eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
 bornLocal + bornForeign + altitude + language

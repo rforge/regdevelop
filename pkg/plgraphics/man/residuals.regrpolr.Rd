@@ -1,4 +1,5 @@
 \name{residuals.regrpolr}
+\alias{residuals.polr}
 \alias{residuals.regrpolr}
 \alias{residuals.regrsurvreg}
 \alias{residuals.regrcoxph}
@@ -14,6 +15,7 @@
   See Details for an explanation.
 }
 \usage{
+\method{residuals}{polr}(object, type="condquant", ...)
 \method{residuals}{regrpolr}(object, type="condquant", ...)
 %% \method{residuals}{polr}(object, type=c("condquant","deviance"), ...)
 \method{residuals}{regrsurvreg}(object, type="condquant", ...)
@@ -60,9 +62,13 @@
   it is convenient to transform them such that they then obey a standard
   normal distribution. See the vignette for more detail.
 }
+\note{\code{residuals.polr} and \code{residuals.regrpolr} are identical
+  for the time being. Only \code{type="condquant"} is available now.
+}
 \value{
   Vector of residual values. If conditional quantiles are requested,
-  it carries an attribute \code{"condquant"}, which is 
+  the residuals for censored observations are replaced by conditional
+  medians, and an attribute \code{"condquant"} is attached, which is 
   a data.frame with the variables
   \item{median}{median of the conditional distributions}
   \item{lowq}{lower quartile}
@@ -70,6 +76,7 @@
   \item{random}{random number, drawn according to the conditional
     distribution}
   \item{prob}{probability of the condition being true}
+  \item{limlow, limup}{lower and upper limits of the intervals}
   \item{index}{index of the observation in the sequence of the result
     (residuals)}
   \item{fit}{linear predictor value}
@@ -77,7 +84,7 @@
 }
 \references{See http://stat.ethz.ch/~stahel/regression}
 \author{Werner A. Stahel, ETH Zurich}
-\seealso{\code{\link{condquant}}, \code{\link{plot.regr}}}
+\seealso{\code{\link{condquant}}, \code{\link{plregr}}}
 \examples{
 require(MASS)
 data(housing, package="MASS")

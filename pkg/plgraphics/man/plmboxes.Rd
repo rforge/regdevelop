@@ -22,8 +22,8 @@ plmboxes(x, ...)
     probs=NULL, outliers=TRUE, na=FALSE, backback=NULL, refline=NULL,
     add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsperp=FALSE, xmar=NULL,
-    widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, plargs = NULL,
-    .subdefault=NULL, ...)
+    widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, 
+    .subdefault=NULL, plargs = NULL, ploptions = plargs$ploptions, ...)
 
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     width=1, wfac=NULL, minheight=NULL, adj=0.5, extquant=TRUE, 
@@ -150,7 +150,10 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
   }
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.
-    Its components are often needed to generate the panel.}
+    If not null, arguments given in \code{...} will be ignored.
+  }
+  \item{ploptions}{list of pl options.
+  }
   \item{\dots}{additional arguments passed to 'plot'
   }
   \item{.subdefault}{text for the subtitle in case that it is not

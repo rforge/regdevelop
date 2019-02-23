@@ -46,7 +46,7 @@ Werner A. Stahel
   \code{\link{dummy.coef}}
 }
 \examples{
-  data(d.blast)
+  data(d.blast, package="plgraphics")
   r.blast <-
   regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
   termeffects(r.blast)

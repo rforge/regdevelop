@@ -39,7 +39,7 @@ showd(d.blast)
 plyx(tremor~distance, psize=charge, data=d.blast)
 
 rr <-  lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-plot.regr(rr)
+plregr(rr)
 
 t.date <- as.POSIXlt(paste("1999",d.blast$datetime,sep="."),
                      format='\%Y.\%d.\%m. \%H:\%M')

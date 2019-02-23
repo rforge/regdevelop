@@ -8,15 +8,17 @@
   \code{x})
 }
 \usage{
-condquant(x, dist = "normal", sig = 1, randomrange = 0.9)
+condquant(x, dist = "normal", mu = 0, sig = 1, randomrange = 0.9)
 }
 \arguments{
   \item{x}{matrix with 2 columns or vector of length 2 giving the
     limits for the conditional distribution}
-  \item{dist}{(unconditional) distribution. Currently, only normal and
-    logistic are implemented.
-}
-  \item{sig}{standard deviation for normal distribution
+  \item{dist}{(unconditional) distribution. Currently, only
+    \code{normal} (or \code{gaussian}),
+    \code{logistic} and \code{revgumbel} (reverse-Gumbel,
+    distribution of the logarithm of a Weibull variable) are implemented.
+  }
+  \item{mu, sig}{locarion and scale parameter of the distribution
   }
   \item{randomrange}{random numbers from the conditional distribution
     are drawn for the inner \code{100*randomrange} percent of the

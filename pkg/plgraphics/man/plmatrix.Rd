@@ -13,7 +13,8 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel,
          nrow = 0, ncol = nrow, reduce = TRUE, keeppar = FALSE,
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
-         oma=NULL, mar=NULL, cex.diaglabels = 1.5, ...) 
+         oma=NULL, mar=NULL, cex.diaglabels = 1.5,
+         plargs = NULL, ploptions = plargs$ploptions, ...) 
 }
 
 \arguments{
@@ -49,6 +50,12 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel,
   \item{mar}{margins for the panels}
   \item{cex.diaglabels}{Character expansion for labels appearing in the
     "diagonal" of the scatterplot matrix (if present)}
+  \item{plargs}{result of calling \code{pl.control}.
+    If \code{NULL}, \code{pl.control} will be called to generate it.
+    If not null, arguments given in \code{...} will be ignored.
+  }
+  \item{ploptions}{list of pl options.
+  }
   \item{\dots}{further arguments passed to the \code{panel} function
     and possibly further to functions called by the panel function\cr}
 }

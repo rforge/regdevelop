@@ -83,9 +83,9 @@ str(attr(ddd$tremor, "axislabels"))
 data(d.blast)
 rr <- r.blast <-
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-plot.regr(rr)
-plot.regr(rr, xvar=FALSE)
-plot.regr(rr, transformed=TRUE, reflinesband=TRUE)
+plregr(rr)
+plregr(rr, xvar=FALSE)
+plregr(rr, transformed=TRUE, reflinesband=TRUE)
 
 dd <- d.blast[as.numeric(d.blast$location)<=3,]
 dd[1,"distance"] <- 200
@@ -125,7 +125,7 @@ data(d.fossileSamples)
 rr <-
   lm(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region,
                 data=d.fossileSamples)
-plot.regr(rr)
+plregr(rr)
 
 ## ================================================
 ## glm
@@ -133,22 +133,22 @@ data(d.babysurvival)
 t.d <- d.babysurvival
 t.d$Age[2] <- NA
 rr <- glm(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
-plot.regr(rr, xvar=~Weight, cex.plab=0.7, ylim=c(-5,5))
-plot.regr(rr, condquant=FALSE)
+plregr(rr, xvar=~Weight, cex.plab=0.7, ylim=c(-5,5))
+plregr(rr, condquant=FALSE)
 
 ## polr
 data(housing, package="MASS")
 rr <- MASS::polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 t.res <- residuals.regrpolr(rr)
 showd(attr(t.res, "condquant"))
-plot.regr(rr)
-plot.regr(rr, factor.show="jitter")
+plregr(rr)
+plregr(rr, factor.show="jitter")
 
 ## survreg
 data(lung, package="survival")
 lung$gender <- factor(c("m","f")[lung$sex])
 r.sr <- survival::survreg(Surv(time, status) ~ age + gender + ph.karno, data=lung) 
-plot.regr(r.sr, group=gender, pcol=gender, xvar=~age)
+plregr(r.sr, group=gender, pcol=gender, xvar=~age)
 r.cox <- survival::coxph(Surv(time, status) ~ age + gender + ph.karno, data=lung) 
-plot.regr(r.cox, group=gender, pcol=gender, xvar=~age)
+plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 

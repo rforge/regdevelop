@@ -131,7 +131,7 @@ regr(formula, data=NULL, family=NULL, robust = FALSE, method=NULL,
   \code{\link{lm}}, \code{\link{glm}}, \code{\link[MASS]{rlm}},
   \code{\link[nnet]{multinom}}, \code{\link[MASS]{polr}},... }
 \examples{
-data(d.blast)
+data(d.blast, package="plgraphics")
 ( r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) )
 
@@ -161,7 +161,7 @@ plot(t.r)
 ## multivariate regression
 data(d.fossileSamples, package="plgraphics")
 r.mregr <-
-  regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
+  regr(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region+N,
                 data=d.fossileSamples)
 }
 

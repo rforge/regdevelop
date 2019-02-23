@@ -27,11 +27,11 @@
 \author{Werner A. Stahel
 }
 \seealso{
-  \code{\link{residuals.polr}}, \code{\link{residuals.coxph}},
-  \code{\link{residuals.survreg}}
+  \code{\link{residuals.regrpolr}}, \code{\link{residuals.regrcoxph}},
+  \code{\link{residuals.regrsurvreg}}
 }
 \examples{
-data(d.blast)
+data(d.blast, package="plgraphics")
 r.blast <-
   regr(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 str(residuals(r.blast))

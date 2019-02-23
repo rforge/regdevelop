@@ -53,7 +53,7 @@ drop1Wald(object, scope=NULL, scale = 0, test = c("none", "Chisq", "F"),
   \code{\link{drop1}}
 }
 \examples{
-  data(d.blast)
+  data(d.blast, package="plgraphics")
   r.blast <-
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)

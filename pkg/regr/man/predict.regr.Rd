@@ -60,20 +60,21 @@
   \item{df}{degrees of freedom for residual~Describe the value returned}
 }
 \author{Werner A. Stahel, ETH Zurich}
-\seealso{\code{\link{predict.lm}}, \code{\link{residuals.polr}}}
+\seealso{\code{\link{predict.lm}}, \code{\link{fitted.polr}}
+}
 \examples{
-data(d.blast)
+data(d.blast, package="plgraphics")
 r.blast <- regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)
 t.pr <- predict(r.blast)
-showd(t.pr)
+plgraphics::showd(t.pr)
 
-data(d.fossiles)
+data(d.fossileSamples, package="plgraphics")
 r.mregr <-
-  regr(cbind(sAngle,lLength,rWidth)~SST.Mean+Salinity+lChlorophyll+region+N,
-                data=d.fossiles)
+  regr(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region+N,
+                data=d.fossileSamples)
 t.pr <- predict(r.mregr)
-showd(t.pr)
+plgraphics::showd(t.pr)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

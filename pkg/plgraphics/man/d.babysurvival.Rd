@@ -44,6 +44,6 @@
 data(d.babysurvival)
 summary(d.babysurvival)
 rr <- glm(Survival~Weight+Age+Apgar1, data=d.babysurvival, family="binomial")
-plot.regr(rr, xvar= ~Age+Apgar1)
+plregr(rr, xvar= ~Age+Apgar1)
 }
 \keyword{datasets}

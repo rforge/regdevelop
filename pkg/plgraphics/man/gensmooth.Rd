@@ -85,7 +85,7 @@ gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
   This function is called by \code{\link{plyx}} and
   \code{\link{plmatrix}} when \code{smooth=T} is set,
   as well as by
-  \code{\link{plot.regr}} applied to model objects.
+  \code{\link{plregr}} applied to model objects.
   It is rarely needed to call it directly.\cr
   A band is generated only for the first columnn of \code{y} since the
   others are supposed to be simulated versions of the first one

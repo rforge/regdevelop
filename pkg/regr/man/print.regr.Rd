@@ -10,7 +10,7 @@
       termeffects = getUseroption("show.termeffects"),
       termcolumns = getUseroption("termcolumns"),
       termeffcolumns = getUseroption("termeffcolumns"),
-      digits = max(3, getOption("digits") - 2), symbolic.cor = p > 4,
+      digits = getUseroption("digits"), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
       na.print = getUseroption("na.print"),
       residuals = FALSE, niterations = FALSE, ...)
@@ -48,7 +48,7 @@
 }
 \author{Werner A. Stahel, ETH Zurich}
 \examples{
-  data(d.blast)
+  data(d.blast, package="plgraphics")
   r.blast <-
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)

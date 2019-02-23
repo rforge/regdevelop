@@ -8,7 +8,8 @@
 }
 \usage{
 plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
-  size = 2, xlab = NULL, ylab = NULL, plextext = NULL, pale = 0.2, ...)
+  size = 2, xlab = NULL, ylab = NULL, plextext = NULL, pale = 0.2,
+  plargs = NULL, ploptions = plargs$ploptions, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -32,13 +33,19 @@ plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
     is the length of the largest symbol, as a percentage of the length
     of the horizontal axis.}
   \item{xlab, ylab}{labels for horizontal and vertical axes.
-    Default to the variable names (or labels)}
+    Default to the variable names (or labels)}.
   \item{plextext}{scalar determining the proportion of the plotting area
     that is used as an extension to accomodate the symbols representing
-    the residuals}
+    the residuals}.
   \item{pale}{scalar between 0 and 1: The points are shown in a more
     pale color than the segments as determined by
     \code{\link{colorpale}} with argument \code{pale=pale}.}
+  \item{plargs}{result of calling \code{pl.control}.
+    If \code{NULL}, \code{pl.control} will be called to generate it.
+    If not null, arguments given in \code{...} will be ignored.
+  }
+  \item{ploptions}{list of pl options.
+  }
   \item{\dots}{further arguments, passed to \code{plotregr.control}}
 }
 %%- \details{

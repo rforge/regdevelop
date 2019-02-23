@@ -29,7 +29,7 @@ terms2order(object, squared = TRUE, interactions = TRUE)
 
 \author{Werner A. Stahel, ETH Zurich}
 \examples{
-  data(d.blast)
+  data(d.blast, package="plgraphics")
   t.r <- regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
   terms2order(t.r)
 }

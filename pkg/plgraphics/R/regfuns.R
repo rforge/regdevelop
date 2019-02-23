@@ -152,15 +152,15 @@ residuals.regrpolr <- function (object, type="condquant", ...) ## na.action=obje
   object$na.action <- NULL
   lfit <- fitted(object, type="link")
   ##  if (length(lnaaction)) lfit <- lfit[-lnaaction]
-  lthres <- c(-100, if (lpolr) object$zeta else 0, 100)
+  lthres <- c(-Inf, if (lpolr) object$zeta else 0, Inf)
   llim <- structure(cbind(lthres[ly],lthres[ly+1])-lfit,
                     dimnames=list(names(lfit), c("low","high")))
-  lr <- cbind(condquant(llim,"logis"),fit=lfit,y=ly)
+  lr <- cbind(condquant(llim,"logis"),fit=lfit,y=ly) ## all obs are 'censored'
   lr[,"index"] <- which(naresid(lnaaction, rep(TRUE,nrow(lr))))
   ##
   structure(naresid(lnaaction, lr[,"median"]), condquant=lr) 
 }
-## residuals.polr <- residuals.regrpolr
+residuals.polr <- residuals.regrpolr
 ## ===========================================================================
 predict.regrpolr <-
   function (object, newdata=NULL, type = c("class", "probs", "link"), ...)
@@ -458,7 +458,7 @@ fitcomp <-
   list(comp=lcomp, x=lx[,lvars,drop=FALSE], xm=xm[,lvars,drop=FALSE], se=lcse)
 }
 ## ==========================================================================
-condquant <- function (x, dist="normal", sig=1, randomrange=0.9)
+condquant <- function (x, dist="normal", mu=0, sig=1, randomrange=0.9)
 {
   ## Purpose:   conditional quantiles and random numbers
   ## works only for centered scale families
@@ -466,34 +466,38 @@ condquant <- function (x, dist="normal", sig=1, randomrange=0.9)
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 24 Oct 2008, 09:30
-  if (length(x)==0) stop("!condquant! bug: no data")
+  if (length(x)==0) stop("!condquant! no data")
+  x <- rbind(x)  ## rbind for a single observation -> vector x
+  if (NCOL(x)!=2) stop("!condquant! 'x' must be a matrix with 2 columns")
   ## functions for calculating probab. and quantiles
-  fp <- switch(dist, normal=pnorm, gaussian=pnorm, unif=function(x) x,
+  fp <- switch(dist, normal=pnorm, gaussian=pnorm, Gaussian=pnorm,
+               unif=function(x) x,
                logis=plogis, logistic=plogis, revgumbel=prevgumbel)
   if (is.null(fp)) stop(paste("!condquant! distribution ", dist, " not known"))
   fq <- switch(dist, normal=qnorm, gaussian=qnorm, unif=function(x) x,
                logis=qlogis, logistic=qlogis, revgumbel=qrevgumbel)
   ##
-  x <- rbind(x)  ## rbind for a single observation -> vector x
   lii <- which(x[,1]!=x[,2])
-  rr <- structure(matrix(lii,length(lii),6),
-                  dimnames=
-                    list(row.names(x)[lii],
-                         c("median","lowq","uppq","random","prob","index")),
-                  class="condquant")
+  rr <- structure(
+    matrix(lii,length(lii),8),
+    dimnames=
+      list(row.names(x)[lii],
+           c("median","lowq","uppq","random","limlow","limup","prob","index")),
+    class="condquant")
   if (length(lii)==0) {
     message(".condquant. All intervals of length 0. ",
             "I return a matrix with 0 lines")
     return(rr)
   }
   lx <- t(apply(x[lii,], 1,sort))
-  lp <- fp(lx/sig)
+  lp <- fp((lx-mu)/sig)
   lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
   lprand <- lp[,1]+(lp[,2]-lp[,1])*
     runif(nrow(lp),(1-randomrange)/2,(1+randomrange)/2)
   rr[,1:4] <- cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
                     uppq=fq(lpp[,3]), random=fq(lprand))*sig
-  rr[,5] <- lp[,2]-lp[,1]
+  rr[,5:6] <- lx
+  rr[,7] <- lp[,2]-lp[,1]
   if (any(lp0 <- lp[,2]<=0)) rr[lp0,1:4] <- matrix(lx[lp0,2],sum(lp0),4)
   if (any(lp1 <- lp[,1]>=1)) rr[lp1,1:4] <- matrix(lx[lp1,1],sum(lp1),4)
   if (any(c(lp0,lp1))) {
@@ -502,6 +506,7 @@ condquant <- function (x, dist="normal", sig=1, randomrange=0.9)
     else
       message(".condquant. probabilities <=0 or >=1")
   }
+  attr(rr,"distribution") <- list(distribution = dist, mu = mu, sigma = sig)
   ##
   rr
 }
@@ -617,7 +622,7 @@ i.stres <-
   ## Purpose:  calculate  hat  and  standardized residuals
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Mar 2018, 15:45
-  leveragelim <- i.getplopt(leveragelim)
+  leveragelim <- i.def(leveragelim, plgraphics::ploptions("leveragelim"))
   lnaaction <- x$na.action
   if (is.null(residuals)& length(lrs <- x$resid))
     residuals <- naresid(lnaaction, lrs)
@@ -651,7 +656,7 @@ i.stres <-
   }
   ## --- standardized residuals
   if (length(lres)==0) {
-    warning(":regr/i.stres: no residuals round -> no standardized res.")
+    warning(":regr/i.stres: no residuals found -> no standardized res.")
     return( list(leverage=llev) )
   }
   if (length(llev)!=nrow(lres)) {

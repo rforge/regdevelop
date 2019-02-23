@@ -75,7 +75,7 @@ Werner A. Stahel
 \code{\link{factorNA}}
 }
 \examples{
-data(d.blast)
+data(d.blast, package="plgraphics")
 dd <- d.blast
 dd$location[c(1,3,5)] <- NA
 rr <- createNAvars(dd, na.prop=0)

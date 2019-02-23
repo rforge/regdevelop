@@ -395,10 +395,255 @@ tit <- function (x) attr(x,"tit")
 }
 ## ---
 ## ===========================================================================
+getvarnames <-
+  function(formula, data = NULL, transformed=FALSE)
+{ ## get  varnames 
+  if (is.character(formula))
+    return(list(varnames=formula, xvar=formula, yvar=NULL))
+  if (is.null(formula)) return(list(varnames=NULL, xvar=NULL, yvar=NULL))
+  ##    formula <- as.formula(paste("~",paste(formula,collapse="+")))
+  ## if (is.list(formula))
+  formula <- formula(formula)
+  if (!is.formula(formula)) stop("!getvarnames! invalid argument 'formula'")
+  lyv <- NULL
+  lxv <- lvnm <-
+    if (transformed)
+      rownames(attr(terms(formula[c(1:2)]), "factors"))
+    ## attr(..."variables") is language
+    else all.vars(formula[1:2])
+  if (length(formula)==3) {
+    lyv <- lxv 
+    lxv <- if (transformed) rownames(attr(terms(formula[-2]), "factors"))
+           else all.vars(formula[-2])
+    if ("." %in% lxv) {
+      if (length(data)==0)
+        stop("!getvarnames! '.' in formula and no 'data'")
+      lform <- formula(terms(formula, data=data))
+      lxv <- if (transformed) rownames(attr(terms(lform[-2]), "factors"))
+             else all.vars(lform[-2])
+    }
+    lvnm <- c(lxv, lvnm)
+  }
+  list(varnames=lvnm, xvar=lxv, yvar=lyv)
+}
+## =====================================================================
+getvariables <-
+  function (formula, data = NULL, transformed = TRUE,
+            envir = parent.frame(), ...)
+{
+  ## similar to get_all_vars , different error handling; generate is.fac
+  if (is.list(formula)) {
+    lvnm <- getvarnames(formula[[1]], data=data, transformed=transformed)
+    lvnmy <- if (length(lfoy <- formula[[2]]))
+               getvarnames(lfoy, data=data, transformed=transformed)  else NULL
+    lvarnames <- unique(c(lvnm$varnames, lvnmy$varnames))
+##    lenv <- environment(formula[[1]])
+  } else {
+    lvnm <- if (length(formula))
+              getvarnames(formula, data=data, transformed=transformed)
+    lvnmy <- NULL
+    lvarnames <- lvnm$varnames
+##    lenv <- environment(formula)
+  }
+  ## data
+  if (length(data)==0) 
+    data <- environment(formula)
+  else {
+    if (!is.data.frame(data) && !is.environment(data) && 
+           !is.null(attr(data, "class"))) 
+      data <- as.data.frame(data)
+    else {
+      if (is.array(data)) 
+        stop("!getvariables! 'data' must be a data.frame, not a matrix or an array")
+    }
+  }##
+  lenv <- envir ## parent.frame() # environment(formula)
+  rownames <- .row_names_info(data, 0L)
+  rr <- NULL
+  lvn <- lvarnames
+  if (transformed) {
+    liv <- lvarnames%in%colnames(data)
+    rr <- data[lvarnames[liv]]
+    lvn <- lvarnames[!liv]
+  }
+  ##-   if (length(grep("cbind",yvar)))
+  ##-     yvar <- all.vars(as.formula(paste("~", varnames[1]))) 
+  if (length(lvn)) {
+    inp <- parse(text = paste("list(", paste(lvn, collapse = ","),")"),
+                 keep.source = FALSE)
+    variables <- try(eval(inp, data, lenv), silent=TRUE)
+    if (class(variables)=="try-error") {
+      lvnmiss <- setdiff(lvn, names(data))
+      stop(sub("object", "!getvariables! variable (or object)",
+               attr(variables, "condition")$message),
+           if (length(lvnmiss)>1)
+             paste(". \n    All of ",
+                   paste(lvnmiss, collapse=", "), "may be unavailable.")
+           )
+    }
+    names(variables) <- lvn
+    ## drop attributes for transformed variables
+    ljtr <- lvn %in% names(data)
+    if (any(!ljtr))
+      for (lj in lvn[!ljtr]) {
+        lia <- names(attributes(variables[[lj]])) %in%
+          c("ticksat", "ticklabelsat", "ticklabels")
+        attributes(variables[[lj]])[lia] <- NULL
+      }
+    lvmode <- sapply(variables, mode)
+    if (any(li <- lvmode%nin%c("numeric","character","logical")))
+      stop("!getvariables! variable(s)  ",paste(lvn[li],collapse=", "),
+           "  has(have) wrong mode")  ## !!! convert into 'delayed error' as below
+    variables <- data.frame(variables, check.names=FALSE)
+    if (length(rr)) {
+      if (nrow(rr)!=nrow(variables))
+        stop("!getvariables! differing numbers of rows: ",
+             nrow(rr), ", ", nrow(variables))
+      rr <- cbind(rr, variables)
+    } else rr <- variables
+  }
+  ## rownames
+  if (is.null(rownames) && (length(resp <- attr(formula, "response")) > 0) ) {
+    lhs <- rr[[resp]]
+    rownames <- if (is.matrix(lhs)) rownames(lhs) else names(lhs)
+  }
+  ## --- extras
+  extras <- substitute(list(...))
+  extranames <- names(extras[-1L])
+  if (length(extranames)) {
+    extras <- eval(extras, data, lenv)
+    names(extras) <-
+      if (length(extranames)) paste("(",extranames,")",sep="") else NULL
+    lexl <- sapply(extras, length)
+    if (any(lexwrong <- lexl%nin%c(1,nrow(rr)))) {
+      warning(":getvariables: differing numbers of rows:   ",
+              nrow(rr), ", ", paste(lexl, collapse=", "),
+              "\n  I drop   ", paste(extranames[lexwrong], collapse=", "))
+      extras <- extras[!lexwrong]
+    }
+    ## --- bind together
+    if (length(extras))
+      rr <- cbind(rr,data.frame(extras, check.names=FALSE,
+                                stringsAsFactors=FALSE))
+  }
+  len <- sapply(rr,NROW)
+  rr <- rr[len>0]
+  messg <- NULL
+  len <- len[len>0]
+  nobs <- if(is.data.frame(data)) nrow(data) else length(rr[[1]])
+  if (any(li <- len%nin%c(1,nobs))) {
+    messg <- paste(ifelse(sum(li)==1, "Variable  ","Variables  "),
+                   paste(c(lvarnames, extranames)[li], collapse=", "),
+                   ifelse(sum(li)==1, "  has inadequate length",
+                          "  have inadequate lengths"),sep="")
+    fatal <- any(li[1:length(rr)])
+    if (!fatal) {
+      warning(messg <- paste(messg,"\n   and will be ignored"))
+      rr <- rr[!li]
+      rr <- setNames(as.data.frame(rr), names(rr))
+      if (!is.null(rownames)) 
+        attr(rr, "row.names") <- rownames
+    } else {
+      class(rr) <- "pl-error" 
+      attr(rr,"message") <- messg
+      warning("!pl.control/getvariables! Error: ", messg) ## why not stop? 
+      return(rr)
+    }
+  } 
+  rr <- setNames(as.data.frame(rr), names(rr)) ## avoid modifying names
+  attr(rr,"variables") <- lvarnames
+  if (!is.null(rownames)) attr(rr, "row.names") <- rownames
+  if (is.null(lvnmy)) {
+    attr(rr, "xvar") <- lvnm$xvar
+    attr(rr, "yvar") <- lvnm$yvar
+  } else {
+    attr(rr, "xvar") <- lvnm$varnames
+    attr(rr, "yvar") <- lvnmy$varnames
+  }
+  if (!is.null(messg)) { ## warning
+    attr(rr, "message") <- messg
+    class(rr) <- c("pl-warning", class(rr))
+  }
+  rr
+}
+## ------------------------------------------------------------------------
+i.getvarattribute <- function(attr, value=NULL, data, ploptionscomp, drop=0)
+{ ## get plot property  attr  either from a direct argument  value ,
+  ## or a stored property  ploptionscomp
+  ## The function avoid a duplicated use of the property
+  var <- names(data)
+  pla <- setNames(rep(NA, length(var)), var)
+  ## set values from argument  value
+  if(length(value)) {
+    lnm <- intersect(names(value), var)
+    if(length(lnm)) {
+      pla[lnm] <- value[lnm]
+      var <- setdiff(var, lnm)
+    } else {
+      if(length(value)%in%c(1,length(pla))) {
+        pla[] <- value
+        return(pla)
+      } else 
+        warning(":getPlattribute: unsuitable length of (unnamed) attributes\n",
+                paste(value, collapse=", "))
+    }
+  }
+  ## set values from stored attribute in  data
+  lpr <- sapply(data[,var], function(x) attr(x,attr))
+  lpr <- unlist(lpr[sapply(lpr, length)>0]) ## drop empty 
+  lnm <- intersect(names(lpr), var)
+  if(length(lnm)) {
+    pla[lnm] <- lpr[lnm]
+    var <- setdiff(var, lnm)
+  }
+  ## get unset elements from default
+  if(length(var)) {
+    ldef <- ploptionscomp
+    ## drop first element(s), like "black" for color
+    if (drop>0) ldef <- ldef[-seq_len(drop)]
+    ldef <- rep(setdiff(ldef, pla), length=length(var))
+    pla[var] <- ldef
+  }
+  pla
+}
+## ------------------------------------------------------------------------
+i.setvarattribute <- function(attr, value=NULL, data)
+{ ## data <- i.setvarattributes("plrange", c("T","ra"), dd, list(T=c(15,20)))
+  var <- names(data)
+  if (!is.list(value))
+    value <- setNames(rep(list(value), length(var)), var)
+  lnm <- names(value)
+  ljvar <- match(lnm, var, nomatch=0)
+  if (any(ljvar==0)) {
+    warning(":i.setvarattribute: name ",paste(lnm[ljvar==0], collapse=", "),
+            "of 'value' not in names(data). Attribute '",attr,
+            "' not set.")
+  }
+  lvar <- var[ljvar]
+  if (length(lvar))
+    for (lv in lvar)
+      attr(data[,lv], attr) <- value[[lv]]
+  data
+}
+## ============================================================
 ## additional useful functions
 ## ===========================================================================
 ## auxiliary functions
 ## ============================================================
+i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
+{
+  rr <- arg
+  if (length(arg)==0 ||
+      (mode(arg)%in%c("numeric","character","logical","complex")&&
+       all(is.na(arg)))
+      )  rr <- value
+  else {
+    if (length(arg)==1 && is.logical(arg))
+      rr <- if (arg) valuetrue else valuefalse
+  }
+  rr
+}
+## ---------------------------------------
 RNAMES <- function (x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function (object)

@@ -93,7 +93,7 @@ contr.wpoly(factor(c(1,1,1,2,3,3)))
 ##  [3,]  1  1.167  0.207
 
 
-data(d.blast)
+data(d.blast, package="plgraphics")
 contr.wsum(d.blast$location)
 wg <- table(d.blast$location)
 ( r.blast <-

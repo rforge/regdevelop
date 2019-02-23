@@ -22,7 +22,7 @@
 \usage{
 modelTable(models, seq = NULL) % data = NULL, 
 
-\method{format}{modelTable}(x, digits=getOption("digits"),
+\method{format}{modelTable}(x, digits=getUseroption("digits"),
        stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
 \method{print}{modelTable}(x, tex = FALSE, transpose = FALSE, ...)
 
@@ -82,7 +82,7 @@ compareTerms(... , list=NULL, seq = NULL)
 \author{Werner A. Stahel, ETH Zurich}
 
 \examples{
-data(d.blast)
+data(d.blast, package="plgraphics")
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )

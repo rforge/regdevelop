@@ -79,11 +79,11 @@ ploptionsDefault
       of either the x or y variable, the respective component will be
       used.
     }
-    \item{\code{smoothline.lty, smoothline.col}}{line type and color.
+    \item{\code{smooth.lty, smooth.col}}{line type and color.
       Note that if there is a \code{smooth.group} factor,
       \code{group.lty} and \code{group.col} are used.
     }
-    \item{\code{smoothline.lwd}}{line width. If of length 2 (or more),
+    \item{\code{smooth.lwd}}{line width. If of length 2 (or more),
       the second element is the factor by which the line width is
       reduced for simulated smooths (that is, for the second to the last
       column of \code{smoothline$y}). It defaults to 0.7.
@@ -131,8 +131,8 @@ ploptions(c("jitterFactor", "gridlines"))
 ploptions(stamp=FALSE, pch=0, col=c.colors[-1], anything="do what you want")
 ploptions(c("stamp", "anything"))
 ploptions(default=TRUE)
-t.plopt <- ploptions(smoothline.col="green", assign=FALSE)
-t.plopt$smoothline.col
-ploptions("smoothline.col") ## unchanged
+t.plopt <- ploptions(smooth.col="green", assign=FALSE)
+t.plopt$smooth.col
+ploptions("smooth.col") ## unchanged
 }
 \keyword{utilities}

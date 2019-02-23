@@ -3,6 +3,7 @@ library(regr) ##, lib="~/R/regdevelop/pkg/regr.Rcheck")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
+require(plgraphics, lib="~/R/regdevelop/pkg/plgraphics.Rcheck")
 
 ## options(verbose=1)
 ## ========================================================================
@@ -25,7 +26,7 @@ t.ctr <- contr.wsumpoly(t.d)
 
 r.r6 <- regr(formula = y~f2+x1+x2, data=t.d)
 
-data(d.blast)
+data(d.blast, package="plgraphics")
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 
@@ -71,20 +72,14 @@ plresx(r.blast, xvars=~distance,
          "orange","cyan","black"),
        smooth.legend="bottomright")
 
-data(d.hail)
-r.hail <- regr(logst(EGR) ~ logst(E0) * factor(SEED) + TB + TB:logst(E0) + H0,
-               data=d.hail)
-t.pr <- predict(r.hail, newdata=d.hail[1:5,])
-stopifnot( all(abs(t.pr-fitted(r.hail)[1:5])<0.0001)  )
-
 ## splines
 require(splines)
-data(d.pollZH16d, package="regr0")
+data(d.pollZH16d)
 rr <- regr(log10(NO2) ~ bs(temp, df=5) +daytype, data=d.pollZH16d[-c(2,3),])
 add1(rr)
 ## ------------------------------------
 ## all subsets
-data(d.birthrates)
+data(d.birthrates, package="plgraphics")
 t.formula <- fertility ~ catholic + single24 + single49 + eAgric + eIndustry +
   eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
   bornLocal + bornForeign + altitude + language
@@ -110,7 +105,7 @@ plot(r.ae0, legend=c(5.5,3000), cex=1)
                      
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
-data(d.blast)
+data(d.blast, package="plgraphics")
 r.rob <-
   regr(log10(tremor) ~ location+log10(distance)+log10(charge),
        data = d.blast, robust=TRUE)
@@ -142,23 +137,24 @@ r.mregr <-
 plot(r.mregr)
 ## ========================================================================
 ## Baby Survival
-data(d.babysurv)
-t.d <- d.babysurv
+data(d.babysurvival, package="plgraphics")
+t.d <- d.babysurvival
 t.d$Age[2] <- NA
 t.r <- regr(Survival~.,data=t.d)
 t.rglm <- glm(Survival~.,data=t.d,family=binomial)
 t.rs <- step(t.r, trace=FALSE)  ## ???
-t.r <- r.babysurv <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
-plot(r.babysurv, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
-plot(r.babysurv, glm.restype="condquant")
 
-mframe(2,2)
-plresx(r.babysurv, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurv,
+t.r <- r.babysurvival <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
+plot(r.babysurvival, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
+plot(r.babysurvival, glm.restype="condquant")
+
+plmfg(2,2)
+plresx(r.babysurvival, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurvival,
        weight=FALSE,cex.plab=0.2)
 
 plresx(t.r, data=t.d, xvars=~.+Apgar5,sequence=TRUE, addcomp=TRUE)
 
-data(d.babysurvGr)
+data(d.babysurvGr, package="plgraphics")
 t.d <- d.babysurvGr
 t.r <- regr(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
 t.r <- glm(cbind(Survival.1,Survival.0)~Weight,data=t.d,family=binomial)
@@ -184,7 +180,7 @@ drop1(r.mnom2)
 ## !!! wieso geht drop1 in der regr-fn nicht?
 ## ===================================================================
 ## nonlinear
-## sysfile('external/d.reacten.rda', package='regr0')
+
 data(d.reacten)
 t.d <- d.reacten[300:1700,]
 r.lin <- regr(log10(q)~time, data=t.d)
@@ -265,10 +261,12 @@ last(t.x,1)
 last(t.x,,1)
 last(t.x,1,drop=FALSE)
 ## ----------------------------------------------------------
-plmatrix(cbind(log10(Petal.Width),Petal.Length)~Species, data=iris,
-         col=as.numeric(Species)+1, xaxmar=1)
-plmatrix(log10(tremor)~as.factor(device), data=d.blast, col=location)
+##- plmatrix(cbind(log10(Petal.Width),Petal.Length)~Species, data=iris,
+##-          pcol=as.numeric(Species)+1, xaxmar=1)
+plmatrix(log10(Petal.Width)+log10(Petal.Length)~Species, data=iris,
+         pcol=as.numeric(Species)+1, xaxmar=1)
+plmatrix(log10(tremor)~as.factor(device), data=d.blast, pcol=location)
 
-plmboxes(tremor~location, data=d.blast, ilim=c(0,20),ilimext=0.05)
+plmboxes(tremor~location, data=d.blast, innerrange=c(0,20))
 plmboxes(tremor~location, data=d.blast, at=c(1,3,4,7,NA,10,11,12),
          width=c(1,0.5))

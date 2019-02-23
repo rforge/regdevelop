@@ -58,7 +58,7 @@ data("tobin", package="survival")
 Tobit(tobin$durable) 
 (t.r <- survival::survreg(Tobit(durable) ~ age + quant, data=tobin,
   dist="gaussian"))
-%% plot.regr(t.r)
+%% plregr(t.r)
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.

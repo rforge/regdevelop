@@ -44,14 +44,14 @@
 }
 \seealso{\code{\link{drop1.regr}}, \code{\link{drop1.lm}}}
 \examples{
-data(d.fossiles)
+data(d.fossileSamples, package="plgraphics")
 r.lm <-
-  lm(cbind(sAngle,lLength,rWidth) ~ SST.Mean+Salinity+lChlorophyll+region+N,
-     data=d.fossiles)
+  lm(cbind(sAngle,lLength,rWidth) ~ SST+Salinity+lChlorophyll+Region+N,
+     data=d.fossileSamples)
 drop1(r.lm)  ##  should be the same as summary(manova(...)) for its last row.
 r.mregr <-
-  regr(cbind(sAngle,lLength,rWidth) ~ SST.Mean+Salinity+lChlorophyll+region+N,
-       data=d.fossiles)
+  regr(cbind(sAngle,lLength,rWidth) ~ SST+Salinity+lChlorophyll+Region+N,
+       data=d.fossileSamples)
 r.mregr$drop1
 drop1(r.mregr, test="Pillai")
 }

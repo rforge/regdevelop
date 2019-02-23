@@ -138,7 +138,7 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 
 <<plyx_smooth, fig.width=8, fig.height=4>>=
 plmfg(1,2, mar=c(3,3,1,1))
-plyx(Sepal.Width~Sepal.Length, data=iris, smoothline.col="red")
+plyx(Sepal.Width~Sepal.Length, data=iris, smooth.col="red")
 
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth.group=Species,
      pcol=Species)
@@ -230,7 +230,7 @@ the additional arguments of \T{plyx}, respectively
   t.i <- d.river$date < as.Date("2010-03-31")
   t.d <- d.river[t.i & d.river$hour==14,]
   plyx(T+O2+ra+Q~date, data=t.d, smooth.par=0.5, smooth.xtrim=0.03,
-       smoothline.lty=1, sub="river data")
+       smooth.lty=1, sub="river data")
 @ 
 
 If multiple x variables are given, a separate plot is drawn for each of them.
@@ -343,18 +343,18 @@ Graphical regression diagnostics are the essential tools for developing
 adequate models in many statistical problems.
 The primary purpose of developing \T{plgraphics} has been to improve
 regression diagnostic plots.
-The features are obtained by using \T{plot.regr}.
+The features are obtained by using \T{plregr}.
 
 \subsection{The basic diagnostic plots}
 When R objects obtained from fitting a model are fed into R's \T{plot}
 function, some fundamental diagnostic plots appear. 
-The figure shows the versions of these displays obtained by \T{plot.regr}.
+The figure shows the versions of these displays obtained by \T{plregr}.
 
 <<plotregr,  fig.width=8, fig.height=7.5>>=
 data(d.blast)
 rr <- 
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-plot.regr(rr, xvar=FALSE)
+plregr(rr, xvar=FALSE)
 @ 
 Before we describe the plots in some detail, let us first explain a 
 principle guiding the design of diagnostics.
@@ -419,7 +419,7 @@ Mahalanobis distances from the center of the design based on the
 Therefore, a plot of resuduals against leverages should reveal the overly
 influential observations.
 
-The leverage plot of \T{plot.regr} uses \emph{standardized} residuals
+The leverage plot of \T{plregr} uses \emph{standardized} residuals
 in contrast to R's standard leverage plot shown by \T{plot}.
 In the case of weighted observations, ``de-weighted'' leverages,
 \[
@@ -453,7 +453,7 @@ models.
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
-indicates that by default, \T{plot.regr} 
+indicates that by default, \T{plregr} 
 shows more diagrams: The plots of residuals against explanatory variables.
 
 \subsection{Residuals against input variables}
@@ -464,7 +464,7 @@ we call them ``input'' variables here.
 The plots of residuals against these variables are important regression
 diagnostics. They are often neglected since the ordinary plot function
 for models does not show them. 
-\T{plot.regr} does, unless \T{xvars=FALSE} is used as it was above.
+\T{plregr} does, unless \T{xvars=FALSE} is used as it was above.
 It does so by calling \T{plresx}, which can also be done directly.
 
 <<plresx, fig.width=8, fig.height=7.5>>=
@@ -491,7 +491,7 @@ The transformed input variables are those appearing in the terms of the
 formula, as delivered by \T{rownames(attr(terms(formula[1:2]), "factors"))}.
 }
 
-plot.regr(rr, transformed=TRUE, reflinesband=TRUE)
+plregr(rr, transformed=TRUE, reflinesband=TRUE)
 
 \Detail{
 If the fit object contains a variable \T{weight}, then residuals will be
@@ -546,7 +546,7 @@ This results in residual plots like those shown in the figure.
 require(survival)
 data(lung)
 rr <- survreg(Surv(time,status) ~ age+sex+wt.loss, data=lung)
-plot.regr(rr, plotselect=c(default=0, resfit=1), xvar=FALSE, mf=c(1,1),
+plregr(rr, plotselect=c(default=0, resfit=1), xvar=FALSE, mf=c(1,1),
           smooth.sim=0)
 @ 
 
@@ -605,8 +605,8 @@ one of the usual choices.
   data(d.babysurvival)
   rr <- glm(Survival~Weight+Age+Apgar1,data=d.babysurvival,family=binomial)
   plmfg(1,2, mar=c(3,3,3,1))
-  plot.regr(rr, plotselect=c(resfit=2, default=0), xvar=FALSE)
-  plot.regr(rr, plotselect=c(resfit=2, default=0), condquant=FALSE, 
+  plregr(rr, plotselect=c(resfit=2, default=0), xvar=FALSE)
+  plregr(rr, plotselect=c(resfit=2, default=0), condquant=FALSE, 
             xvar=FALSE)
 @ 
 
@@ -921,7 +921,7 @@ ranges and draws gridlines and axes, the latter by calling \T{plaxis}.
   in the plot, respectively.
 \item
   \T{plrefline} adds reference lines (straight lines or curves) to a plot.
-  It is used by \T{plot.regr} and \T{plresx}.
+  It is used by \T{plregr} and \T{plresx}.
 %%-   as a vector giving intercept and slope of a straight line.
 %%-   or a function that returns this list, such as \T{lm};
 \item
@@ -1088,6 +1088,7 @@ A rule suggests $d=4/(n-p)$ as a warning level.
 Curves are drawn for $d=\T{cookdistlines}^2/(n-p)$.
 
 \subsection{Modified methods for \T{residuals, fitted, predict}}
+%
 Some methods for the extractor functions \T{residuals, fitted, predict}
 needed modifications and extensions.
 For example, \T{type="link"} is needed for \T{polr} models.
@@ -1095,8 +1096,13 @@ The package contains a method \T{predict.regrpolr} which is used within the
 package and provides the additional type, but is otherwise compatible with
 \T{predict.polr} of the package \T{MASS}. It is exported.
 Similarly, there are the methods
-\T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
+\T{fitted.regrpolr, residuals.regrpolr, residuals.regrsurvreg, 
   residuals.regrcoxph}.
+Since a method for residuals is not available in the \T{MASS} package
+for \T{polr} fitted models, \T{residuals.regrpolr} is also
+made available as \T{residuals.polr} and thereby provides the missing
+method. 
+
 
 \subsection{Missing values in residual analysis}
 Model fitting functions in R support two different ways of dealing with
@@ -1111,7 +1117,7 @@ The alternative choice, \T{na.action=na.exclude}, corrects this flaw.
 Vectors of residuals will contain \T{NA}s where appropriate and have 
 the same length as the variables in the data.
 
-The pl functions \T{plot.regr, plresx, plres2x} work with the extended
+The pl functions \T{plregr, plresx, plres2x} work with the extended
 version. This is reflected in \T{.plargs\$pldata} and allows for
 combining that data.frame with the original dataset.
 

@@ -42,7 +42,7 @@
 \author{Werner A. Stahel, ETH Zurich}
 \seealso{\code{\link{drop1}}, \code{\link{add1}}}
 \examples{
-  data(d.blast)
+  data(d.blast, package="plgraphics")
   t.r <- regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
   drop1(t.r)
   add1(t.r)

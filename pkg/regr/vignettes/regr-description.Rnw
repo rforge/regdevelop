@@ -16,8 +16,8 @@
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{regr-desc}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{regr0}
-%\VignetteIndexEntry{'regr0: Augmented Regression Analysis'}
+%\VignetteDepends{regr}
+%\VignetteIndexEntry{'regr: Augmented Regression Analysis'}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
@@ -30,17 +30,21 @@
 \baselineskip 15pt
 
 \title{\vspace*{-10mm}
-The R-Function \T{regr} and Package \T{regr0} for an Augmented 
+The R-Function \T{regr} and Package \T{regr} for an Augmented 
 Regression Analysis}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
 \begin{abstract}\noindent
+  {\normalsize\textbf{Needs revision! This is mostly the description of
+      a preliminary version that included the functions in the new package 
+      'plgraphics'}}
+    
 The R function \T{regr} is a wrapper function that allows for fitting
 several different types of regression models by a unified call, and
 provides more informative numerical and graphical output than the 
 traditional \T{summary} and \T{plot} methods.
-The package \T{regr0} contains the functions that go along with 
+The package \T{regr} contains the functions that go along with 
 \T{regr} and a number of others.
 It is written to make data analysis more effective by providing
 user-oriented, flexible functions.
@@ -48,10 +52,10 @@ It is available from \T{R-forge} and is still in development.
 \end{abstract}
 
 <<preliminary, echo=F>>=
-## library(regr0)
-library(regr0) ##, lib="/u/stahel/R/regdevelop/pkg/regr0.Rcheck")
+library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+library(regr) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
 mframe()
-userOptions(project="regr0 documentation")
+userOptions(project="regr documentation")
 
 options(warn=1)
 @ 
@@ -102,14 +106,14 @@ In particular, the following models can be fitted by \T{regr}:
   nonlinear models, by calling \T{nls}
 \end{itemize}
 
-This document presents the main features of the package \T{regr0}
+This document presents the main features of the package \T{regr}
 and explains the ideas behind them. 
 It gives no details about the functions. They can be found in
 the help files.
 
 The package is available from \T{R-forge}, e.g. by calling\\
-\T{install.packages("regr0", repos="http://r-forge.r-project.org")}.\\
-The reason why it is not on CRAN and why it is called \T{regr0} rather than 
+\T{install.packages("regr", repos="http://r-forge.r-project.org")}.\\
+The reason why it is not on CRAN and why it is called \T{regr} rather than 
 \T{regr} is that the author is still developing additional features and
 does not yet want to guarantee upward compatibility.
 It also means that comments and suggestions are very welcome:
@@ -143,7 +147,7 @@ output that is safe to be interpreted.
 
 Here is a result of printing a \T{regr} object.
 <<regrout>>=
-data(d.blast)
+data(d.blast, package="plgraphics")
 d.blast$location <- factor(d.blast$location)
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
@@ -319,9 +323,9 @@ The \T{contr.sum} setting is not well adapted to unbalanced factors, since
 the unweighted sum of coefficients is forced to be 0.
 This leads to large standard errors when one of the levels has a low 
 frequency. 
-The \T{regr0} package provides the option \T{contr.wsum} for which the
+The \T{regr} package provides the option \T{contr.wsum} for which the
 sum of coefficients weighted with the frequencies of the levels is zero.
-This type of contrasts is the default in \T{regr0}.
+This type of contrasts is the default in \T{regr}.
 
 \subsection{Model summary}
 The last paragraph of the output gives the summary statistics.
@@ -706,7 +710,7 @@ plot.
 
 \Bfig
 <<xdist>>=
-data(d.blast)
+data(d.blast, package="plgraphics")
 rr <- regr(tremor~distance+charge, data=d.blast)
 ## an inadequate model!
 xdrd <- xdistResdiff(rr)
@@ -858,7 +862,7 @@ as the scatterplot matrix of residuals.
 \section{Further Plotting Functions}
 \subsection{Scatterplot Matrices}
 Scatterplot matrices are produced by the \T{pairs} function.
-In \T{regr0}, there is a function with more flexibility, called
+In \T{regr}, there is a function with more flexibility, called
 \T{plmatrix}.
 \begin{itemize}
 \item 
@@ -938,7 +942,7 @@ Figure \ref{fig:mboxes2} shows the distribution of ....
 
 \Bfig
 <<mboxes2>>=
-data(d.blast)
+data(d.blast, package="plgraphics")
 plmboxes(tremor~location+I(charge>5), data=d.blast)
 
 @ 
@@ -963,7 +967,7 @@ to the variable before taking logs.
 Generally, this and other ideas to avoid the \texttt{-Inf} as a transformed
 value are called ``started logs'' according to John Tukey.
 
-\texttt{regr0} includes a function \texttt{logst} that is based on the
+\texttt{regr} includes a function \texttt{logst} that is based on the
 following ideas:
 \begin{itemize}
 \item 
@@ -999,7 +1003,7 @@ It is certainly useful to inspect a graph of the function, as drawn in
 For a data analysis, it is often useful to save graphical displays in 
 documents or on paper. In an extended data analysis, one can easily lose
 control over the precise content of the different plots.
-\T{regr0} provides some help for keeping track.
+\T{regr} provides some help for keeping track.
 \begin{itemize}
 \item 
   Every graphical display generated by a graphical function from the
@@ -1031,7 +1035,7 @@ It adds flexibility and sets other defaults for margin widths and the like.
 
 {\small
 \Tit{This is the end} of the story for the time being. I hope that you will
-get into using \T{regr0} and have good success with your data analyses.
+get into using \T{regr} and have good success with your data analyses.
 Feedback is highly appreciated.
 
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
