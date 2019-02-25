@@ -242,7 +242,7 @@ pl.control <-
 ##-   ploptions$cex <- i.getplopt(cex)
 ##-   ploptions$markextremes <- i.getplopt(markextremes)
   ## ---
-  lmardf <- i.getplopt(mar)
+  lmardf <- i.getplopt(mar, ploptions)
   if (length(lynames)>1) lmardf[4] <- lmardf[2] ## need space at the right
   ploptions$mar <- i.def(mar, lmardf)
   ## --- condprobRange
@@ -257,7 +257,8 @@ pl.control <-
   lnsm <- lnobs
   lnsmgrp <- length(unique(lsmgrp))
   if (length(lsmgrp)) lnsm <- lnobs/lnsmgrp
-  ploptions$smooth <- i.getplopt(smooth) ## i.def(ploptions$smooth, 0, 2, 0)
+  ploptions$smooth <- i.getplopt(smooth, ploptions)
+  ## i.def(ploptions$smooth, 0, 2, 0)
   ploptions$smooth.par <-
     i.def( ploptions$smooth.par, 5*lnsm^log10(1/2)*(1+inherits(x,"glm")) )
   ## --- main
@@ -699,7 +700,7 @@ plaxis <-
     }
     if (length(llab)==0) llab <- if (lab) format(llabat)
   } else {
-    lat <- pretty(range, i.getplopt(tickintervals))
+    lat <- pretty(range, i.getplopt(tickintervals, ploptions))
     llabat <- lat <- lat[lat>=range[1] & lat<=range[2]]
     llab <- if (lab) format(lat) else FALSE
   }
@@ -750,7 +751,7 @@ pltitle <-
     return(rr)
   lcexdef <- rep(i.getploption("title.cex"), length=3)
   title.cexmin <- cexmin
-  cexmin <- i.getplopt(title.cexmin)
+  cexmin <- i.getplopt(title.cexmin, ploptions)
   scale <- 2.5
   minadj <- 0.2
   ##
@@ -775,7 +776,7 @@ pltitle <-
 plpoints <-
   function(x = NULL, y = NULL, type = "p",
            plab = NULL, pch = NULL,
-           col = NULL, lty = NULL, lwd = NULL, psize = NULL,
+           col = NULL, lcol = col, lty = NULL, lwd = NULL, psize = NULL,
            plargs = NULL, ploptions = plargs$ploptions, ...)
 {
   if (is.null(plargs)) 
@@ -836,7 +837,7 @@ plpoints <-
   pcol <- rep( lpcol, length=lnr)
   lty <- i.def(lty, i.getploption("lty"))
   lwd <- i.def(lwd, i.getploption("lwd")) * i.getploption("linewidth")[lty]
-  lcol <- if (type=="l") i.getploption("lcol")[1] else lpcol
+  lcol <- i.getplopt(lcol, ploptions)[1]
   lnobs <- sum(is.finite(lx) & is.finite(ly))
   cex <- i.getploption("cex")
   cex <- if (is.function(cex)) cex(lnobs) else i.def(cex, cexSize(lnobs))
@@ -893,7 +894,7 @@ plpoints <-
   ## --- plot!
   if (lIpl) {
     text(lx, ly, plab, cex=lsplab*lpsize, col=pcol)
-    lipch <- ifelse(is.na(plab), TRUE, plab=="")
+    lipch <- ifelse(is.na(plab), TRUE, plab=="") ## point is not labelled
   } else lipch <- rep(TRUE,length(x))
   if (any(lipch)) {
     if (type=="l") lines(lx, ly, col=lcol, lty=lty, lwd=lwd)
@@ -1133,7 +1134,7 @@ plcoord <-
   ldtrg <- range(x, na.rm=TRUE)
   lirfunc <- i.getploption("innerrange.function")
   if (is.character(lirfunc)) lirfunc <- get(lirfunc)
-  innerrange.factor <- i.getplopt(innerrange.factor)
+  innerrange.factor <- i.getplopt(innerrange.factor, ploptions)
   innerrange.ext <- i.getplopt(innerrange.ext)
   plext <- i.getplopt(plext)
   if (length(notna(range))>0) {
@@ -1456,7 +1457,7 @@ plyx <-
   lpch <- pldata[["(pch)"]]
   lIpch <- length(lpch)>0
   lpcol <- pldata[["(pcol)"]]
-  lmar <- i.getplopt(mar)
+  lmar <- i.getplopt(mar, ploptions)
   loma <- i.def(i.getploption("oma"), par("oma"), valuefalse=rep(0,4)) ## ??? 
   lmgp <- i.getploption("mgp")
   lpsep <- i.getploption("panelsep")
@@ -1493,7 +1494,7 @@ plyx <-
       ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
   }
   ## mark extremes
-  lmark <- i.getplopt(markextremes)
+  lmark <- i.getplopt(markextremes, ploptions)
   if (is.function(lmark)) lmark <- lmark(lnobs)
   lmk <- unlist(lmark)
   lImark <- length(lmk)>0 && any(ifelse(is.na(lmk),TRUE,lmk>0))
@@ -1574,7 +1575,8 @@ plyx <-
           if (length(lpch)==lnr) lpchg <- lpch[li]
           if (length(lplab)==lnr) lplabg <- lplab[li]
         }
-        if (lny>1) plargs$pldata$"(pcol)" <- attr(ly1g,"col")
+        if (lny>1) 
+          plargs$ploptions$lcol <- plargs$pldata$"(pcol)" <- attr(ly1g,"col")
         panel(lxjg, ly1g, type=type, plargs=plargs)
         ## multiple y
         lusr <- par("usr")
@@ -1672,7 +1674,7 @@ plregr.control <-
   ## --- na.action: always get full data
   ## residuals first because they fix the number of observations
   lres <- NULL
-  lcq <- i.getplopt(condquant)
+  lcq <- i.getplopt(condquant, ploptions)
   rtype <- i.def(i.def(if (lfamcount & lcq)
                          rtype <- "condquant", glm.restype), "working")
   if (inherits(x, "survreg"))
@@ -1709,7 +1711,7 @@ plregr.control <-
   llev <- x$leverage
   lstres <- attr(lres, "stresiduals")
   if (length(lstres)==0) {
-    llevlim <- i.getplopt(leveragelim)
+    llevlim <- i.getplopt(leveragelim, ploptions)
     lrs <- i.stres(x, residuals=lres, leveragelim=llevlim)
     attributes(lres) <- c(attributes(lres), lrs)
     lstres <- attr(lres, "stresiduals")
@@ -1895,7 +1897,7 @@ plregr.control <-
   if (lmres>1) smresid <- FALSE ## !!! muss noch gemacht werden
   refline <- i.def(refline, TRUE)
   reflineband <- i.def(reflineband, FALSE, TRUE, FALSE)
-  testlevel <- i.getplopt(testlevel)
+  testlevel <- i.getplopt(testlevel, ploptions)
   if (testlevel<=0 | testlevel>=1)
     stop("!plregr.control! invalid test level")
   partial.resid <- i.def(partial.resid, TRUE)
@@ -3336,7 +3338,8 @@ plmboxes.default <-
   }
   if (is.null(at)) at <- 1:lng
   backback <-
-    i.getplopt(backback) && length(notna(unique(x[,1])))==2 && NCOL(x)==1
+    i.getplopt(backback, ploptions) &&
+      length(notna(unique(x[,1])))==2 && NCOL(x)==1
   if (backback) {
     llr <- TRUE
     lng <- 1
@@ -3638,10 +3641,10 @@ plmfg <-
       }
   lmfg <- pmax(lmfg,1)
   ## mar
-  mar <- rep(i.getplopt(mar), length=4)
+  mar <- rep(i.getplopt(mar, ploptions), length=4)
   if (anyNA(mar)) mar <- ifelse(is.na(mar), par("mar"), mar)
-  mgp <- i.getplopt(mgp)
-  oma <- if (prod(lmfg)>1) i.getplopt(oma) else i.def(oma, rep(0,4))
+  mgp <- i.getplopt(mgp, ploptions)
+  oma <- if (prod(lmfg)>1) i.getplopt(oma, ploptions) else i.def(oma, rep(0,4))
   oldpar <- if(row)
               par(mfrow=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
             else par(mfcol=lmfg, oma=oma, mar=mar, mgp=mgp, ...)
@@ -3773,7 +3776,7 @@ i.getploption <- function(opt, plo=NULL) {
 ##  names(lopt) <- opt
   lopt
 }
-i.getplopt <- function(opt, plo=ploptions) {
+i.getplopt <- function(opt, plo = NULL) {
   lnam <- as.character(substitute(opt))
   lopt <- opt 
   if (is.function(plo)) plo <- NULL

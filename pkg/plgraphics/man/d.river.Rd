@@ -8,7 +8,7 @@
 }
 \usage{data("d.river")}
 \format{
-  A time series with 10368 observations (10 minutes interval)
+  A time series with 9792 observations (10 minutes interval)
   on the following 12 variables.
   \describe{
     \item{\code{date}}{Date of the observation}
@@ -29,7 +29,7 @@
 %%-   The measurements stem from a station in the river Glatt near Zurich.
 %%- }
 \source{
-  The measurements stem from a station in the river Glatt near Zurich.
+  The measurements have been collected in the river Glatt near Zurich.
 }
 %%- \references{
 %%- %%  ~~ possibly secondary sources and usages ~~
