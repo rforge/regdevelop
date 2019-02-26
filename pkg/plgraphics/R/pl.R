@@ -137,8 +137,8 @@ pl.control <-
       if (length(llb <- as.character(lcall$group))<=20)
         attr(lpldata[["(group)"]], "varname") <- llb
     ## --- subset
-    if (length(lcl$subset)) {
-      lsub <- eval(lcl$subset, data)
+    if (length(lcall$subset)) {
+      lsub <- eval(lcall$subset, data)
       lpldata <- plsubset(lpldata, lsub)
     }
     ## --- attributes of variables

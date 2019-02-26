@@ -14,7 +14,7 @@
   based on the 'pl' paradigm
 }
 \usage{
-plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=NULL,
+plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=col,
   lty=NULL, lwd=NULL, psize=NULL,
   plargs = NULL, ploptions = plargs$ploptions, ...)
 
