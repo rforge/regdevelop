@@ -13,7 +13,7 @@ regr.control(contrasts = getUseroption("regr.contrasts"),
   factorNA = TRUE, na.action = as.name("nainf.exclude"),
   calcdisp = NULL, suffmean = 3, dist = NULL,
   model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
-  testlevel = 0.05, leveragelim = c(0.99, 0.5), tit = NULL,
+  testlevel = 0.05, leveragelimit = c(0.99, 0.5), tit = NULL,
   control = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -51,7 +51,7 @@ regr.control(contrasts = getUseroption("regr.contrasts"),
   \item{testlevel}{
 %%     ~~Describe \code{testlevel} here~~
 }
-  \item{leveragelim}{
+  \item{leveragelimit}{
 %%     ~~Describe \code{leveragelim} here~~
 }
   \item{tit}{

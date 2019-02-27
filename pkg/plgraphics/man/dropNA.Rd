@@ -1,5 +1,5 @@
-\name{notna}
-\alias{notna}
+\name{dropNA}
+\alias{dropNA}
 
 \title{drop NA values from vector
 }
@@ -7,7 +7,7 @@
   or, if 'inf' is TRUE, equal to Inf or -Inf  
 }
 \usage{
-notna(x, inf = TRUE)
+dropNA(x, inf = TRUE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -29,11 +29,12 @@ Werner A. Stahel
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{na.omit}}
+\code{\link{na.omit}, \link{sumNA}}
 }
 \examples{
 dd <- c(1, NA, 0/0, 4, -1/0, 6)
-notna(dd)
+dropNA(dd)
 na.omit(dd)
 }
 \keyword{manip}
+\keyword{NA}

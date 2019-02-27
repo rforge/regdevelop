@@ -80,18 +80,18 @@ regr(formula, data=NULL, family=NULL, robust = FALSE, method=NULL,
     The \code{print} method for the whole \code{regr} object will
     by default not show all of them.
 }
-  \item{allcoef}{All coefficients. This is a list with a component for
+  \item{termeffects}{All coefficients. This is a list with a component for
     each term. Each component characterizes the coefficients similar to
     the \code{termtable} just explained, but without the columns
     \code{df, stcoef, R2.x}.
     Note that the interpretation of the coefficients of dummy variables
     depends on the contrasts used for the factor.
     Tests need to be interpreted correspondingly, and with caution.}
-  \item{stres}{Standardized residuals}
+  \item{stdresiduals}{Standardized residuals}
   \item{sigma}{estimated standard deviation for normal errors,\cr
     \code{sqrt(dispersion)} for \code{glm}}
-  \item{h}{leverage values}
-  \item{allvars}{the variables used for fitting the model}
+  \item{leverage}{leverage values}
+  \item{allvars}{data.frame: variables used for fitting the model}
   \item{binfac}{levels of binary factors}
   \item{fitfun, funcall}{R function and call that has been used for
     fitting the model}

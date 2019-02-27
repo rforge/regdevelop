@@ -95,7 +95,7 @@ plres2x(~ log10(distance) + log10(charge), reg=rr, transformed=F,
 
 ## utilities
 showd(dd)
-sumna(dd)
+sumNA(dd)
 tit(dd) <- "blasting"
 plmatrix(dd, main="test plmatrix")
 

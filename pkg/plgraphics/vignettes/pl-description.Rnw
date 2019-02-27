@@ -784,7 +784,7 @@ The components of these lists include
   \T{functionxvalues} contains the number of argument values for which 
   a smooth function or fitting component is evaluated in diagnostic plots.
 \item
-  \T{leveragelim} determines the range used for leverage values
+  \T{leveragelimit} determines the range used for leverage values
   when plotting residuals against leverages.
 \end{itemize}
 

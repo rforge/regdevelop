@@ -34,21 +34,20 @@ importFrom("lme4", lmer) ## , family.merMod
 
 ## importFrom("quantreg", rq)
 
-export(DB,
-       asinp, 
+export(asinp, 
        c.mon, c.months, c.weekdays, c.colors, 
        cexSize, colorpale, condquant,
        clipat,
        doc, "doc<-",
-       dropdata, 
+       dropdata, dropNA, 
        fitcomp,
        fitted.regrpolr, ## fitted.regr, 
        gensmooth, genvarattributes, gentimeaxis, 
        getvariables, getvarnames, getmeth, 
-       i.def, is.formula,
-       last, legendr, leverage, linear.predictors, logst, 
+       last, legendr, leverage, linear.predictors, linpred, logst, 
        modarg, 
-       nainf.exclude, "%nin%", notna, #narestore, 
+       nainf.exclude, "%nin%", #narestore, 
+       nobs.survreg, nobs.coxph,
        panelSmooth,
        ploptions, ploptionsDefault, .ploptions, .plargs, 
        plyx, plmatrix, plmfg, plpanel, 
@@ -64,19 +63,23 @@ export(DB,
        ## residuals.regr, 
        residuals.polr, residuals.regrpolr,
        residuals.regrcoxph, residuals.regrsurvreg,
-       robrange, showd, simresiduals, simresiduals.default, simresiduals.glm, 
+       robrange,
+       showd,
+       simresiduals, simresiduals.default, simresiduals.glm, 
        smoothRegr, smoothxtrim, stamp,
-       sumna,
+       stdresiduals, sumNA,
        Surv, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without
        ## require-ing the package survreg
        Tobit,
        tit, "tit<-", transferAttributes, 
        varattributes, warn,
-       xdistResdiff, xdistResscale
+       xdistResdiff, xdistResscale,
+       i.def, is.formula,
+       u.true, u.notfalse, u.debug, DB
        )
 
-S3method(plot, regr, plregr) ## only used in the regr package
+## S3method(plot, regr, plregr) ## only used in the regr package
 S3method(plot, xdistResscale)
 S3method(plmboxes, default)
 S3method(plmboxes, formula)

@@ -6,7 +6,6 @@
 ##- nobs.survreg
 ##- nobs.coxph
 ##- residuals.regrpolr
-##- fitted.regr
 ##- predict.regrpolr
 ##- fitted.regrpolr
 ##- 
@@ -16,7 +15,7 @@
 ##- Tobit
 ##- 
 ##- i.findformfac
-##- i.stres
+##- stdresiduals
 ##- 
 ##- simresiduals
 ##- simresiduals.glm
@@ -615,21 +614,25 @@ leverage <- function (object)
   lh
 }
 ## ==========================================================================
-i.stres <-
+stdresiduals <-
   function (x, residuals=NULL, sigma=x$sigma, weights=NULL,
-           leveragelim = c(0.99, 0.5))
+           leveragelimit = getOption("leveragelimit"))
 { ## sigma=x$sigma, 
   ## Purpose:  calculate  hat  and  standardized residuals
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Mar 2018, 15:45
-  leveragelim <- i.def(leveragelim, plgraphics::ploptions("leveragelim"))
+  llevlim <- i.def(leveragelimit, 0.99)[1]
   lnaaction <- x$na.action
-  if (is.null(residuals)& length(lrs <- x$resid))
-    residuals <- naresid(lnaaction, lrs)
-  if (length(residuals)==0)  residuals <- residuals(x)
-  lres <- as.data.frame(residuals)
+  ## residuals
+  if (length(residuals)==0) residuals <- naresid(lnaaction, x$resid)
+  if (length(residuals)==0) residuals <- residuals(x)
+  lres <- as.data.frame(residuals) ## the variables may have attributes
   lmres <- ncol(lres)
+  ## weights
   if (is.null(weights)) weights <- naresid(lnaaction, x$weights)
+  lnwgt <- length(weights)
+  lIwgt <- lnwgt==nrow(lres)
+  ## scale
   sigma <- i.def(i.def(sigma, x$sigma), x$scale)
   if (length(sigma)==0 && inherits(x, "lm") && !inherits(x, "glm"))
     sigma <-
@@ -638,48 +641,44 @@ i.stres <-
   if (is.null(sigma)||(!all(is.finite(sigma)))||any(sigma<=0)) {
     if (!(inherits(x, "glm") && x$family$family%in%c("binomial","poisson") ||
           inherits(x, "polr")))
-      warning(":i.stres: sigma is missing or <=0. I use sigma=1")
+      warning(":stdresiduals: sigma is missing or <=0. I use sigma=1")
     sigma <- 1
   }
   sigma <- rep(sigma, length=lmres)
-  ## --- leverage
+  ## leverage
   llev <- x$leverage
   llev <- if (length(llev)) naresid(lnaaction, llev) else leverage(x)
-  if (length(llev)==0)
-    return(list(leverage = NULL,
-                stresiduals = sweep(lres,2,sigma,"/"), strratio = 1/sigma))
-  ##
-  llevlim <- leveragelim[1]
+  if (length(llev)!=nrow(lres)) {
+    if (length(llev)==0)
+      warning(":stdresiduals: no leverages available. I set them 0")
+    else 
+      warning(":stdresiduals: leverages have wrong length. I set them 0")
+    llev <- rep(0,nrow(lres))
+  }
+  names(llev) <- rownames(lres)
   if (mean(llev,na.rm=TRUE)>llevlim) {
-    warning(":i.stres: leveragelim not suitable. I use 0.99")
+    warning(":stdresiduals: leveragelimit not suitable. I use 0.99")
     llevlim <- 0.99
   }
   ## --- standardized residuals
   if (length(lres)==0) {
-    warning(":regr/i.stres: no residuals found -> no standardized res.")
-    return( list(leverage=llev) )
+    warning(":stdresiduals: no residuals found -> no standardized res.")
+    return( structure(NULL, leverage=llev, stddev=sigma) )
   }
-  if (length(llev)!=nrow(lres)) {
-    warning(":regr/i.stres: no leverages available, I set them 0")
-    llev <- rep(0,nrow(lres))
-  }
-  names(llev) <- rownames(as.matrix(lres))
   ##
-  lstrratio <- 1 / outer(sqrt(1-pmin(llevlim,llev)), sigma)
-  lnwgt <- length(weights)
-  lIwgt <- lnwgt==NROW(lres)
+  lstdresratio <- 1 / outer(sqrt(1-pmin(llevlim,llev)), sigma)
   if (lnwgt) {
-    if (lIwgt) lstrratio <- lstrratio / sqrt(weights)
-    else warning(":regr/i.stres: weights not suitable -> not used")
+    if (lIwgt) lstdresratio <- lstdresratio * sqrt(weights)
+    else warning(":stdresiduals: weights not suitable -> not used")
   }
-  lstres <- as.data.frame(as.matrix(lres)*lstrratio)
+  lstdres <- as.data.frame(as.matrix(lres)*lstdresratio)
   for (lj in 1:lmres) {
     if (length(lcq <- attr(lres[,lj], "condquant")))
-      attr(lstres[,lj], "condquant") <-
-        cbind(lcq[,1:4]*lstrratio[lcq[,"index"]], lcq[,5:6])
+      attr(lstdres[,lj], "condquant") <-
+        cbind(lcq[,1:4]*lstdresratio[lcq[,"index"]], lcq[,5:6])
   }
-  list(leverage = llev, stresiduals = structure(lstres, weighted=lIwgt),
-       strratio = lstrratio)
+  structure(lstdres, leverage = llev, stdresratio = lstdresratio,
+            weights=weights, stddev = sigma)
 }
 ## ===================================================================
 simresiduals <- function (object, ...)  UseMethod("simresiduals")
@@ -773,7 +772,7 @@ simresiduals.glm <- function (object, nrep=19, simfunction=NULL,
 }
 ## ======================================================================
 simresiduals.default <-
-  function (object, nrep=19, simfunction=NULL, stresiduals=NULL,
+  function (object, nrep=19, simfunction=NULL, stdresiduals=NULL,
            sigma=object$sigma, ...)
   ## glm.restype="deviance")
 {
@@ -817,14 +816,13 @@ simresiduals.default <-
 ##-   lfit <- object$fitted.values
 ##-   if (is.null(lfit)) lfit <- object$linear.predictors
 ##-   if (is.null(lfit)) lfit <- 0
-  lres <- stresiduals
-  if (is.null(lres)) lres <- attr(object$stresiduals, "stresiduals")
+  lres <- i.def(stdresiduals, object$stdresiduals)
   lnc <- NCOL(object$coefficients)
   ## -------
   if (lrgen <- length(simfunction)>0) {
     if (!is.function(simfunction)) simfunction <- rnorm
     ## ---
-  ## weibull not yet implemented
+    ## weibull not yet implemented
     lsig <- sigma
     if (length(lsig)==0) lsig <- rep(1,lnc)  ## only standardized res useful!
     if (length(lsig)!=lnc) {
@@ -945,40 +943,41 @@ xdistResdiff <-
   ## Author: Werner Stahel, Date: 13 Oct 2011, 09:40
   if (!inherits(object,"lm")) stop("only suitable for lm like objects")
   lnaaction <- object$na.action
+  if (length(lnaaction)) class(object$na.action) <- "omit"
   if (length(lnaaction)) {
     class(lnaaction) <- "omit"
     object$na.action <- lnaaction
   }
   ## this function works with 'short' vectors (without NA elements)
-  lstres <- object$stres 
-  if (is.null(lstres)) {
-    lsr <- try(i.stres(object), silent=TRUE)
+  lstdres <- object$stdres 
+  if (is.null(lstdres)) {
+    lsr <- try(stdresiduals(object), silent=TRUE)
     if (class(lsr)=="try-error") {
       warning(":xdistResdiff: no standardized residuals. I use raw residuals")
-      lstres <- residuals(object)
-    } else  lstres <- lsr$stresiduals
+      lstdres <- residuals(object)
+    } else  lstdres <- lsr
   }
   lqr <- object$qr
   ln <- nrow(lqr$qr)
   lq <- qr.qy(lqr, diag(1, nrow = ln, ncol = lqr$rank)) # like in hat
-  li <- which(!is.na(lstres))
+  li <- which(!is.na(lstdres))
   if (ln>nmax) {
     li <- sample(1:ln, nmax, replace=FALSE) # [replace=FALSE]
     lq <- lq[li,]
-    lstres <- lstres[li,, drop=FALSE]
+    lstdres <- lstdres[li,, drop=FALSE]
     ln <- nmax
   }
   ldist <- dist(cbind(lq))
   lio <- order(ldist)
   ## id's
   lm <- diag(ln)
-  lnm <- row.names(lstres)
+  lnm <- row.names(lstdres)
   lid <- cbind(id1=lnm[rep(1:(ln-1),(ln-1):1)],
                id2=lnm[row(lm)[row(lm)>col(lm)]])
   ## ---
-  lrd <- apply(lstres, 2, function(r) as.dist(abs(outer(r,r,"-"))) )
-##-   for (lj in 1:ncol(lstres)) {
-##-     lrs <- lstres[,lj]
+  lrd <- apply(lstdres, 2, function(r) as.dist(abs(outer(r,r,"-"))) )
+##-   for (lj in 1:ncol(lstdres)) {
+##-     lrs <- lstdres[,lj]
 ##-     lrd <- abs(outer(lrs,lrs,"-"))
 ##-     if (nsim) {
 ##-       lrsim <- matrix(NA,length(ldist),nsim)

@@ -1,3 +1,4 @@
+
 \name{simresiduals}
 \alias{simresiduals}
 \alias{simresiduals.default}
@@ -10,7 +11,7 @@
 \usage{
 simresiduals(object, ...)
 \method{simresiduals}{default}(object, nrep=19, simfunction=NULL,
-  stresiduals = NULL, sigma = object$sigma, ...)
+  stdresiduals = NULL, sigma = object$sigma, ...)
 \method{simresiduals}{glm}(object, nrep=19, simfunction=NULL,
         glm.restype="working", ...)
 }
@@ -29,7 +30,7 @@ simresiduals(object, ...)
     \code{simresiduals.default}. For \code{simresiduals.glm},
     this is the same as TRUE.
   }
-  \item{stresiduals}{logical: should standardized residuals be
+  \item{stdresiduals}{logical: should standardized residuals be
     produced?}
   \item{sigma}{scale parameter to be used, defaults to
     \code{object$sigma}
@@ -55,7 +56,7 @@ simresiduals(object, ...)
 \value{
   A matrix of which each column contains an set of simulated residuals.
   If standardized residuals are available,
-  attribute \code{"stres"} is the matrix containing corresponding
+  attribute \code{"stdresisduals"} is the matrix containing corresponding
   standardized residuals.
 }
 \author{Werner A. Stahel, ETH Zurich}

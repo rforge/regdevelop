@@ -12,7 +12,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   weights = NULL,
   glm.restype = "working", condquant = TRUE, smresid = TRUE,
   partial.resid = TRUE, cookdistlines = 1:2,
-  leveragelim = c(0.99, 0.5), condprobRange = NULL,
+  leveragelimit = c(0.99, 0.5), condprobRange = NULL,
   refline = TRUE, reflineband = FALSE, testlevel = 0.05,
   smooth = 2, %% smoothPar = NA, smoothIter = NULL,
   smooth.sim = NULL,
@@ -48,7 +48,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
     residuals for observations will be displayed.}
   \item{cookdistlines}{levels of Cook distance for which contours are
     plotted in the leverage plot}
-  \item{leveragelim}{bound for leverages to be used in standardizing
+  \item{leveragelimit}{bound for leverages to be used in standardizing
     residuals and in calculation of standardized residuals from smooth
     (if \code{smresid} is \code{TRUE}).}
   \item{condprobRange}{numeric vector of length 2.

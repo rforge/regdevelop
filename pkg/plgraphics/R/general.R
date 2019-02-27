@@ -1,13 +1,13 @@
 ##- Functions in  general.R
 ##- 
 ##- showd
-##- sumna
+##- sumNA
 ##- logst
 ##- asinp
 ##- nainf.exclude
 ##- dropdata
 ##- last
-##- notna
+##- dropNA
 ##- shorten
 ##- 
 ##- robrange
@@ -83,7 +83,7 @@ showd <- function (data, first=3, nrow.=4, ncol.=NULL)
   invisible(l.dc)
 }
 ## ===================================================
-sumna <- function (object,inf=TRUE)
+sumNA <- function (object,inf=TRUE)
 {
   ## Purpose:   count NAs along columns
   ## ----------------------------------------------------------------------
@@ -247,8 +247,7 @@ dropdata <- function (data, rowid=NULL, incol="row.names", colid=NULL)
   data
 }
 ## ===================================================
-last <-
-function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
+last <- function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
 {
   ldim <- dim(data)
   if (is.null(ldim)) {
@@ -265,7 +264,7 @@ function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## -----------------------------------------------------------------
-notna <- function (x,inf=TRUE) if (inf) x[is.finite(x)] else x[!is.na(x)]
+dropNA <- function (x,inf=TRUE) if (inf) x[is.finite(x)] else x[!is.na(x)]
 shorten <- function (x, n=50, endstring="...")
   if (nchar(x)>n)
     paste(substring(x, 1, n-nchar(endstring)),endstring, sep="") else x
@@ -567,7 +566,7 @@ getvariables <-
   rr
 }
 ## ------------------------------------------------------------------------
-i.getvarattribute <- function(attr, value=NULL, data, ploptionscomp, drop=0)
+i.getvarattribute <- function (attr, value=NULL, data, ploptionscomp, drop=0)
 { ## get plot property  attr  either from a direct argument  value ,
   ## or a stored property  ploptionscomp
   ## The function avoid a duplicated use of the property

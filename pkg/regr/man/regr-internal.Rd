@@ -10,11 +10,7 @@
 \alias{i.polrfit}
 \alias{i.smooth}
 %
-\alias{is.formula}
-\alias{\%nin\%}
 \alias{print.mregr}
-\alias{i.main}
-\alias{DB}
 \alias{subset}
 \description{
   Internal functions of package \pkg{regr} that are exported, but

@@ -103,7 +103,7 @@ pl.control <-
   ## ltransformed <- i.def(lcl$transformed, TRUE)
   if (!is.null(attr(data,"terms"))) { ## data is model.frame
     if (!transformed) {
-      warning(":plregr.control! Raw data not available.",
+      warning(":pl.control! Raw data not available.",
               "I can only use transformed data.")
       transformed <- TRUE
     }
@@ -152,7 +152,7 @@ pl.control <-
                          ycol = ycol, ylty = ylty, ypch = ypch,
                          varlabels = varlabels, ploptions=ploptions)
       lnr <- nrow(lpldata)
-      lnobs <- lnr-median(sumna(lpldata[,lvarnames]))
+      lnobs <- lnr-median(sumNA(lpldata[,lvarnames]))
     } else lnr <- 0
   } else {
     lpldata <- NULL
@@ -162,7 +162,7 @@ pl.control <-
   if (lnr==0) {
     if (length(data)) {
       lnr <- NROW(data)
-      lnobs <- lnr-median(sumna(data))
+      lnobs <- lnr-median(sumNA(data))
     } else {
       warning(":pl.control: data not found. I set 'nobs' to 100")
       lnobs <- 100
@@ -1003,7 +1003,7 @@ plsmoothline <-
   lx <- smoothline$x
   ly <- as.matrix(smoothline$y)
   lgrp <- as.numeric(smoothline$group)
-  if (lInogrp <- length(lgrp)==0 || length(unique(notna(lgrp)))<=1) {
+  if (lInogrp <- length(lgrp)==0 || length(unique(dropNA(lgrp)))<=1) {
     lgrp <- rep(1, NROW(lx))
     lngrp <- 1
     lcol <- i.getploption("smooth.col")
@@ -1137,7 +1137,7 @@ plcoord <-
   innerrange.factor <- i.getplopt(innerrange.factor, ploptions)
   innerrange.ext <- i.getplopt(innerrange.ext)
   plext <- i.getplopt(plext)
-  if (length(notna(range))>0) {
+  if (length(dropNA(range))>0) {
     lrg <- range(range, na.rm=TRUE)
     if (lrg[1]>ldtrg[2] | lrg[2]<ldtrg[1]) { ## ranges do not overlap
       warning(":plcoord: inadequate range. Not used")
@@ -1648,7 +1648,7 @@ plregr.control <-
            ## specify some specific aspects / contents of plots
            glm.restype = "working", condquant = TRUE, smresid = TRUE, 
            partial.resid = TRUE, cookdistlines = 1:2,
-           leveragelim = c(0.99, 0.5), condprobRange = NULL,
+           leveragelimit = c(0.99, 0.5), condprobRange = NULL,
            ## smooth and refline
            refline = TRUE,
            reflineband = FALSE, testlevel = 0.05,
@@ -1693,7 +1693,7 @@ plregr.control <-
   lmres <- ncol(lres)
   lnobs <- sum(is.finite(lres[,1]))
   lres0 <- all( apply(lres[,1:lmres, drop=FALSE],2,
-                      function(x) all(x==notna(x)[1], na.rm=TRUE ) ) )
+                      function(x) all(x==dropNA(x)[1], na.rm=TRUE ) ) )
   if (lres0)
     stop("!plregr/plresx! all residuals are equal -> no residual plots")
   lnres <- nrow(lres)
@@ -1709,19 +1709,20 @@ plregr.control <-
   x$sigma <- lsigma
   ## --- standardized residuals
   llev <- x$leverage
-  lstres <- attr(lres, "stresiduals")
-  if (length(lstres)==0) {
-    llevlim <- i.getplopt(leveragelim, ploptions)
-    lrs <- i.stres(x, residuals=lres, leveragelim=llevlim)
-    attributes(lres) <- c(attributes(lres), lrs)
-    lstres <- attr(lres, "stresiduals")
-    ## if (is.null(llev))
-    llev <- lrs$leverage
-  } ## else lstres <- lres
+  lstdres <- attr(lres, "stdresiduals")
+  if (length(lstdres)==0) {
+    llevlim <- i.getplopt(leveragelimit, ploptions)
+    lstdres <- stdresiduals(x, residuals=lres, leveragelimit=llevlim)
+    llev <- attr(lstdres, "leverage")
+    attr(lres, "stdresratio") <- attr(lstdres, "stdresratio")
+    attributes(lstdres)[c("leverage","stdresratio","stddev")] <- NULL
+    attr(lres, "stdresiduals") <- lstdres
+  } ## else lstdres <- lres
   else llev <- naresid(lnaaction, llev)
-  ##  if (class(lnaaction)=="exclude") lstres <- i.naresid.exclude(lnaaction, lstres)
+  if (length(llev)==0) llev <- leverage(x)
   ## --- xvar
-  lform <- if (inherits(x, "regrMer")) x$formula else formula(x)  ## formula(x) inappropriate for merMod
+  ## formula(x) inappropriate for merMod
+  lform <- if (inherits(x, "regrMer")) x$formula else formula(x)  
     ## ... if it inherits from  lm
   lmodvdupl <- u.varsin2terms(lform[-2])
   if (u.notfalse(xvar)) {
@@ -1751,7 +1752,7 @@ plregr.control <-
   ## --- prepare  pl.control
   lcall <- as.list(match.call())[-1]
   ladrop <- c("xvar", "glm.restype", "smresid", "partial.resid",
-              "cookdistlines", "leveragelim", "smooth", "smooth.sim",
+              "cookdistlines", "leveragelimit", "smooth", "smooth.sim",
               "refline", "reflineband", "testlevel", "xlabs", "reslabs",
               "mf", "mfcol", "multnrow", "multncol", "multmar", "oma")
   lcall$y <- lres
@@ -1819,7 +1820,7 @@ plregr.control <-
     if (is.null(lcn <- colnames(lres))) lcn <- 1:ncol(lres)
     colnames(lres) <- lcn # paste("res", lcn, sep=".")
   }
-  ## mark extreme  stres
+  ## mark extreme  stdres
   lmxdef <- markextremes(lnobs)
   if (is.atomic(markextremes)) {
     markextremes <- i.def(markextremes, NA)
@@ -1830,7 +1831,7 @@ plregr.control <-
   lmxres <- i.def(markextremes$"(res)", lmxdef)
   lresplab <-
     if (lmxres>0)
-      apply(lstres, 2,
+      apply(lstdres, 2,
             function(x) plmark(lmxres, x, plabel=plargs$plabel) )
     else NULL
 ## -------------------------------------------
@@ -1842,7 +1843,7 @@ plregr.control <-
   if (lIsmweights | (length(lsmwgt)&&all(is.na(lsmwgt))))
       lsmwgt <- naresid(lnaaction, x$weights)
   lIsmwgt <-
-    length(lsmwgt)>1 && any(lsmwgt!=notna(lsmwgt)[1],na.rm=TRUE) 
+    length(lsmwgt)>1 && any(lsmwgt!=dropNA(lsmwgt)[1],na.rm=TRUE) 
   if (lIsmweights&!lIsmwgt)
     warning(":plregr/plresx: no weights found for smooth calculation.")
   lpldata[["(smoothWeights)"]] <- lsmweights <-
@@ -1854,7 +1855,7 @@ plregr.control <-
   if (is.null(lpsize) | lIpsize | (length(lpsize)&&all(is.na(lpsize))))
       lpsize <- if (length(lsmwgt)) lsmwgt else naresid(lnaaction, x$weights)
   lIpsz <-
-    length(lpsize)>1 && any(lpsize!=notna(lpsize)[1],na.rm=TRUE)
+    length(lpsize)>1 && any(lpsize!=dropNA(lpsize)[1],na.rm=TRUE)
   if (lIpsize&!lIpsz)
     warning(":plregr/plresx: no plot sizes found.")
   lpldata[["(psize)"]] <- 
@@ -1914,8 +1915,8 @@ plregr.control <-
       ## linear.predictor = x$linear.predictor,
       resmahal = x$resmahal, 
       ## resmahal = lresmahal,
-      simres = lsimres, ## simstres <- lsimstres,
-      yexpr = lyexpr, resname = lresname, ## stresname = lstresname,
+      simres = lsimres, ## simstdres <- lsimstdres,
+      yexpr = lyexpr, resname = lresname, ## stdresname = lstdresname,
       ##    absresname = labsresname, fitname = lfitname,
       family = lfam, famgauss = lfamgauss, famcount = lfamcount,
       formula = lform, na.action = lnaaction, 
@@ -1923,7 +1924,7 @@ plregr.control <-
       ## -- return arguments
       glm.restype = glm.restype, smresid = smresid,
       partial.resid = partial.resid, cookdistlines = cookdistlines,
-      leveragelim = leveragelim, ## condprobRange = condprobRange,
+      leveragelimit = leveragelimit, ## condprobRange = condprobRange,
       ## smooth and refline
       smooth.sim = lnsims,
       refline = refline,
@@ -1975,7 +1976,7 @@ i.argPlControl <- ##!!!
     "main", "sub", "cex.main", "varlabels",
     ## plregr.control
     "xvar", "weights", "glm.restype", "smresid",
-    "partial.resid", "cookdistlines", "leveragelim", "condprobRange", 
+    "partial.resid", "cookdistlines", "leveragelimit", "condprobRange", 
     "reflineband", "testlevel", "smooth.sim",
     "xlabs", "reslabs", 
     "mf", "mfcol", "multnrow", "multncol", "multmar", "oma"
@@ -2007,7 +2008,7 @@ plregr <-
     lcall[1] <- list(quote(plgraphics::plregr.control))  ## need plgr:: because
     ## regr also uses this function
     ##            lac[intersect(names(lac), c(i.argPlControl, names(.ploptions)))])
-    ##            list(fit=TRUE, hat=TRUE, stresiduals=TRUE)  )
+    ##            list(fit=TRUE, hat=TRUE, stdresiduals=TRUE)  )
     mode(lcall) <- "call"
     plargs <- eval(lcall, parent.frame())
   }
@@ -2025,9 +2026,9 @@ plregr <-
   lresname <- plargs$resname
   lsimres <- plargs$simres
   lnsims <- if (length(lsimres)==0) 0 else ncol(lsimres)
-  llevlim <- plargs$leveragelim
+  llevlim <- plargs$leveragelimit
   lrefline <- i.def(plargs$refline, TRUE)
-  ## lsimstres <- plargs$simstres
+  ## lsimstdres <- plargs$simstdres
   x$na.action <- lnaaction <- plargs$na.action
   ## from x
   lform <- plargs$formula ## formula(x)
@@ -2091,19 +2092,19 @@ plregr <-
   lfit <- genvarattributes(as.data.frame(lfit), varlabels = lfitname,
                            innerrange.limits=lir)
   ## standardized residuals
-  lstres <- as.data.frame(attr(lres, "stresiduals"))
-  lstrratio <- as.data.frame(attr(lres, "strratio"))
+  lstdres <- as.data.frame(attr(lres, "stdresiduals"))
+  lstrratio <- as.data.frame(attr(lres, "stdresratio"))
   ## llev <- attr(lres, "leverage")
-##-   if (length(lstres)==0) {
-##-     lrs <- i.stres(x, leveragelim=llevlim)
-##-     lstres <- lrs$stresiduals
+##-   if (length(lstdres)==0) {
+##-     lrs <- stdresiduals(x, leveragelimit=llevlim)
+##-     lstdres <- lrs$stdresiduals
 ##-     llev <- lrs$leverage
 ##-     lstrratio <- lrs$strratio
 ##-     {
 ##-     if (!plargs$famcount)
 ##-       warning(":plregr: I do not find standardized residuals.",
 ##-               " I will use raw residuals instead.")
-##-     lstres <- lres
+##-     lstdres <- lres
 ##-     lstrratio <- rep(1, lnr)
 ##-   } else {
 ##-     lstrratio <- i.def(attr(lres, "strratio"), rep(1,lnr))
@@ -2113,8 +2114,8 @@ plregr <-
   lresplab <- plargs$resplab
   lIrpl <- length(lresplab)>0
   if (any(c("absresfit","qq","leverage")%in%names(lplsel))) {
-  ##  lstres <- as.data.frame(as.matrix(lres)*lstrratio)
-    lstresname <- paste("st.", lresname, sep = "")
+  ##  lstdres <- as.data.frame(as.matrix(lres)*lstrratio)
+    lstdresname <- paste("st.", lresname, sep = "")
     labsresname <- paste("|st.",lresname,"|", sep="")
     ##
     for (lj in seq_len(lmres)) {
@@ -2126,33 +2127,33 @@ plregr <-
         if (lna <- sum(is.na(lfsmr)&!is.na(lres[,lj])))
           warning(":plregr: residuals from smooth have ",
                   round(100*lna/lnobs,1), " % additional NAs")
-        lstres[,lj] <- lfsmr * lstrratio[,lj] ## !!! * f(leverage of smooth)
+        lstdres[,lj] <- lfsmr * lstrratio[,lj] ## !!! * f(leverage of smooth)
         if (lIcq) {
           lcq <- attr(lrsj, "condquant")
           if (length(lcq)) {
             li <- lcq[,"index"]
             lcq[,1:4] <- ( lcq[,1:4]-lcq[,1]+lfsmr[li] ) *lstrratio[li,lj]
             ## attr(lfsmr, "condquant") <- lcq
-            attr(lstres[,lj], "condquant") <- lcq
+            attr(lstdres[,lj], "condquant") <- lcq
           }
         } else {
           if (lIcq) {
             lcq <- attr(lrsj, "condquant")
             if (length(lcq)) {
               lcq[,1:4] <- lcq[,1:4]*lstrratio[lcq[,"index"],lj]
-              attr(lstres[,lj], "condquant") <- lcq
+              attr(lstdres[,lj], "condquant") <- lcq
             }
           }
         }
-        if (lnsims) lsimstres <- lsimres * lstrratio[,lj] ## index needed for multiv
+        if (lnsims) lsimstdres <- lsimres * lstrratio[,lj] ## index needed for multiv
       }
     }
     if (plargs$smresid) {
-      lstresname <- paste("st.sm.", lresname, sep = "")
+      lstdresname <- paste("st.sm.", lresname, sep = "")
       labsresname <- paste("|st.sm.",lresname,"|", sep="")
     }
-    names(lstres) <- lstresname
-    lstres <- genvarattributes(lstres, ploptions=ploptions)
+    names(lstdres) <- lstdresname
+    lstdres <- genvarattributes(lstdres, ploptions=ploptions)
   }
   ## --- multiple frames xxx
   lmf <- plargs$mf  ## i.def(lmf, TRUE, TRUE, FALSE)
@@ -2227,7 +2228,7 @@ plregr <-
   }
 ## ---
   if(lpls=="absresfit")
-    if(length(lstres)) {
+    if(length(lstdres)) {
       ploptsmod <- ploptions
       lplext <- rep(ploptions("plext"), length=4)
       lplext[3] <- 0
@@ -2235,8 +2236,8 @@ plregr <-
       lir <- i.def(i.getploption("innerrange"))
       for (lj in seq_len(lmres)) {
         lfitj <- lfit[,lj]
-        lstrj <- lstres[,lj]
-        lattrj <- attributes(lstres[,lj])
+        lstrj <- lstdres[,lj]
+        lattrj <- attributes(lstdres[,lj])
         if (lir && length(lirgj <- lattrj$innerrange)) {
           lirgj <- c(0, max(abs(as.numeric(lirgj))) )
           labssrj <-
@@ -2251,7 +2252,7 @@ plregr <-
         ##
         plframe(lfitj, labssrj, ylab=labsresname[lj], ploptions=ploptsmod)
         if (lpllevel>1) {
-          lsimabsres <- if (lnsims) abs(lsimstres) else NULL
+          lsimabsres <- if (lnsims) abs(lsimstdres) else NULL
           plsmooth(lfitj, cbind(as.matrix(labssrj), lsimabsres), power=0.5,
                    plargs=plargs, band=lpllevel>2)
           }
@@ -2274,9 +2275,9 @@ plregr <-
       lwg <- lweights
       lwg[lwg<=0] <- NA
       labsres <-
-        if (length(lstres)) {
+        if (length(lstdres)) {
           lrlab <- labsresname
-          abs(lstres)
+          abs(lstdres)
         } else {
           lrlab <- paste("|",lresname,"| * sqrt(w)", sep="")
           abs(lres)*sqrt(lwg)
@@ -2298,19 +2299,19 @@ plregr <-
     ##    if (lpllevel>0)
     lnsims <- plargs$smooth.sim
     for (lj in seq_len(lmres)) {
-      llr <- lstres[,lj]
+      llr <- lstdres[,lj]
       lIcqj <- length(lcq <- attr(llr, "condquant"))>0
       lIcqu <- lIcq | lIcqj
       lpch <-
         if (lIcqu) i.pchcens(plargs, lcq) else ploptions$pch[1]
-      lxy <- qqnorm(llr, ylab = lstresname[lj], main="", type="n")
+      lxy <- qqnorm(llr, ylab = lstdresname[lj], main="", type="n")
       lquart <- quantile(llr, c(0.25,0.75), na.rm=TRUE)
       plrefline(c(0, diff(lquart)/(2*qnorm(0.75))), plargs=plargs)
       if (lnsims>0) {
         lxx <- qnorm(ppoints(lnobs))
         for (lr in 1:lnsims) {
           llty <- last(ploptions$smooth.lty)
-          lines(lxx,sort(lsimstres[,lr]), lty=llty,
+          lines(lxx,sort(lsimstdres[,lr]), lty=llty,
                 lwd=ploptions$linewidth[llty],
                 col=last(ploptions$smooth.col))
         }
@@ -2337,10 +2338,9 @@ plregr <-
     if (diff(range(llev,na.rm=TRUE))<0.001)
       warning(":plregr: all leverage elements equal, no leverage plot")
     else {
-      llevpl <-
-        genvarattributes(data.frame(leverages=plcoord(llev, c(0,0.5),
-                                      ploptions=ploptions)) )[,1]
-      lstres <- genvarattributes(lstres, varlabels = lstresname)
+      llevpl <- genvarattributes(
+        data.frame(leverages=plcoord(llev, c(0,0.5), ploptions=ploptions)) )[,1]
+      lstdres <- genvarattributes(lstdres, varlabels = lstdresname)
       ## mark extremes
       lmx <- ploptions$markextremes
       if (is.list(lmx)) lmx <- lmx[["(lev)"]]
@@ -2364,7 +2364,7 @@ plregr <-
         llrcd <- outer(sqrt((1-llx)/((ldfmod-1)*llx)), c(lcookl,-lcookl)) 
       }
       for (lj in 1:lmres) {
-        lstrj <- lstres[,lj]
+        lstrj <- lstdres[,lj]
         plframe(llevpl, lstrj, xlab=llevtit, plargs=plargs)
         if (lIcook) plrefline(list(x=llx, y=llrcd), x=llevpl, plargs=plargs)
         lplj <- if (lIrpl)  lresplab[,lj]  else  rep("", lnr)
@@ -2757,7 +2757,7 @@ smoothRegr <-
            minobs=NULL, ...)
 {
   minobs <- i.def(minobs, i.getploption("smooth.minobs"), valuefalse=NULL)
-  if (length(x)-sumna(x)<minobs ) return(NULL)
+  if (length(x)-sumNA(x)<minobs ) return(NULL)
   iterations <- max(iterations, 1)
   lform <- if (is.formula(x)) x else y~x
   ## ----------------------------------------------------------------
@@ -2823,7 +2823,7 @@ gensmooth <-
 ##  if (NCOL(ly)==1) ly <- as.matrix(i.def(attr(y,"numvalues"),ly))
 ##  if (any(apply(ly,2, function(y) length(attr(y, "numvalues"))>0)))
   ly <- apply(ly,2, function(y) i.def(attr(y, "numvalues"), y))
-  lnna <- apply(cbind(lx,ly), 1, sumna)
+  lnna <- apply(cbind(lx,ly), 1, sumNA)
   lx[lnna>0] <- NA
   lio <- order(as.numeric(lgrp), lx) ## order by group
   lio <- lio[!is.na(x[lio])]
@@ -2904,8 +2904,8 @@ function(x, y=NULL, data=NULL, panel=plpanel,
       mtext(txt, side=k, line=(1.5+(k %in% axm)), ...)
   }
   lf.eq <- function(v1,v2) {
-    if (is.factor(v1)) is.factor(v2)&& all(notna(as.numeric(v1)==as.numeric(v2)))
-    else all(notna(v1==v2))
+    if (is.factor(v1)) is.factor(v2)&& all(dropNA(as.numeric(v1)==as.numeric(v2)))
+    else all(dropNA(v1==v2))
   }
   ## ---
   oldpar <- par(c("mfrow","mar","cex","mgp")) ##, "ask"
@@ -2978,7 +2978,7 @@ function(x, y=NULL, data=NULL, panel=plpanel,
   }
   nvv <- ncol(ldata)
   lnr <- nrow(ldata)
-  lnobs <- lnr-mean(sumna(ldata))
+  lnobs <- lnr-mean(sumNA(ldata))
   lvsurv <- sapply(ldata, function(x) inherits(x, "Surv") )
   if (any(lvsurv)) { ## survival vars
     lf.surv <- function(dt) structure(dt[,1], pch=dt[,2]+1)
@@ -3339,7 +3339,7 @@ plmboxes.default <-
   if (is.null(at)) at <- 1:lng
   backback <-
     i.getplopt(backback, ploptions) &&
-      length(notna(unique(x[,1])))==2 && NCOL(x)==1
+      length(dropNA(unique(x[,1])))==2 && NCOL(x)==1
   if (backback) {
     llr <- TRUE
     lng <- 1
@@ -3996,7 +3996,7 @@ c.colors <- c("black","red3","deepskyblue3","darkgreen",
     ## condquant
     condquant = TRUE, condprob.range = c(0,1), condquant.pale = c(0.5, 0.5), 
     ## plregr
-    functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelim = c(0.99,0.5)
+    functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelimit = c(0.99,0.5)
   )
 .plargs <- list(ploptions=.ploptions)
   ## makes sure that  .plargs  extists when starting
@@ -4059,7 +4059,7 @@ ploptionsCheck <-
     ## plregr
     functionxvalues = cnr(c(5,500)),
     smooth.xtrim = list(cfn(), cnr(c(0,0.4), na.ok=FALSE)),
-      leveragelim = cnr(c(0.1,1))
+      leveragelimit = cnr(c(0.1,1))
   )
 ## ==========================================================================
 i.col2hex <- function(col) {

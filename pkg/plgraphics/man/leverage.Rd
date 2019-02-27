@@ -45,11 +45,7 @@ leverage(object)
 data(d.blast)
 r.blast <-
   lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-t.lev <- leverage(r.blast)
-length(t.lev)
-dim(d.blast) ## number of observations is 388
-length(r.blast$leverage) ## 362
-  ## only observations without missings occur in $leverage
+showd(leverage(r.blast))
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
