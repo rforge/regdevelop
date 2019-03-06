@@ -17,7 +17,7 @@ pltitle(main=NULL, sub=NULL, cex=NULL, cexmin=NULL,
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
   doc=NULL, show=TRUE, plargs=NULL, ploptions = plargs$ploptions, ...)
 
-plaxis(axis, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
+plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   tickintervals=NULL, plargs = NULL, ploptions = plargs$ploptions, ...) 
 
 }
@@ -37,7 +37,9 @@ plaxis(axis, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   }
   \item{ticklabels}{logical: should tick labels be shown?}
   \item{side}{For \code{pltitle}: in which margin should the text
-    be shown?}
+    be shown?\cr
+    For \code{plaxis}: integer indicating which axis is to be drawn
+  }
   \item{cex}{character size. May be vector of length 3, giving size for
     main title, subtitle, and \code{tit} attribute of title,
     respectively. The default is given by \code{ploptions("title.cex")}.
@@ -49,7 +51,6 @@ plaxis(axis, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   \item{adj}{text adjustment, scalar between 0 and 1}
   \item{outer.margin}{logical: should title text be placed in outer margin?}
   \item{col}{color for the title text or axis line and tickmarks}
-  \item{axis}{integer indicating which axis is to be drawn}
   \item{lab}{logical: should labels for tickmarks be displayed?}
   \item{range}{range in which tickmarks are set}
   \item{doc}{logical: should the \code{tit} attribute of \code{main}

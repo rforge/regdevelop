@@ -20,6 +20,7 @@
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
 \def\wh#1{\widehat{#1}}
+\def\Gets{$<-$}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
@@ -1120,6 +1121,31 @@ the same length as the variables in the data.
 The pl functions \T{plregr, plresx, plres2x} work with the extended
 version. This is reflected in \T{.plargs\$pldata} and allows for
 combining that data.frame with the original dataset.
+
+\subsection{Palette}
+Even though the palette that is active in the global environment is not
+affected, the pl functions use an implicit palette given by 
+\T{ploptions("colors")}. By default, the list is
+<<c.colors>>=
+ploptionsDefault$colors
+@ 
+The selection of these colors has been driven by the following ideas:
+\begin{itemize}
+\item 
+  The first few should be readily distinguishable and reflect a common 
+  sequence: after the default ``black'', the most salient one is red,
+  followed by blue, then ``darkgreen'' because ``green'' is lighter than
+  the foregoing, and finally ``orange''.
+\item
+  The first colors should be simply named. If the user explicitly sets one
+  of them, e.g., by \T{attr(data\$var, "col") \Gets\ "red"}, the pl
+  functions have a chance to avoid them when making default decisions.
+\item
+  After the first group of 4 alternative colors, another group of 4 follows.
+  It is a modification of the first group. The third group is incomplete as
+  no blueish color could be found that would be distint enough from the 
+  foregoing colers.
+\end{itemize}
 
 %% =================================================================
 \vspace{10mm}\noindent

@@ -14,7 +14,8 @@ ploptionsDefault$linewidth
 t.plo <- ploptions(default="linewidth")
 ploptions("linewidth")
 
-t.plo <- ploptions(col="magenta", smoothlines.col="darkgreen", assign=F)
+##!!!
+t.plo <- ploptions(col="magenta", smooth.col="darkgreen", assign=F)
 attr(t.plo, "old")
 ploptions("col")
 t.plo$col
@@ -49,7 +50,7 @@ plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo)
 plyx(Sepal.Width~Sepal.Length, data=iris)
 
 ploptions(gridlines.col="lightblue")
-t.plo <- ploptions(list=list(smoothline.lty=4, smoothline.lwd=5), assign=FALSE)
+t.plo <- ploptions(list=list(smooth.lty=4, smooth.lwd=5), assign=FALSE)
 plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo, gridlines=TRUE)
 
 plyx(y=EuStockMarkets[1:40,], type="b") ## ??? 2 blaue linien

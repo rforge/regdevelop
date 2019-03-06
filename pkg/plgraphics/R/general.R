@@ -264,7 +264,8 @@ last <- function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## -----------------------------------------------------------------
-dropNA <- function (x,inf=TRUE) if (inf) x[is.finite(x)] else x[!is.na(x)]
+dropNA <- function (x,inf=TRUE)
+  if (is.numeric(x)&inf) x[is.finite(x)] else x[!is.na(x)]
 shorten <- function (x, n=50, endstring="...")
   if (nchar(x)>n)
     paste(substring(x, 1, n-nchar(endstring)),endstring, sep="") else x
@@ -620,9 +621,36 @@ i.setvarattribute <- function(attr, value=NULL, data)
   }
   lvar <- var[ljvar]
   if (length(lvar))
-    for (lv in lvar)
-      attr(data[,lv], attr) <- value[[lv]]
+    for (lv in lvar) {
+      if (attr=="plrange") {
+        lattr <- i.adjustticks(value[[lv]], data[,lv])
+        attributes(data[,lv])[names(lattr)] <- lattr
+      } else  attr(data[,lv], attr) <- value[[lv]]
+    }
   data
+}
+## -------------------------------------------------------------------
+i.adjustticks <- function (range, data){
+  if (is.null(lta <- attr(data, "ticksat")))
+    return( list(plrange=range) )
+  lrgtl <- diff(range(lta))
+  lrgl <- diff(range)
+  if (abs(lrgtl-lrgl)>0.4*lrgl) ## do not use given ticks
+    return(list( plrange=range,
+                ticksat=NULL, ticklabelsat=NULL, ticklabels=NULL ))
+  if (any((ltd <- diff(lta))!= (ltad <- ltd[1]))) ## unequal distances ->
+    ## do not know how to extend
+    return( list(plrange=range) )
+  lnint <- lrgl/ltad
+  ltan <- clipat(lta[1]+ltad*seq(-lnint, lnint), range)
+  if (is.null(ltal <- attr(data, "ticklabelsat")))
+    return(list( plrange=range, ticksat=ltan) )
+  if (any((ltd <- diff(ltal))!= (ltad <- ltd[1]))) ## unequal distances 
+    return( list(plrange=range, ticksat=ltan) )
+  lnint <- lrgl/ltad
+  ltaln <- clipat(ltal[1]+ltad*seq(-lnint, lnint), range)
+  ## ticklabels are too difficult to extend
+  list(plrange=range, ticksat=ltan, ticklabelsat=ltaln, ticklabels=NULL)
 }
 ## ============================================================
 ## additional useful functions

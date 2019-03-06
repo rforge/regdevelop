@@ -7,18 +7,19 @@
 }
 \usage{
 stdresiduals(x, residuals=NULL, sigma=x$sigma, weights=NULL,
-    leveragelimit = c(0.99, 0.5))
+    leveragelimit = getOption("leveragelimit"))
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{object}{
-    an object containing a component \code{fit$leverage} and possibly
-    a component \code{fit$na.action}
+  \item{x}{a fitted model object}
+  \item{residuals}{unstandardized residuals. If missing, they are
+    obtained from \code{x}
   }
-  \item{residuals}{unstandardized residuals}
   \item{sigma}{error standard deviation or other scale}
   \item{weights}{weights}
-  \item{leveragelimit}{limit on leverage values}
+  \item{leveragelimit}{scalar a little smaller than 1:
+    limit on leverage values to avoid unduely large or infinite
+    standardized residuals}
 }
 \value{
   vector or matrix of standardized residuals,
@@ -32,7 +33,7 @@ stdresiduals(x, residuals=NULL, sigma=x$sigma, weights=NULL,
 \details{
   The difference to \code{stdres} of package \code{MASS} 
   is that \code{stdresiduals} also applies to multivariate regression
-  and can be used with other regression model fits.
+  and can be used with regression model fits not inheriting from \code{lm}.
 
   The function uses the \code{qr} decomposition of \code{object}.
   If necessary, it generates it.

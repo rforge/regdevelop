@@ -7,13 +7,24 @@
   that drive pl graphics
 }
 \usage{
-plsubset(x, subset)
+plsubset(x, subset = NULL, omit = NULL, select = NULL, drop = FALSE,
+         keeprange = FALSE)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x}{data.frame from which the subset is to be generated
   }
-  \item{subset}{logical vector or vector of indices of rows
+  \item{subset, omit}{logical vector or vector of indices of rows or or
+    rownames of \code{x}.
+    If \code{subset} is used, \code{omit} is ignored.
+  }
+  \item{select}{vector of indices or names of variables to be selected
+  }
+  \item{drop}{logical: if only one variable remains, should the
+    data.frame be converted into a vector?
+  }
+  \item{keeprange}{logical: should ranges
+    (\code{inner.range} and \code{plrange}) be maintained?
   }
 }
 \details{\code{plsubset} maintains the 'pl' attributes of the variables
@@ -22,8 +33,8 @@ plsubset(x, subset)
   This is useful if the way of displaying the axis is to be kept when a
   new plot is drawn.
 }
-\value{Data.frame with the selected rows and all attributes as described
-  above. 
+\value{Data.frame with the selected rows (or without the \code{omit}ted
+  rows, respectively) and all attributes as described above. 
 }
 \author{Werner A. Stahel
 }
@@ -36,7 +47,9 @@ plsubset(x, subset)
 data(d.river)
 dd <- d.river[seq(1,1000,4),]
 dd$time <- gentimeaxis("date",hour="hour", data=dd)
-dsubs <- plsubset(dd, 1:50)
+attr(dd$time, "ticksat")
+
+dsubs <- plsubset(dd, subset=1:50)
 attr(dsubs$time, "ticksat")
 
 plyx(O2~time, data=dsubs)

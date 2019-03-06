@@ -67,7 +67,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        ## i.findformfac,
        ## linear.predictors, linpred, 
        modelTable,
-       nainf.exclude, ## "%nin%",
+       ## nainf.exclude, "%nin%",
        plot.regrAllEqns, 
        ## predict.mlm, predict.polr,
        predict.regr,

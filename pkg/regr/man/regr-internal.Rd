@@ -24,10 +24,7 @@
 ## i.polr(...)
 ## i.smooth(...)
 
-is.formula(object)
-x \%nin\% y
 \method{print}{mregr}(x, na.print=getUseroption("na.print"), ...)
-DB(on=TRUE)
 subset(x, ...)
 }
 \arguments{

@@ -63,12 +63,21 @@ ploptionsDefault
   \cr very incomplete for the time being!!!
   %% ===========================================================
   \itemize{
+    \item{ticklength}{vector of 4 scalars: tickmark length,
+      corresponding to \code{par("tcl")}. The first 2 elements
+      define the length of the regular tickmarks, the other two,
+      of the ``small'' tichmarks given by
+      \code{attr(ticksat, "small")} (\code{ticksat} is a possible
+      attribute of each variable).
+      There are two elements each in order to define tickmarks that
+      cross the axis.
+    }
     \item{tickintervals}{vector of length 2. The first element is the
       desired number of tick intervals for axes, to be used as argument
       \code{n} in \code{\link{pretty}}.
       The second determines how many tick labels are shown in the same
       way, and should therefore be smaller than (or equal to) the first.
-    }      
+    }
     \item{gridlines}{can be \cr
       -- a logical indicating if gridlines should be drawn. If
       \code{TRUE}, gridlines will be drawn at the values given in

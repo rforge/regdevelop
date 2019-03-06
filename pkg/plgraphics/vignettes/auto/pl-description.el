@@ -17,6 +17,7 @@
     "amsmath"
     "pldescr")
    (TeX-add-symbols
-    "wh"))
+    "wh"
+    "Gets"))
  :latex)
 
