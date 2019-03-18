@@ -46,15 +46,15 @@ plsubset(x, subset = NULL, omit = NULL, select = NULL, drop = FALSE,
 \examples{
 data(d.river)
 dd <- d.river[seq(1,1000,4),]
-dd$time <- gentimeaxis("date",hour="hour", data=dd)
-attr(dd$time, "ticksat")
+dd$date <- gendateaxis("date",hour="hour", data=dd)
+attr(dd$date, "ticksat")
 
 dsubs <- plsubset(dd, subset=1:50)
-attr(dsubs$time, "ticksat")
+attr(dsubs$date, "ticksat")
 
-plyx(O2~time, data=dsubs)
+plyx(O2~date, data=dsubs)
 ## same as
-## plyx(O2~time, data=dd, subset=1:50)
+## plyx(O2~date, data=dd, subset=1:50)
 }
 \keyword{manip}
 \keyword{attribute}

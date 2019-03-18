@@ -1,18 +1,19 @@
-\name{gentime}
-\alias{gentime}
-\alias{gentimeaxis}
+\name{gendateaxis}
+\alias{gendate}
+\alias{gendateaxis}
 
-\title{Generate a variable expressing time or its attributes for plotting
+\title{Generate a variable expressing time with its attributes for plotting
 }
-\description{\code{gentime} generates a date variable and is an
-  extension of \code{\link{as.POSIXct}}.\cr
-  \code{gentimeaxis} generates suitable attributes for plotting such a time
+\description{\code{gendateaxis} generates suitable attributes for
+  plotting a date or time variable.\cr
+  \code{gendate} generates a date variable and is an extension of
+  \code{\link{as.POSIXct}}.
 }
 \usage{
-gentime(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 0,
+gendate(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 1,
   hour = 0, min = 0, sec = 0, data = NULL, dateformat = "\%Y-\%m-\%d")
 
-gentimeaxis(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 0,
+gendateaxis(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 1,
   hour = 0, min = 0, sec = 0, data = NULL, dateformat = "\%Y-\%m-\%d",
   ploptions=NULL)
 }
@@ -55,8 +56,8 @@ gentimeaxis(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 0,
   Similar for \code{min} and \code{sec}.
 }  
 \value{
-  For \code{gentime}, a vector of times in \code{POSIXct} format.\cr
-  For \code{gentimeaxis}, this is augmented by the attribute
+  For \code{gendate}, a vector of times in \code{POSIXct} format.\cr
+  For \code{gendateaxis}, this is augmented by the attribute
   \item{numvalues}{numerical values used for plotting.
     If years, months or days vary in the data, the units are days.
     Otherwise, they are hours, minutes, or seconds, depending on the
@@ -76,7 +77,7 @@ gentimeaxis(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 0,
 \author{Werner A. Stahel
 }
 \note{
-  \code{gentimeaxis} converts the date into
+  \code{gendateaxis} converts the date into
   \code{julian(date, origin = as.Date("2000-01-01"))}, storing
   these values as the attribute \code{attr(.,"numvalues")}
   (rather than using the default origin at 1970).
@@ -88,14 +89,14 @@ gentimeaxis(date = NULL, year = 2000, month = 1, mon = 0, day = 1, mday = 0,
 \seealso{\code{\link{genvarattributes}}, \code{\link{axis.Date}}
 }
 \examples{
-## call gentimeaxis without 'real' data
-tt <- gentime(year=rep(2010:2012, each=12), month=rep(1:12, 3))
-ta <- gentimeaxis(tt)
+## call gendateaxis without 'real' data
+tt <- gendate(year=rep(2010:2012, each=12), month=rep(1:12, 3))
+ta <- gendateaxis(tt)
 str(unclass(ta)) ## str(ta) does not show the attributes
 
 ## ... derived from data
 data(d.river)
-d.river$time <- gentimeaxis(date="date", hour="hour", data=d.river)
+d.river$time <- gendateaxis(date="date", hour="hour", data=d.river)
 plyx(O2~time, data=d.river, subset=months(date)!="September")
 plyx(O2~time, data=d.river[months(d.river$date)!="September",])
 plyx(O2~time, data=d.river[1:1000,])

@@ -1,7 +1,7 @@
 \name{step}
-\alias{step}
+%% \alias{step}
 \alias{step.regr}
-\alias{step.default}
+%% \alias{step.default}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 Choose a model in a Stepwise Algorithm
@@ -10,11 +10,12 @@ Choose a model in a Stepwise Algorithm
   Select a formula-based model
 }
 \usage{
-step(object, ...)
-\method{step}{default}(object, scope, scale = 0,
-  direction = c("both", "backward", "forward"), trace = 1, keep = NULL,
-  steps = 1000, k = 2, ...) 
-\method{step}{regr}(object, scope = NULL, expand=FALSE, scale = 0,
+%%  step(object, ...)
+%% \method{step}{default}(object, scope, scale = 0,
+%%   direction = c("both", "backward", "forward"), trace = 1, keep = NULL,
+%%   steps = 1000, k = 2, ...) 
+%% \method{step}{regr}
+step.regr(object, scope = NULL, expand=FALSE, scale = 0,
   direction = c("both", "backward", "forward"), trace = FALSE, keep = NULL,
   steps = 1000, k = 2, ...)
 }
@@ -137,9 +138,9 @@ step(object, ...)
 }
 \examples{
 r.fit <- regr(Fertility ~ ., data = swiss)
-r.step <- step(r.fit)
+r.step <- step.regr(r.fit)
 r.step$anova
-r.st2 <- step(r.fit, k=8, trace=FALSE)
+r.st2 <- step.regr(r.fit, k=8, trace=FALSE)
 r.st2
 % the following causes an error in R CMD check, but runs when I try it.
 % r.st3 <- step(r.fit, scope=terms2order(r.fit), k=5, trace=FALSE)

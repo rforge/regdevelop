@@ -95,7 +95,7 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
 \author{Werner A. Stahel
 }
 
-\seealso{\link{gentimeaxis}; \link{pl.control}
+\seealso{\link{gendateaxis}; \link{pl.control}
 }
 \examples{
 plyx(Sepal.Width ~ Sepal.Length, data=iris)

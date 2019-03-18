@@ -70,6 +70,7 @@
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
 \def\wh#1{\widehat{#1}}
+\def\Gets{$<-$}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
@@ -198,7 +199,7 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smoothline.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
+\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
      \hlkwc{pcol}\hlstd{=Species)}
@@ -311,10 +312,9 @@ the additional arguments of \T{plyx}, respectively
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.river)}
-  \hlstd{t.i} \hlkwb{<-} \hlstd{d.river}\hlopt{$}\hlstd{date} \hlopt{<} \hlkwd{as.Date}\hlstd{(}\hlstr{"2010-03-31"}\hlstd{)}
-  \hlstd{t.d} \hlkwb{<-} \hlstd{d.river[t.i} \hlopt{&} \hlstd{d.river}\hlopt{$}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,]}
-  \hlkwd{plyx}\hlstd{(T}\hlopt{+}\hlstd{O2}\hlopt{+}\hlstd{ra}\hlopt{+}\hlstd{Q}\hlopt{~}\hlstd{date,} \hlkwc{data}\hlstd{=t.d,} \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{,}
-       \hlkwc{smoothline.lty}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{sub}\hlstd{=}\hlstr{"river data"}\hlstd{)}
+  \hlkwd{plyx}\hlstd{(T}\hlopt{+}\hlstd{O2}\hlopt{+}\hlstd{ra}\hlopt{+}\hlstd{Q}\hlopt{~}\hlstd{date,} \hlkwc{data}\hlstd{=d.river,}
+       \hlkwc{subset}\hlstd{=date}\hlopt{<}\hlkwd{as.Date}\hlstd{(}\hlstr{"2010-03-31"}\hlstd{)}\hlopt{&}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,}
+       \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{,} \hlkwc{smooth.lty}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{sub}\hlstd{=}\hlstr{"river data"}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-time-1} 
@@ -387,6 +387,22 @@ The multibox plot can also be called directly.
 %% !!! ausreisser verschwindet
 
 \Tit{Censored data}
+Censored data is shown with special symbols, determined by the ploption
+\T{censored.pch}. The default for this option contains 8 elements
+corresponding to the combined cases of no, right and left censoring of 
+the x and y variables.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
+\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/censored-1} 
+
+\end{knitrout}
 
 \Tit{Raw or transformed variables?}
 Simple formulas just include names of variables on both sides of the $\sim$
@@ -451,12 +467,12 @@ Graphical regression diagnostics are the essential tools for developing
 adequate models in many statistical problems.
 The primary purpose of developing \T{plgraphics} has been to improve
 regression diagnostic plots.
-The features are obtained by using \T{plot.regr}.
+The features are obtained by using \T{plregr}.
 
 \subsection{The basic diagnostic plots}
 When R objects obtained from fitting a model are fed into R's \T{plot}
 function, some fundamental diagnostic plots appear. 
-The figure shows the versions of these displays obtained by \T{plot.regr}.
+The figure shows the versions of these displays obtained by \T{plregr}.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -464,7 +480,7 @@ The figure shows the versions of these displays obtained by \T{plot.regr}.
 \hlkwd{data}\hlstd{(d.blast)}
 \hlstd{rr} \hlkwb{<-}
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
-\hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{plregr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
@@ -533,7 +549,7 @@ Mahalanobis distances from the center of the design based on the
 Therefore, a plot of resuduals against leverages should reveal the overly
 influential observations.
 
-The leverage plot of \T{plot.regr} uses \emph{standardized} residuals
+The leverage plot of \T{plregr} uses \emph{standardized} residuals
 in contrast to R's standard leverage plot shown by \T{plot}.
 In the case of weighted observations, ``de-weighted'' leverages,
 \[
@@ -567,7 +583,7 @@ models.
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
-indicates that by default, \T{plot.regr} 
+indicates that by default, \T{plregr} 
 shows more diagrams: The plots of residuals against explanatory variables.
 
 \subsection{Residuals against input variables}
@@ -578,7 +594,7 @@ we call them ``input'' variables here.
 The plots of residuals against these variables are important regression
 diagnostics. They are often neglected since the ordinary plot function
 for models does not show them. 
-\T{plot.regr} does, unless \T{xvars=FALSE} is used as it was above.
+\T{plregr} does, unless \T{xvars=FALSE} is used as it was above.
 It does so by calling \T{plresx}, which can also be done directly.
 
 \begin{knitrout}
@@ -617,7 +633,7 @@ The transformed input variables are those appearing in the terms of the
 formula, as delivered by \T{rownames(attr(terms(formula[1:2]), "factors"))}.
 }
 
-plot.regr(rr, transformed=TRUE, reflinesband=TRUE)
+plregr(rr, transformed=TRUE, reflinesband=TRUE)
 
 \Detail{
 If the fit object contains a variable \T{weight}, then residuals will be
@@ -678,14 +694,16 @@ This results in residual plots like those shown in the figure.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(survival)}
-\hlkwd{data}\hlstd{(lung)}
-\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
-\hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
-          \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
 \end{alltt}
 
 
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in condquant(llim, ldist, lsig): :condquant: probabilities <0 or >1}}\end{kframe}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
+\hlkwd{data}\hlstd{(lung)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
+\hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
+          \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
+\end{alltt}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/survresiduals-1} 
 
 \end{knitrout}
@@ -754,12 +772,12 @@ one of the usual choices.
   \hlkwd{data}\hlstd{(d.babysurvival)}
   \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
   \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
-  \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+  \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-1} 
 \begin{kframe}\begin{alltt}
-  \hlkwd{plot.regr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+  \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
             \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -949,7 +967,7 @@ The components of these lists include
   \T{functionxvalues} contains the number of argument values for which 
   a smooth function or fitting component is evaluated in diagnostic plots.
 \item
-  \T{leveragelim} determines the range used for leverage values
+  \T{leveragelimit} determines the range used for leverage values
   when plotting residuals against leverages.
 \end{itemize}
 
@@ -970,7 +988,7 @@ This allows for inspection of the plotting data
 \T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions})
 and thereby helps debugging.
 
-\Tit{Plotting data.}
+\Tit{Plotting properties data.}
 There are plotting elements that are useful to represent individual
 observations or individual variables.
 Those related to the observations include:
@@ -1062,9 +1080,12 @@ generated by \T{pl.control} when calling such a function.
 \T{genvarattributes}
 \T{varattributes}
 
-\Tit{\T{gentimeaxis}.}
-The function \T{gentimeaxis} provides nice tick values and labels for 
-variables having a time scale. 
+\Tit{\T{gendateaxis}.}
+The function \T{gendateaxis} provides nice tick values and labels for 
+variables expressing a date having a time scale. 
+Dates should be expressed in \T{POSIXt} or \T{Date} format.
+The function \T{gendate} helps to generate such a date. It is an extension
+of \T{as.POSIXct}.
 
 \section{Low level graphics}
 
@@ -1104,7 +1125,7 @@ ranges and draws gridlines and axes, the latter by calling \T{plaxis}.
   in the plot, respectively.
 \item
   \T{plrefline} adds reference lines (straight lines or curves) to a plot.
-  It is used by \T{plot.regr} and \T{plresx}.
+  It is used by \T{plregr} and \T{plresx}.
 %%-   as a vector giving intercept and slope of a straight line.
 %%-   or a function that returns this list, such as \T{lm};
 \item
@@ -1271,6 +1292,7 @@ A rule suggests $d=4/(n-p)$ as a warning level.
 Curves are drawn for $d=\T{cookdistlines}^2/(n-p)$.
 
 \subsection{Modified methods for \T{residuals, fitted, predict}}
+%
 Some methods for the extractor functions \T{residuals, fitted, predict}
 needed modifications and extensions.
 For example, \T{type="link"} is needed for \T{polr} models.
@@ -1278,8 +1300,13 @@ The package contains a method \T{predict.regrpolr} which is used within the
 package and provides the additional type, but is otherwise compatible with
 \T{predict.polr} of the package \T{MASS}. It is exported.
 Similarly, there are the methods
-\T{fitted.regrpolr, residuals.polr, residuals.regrsurvreg, 
+\T{fitted.regrpolr, residuals.regrpolr, residuals.regrsurvreg, 
   residuals.regrcoxph}.
+Since a method for residuals is not available in the \T{MASS} package
+for \T{polr} fitted models, \T{residuals.regrpolr} is also
+made available as \T{residuals.polr} and thereby provides the missing
+method. 
+
 
 \subsection{Missing values in residual analysis}
 Model fitting functions in R support two different ways of dealing with
@@ -1294,9 +1321,43 @@ The alternative choice, \T{na.action=na.exclude}, corrects this flaw.
 Vectors of residuals will contain \T{NA}s where appropriate and have 
 the same length as the variables in the data.
 
-The pl functions \T{plot.regr, plresx, plres2x} work with the extended
+The pl functions \T{plregr, plresx, plres2x} work with the extended
 version. This is reflected in \T{.plargs\$pldata} and allows for
 combining that data.frame with the original dataset.
+
+\subsection{Palette}
+Even though the palette that is active in the global environment is not
+affected, the pl functions use an implicit palette given by 
+\T{ploptions("colors")}. By default, the list is
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ploptionsDefault}\hlopt{$}\hlstd{colors}
+\end{alltt}
+\begin{verbatim}
+##  [1] "black"        "red"          "blue"         "darkgreen"   
+##  [5] "orange"       "purple"       "deepskyblue2" "green3"      
+##  [9] "brown"        "pink3"        "aquamarine3"  "brown2"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The selection of these colors has been driven by the following ideas:
+\begin{itemize}
+\item 
+  The first few should be readily distinguishable and reflect a common 
+  sequence: after the default ``black'', the most salient one is red,
+  followed by blue, then ``darkgreen'' because ``green'' is lighter than
+  the foregoing, and finally ``orange''.
+\item
+  The first colors should be simply named. If the user explicitly sets one
+  of them, e.g., by \T{attr(data\$var, "col") \Gets\ "red"}, the pl
+  functions have a chance to avoid them when making default decisions.
+\item
+  After the first group of 4 alternative colors, another group of 4 follows.
+  It is a modification of the first group. The third group is incomplete as
+  no blueish color could be found that would be distint enough from the 
+  foregoing colers.
+\end{itemize}
 
 %% =================================================================
 \vspace{10mm}\noindent

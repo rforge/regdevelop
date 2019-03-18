@@ -674,7 +674,7 @@ i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
 RNAMES <- function (x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function (object)
-  length(class(object))>0 && class(object)=="formula"
+  length(class(object))>0 && inherits(object, "formula")
 u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
 
 nafalse <- function (x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)

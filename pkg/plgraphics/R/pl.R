@@ -290,6 +290,7 @@ i.setplrange <- function(data, plrange=NULL, xlim=NULL, ylim=NULL, ...)
     if (length(lnm <- names(lim))) {
       lim <- lim[intersect(lnm, lxv)]
     } else {
+      if (length(lim)==1) lim <- rep(lim, length(lxv))
       if (length(lim)==length(lxv))
         names(lim) <- lxv
       else {
@@ -334,7 +335,7 @@ plinnerrange <-
 genvarattributes <-
   function(data, ynames = NULL, ycol = NULL, ylty = NULL, ypch = NULL,
            varlabels = NULL, innerrange.limits = NULL,
-           ploptions = NULL, replace = FALSE)
+           replace = FALSE, ploptions = NULL)
 {
   if (!is.data.frame(data))
     stop("!genvarattributes! 'data' must be a data frame")
@@ -382,7 +383,7 @@ genvarattributes <-
   ## Date
   for (lj in 1:ncol(data))
     if (inherits(ld <- data[,lj], "Date") && is.null(attr(ld, "numvalues")))
-      data[,lj] <- gentimeaxis(setNames(ld,lrown))
+      data[,lj] <- gendateaxis(setNames(ld,lrown))
   ## line color and type
   if (is.null(ynames))
     ynames <- union(union(names(ycol),names(ylty)),names(ypch))
@@ -542,15 +543,7 @@ plframe <-
   ly <- lcoord$x
   lyy <- lcoord$xx
   lrgy <- lcoord$range
-##-   
-##-   ly <- if (is.data.frame(y)) y[,1] else y ## x[,2] ## lpd[,y]
-##-   lrgy <- attr(ly,"plrange")
-##-   lyy <- i.def(attr(ly, "numvalues"), ly)
-##-   if (length(lrgy)==0)
-##-     lrgy <- i.extendrange(range(as.numeric(lyy), na.rm=TRUE), lext[3:4])
-##-   if (length(ly)==0)
-##-     stop("!plframe! unsuitable argument 'y'")
-  ## 
+  ## margins
   lmar <- rep(i.getploption("mar"), length=4)
   if (anyNA(lmar)) lmar <- ifelse(is.na(lmar), par("mar"), lmar)
   lmgp <- i.getploption("mgp")
@@ -631,7 +624,8 @@ plframe <-
            col=i.getploption("zeroline.col"))
   }
   ## bounding boxes
-  abline(h=unique(c(lirgy, lrgy)), lty=3)
+  abline(h=unique(c(ifelse(lnmody>0, lirgy, lrgy), lrgy)), lty=3)
+  abline(v=unique(c(ifelse(lnmodx>0, lirgx, lrgx), lrgx)), lty=3)
   lxrg <- ifelse(lnmodx>0, lirgx, lrgx)
   lyrg <- ifelse(lnmody>0, lirgy, lrgy)
   lines(lxrg[c(1,2,2,1,1)], lyrg[c(1,1,2,2,1)])
@@ -681,18 +675,23 @@ plaxis <-
   if(lab && (lmar[side]>lmgp[1]+1 | lIouter) )
     mtext(varlabel, side=side, line=lmgp[1], xpd=TRUE, col=col,
           cex=lcex*par("cex.lab"))
-  ## tick labels
+  ## ticks and tick labels
   if (length(lat)>1) {
-    lat <- lat[lat>=range[1] & lat<=range[2]]
-    if (length(lat)>1) {
-      if (length(llabat)) {
-        if (!is.numeric(llabat)) {
-          warning(":plaxis: 'ticklabelsat' must be numeric")
-          llabat <- NULL
-        }
-      } else llabat <- lat
-    }
+    if (length(llabat)) {
+      if (!is.numeric(llabat)) {
+        warning(":plaxis: 'ticklabelsat' must be numeric")
+        llabat <- NULL
+      }
+    } else llabat <- lat
     if (length(llab)) {
+      if (NCOL(llabat)>1) { ## labels placed in the middle of intervals
+        lc <- rbind(apply(llabat, 2, clipat, range=range, clipped=NA))
+        li <- apply(lc, 1, sumNA) ==2
+        llabat <- apply(llabat, 2, clipat, range=range, clipped=range)
+        llabat <- apply(llabat, 1, mean, na.tm=TRUE)
+        ##-                    pmin(pmax(llabat[,2],range[1]),range[2]))/2
+        llabat[li] <- NA
+      }
       if (length(llab)!=length(llabat)) {
         if (length(llab)==1) llab <- rep(llab,length(llabat))
         else {
@@ -702,12 +701,17 @@ plaxis <-
       }
     }
     if (length(llab)==0) llab <- if (lab) format(llabat)
-  } else {
-    lat <- pretty(range, i.getplopt(tickintervals, ploptions))
-    llabat <- lat <- lat[lat>=range[1] & lat<=range[2]]
+    lat <- clipat(lat, range)
+    llabat <- clipat(llabat, range, NA)
+    li <- is.na(llabat)|is.na(llab)
+    llabat <- llabat[!li]
+    llab <- llab[!li]
+  } else { ## lat not given
+    lat <- llabat <-
+      clipat(pretty(range, i.getplopt(tickintervals, ploptions)), range)
     llab <- if (lab) format(lat) else FALSE
   }
-  if (length(llab)==0 | !lab) llab <- rep("",length(lat))
+  if (length(llab)==0 | !lab) llab <- rep("",length(llabat))
   ## axes
   ## tick lengths
   ltcl <- rep(i.getploption("ticklength"))
@@ -1184,244 +1188,76 @@ plcoord <-
   rr
 }
 ## -------------------------------------------------------------------
-gentimeaxis <-
-  function(date=NULL, year=2000, month=1, mon=0, day=1, mday=0, hour=0, min=0, sec=0,
-           data=NULL, dateformat="%Y-%m-%d", ploptions=NULL)
-{
-  ## generate time axis
-  ## -------------------------------------------------------------
-  ## --- arguments
-  lf.2char <-
-    function(x)
-      substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
-  ## ----
-  lcall <- match.call()
-  ltrangelim <- i.getploption("timerangelim")
-  ltickint <- i.getploption("tickintervals")
-  lcall$ploptions <- NULL
-  lcall[[1]] <- quote(gentime)
-  mode(lcall) <- "call"
-  date <- eval(lcall, sys.parent())
-  ## -----------------------------------------------------------------
-  ldate <- unclass(as.POSIXlt(date))
-  ldate$month <- ldate$mon+1
-  ldate$day <- ldate$mday+1
-  lx <- structure(unclass((date-as.POSIXct("2000-01-01"))), unit="day")
-  lndays <- diff(range(lx))
-  ##
-  ldate <- as.data.frame(ldate[c("year","month","day","hour","min","sec")])
-  lcvar <-
-    apply(ldate, 2, function(x) diff(range(x, na.rm=TRUE))) > 0 ## which cats vary?
-  lat1 <- lat2 <- NULL
-  llab <- NULL
-  llabel <- NULL ## variable label
-  ## ---------------------------------------------------------
-  lf.seq <- function(x) {lrg <- range(x); seq(lrg[1],lrg[2])}
-  lyr <- lf.seq(ldate[,"year"])
-  if (lcvar["year"]) { ## years vary
-    if (lcvar["month"]) { ## months vary, too
-      if (!lcvar["day"]) day <- 1
-      lystart <- julian(as.Date(paste(lyr,"01-01", sep="-")),
-                        origin = as.Date("2000-01-01"))
-      lmstart <-
-        julian(as.Date(paste(rep(lyr, each=12),lf.2char(1:12),"01", sep="-")),
-               origin = as.Date("2000-01-01"))
-      lat1 <- latyr <-
-        if (length(lyr) > ltickint[1]) pretty(year, n=ltickint[1])
-        else lyr 
-      liy <- match(latyr,lyr)
-      if (length(lyr) < c(ltrangelim[["year"]],20)[2])  ## tick labels at years
-        lat1 <- lystart ## ticks
-      llab <- as.character(latyr) ## labels
-      llabat <- latyr + 365/2 ## labels in middle of year
-      if (length(lyr) < ltrangelim[["year"]][1])  { ## tick labs at years & quarters
-        lat2 <- lmstart[seq(1,length(lmstart),3)] ## ticks
-        lyrnm <- paste(lyr,":",sep="")
-        llab <- paste(c(rbind(lyrnm,"","","")),
-                      rep(c.quarters, length=length(lat1)), sep="")
-        llabat=lat1 + 30*rep(c(0, 0.5, 0.5, 0.5), length=length(lat1) )
-        lat2 <- lmstart
-      }
-    } else  ## years only: unit is year
-      return(structure(date, numvalues=ldate$year))
-      ## --- 
-  } else { ## months vary, years do not
-    if (lcvar["month"]) {
-      if (lcvar["day"]) { ## day vary, too
-        lmon <- lf.seq(ldate[,"month"])
-        lmstart <-
-          julian(as.Date(paste(lyr,lf.2char(lmon),"01", sep="-")),
-                 origin = as.Date("2000-01-01"))
-        lat1 <- lmstart-0.5 ## start of the month
-        llab <- c.mon[lmon] 
-        llabat <- lat1+15  ## middle
-        if (length(lmon) > c(ltrangelim[["month"]],10)[2]) {
-          llabat <- llabat[li <- seq(1,length(lat1),3)]
-          llab <- llab[li]
-        } else
-          if (length(lmon) < ltrangelim[["month"]][1]) {
-            lat2 <- rep(lat1,each=3) + rep(c(0,10,20), length(lat1)) ## 2 additional t
-          }
-      } else { ## only months vary 
-        llabat <- lat1 <- lmon
-        llab <- c.mon[lmon]
-        if(length(lmon) > c(ltrangelim[["month"]],10)[2]) {
-          llabat <- lmon[li <- seq(1,length(lmon),3)]
-          llab <- llab[li]
-        }
-        return(structure(date, numvalues=ldate$month, ticksat=lat1,
-                         ticklabelsat=llabat, ticklabels=llab) )
-      }
-    } else { ## month does not vary
-      if (lcvar["day"]) { ## day varies
-        if (lcvar["hour"]) {
-          lat1 <- lcd <- lf.seq(ldate[,"day"])
-          if (length(lat1)>c(ltrangelim[["day"]],10)[2]) {
-            lat2 <- lat1
-            lat1 <- seq(0,30,5)
-          } else 
-            lat2 <- if(lndays<ltrangelim[["day"]][1])
-                      unique(rep(lat1, each=5)+rep(0:4/4, length(lat1)))  else NULL
-          llabat <- lat1+0.5
-          llab <- as.character(lat1)
-          llabel <- "day"
-        } else { ## only day varies
-          return(structure(date, numvalues=lx))
-        }
-      } else { ## day does not vary
-        if (lcvar["hour"]) { ## hour varies
-          lx <- structure(24*(lx-floor(lx)), unit="hour")
-          if (lcvar["min"]) { ## minute varies
-            if (length(lhr <- lcvar["hour"])<ltrangelim[["hour"]][1]) {
-              lat1 <- seq(floor(min(lhr)), max(lhr)+1)
-              lat2 <- unique(rep(lat1, each=5)+rep(0:4/4, length(lat1)))
-            } else {
-              lat1 <- c(0,6,12,18,24)
-              lat2 <- 0:24
-            }
-            llab <- as.character(lat1)
-            llabat <- lat1
-            llabel <- NULL
-          } else  ## only hour varies
-            return(structure(date, numvalues=lx))
-        } else { ## hour does not vary
-          if (lcvar["min"]) { ##  minutes vary
-            lx <- structure(60*(lx-floor(lx)), unit="min")
-            if (lcvar["sec"]) {
-              lmin <- lf.seq(ldate[,"min"])
-              lat1 <- latm <-
-                if (length(lmin) > ltickint[1]) pretty(lmin, n=ltickint[1])
-                else lmin
-              if (length(lmin) < c(ltrangelim[["min"]],20)[2])
-                lat2 <- lmin
-              if (length(lmin) < ltrangelim[["min"]][1]) {
-                lat1 <- lmin
-                lat2 <- seq(min(lmin),max(lmin),0.25)
-              }
-            } else ## only minute varies
-              return(structure(date, numvalues=lx))
-          } else ## only second varies
-            return(structure(date, numvalues=structure(ldate$sec, unit="sec")))
-        } 
-      }
-    }
-    structure(date, numvalues=lx, ticksat=structure(lat1, small=lat2),
-              ticklabelsat=llabat, ticklabels=llab)
-  }
-  ## --------------------------------------------------------
-  lat1 <- c(lat1, max(lat1)+max(diff(lat1))) ## lazy for months...
-  structure(date, numvalues=lx, 
-            ticksat=structure(lat1, small=lat2),
-            ticklabelsat=llabat, ticklabels=llab, varlabel=llabel,
-            vartype=c("time","date"))      
-}
 ## =====================================================================
-gentime <-
-  function (date=NULL, year=2000, month=1, mon=0, day=1, mday=0,
+gendate <-
+  function (date=NULL, year=2000, month=1, mon=0, day=1, mday=1,
             hour=0, min=0, sec=0, data=NULL, dateformat="%Y-%m-%d")
 {
   ## generate time -> POSIXct
   ## -------------------------------------------------------------
-  lf.2char <-
-    function(x)
-      substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
+  lf.2char <- function(x) {
+    x <- round(x)
+    substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
+  }
+  ltimeargs <- c("date", "year", "month", "mon", "day", "mday", "hour", "min", "sec")
+  ldefaults <- list(NULL, 2000, 1,0, 1,1, 0,0,0)
   lnm <- NULL
   ## --- arguments
   lcall <- match.call()
-  largs <- intersect(
-    names(lcall),
-    c("date", "year", "month", "mon", "day", "mday", "hour", "min", "sec")
-    )
+  largs <- intersect(names(lcall), ltimeargs)
+  ldt <- setNames(ldefaults, ltimeargs)
   ## arguments can be names of variables in  data
-  if (length(data)) { ## get years, months, ... from  data !!! -> eval
-    data <- as.data.frame(data)
-    lnm <- row.names(data)
-    ## arguments that are names of variables
-    if (length(largs)) {
-      inp <- parse(text = paste("list(", paste(largs, collapse = ","),")"),
-                   keep.source = FALSE)
-      vars <- try(eval(inp, data), silent=TRUE) ## , lenv
-      if (class(vars)=="try-error") {
-        lvnmiss <- setdiff(largs, names(data))
-        stop(sub("object", "!gentimeaxis! variable (or object)",
-                 attr(vars, "condition")$message),
-             if (length(lvnmiss)>1)
-               paste(". \n    All of ",
-                     paste(lvnmiss, collapse=", "), "may be unavailable.")
-             )
-      }
-      names(vars) <- largs
-      ldf <- as.data.frame(vars)
-      if ("date"%in%largs) {
-        date <- ldf[,"date"]
-        ldatenm <- as.character(substitute(lcall$date))  ## name of the date variable
-      }
-      if ("year"%in%largs) year <- ldf[,"year"]
-      if ("mon"%in%largs) mon <- ldf[,"mon"]
-      if ("month"%in%largs) month <- ldf[,"month"]
-      if ("mday"%in%largs) mday <- ldf[,"mday"]
-      if ("day"%in%largs) day <- ldf[,"day"]
-      if ("hour"%in%largs) hour <- ldf[,"hour"]
-      if ("min"%in%largs) min <- ldf[,"min"]
-      if ("sec"%in%largs) sec <- ldf[,"sec"]
-    }
+##  if (length(data)) { ## get years, months, ... from  data !!! -> eval
+  data <- as.data.frame(data)
+  lnm <- row.names(data)
+  ## arguments that are names of variables
+  if (length(largs)==0)  stop("!gendate! no date arguments found")
+  inp <- parse(text = paste("list(", paste(lcall[largs], collapse = ","),")"),
+               keep.source = FALSE)
+  vars <- try(eval(inp, if (length(data)) data else parent.frame()), silent=TRUE) 
+  if (class(vars)=="try-error") {
+    lvnmiss <- setdiff(largs, names(data))
+    stop(sub("object", "!gendate! variable (or object)",
+             attr(vars, "condition")$message),
+         if (length(lvnmiss)>1)
+           paste(". \n    All of ",
+                 paste(lvnmiss, collapse=", "), "may be unavailable.")
+         )
   }
-  if ("mon"%in%largs) month <- mon + 1
-  if ("mday"%in%largs) day <- mday + 1
+  ldt[largs] <- vars
+  if ("month"%nin%largs) ldt$month <- ldt$mon + 1
+  if ("day"%nin%largs) ldt$day <- ldt$mday
   ## month
-  if (is.factor(month)) month <- as.character(month)
-  if (is.character(month)) {
-    lmnum <- match(month, c.months, nomatch=0) ## distiguish NA and nommatch
-    if (any(lmnum==0, na.rm=TRUE)) lmnum <- match(month, c.mon, nomatch=0)
-    if (any(lmnum==0, na.rm=TRUE)) stop("!gentimeaxis! inadequate argument 'month'")
-    month <- lmnum
+  if (is.factor(ldt$month)) ldt$month <- as.character(ldt$month)
+  if (is.character(ldt$month)) {
+    lmnum <- match(ldt$month, c.months, nomatch=0) ## distiguish NA and nommatch
+    if (any(lmnum==0, na.rm=TRUE)) lmnum <- match(ldt$month, c.mon, nomatch=0)
+    if (any(lmnum==0, na.rm=TRUE))
+      stop("!gendate! inadequate argument 'month'")
+    ldt$month <- lmnum
   }
   ## --- argument 'date'
-  if (length(date)) {
-    if (inherits(date, "POSIXt")) {
-      ldate <- as.POSIXlt(date)
-      if (length(lj <- setdiff(c("hour","min","sec"), largs))) {
-        if (length(lj)==3) return(date)
-        ldt[,lj] <- ldate[lj]
-      }
-    } else {
-      if (inherits(date, "Date")) date <- as.POSIXct(date)
-      else {
-        if (inherits(date,"factor")) date <- as.character(date) 
-        if (is.character(date)) ldate <- as.POSIXct(date, format=dateformat)
-        else stop(":gentimeaxis: argument 'date' not suitable.")
-      }
+  date <- ldt$date
+  if (length(date)) { ## get  timeargs  from  date
+    if (inherits(date, "Date")) date <- as.POSIXct(format(date))
+    else {
+      if (inherits(date,"factor")) date <- as.character(date)
+      if (is.character(date)) date <- as.POSIXct(date, format=dateformat)
     }
-##-     ldate <- unclass(ldate)
-##-     ldt[,"year"] <- ldate$year+1900
-##-     ldt[,"month"] <- ldate$mon+1
-##-     ldt[,"day"] <- ldate$mday+1
-  } else
-    date <- as.POSIXct( paste(year, lf.2char(month), lf.2char(day),sep="-"))
-  ##
-  if ("day"%nin%largs) day <- as.POSIXlt(date)$mday+1
+    if (!inherits(date, "POSIXt")) 
+      stop(":gendate: argument 'date' not suitable.")
+    if (length(setdiff(largs, "date"))==0) return(date)
+    ldate <- unclass(as.POSIXlt(date))
+    ldate$year <- ldate$year+1900
+    ldate$month <- ldate$mon+1
+    ldate$day <- ldate$mday
+    la <- setdiff(ltimeargs, largs)
+    ldt[la] <- ldate[la]
+  }
   ## make sure everything is of the correct length
-  ldt <- data.frame(date=date, hour=hour, min=min, sec=sec)
+  ldt <- data.frame(ldt[-1])
+  ## -----------------------------------------------------------------
+  date <- as.POSIXct(paste(ldt$year,lf.2char(ldt$month),lf.2char(ldt$day),sep="-"))
   ## --- convert too large numbers
   if ("sec"%in%largs && any(li <- ldt$sec>=60, na.rm=TRUE)) {
     ldt$min[li] <- ldt$min[li]+ldt$sec[li]%/%60
@@ -1437,27 +1273,165 @@ gentime <-
   }
   ## convert decimals to lower units
   lf.dec <- function(x) x-floor(x)
-  if ("day"%in%largs && any(0!= (ldec <- lf.dec(day)), na.rm=TRUE)) {
-    ## ldt$day <- floor(ldt$day) ## not needed since date is already ok
-    if ("hour"%nin%largs) ldt$hour <- ldec*24
+  if ("day"%in%largs && any(0!= (ldec <- lf.dec(ldt$day)), na.rm=TRUE)) {
+    ldt$day <- floor(ldt$day) 
+    if ("hour"%nin%largs) ldt$hour <- ldec*24 + ldt$hour
   }
-  if ("hour"%in%largs && any(0!= (ldec <- lf.dec(ldt$hour)), na.rm=TRUE)) {
+  if (any(0!= (ldec <- lf.dec(ldt$hour)), na.rm=TRUE)) {
     ldt$hour <- floor(ldt$hour)
-    if ("min"%nin%largs) ldt$min <- ldec*60
+    if ("min"%nin%largs) ldt$min <- ldec*60 + ldt$min
   }
-  if ("min"%in%largs && any(0!= (ldec <- lf.dec(ldt$min)), na.rm=TRUE)) {
+  if (any(0!= (ldec <- lf.dec(ldt$min)), na.rm=TRUE)) {
     ldt$min <- floor(ldt$min)
-    if ("sec"%nin%largs) ldt$sec <- ldec*60
+    if ("sec"%nin%largs) ldt$sec <- ldec*60 ## + ldt$sec  must be zero
   }
   ##
   date <- as.POSIXct(paste(substring(format(date), 1,10),
-      ## paste(ldt$year,lf.2char(ldt$month),lf.2char(ldt$day),sep="-"),
       paste(lf.2char(ldt$hour),lf.2char(ldt$min),lf.2char(ldt$sec),sep=":")
     ))
   if (length(lnm)) names(date) <- lnm
   date
 }
 ## =====================================================================
+gendateaxis <-
+  function(date=NULL, year=2000, month=1, mon=0, day=1, mday=1, hour=0, min=0, sec=0,
+           data=NULL, dateformat="%Y-%m-%d", ploptions=NULL)
+{
+  ## generate time axis.
+  ## resulting tick labels may exceed data range by quite a bit
+  ## -------------------------------------------------------------
+  lf.2char <-
+    function(x)
+      substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
+  lf.seq <- function(x) seq(min(x),max(x))
+  lf.tickat <-
+    function(tickunit, tickint, llev, lkvmax, ystart, mstart, lnlev) {
+      ## generate ticks in  tickint [tickunit]  intervals
+      ## date is unclass(POSIXlt) contains 2 dates, start and end
+      limpossible <- c(229, 230, 231, 431, 631, 931, 1131) ## non-existing days
+      if (tickunit=="y") return(ystart)
+      lkunit <- match(tickunit, names(lnlev))
+      llev[[lkunit]] <- ltatu <- seq(0, lnlev[lkunit], tickint)
+      lv1 <- llev[[lkvmax]]
+      if (lkvmax < lkunit-1) {
+        for (lk in (lkvmax+1):lkunit-1) {
+          llev[[lk]] <- llv <- 0:lnlev[lk]
+          lv1 <- c(outer(llv, lv1*100, "+"))
+        }
+      }
+      if (lkvmax<lkunit)
+        ltatu <- c(outer(ltatu, lv1*100, "+")) ## information for getting label
+      ## ---
+      if (tickunit=="m")  ltat <- mstart[seq(1, length(mstart), tickint)]
+      else {
+        ltat <- c(outer(llev[["d"]]-1, mstart, "+"))
+        liat <- c(outer(llev[["d"]], 100*(llev[["m"]]+1), "+")%nin% limpossible)
+        ltat <- ltat[liat]
+        ltatu <- ltatu[liat]
+        if (tickunit!="d") { ## mit llev arbeiten! oder 1:length(lv1)
+        ltat <- c(outer(llev[["h"]]/24, ltat, "+"))
+        if (tickunit!="h") {
+          ltat <- c(outer(llev["M"]/(24*60), ltat, "+"))
+          if (tickunit=="M") ltat <- ltat[seq(0, length(ltat), tickint)]
+          else {
+            ltat <- c(outer(llev["s"]/(24*60), ltat, "+"))
+            if (tickunit=="s") ltat <- ltat[seq(0, length(ltat), tickint)]
+            else  stop("!gendateaxis/lf.tickat! bug")
+          }}}}
+      structure(ltat, at.inunit=ltatu)
+    } ## end lf.tickat
+  lnlev <- c(y=100, m=11, d=30, h=23, M=59, s=59)##!!! move to main function
+  ## ---------------------------------------
+  ## --- prepare
+  lcall <- match.call()
+  ltickint <- i.getploption("tickintervals")
+  ldtk <- i.getploption("dateticks")
+  ## gendate
+  lcall$ploptions <- NULL
+  lcall[[1]] <- quote(gendate)
+  mode(lcall) <- "call"
+  date <- eval(lcall, sys.parent())
+  ## ---------
+  lx <- unclass(date-as.POSIXct("2000-01-01")) ## /(24*3600) 
+  lndays <- diff(range(lx))
+  lidtk <- which(ldtk$limit<lndays)[1]
+  ## -----------------------------------------------------------------
+  ldate <- as.data.frame(unclass(as.POSIXlt(date))[1:6])
+  ldate$year <- ldate$year+1900
+  ## avoid new day or month or year caused by a midnight obs.
+  if (diff(range(ldate$hour))!=0)
+    ldate <- ldate[!(ldate$mday==1&ldate$hour==0&ldate$min==0),]
+  llev <- rev(lapply(ldate, lf.seq)) ##!!! move to main function
+  names(llev) <- names(lnlev)
+  lvr <- sapply(llev, length) >1
+  lkvmax <- which(lvr)[1]
+  lkvmin <- length(lvr)+1-which(rev(lvr))[1]
+  ## lvmax <- llev[[lkvmax]]
+  ##
+  lIym <- length(c(unique(ldate$year), unique(ldate$mon)))>2
+  lyr <- lf.seq(ldate$year)
+  lystart <- julian(as.Date(paste(lyr,"01-01", sep="-")),
+                    origin = as.Date("2000-01-01"))
+  lmn <- if (length(lyr)==1) lf.seq(ldate$mon)+1 else 1:12
+  lyy <- if (length(lyr)==1) lyr else rep(lyr, each=12)
+  lmstart <- julian(as.Date(paste(lyy,lf.2char(lmn),"01", sep="-")),
+                            origin = as.Date("2000-01-01"))
+  ##
+##-   lday <- if (lIym) 1:31 else lf.seq(range(ldate$mday)-1)
+##-   lhour <- if (length(lday)>1) 0:24 else lf.seq(range(ldate$hour))
+##-   lmin <- if (length(lhour)>1) 0:60 else lf.seq(range(ldate$min)) 
+##-   lsec <- if (length(lmin)>1) 0:60 else lf.seq(range(ldate$sec)) 
+  ##
+  ltatsmall <-
+    lf.tickat(ldtk$smallunit[lidtk], ldtk$smallint[lidtk],
+              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
+              lnlev=lnlev)
+  ltatbig <-
+    lf.tickat(ldtk$bigunit[lidtk], ldtk$bigint[lidtk],
+              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
+              lnlev=lnlev)
+  llunit <- ldtk$labelunit[lidtk]
+  llint <- ldtk$labelint[lidtk]
+  ltatlabel <-
+    lf.tickat(llunit, llint,
+              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
+              lnlev=lnlev)
+  ## --- ticklabels
+  ltatu <- attr(ltatlabel, "at.inunit")
+  ll <- list(u1 = ltatu%%100, u2 = if (lls <- any(ltatu>=100)) ltatu%/%100,
+        sep=lls)
+  llab <- 
+    switch(llunit,
+           y = as.character(lyr),
+           m = paste(c.mon[ll$u1+1], ll$u2, sep = if(ll$sep) "." else ""),
+           d = paste(ll$u1+1, c.mon[ll$u2+1]),
+           h = paste(ll$u2, ll$u1, sep = if(ll$sep) "|" else ""),
+           M = paste(ll$u2, ll$u1, sep = if(ll$sep) ":" else ""),
+           s = paste(ll$u2, ll$u1, sep = if(ll$sep) ":" else ""),
+           warning(":gendateaxis: labels went wrong. check ploptions(\"dateticks\"")
+           )
+  ## drop labels for impossible days
+  lina <- is.na(clipat(ltatlabel, range(lx), clipped=NA))
+  if (any(lina)) {
+    ltatlabel <- ltatlabel[!lina]
+    llab <- llab[!lina]
+    ltatu <- ltatu[!lina]
+  }
+  ## ticklabelsat
+  lku <- match(llunit, c("y","m","d","h","M","s"), nomatch=0)
+  if (lku<lkvmin) ## turn into interval
+    ltatlabel <- outer(ltatlabel, c(0, c(365, 30, 1, 1/24, 1/(24*60))[lku]), "+")
+##      at.inunit = attr(ltatlabel, "at.inunit") )
+  if (llunit=="d" & ldtk[lidtk,"labelint"]!=1) { ## drop mark at day 31
+    li30 <- ltatu%%100==31
+    li30[length(li30)] <- FALSE ## do not drop at end of scale
+    llab[li30] <- ""
+  }
+  attr(ltatlabel, "at.inunit") <- NULL
+  structure(date, numvalues=lx, ticksat=structure(ltatbig, small=ltatsmall),
+       ticklabelsat=ltatlabel, ticklabels=llab)
+}
+## ===========================================================================
 i.pchcens <-
   function(plargs, condquant)
     ##  Delta, nabla, >, <, quadrat : pch= c(24, 25, 62, 60, 32)
@@ -1528,6 +1502,10 @@ plsubset <-
     vars <- eval(substitute(select), nl, parent.frame())
     rr <- rr[vars,, drop=FALSE]
   }
+  if (nrow(rr)==0) {
+    warning(":plsubset: Empty subset")
+    return(rr)
+  }
   ## ----- attributes
   for (lj in seq_len(ncol(rr))) {
     lxj <- x[,lj]
@@ -1536,7 +1514,6 @@ plsubset <-
         diff(range(x[r], na.rm=TRUE))/diff(range(x, na.rm=TRUE))
       lrgratio <-
         if (is.numeric(lxj)) lrgratio <- lf.rgratio(lxj, r) else 1
-##      if (inherits(lxj,"POSIXt")) browser()
       if ("numvalues"%in%names(lattr)) {
         lnv <- lattr$numvalues
         lnvr <- lnv[r]
@@ -1550,12 +1527,12 @@ plsubset <-
         lattr$plcoord <- lpcr
       }
       ## !!! ticksat if(...)
-      if ((!keeprange) | lrgratio<i.getploption("subset.rgratio")) {
+      if ((!keeprange) & lrgratio<i.getploption("subset.rgratio")) {
         lats <- c("ticksat","ticklabelsat","ticklabels")
         lattr <- lattr[setdiff(names(lattr), lats)]
         ## !!! getvarattributes(...)
         if (inherits(lxj, "POSIXt")) {
-          lattr <- attributes(gentimeaxis(rr[,lj]))
+          lattr <- attributes(gendateaxis(rr[,lj]))
           lattr[names(lattr)] <- lattr
         }
       }
@@ -1612,8 +1589,6 @@ plyx <-
     }
   }
   lny <- ncol(ly)
-  ly1 <- ly1g <- ly[,1]
-  lrgy1 <- i.def(attr(ly1, "innerrange"), attr(ly1, "plrange") )
   ## style elements
   lIsmooth <- i.getploption("smooth")
   lIfirst <- TRUE
@@ -1638,25 +1613,36 @@ plyx <-
   lgrp <- unique(lgroup)
   lngrp <- length(lgrp)
   ## ranges
-  lrg <-
-    sapply(ly, function(y)
-      i.def(i.def(attr(y, "innerrange"), attr(y,"plrange")),
-            range(y, na.rm=TRUE))
-      )
+  lf.rg <- function(y)
+    i.def(i.def(attr(y, "innerrange"), attr(y,"plrange")),
+          range(y, na.rm=TRUE))
+  lrgy <-
+    sapply(ly, lf.rg)
   ## inner plotting range
   lnmody <- as.matrix(sapply(ly, function(x) c(attr(x,"nmod"),0,0)[1:2]>0 ))
   lIinner <- apply(lnmody, 1, any)
   if (lny>1) {
-    if (!rescale) {
-      lrgy1 <- c(min(lrg[1,]),max(lrg[2,]))
+    if (rescale==0) {
+      lyy <- genvarattributes(as.data.frame(c(as.matrix(ly))),
+                              ploptions=ploptions)
+      lattr <- attributes(lyy[,1])[c("innerrange", "plrange", "ticksat",
+                                     "ticklabelsat")]
+      ly <- varattributes(ly, setNames(rep(list(lattr), lny), lynm))
+      lrgy <- matrix(lf.rg(ly[,1]), 2, lny)
       for (lj in 1:lny) 
-        attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy1)
-      ly1 <- ly[,1]
+        attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
     } else
-    attr(ly1,"plrange") <-     ## extend
-      lrgy1 + diff(lrgy1)*c(-1,1)*
-      ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
+      if (rescale<0) { ## do not adjust tick marks etc
+        lrgyy <- c(min(lrgy[1,]),max(lrgy[2,]))
+        for (lj in 1:lny) 
+          attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
+        attr(ly[,1],"plrange") <-     ## extend
+          lrgyy + diff(lrgyy)*c(-1,1)*
+            ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
+      } ## !!! welche attr sollen wirklich gesetzt werden?
   }
+  ly1 <- ly1g <- ly[,1]
+  lrgy1 <- lrgy[,1]
   ## mark extremes
   lmark <- i.getplopt(markextremes, ploptions)
   if (is.function(lmark)) lmark <- lmark(lnobs)
@@ -1722,6 +1708,10 @@ plyx <-
           on.exit(par(loldp[unique(names(loldp))]))
         }
         lIfirst <- FALSE
+        if (1==prod(par("mfg")[1:2])) {
+          pltitle(plargs=plargs)
+          stamp(sure=FALSE, ploptions=ploptions)
+        }
         lrgold <- lrgy1
         lyg <- ly
         ## group
@@ -1733,7 +1723,7 @@ plyx <-
                     cex=rep(lcexgrp,2))  ## !!! sub!
           li <- which(lgroup==lgrp[lg])
           lxjg <- lxj[li]
-          lyg <- plsubset(ly, li) ## transferAttributes(ly[li,], ly)
+          lyg <- plsubset(ly, li, keeprange=TRUE) 
           ly1g <- lyg[,1] ## transferAttributes(lyg[,1], lyg)
           plargs$pldata <- pldata[li,]
           if (length(lpch)==lnr) lpchg <- lpch[li]
@@ -1747,10 +1737,10 @@ plyx <-
         if (lny>1) {
           for (lj in 2:lny) {
             lyjg <- lyg[,lj]
-            lrgj <- lrg[,lj]
+            lrgj <- lrgy[,lj]
             lpcol <- attr(lyjg, "col") ##  the color must reflect the variable
             if (!lIpch) lpchg <- attr(lyjg, "pch")
-            if (rescale) {
+            if (rescale>0) {
               lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
               par(usr=lusr)
             }
@@ -1762,9 +1752,9 @@ plyx <-
                      plab=lplab, pch=lpchg, col=lpcol)
             ##!!!linecolor
             lrgold <- lrgj
-            if (rescale & lj==2) {
+            if (lj==2) {
               lmfg <- par("mfg")
-              plaxis(4, ly[,lj], lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
+              plaxis(4, lyjg, lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
                      range=lrgj, col=lpcol,
                      tickintervals=i.getploption("tickintervals"))
             }
@@ -1774,8 +1764,6 @@ plyx <-
     }
   }
   }
-  pltitle(plargs=plargs, show=0.5)
-  stamp(sure=FALSE, ploptions=ploptions)
 }
 ## ==========================================================================
 varattributes <-
@@ -4111,6 +4099,15 @@ c.colors <- c("black","red","blue","darkgreen",  ##"deepskyblue3",
 ##- for (lj in 1:length(ly)) lines(0:1, rep(lj,2), col=lj, lty=1)
 ##- c.colors <- c("black","red","blue","darkgreen","brown","orange","purple",
 ##-               "olivedrab", "burlywood", "violet")
+c.dateticks <- data.frame(
+  limit = c(30*365,3650,3*365,365,180, 60, 30, 10,  5,  3,  1,.33,.16,.09),
+  smallunit = I(c( "y","y","m","m","m","d","d","d","h","h","h","h","M","M")),
+  smallint =    c(  1 , 1 , 3 , 1 , 1 , 10, 5 , 1 , 12, 6 , 3 , 1 , 30, 15),
+  bigunit =   I(c( "y","y","y","m","m","m","d","d","d","d","h","h","h","M")),
+  bigint  =     c(  5 , 2 , 1 , 3 , 3 , 1 , 10, 5 , 1 , 1 , 6 , 3 , 1 , 30),
+  labelunit = I(c( "y","y","y","m","m","m","d","d","d","d","h","h","h","h")),
+  labelint =    c(  5 , 5 , 1 , 6 , 3 , 1 , 10, 5 , 1 , 1 , 12, 6 , 1 , 1 )
+  )
 ## ----------------------------------------------------------------------
 .ploptions <- ploptionsDefault <-
   list(
@@ -4133,7 +4130,9 @@ c.colors <- c("black","red","blue","darkgreen",  ##"deepskyblue3",
     ## frame
     axes = 1:2, mar=c(3.1,3.1,3.1,1.1), oma=c(2.1,2.1,3.1,2.1), mgp=c(2,0.8,0),
     panelsep = 0.5, 
-    tickintervals = c(7,3), xlab = "", ylab = "",
+    tickintervals = c(7,3),
+    dateticks = c.dateticks,
+    xlab = "", ylab = "",
     stamp=1, doc=TRUE, 
     mfgtotal = 30, 
     innerrange = TRUE, innerrange.factor=4, innerrange.ext=0.1,
@@ -4198,7 +4197,8 @@ ploptionsCheck <-
     ## frame
     mar=cnr(c(0,20)), oma=cnr(c(0,5)), mgp=cnr(c(0,5), na.ok=FALSE, length=3),
     panelsep=cnr(c(0,3)),
-    tickintervals = cnr(c(2,20)), stamp=list(clg(),cnr(c(-1,2))),
+    tickintervals = cnr(c(2,20)), ## dateticks = cdf(names=...)
+    stamp=list(clg(),cnr(c(-1,2))),
     mfgtotal = cnr(c(4,100)), 
     innerrange = list(clg(),cnr()), innerrange.factor=cnr(c(0.5,10)),
     innerrange.ext=cnr(c(0,0.5)),
@@ -4272,7 +4272,11 @@ clipat <- function(x, range=NULL, clipped=NULL) {
   lrg <- i.extendrange(range(range), 0.000001) ## make sure limits are not excluded
   li <- which(x>=lrg[1]&x<=lrg[2])
   if (length(clipped)==0) return (x[li])
-  x[-li] <- clipped
+  if (length(clipped)==1) x[-li] <- clipped
+  else {
+    x[which(x<lrg[1])] <- clipped[1]
+    x[which(x>lrg[2])] <- clipped[2]
+  }
   x
 }
 

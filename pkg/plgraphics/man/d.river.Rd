@@ -11,7 +11,7 @@
   A time series with 9792 observations (10 minutes interval)
   on the following 12 variables.
   \describe{
-    \item{\code{date}}{Date of the observation}
+    \item{\code{date}}{Date of the observation, class \code{Date}}
     \item{\code{hour}}{Hour}
     \item{\code{pH}}{pH}
     \item{\code{O2}}{concentration of Oxygen}
@@ -31,6 +31,11 @@
 \source{
   The measurements have been collected in the river Glatt near Zurich.
 }
+\note{
+  This is not a time series in the sense of \code{ts} of R.
+  The date-time information is contained in the variables \code{date} and
+  \code{hour}.
+  
 %%- \references{
 %%- %%  ~~ possibly secondary sources and usages ~~
 %%- }
@@ -39,12 +44,12 @@ data(d.river)
 range(d.river$date)
 t.i <- d.river$date < as.Date("2010-03-31")
 
-plyx(~date, ~O2, data=d.river[t.i & d.river$hour==14,], smooth=FALSE)
+plyx(~date, ~O2, data=d.river, subset=t.i & hour==14, smooth=FALSE)
 
-d.river$time <- gentimeaxis(d.river$date, hour=d.river$hour)
-plyx(O2~time, data=d.river[t.i,], type="l")
+d.river$Date <- gendateaxis(d.river$date, hour=d.river$hour)
+plyx(O2~Date, data=d.river, subset=t.i, type="l")
 
-plyx(O2+T+ra~date, data=d.river[t.i & d.river$hour==14,], 
+plyx(O2+T+ra~Date, data=d.river, subset=t.i & hour==14, 
   smooth.par=0.5, smooth.xtrim=0.03, ycol=c(O2="blue",ra="red"))
 }
 \keyword{datasets}

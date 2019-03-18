@@ -1,3 +1,4 @@
+## importFrom("base", as.POSIXct, as.POSIXlt, as.Date, julian)
 importFrom("stats",
            ## S3 Generics for which we define methods:
            add1, drop1, fitted, predict, residuals,
@@ -42,7 +43,7 @@ export(asinp,
        dropdata, dropNA, 
        fitcomp,
        fitted.regrpolr, ## fitted.regr, 
-       gensmooth, genvarattributes, gentime, gentimeaxis, 
+       gensmooth, genvarattributes, gendate, gendateaxis, 
        getvariables, getvarnames, getmeth, 
        last, legendr, leverage, linear.predictors, linpred, logst, 
        modarg, 

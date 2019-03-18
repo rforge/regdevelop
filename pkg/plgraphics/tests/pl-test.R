@@ -153,3 +153,18 @@ plregr(r.sr, group=gender, pcol=gender, xvar=~age)
 r.cox <- survival::coxph(Surv(time, status) ~ age + gender + ph.karno, data=lung) 
 plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 
+## =================================================================
+## gendate
+rr <- gendate(year=2010, month=c("Jan","Apr"), day=c(3,30),
+            hour=25, min=c(0,70), sec=c(0,300))
+stopifnot(all(
+  print(rr) == c("2010-01-04 01:00:00 CET", "2010-05-01 02:15:00 CEST")
+  ))
+td <- data.frame(datum=as.Date(c("2010-05-20","1968-05-01")),
+                 tag=c(1.5, 3), min=c(30,70))
+rr <- gendate(date=datum, day=tag, hour=6, data=td, min=min)
+stopifnot(all(
+  print(rr) == c( "2010-05-02 06:30:00 CEST",  "1968-05-03 07:10:00 CET")
+  ))
+gendate(day=tag, hour=4, data=td, min=min) 
+gendate(day=tag, data=td, min=min, sec=8) 

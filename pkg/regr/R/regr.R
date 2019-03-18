@@ -2392,10 +2392,10 @@ drop1Wald <-
 }
 
 ## ==========================================================================
-step <- function (object, ...)
-  UseMethod("step")
-
-step.default <- stats::step
+##- step <- function (object, ...)
+##-   UseMethod("step")
+##- 
+##- step.default <- stats::step
 ## step.default <- get("step", pos="package:stats")
 #### !!! sollte das anders heissen? step.default <- stats::step  ???
 
@@ -3036,7 +3036,7 @@ dropdata <- function (data, rowid=NULL, incol="row.names", colid=NULL)
                              c("dim","dimnames","row.names","names")))]
   ln <- NROW(data)
   if (!is.null(rowid)) {
-    lrn <- RNAMES(data)
+    lrn <- if (length(dim(data))) row.names(data) else names(data)
     if (is.null(lrn)) lrn <- as.character(1:NROW(data))
     if (incol=="row.names")
       li <- match(as.character(rowid),lrn,nomatch=0)

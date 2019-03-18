@@ -15,7 +15,12 @@ clipat(x, range=NULL, clipped=NULL)
   }
   \item{clipped}{if \code{NULL}, the clipped data will be dropped.
     Otherwise, they will be replaced by \code{clipped}, which is
-    typically set to \code{NA}
+    typically set to \code{NA}.
+    If \code{clipped} is numerical of length 2, the elements of
+    \code{x} clipped below are set to \code{clipped[1]},
+    those clipped by \code{range[2]}, by \code{clipped[2]}.
+    Therefore, if \code{clipped} equals \code{range},
+    \code{x} will be "Winsorized".
   }
 }
 \value{As the input \code{x}, with pertinent elements dropped or replaced 

@@ -228,10 +228,9 @@ the additional arguments of \T{plyx}, respectively
 
 <<plyx-time>>=
   data(d.river)
-  t.i <- d.river$date < as.Date("2010-03-31")
-  t.d <- d.river[t.i & d.river$hour==14,]
-  plyx(T+O2+ra+Q~date, data=t.d, smooth.par=0.5, smooth.xtrim=0.03,
-       smooth.lty=1, sub="river data")
+  plyx(T+O2+ra+Q~date, data=d.river, 
+       subset=date<as.Date("2010-03-31")&hour==14, 
+       smooth.par=0.5, smooth.xtrim=0.03, smooth.lty=1, sub="river data")
 @ 
 
 If multiple x variables are given, a separate plot is drawn for each of them.
@@ -806,7 +805,7 @@ This allows for inspection of the plotting data
 \T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions})
 and thereby helps debugging.
 
-\Tit{Plotting data.}
+\Tit{Plotting properties data.}
 There are plotting elements that are useful to represent individual
 observations or individual variables.
 Those related to the observations include:
@@ -880,9 +879,12 @@ plyx(Sepal.Width~Sepal.Length, data=iris,
 \T{genvarattributes}
 \T{varattributes}
 
-\Tit{\T{gentimeaxis}.}
-The function \T{gentimeaxis} provides nice tick values and labels for 
-variables having a time scale. 
+\Tit{\T{gendateaxis}.}
+The function \T{gendateaxis} provides nice tick values and labels for 
+variables expressing a date having a time scale. 
+Dates should be expressed in \T{POSIXt} or \T{Date} format.
+The function \T{gendate} helps to generate such a date. It is an extension
+of \T{as.POSIXct}.
 
 \section{Low level graphics}
 

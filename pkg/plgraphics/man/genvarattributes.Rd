@@ -11,7 +11,7 @@
 }
 \usage{
 genvarattributes(data, ynames = NULL, ycol = NULL, ylty = NULL, ypch = NULL,
-  varlabels = NULL, innerrange.limits = NULL, ploptions = NULL, replace=FALSE)
+  varlabels = NULL, innerrange.limits = NULL, replace=FALSE, ploptions = NULL)
 
 varattributes(data, attributes = NULL)}
 

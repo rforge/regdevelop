@@ -114,7 +114,7 @@ of the models used in the plot.
 \note{For further details and notes, see \code{?\link{regsubsets}}
 }
 \seealso{
-\code{\link{regsubsets}}, \code{\link{leaps}}, \code{\link{step}}, 
+\code{\link{regsubsets}}, \code{\link{leaps}}, \code{\link{step.regr}}, 
 }
 \examples{
 data(d.birthrates, package="plgraphics")
@@ -124,7 +124,7 @@ bornLocal + bornForeign + altitude + language
 ## altitude and language are factors
 
 r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
-print(r.ae)
+showd(r.ae)
 plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example",
      legend="bottomright", xlim=c(4,20))
 

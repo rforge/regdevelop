@@ -49,8 +49,8 @@ plot(t.rr, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=2))
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
-r.bl3 <- step(r.bl2, trace=FALSE, k=4)
-r.bl4 <- step(r.blast, expand=TRUE)
+r.bl3 <- step.regr(r.bl2, trace=FALSE, k=4)
+r.bl4 <- step.regr(r.blast, expand=TRUE)
 
 stopifnot(r.bl3$anova[2,"Step"]=="- I(log10(charge)^2)")
 
@@ -142,7 +142,7 @@ t.d <- d.babysurvival
 t.d$Age[2] <- NA
 t.r <- regr(Survival~.,data=t.d)
 t.rglm <- glm(Survival~.,data=t.d,family=binomial)
-t.rs <- step(t.r, trace=FALSE)  ## ???
+t.rs <- step.regr(t.r, trace=FALSE)  ## ???
 
 t.r <- r.babysurvival <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomial)
 plot(r.babysurvival, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
@@ -240,7 +240,7 @@ add1(t.r)
 ##- set.seed(0)
 ##- dd$random <- rnorm(nrow(dd))
 ##- t.r2 <- regr(Tobit(durable) ~ age + quant + random, data=dd)
-t.rst <- step(t.r)
+t.rst <- step.regr(t.r)
 stopifnot(round(t.rst$anova[3,"Deviance"],3)==0.835)
 ## =======================================================================
 ## trouble with complicated formula

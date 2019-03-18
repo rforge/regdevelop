@@ -56,9 +56,9 @@ data(d.pollZH16)
 dp <- d.pollZH16
 names(dp)
 
-dp$time <- gentimeaxis(date=dp$date, hour=dp$hour)
+dp$date <- gendateaxis(date=dp$date, hour=dp$hour)
 
-plyx(O3+NO2~time, data=dp, subset= month=="May", type="l")
+plyx(O3+NO2~date, data=dp, subset= month=="May", type="l")
 
 dp$summer <- dp$month \%in\% c("Jun","Jul","Aug") 
 dp$daylight <- dp$hour>8 & dp$hour<17
