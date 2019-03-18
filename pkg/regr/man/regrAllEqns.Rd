@@ -123,8 +123,10 @@ eCommerce + eTransport + eAdmin + gradeHigh + gradeLow + educHigh +
 bornLocal + bornForeign + altitude + language
 ## altitude and language are factors
 
-r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100, really.big=TRUE)
-showd(r.ae)
+r.ae <- regrAllEqns(t.formula, data=d.birthrates, nbest=100,
+really.big=TRUE)
+names(r.ae)
+showd(r.ae$which)
 plot(r.ae, mar=9, ncharhorizontal=0, main="birthrates example",
      legend="bottomright", xlim=c(4,20))
 
