@@ -222,16 +222,22 @@ pl.control <-
   ## convert logical to  1  and  2
   ## group
   lgroup <- lpldata$"(group)"
-  if (length(lgroup) && is.logical(lgroup))
-    lpldata[,"(group)"] <- lgroup+1
+  if (length(lgroup)) {
+    if (is.logical(lgroup)) lpldata[,"(group)"] <- lgroup+1
+    else if (is.factor(lgroup)) lpldata[,"(group)"] <- factor(lgroup) ## drop levels
+  }
   ## pcol
   lpcol <- lpldata$"(pcol)"
-  if (length(lpcol) && is.logical(lpcol))
-    lpldata[,"(pcol)"] <- lpcol+1
+  if (length(lpcol)) {
+    if (is.logical(lpcol)) lpldata[,"(pcol)"] <- lpcol+1
+    else if (is.factor(lpcol)) lpldata[,"(pcol)"] <- factor(lpcol) ## drop levels
+  }
   ## pcol
   lsmgrp <- lpldata$"(smooth.group)"
-  if (length(lsmgrp) && is.logical(lsmgrp))
-    lpldata[,"(smooth.group)"] <- lsmgrp+1
+  if (length(lsmgrp)) {
+    if (is.logical(lsmgrp)) lpldata[,"(smooth.group)"] <- lsmgrp+1
+    else if (is.factor(lsmgrp)) lpldata[,"(smooth.group)"] <- factor(lsmgrp) 
+  }
   ## ----------------------------------------------------
   ## more ploptions
   ##
@@ -515,17 +521,19 @@ plframe <-
     if (length(lx)==0)
       stop("!plframe! unsuitable argument 'x' or 'y'")
     lxx <- i.def(i.def(attr(lx,"numvalues"), attr(lx,"plcoord")), lx)
-    lrg <- attr(lx,"plrange")
-    if (length(lrg)==0)
-      lrg <- i.extendrange(range(lxx, na.rm=TRUE), lext[1:2])
     ltat <- attr(lx,"ticksat")
-    if (length(ltat)==0) {
-      if (is.factor(lx)) {
-        llv <- levels(lx)
-        attr(lx, "ticksat") <- seq_len(length(llv))
-        attr(lx, "ticklabels") <- llv
-      } else
+    lrg <- attr(lx,"plrange")
+    if (is.factor(lxx)) {
+      llv <- levels(lx)
+      lxx <- c(1, length(llv))
+      attr(lx, "ticksat") <- seq_len(length(llv))
+      attr(lx, "ticklabels") <- llv
+      if (length(lrg)==0) lrg <- lxx+(0.5+lext[1:2])*c(-1,1)
+    } else {
+      if (length(ltat)==0) 
         attr(lx, "ticksat") <- pretty(lrg, i.getploption("tickintervals")[1])
+      if (length(lrg)==0)
+        lrg <- i.extendrange(range(lxx, na.rm=TRUE), lext[1:2])
     }
     list(x = lx, xx = lxx, range = lrg)
   }
@@ -821,10 +829,10 @@ plpoints <-
   ## ---
   if (is.data.frame(x))  x <- x[,1]
   lattrx <- attributes(x)
-  lx <- i.def(lattrx$plcoord, i.def(lattrx$numvalues, x))
+  lx <- i.def(lattrx$plcoord, i.def(lattrx$numvalues, as.numeric(x)))
   if (is.data.frame(y))  y <- y[,1]
   lattry <- attributes(y)
-  ly <- i.def(lattry$plcoord, i.def(lattry$numvalues, y))
+  ly <- i.def(lattry$plcoord, i.def(lattry$numvalues, as.numeric(y)))
   ## condquant
   lIcq <- condquant>0  ## condquant representation by bars
   lIcqx <- length(lcqx <- lattrx$condquant) >0
@@ -1029,7 +1037,6 @@ plsmoothline <-
     lcol <- i.getploption("group.col")
     llty <- rep(i.getploption("group.lty"), length=lngrp)
   }
-##  llty <- rep(llty, each=2) 
   lbd <- smoothline$yband
   lIband <- length(lbd)>0
   ## check if ordered
@@ -1044,7 +1051,7 @@ plsmoothline <-
       smoothline$ybandindex <- smoothline$ybandindex[lio]
     }
   }
-  lx[lx<lrgx[1]|lx>lrgx[2]] <- NA
+  lx <- clipat(lx, lrgx, clipped=NA) 
   lny <- ncol(ly)
   ## may be a 2-vector or  a matrix of 2 rows
   llwd <- rep(c(i.getploption("smooth.lwd"), 0.7), length=2)
@@ -1054,21 +1061,21 @@ plsmoothline <-
     lig <- which(lgrp==lgr)
     lxg <- lx[lig]
     if (1< (lng <- length(lig))) {
-      lndr <- round(lng * if(is.function(lxtrim))
-                            lxtrim(lng) else i.def(lxtrim, 0,
-                                                   smoothxtrim(lng), 0) )
+      lndr <- i.def(smoothline$xtrim, 1) * 
+        round(lng * if(is.function(lxtrim)) lxtrim(lng)
+                    else i.def(lxtrim, 0, smoothxtrim(lng), 0) )
       if (lndr) lxg[- ((lndr+1):(lng-lndr)) ] <- NA
       lcl <- lcol[min(lgr,length(lcol))]
+      llt <- llty[lgr]
+      llw <- llwd[1]*llwid[llt]
       if (lny>1) 
-        matlines(lxg, ly[lig,-1], lty=llty[lgr],
-                 lwd=llwd[1]*llwd[2]*llwid[llty[lgr]],
+        matlines(lxg, ly[lig,-1], lty=llt, lwd=llwd[2]*llw, 
                  col = colorpale(lcl, lpale))
-      llw <- llwd[1]*llwid[llty[lgr]]
-      lines(lxg, ly[lig,1], lty=llty[lgr], lwd=llw, col=lcl)  ## xxx
+      lines(lxg, ly[lig,1], lty=llt, lwd=llw, col=lcl)  ## xxx
       if (lIband) {
       li <- smoothline$ybandindex[lig] ## separate upper and lower smooth
       if (any(li))
-        lines(lxg[li], lbd[lig[li]], lty=llty[lgr], lwd=llw/2, col = lcl) 
+        lines(lxg[li], lbd[lig[li]], lty=llt, lwd=llw/2, col = lcl) 
       if (any(!li))
         lines(lxg[!li], lbd[lig[!li]], lty=llty, lwd=llw/2, col = lcl) 
     }
@@ -2028,7 +2035,7 @@ plregr.control <-
   }
   lsimres <- NULL
   if (lnsims>0) {
-    lsimres <- if(u.debug())
+    lsimres <- if(ploptions("debug"))
                simresiduals(x, lnsims, glm.restype=glm.restype)  else
       try(simresiduals(x, lnsims, glm.restype=glm.restype), silent=TRUE)
     if (class(lsimres)=="try-error") {
@@ -2450,6 +2457,12 @@ plregr <-
   if(lpls=="qq") {
     ##    if (lpllevel>0)
     lnsims <- plargs$smooth.sim
+    if (lnsims)
+      lsimstdr <-
+        if (i.def(attr(lsimstdres, "type"), "resampled")=="resampled")
+          simresiduals.default(x, nrep=lnsims, simfunction=rnorm,
+                               sigma=apply(lstdres,2,mad, na.rm=TRUE) )
+        else lsimstdres
     for (lj in seq_len(lmres)) {
       llr <- lstdres[,lj]
       lIcqj <- length(lcq <- attr(llr, "condquant"))>0
@@ -2462,10 +2475,10 @@ plregr <-
       if (lnsims>0) {
         lxx <- qnorm(ppoints(lnobs))
         for (lr in 1:lnsims) {
-          llty <- last(ploptions$smooth.lty)
-          lines(lxx,sort(lsimstdres[,lr]), lty=llty,
-                lwd=ploptions$linewidth[llty],
-                col=last(ploptions$smooth.col))
+          llty <- last(i.getploption("smooth.lty"))
+          lines(lxx,sort(lsimstdr[,lr]), lty=llty,
+                lwd=i.getploption("linewidth")[llty],
+                col=last(i.getploption("smooth.col")) )
         }
       }
       ## qq line
@@ -2815,6 +2828,10 @@ plresx <-
   if (lIrpl <- length(lrpl)>0) lrpl <- lrpl[,1]
   lpla <- plargs
   lr <- lres
+  if (lIsmooth && lnsims>0) lr <- cbind(lr, lsimres)
+  lrs <- lr ## need a copy for the case  addcomp  is true
+##-         if (inherits(lr, "condquant"))
+##-           lr <- lr[,1]
   ## --- loop --- plresx
   for (lj in 1:lnvars) {
     lv <- unname(lvars[lj])
@@ -2822,34 +2839,33 @@ plresx <-
     lcmpj <- terminmodel[lj] && refline && lInnls
     lci <- if (lcmpj&refline) lcompy[, lvr] else 0 ## !!!
     if (plargs$partial.resid) 
-      if (refline && addcomp && lcmpj) {
-        lr <- lr+lcompdt[, lvr]
-      }
+      if (refline && addcomp && lcmpj)  lrs <- lr+lcompdt[, lvr]
     lvv <- pldata[, lv]
     ##    lpa$pldata <- cbind(lr, lvv, pldata)
     mar <- i.def(plargs[["mar"]], c(NA, par("mar")[-1]))
     ## ---
     if (is.null(attr(lvv, "varlabel")))  attr(lvv, "varlabel") <- lv
+    lrs1 <- lrs[[1]]
+    if (length(unique(lvv))<=2) lvv <- factor(lvv)
     if (is.factor(lvv)) {
       ## factors
       ## lmar <- par("mar") ## might be adapted to nchar(levels)
       lvv <- structure(lvv, varlabel=attr(lvv, "varlabel"))
       ll <- levels(lvv)
       lnl <- length(ll)
-      lrs <- lr[[1]]
       if (lmbox) {
-        ##       if (lIcq) lr <- lres[,"random"]
+        ##       if (lIcq) lrs <- lres[,"random"]
         attr(lpla$pldata,"xvar") <- lv
-        plmboxes(lvv, lrs, data=pldata, mar=mar, plargs=lpla)
+        plmboxes(lvv, lrs1, data=pldata, mar=mar, plargs=lpla)
       } else {
 ##        attr(lvv, "plcoord") <- jitter(as.numeric(lvv), factor=ljitfac)
-        plframe(lvv,lr, ploptions=ploptions)
+        plframe(lvv,lrs1, ploptions=ploptions)
       }
       ## reference values
       if (lcmpj) {
         lx <- seq_along(ll)
         lcil <- lci[1:lnl]
-        lrsrg <- attr(lrs,"innerrange")
+        lrsrg <- attr(lrs1,"innerrange")
         if ((!is.null(lrsrg))&&diff(lrsrg)) {
           lcilp <- plcoord(lcil, lrsrg, innerrange.ext=plargs$innerrange.ext)
           if (any(attr(lcilp,"nmod"))) {
@@ -2876,18 +2892,12 @@ plresx <-
                 col=last(ploptions$refline.col))
         }
       }
-      if (!lmbox) plpoints(lvv,lr, plargs=plargs)
+      if (!lmbox) plpoints(lvv,lrs1, plargs=plargs)
     } else { # ---
 ## --- continuous explanatory variable
-      plframe(lvv,lr, ploptions=ploptions)
-      if (lIsmooth) {
-        if (lnsims>0)
-          lr <- cbind(lr, if (refline && addcomp && lcmpj)
-                            lsimres+lcompdt[, lvr] else lsimres )
-##-         if (inherits(lr, "condquant"))
-##-           lr <- lr[,1]
-        plsmooth(lvv, lr, plargs=plargs, band=plargs$smooth>=2) ## was lpa
-      }
+      plframe(lvv,lrs1, ploptions=ploptions)
+      if (lIsmooth) 
+        plsmooth(lvv, lrs, plargs=plargs, band=plargs$smooth>=2) ## was lpa
       ## refline
       if (refline && lcmpj) {
         lrefx <- lcompx[,lvr]
@@ -2898,11 +2908,11 @@ plresx <-
                    plargs=plargs)
       }
       ## points
-      plpoints(lvv,lr, plargs=plargs, plab=if (lIrpl) lrpl)
+      plpoints(lvv,lrs1, plargs=plargs, plab=if (lIrpl) lrpl)
     } ## ends  if factor else 
   }
   invisible(plargs)
-}
+} ## end plresx
 ## ==========================================================================
 smoothRegr <-
   function(x, y, weights=NULL, par=5/length(x)^0.3, iterations=50,
@@ -2918,14 +2928,14 @@ smoothRegr <-
               family=if (iterations>0) "symmetric" else "gaussian",
               na.action=na.exclude)
   if (is.null(weights)) lcall$weights <- NULL
-  lsm <- if (u.debug()) eval(lcall, parent.frame())
+  lsm <- if (ploptions("debug")) eval(lcall, parent.frame())
          else try(eval(lcall), parent.frame(), silent=TRUE)
   if (class(lsm)=="try-error") {
     warning(":smoothRegr: span was too small. Using 0.99")
     lcall$span <- 0.99
     lsm <- eval(lcall, parent.frame())
   }
-  fitted(lsm)
+  structure(fitted(lsm), xtrim=1)
 }
 ## ========================================================================
 gensmooth <-
@@ -3027,14 +3037,16 @@ gensmooth <-
   lysmin[lio,] <- lysm
   lres <- if (resid==2) ly/lysmin else ly-lysmin
   rr <- list(x = lxo, y = lysm, group = if(!lInogrp) factor(lgrpo),
-             index = lio, xorig = x, ysmorig = lysmin, residuals = lres)
+             index = lio, xorig = x, ysmorig = lysmin, residuals = lres,
+             xtrim = attr(lsm, "xtrim") )
   if (band) rr <- c(rr, yband = list(lysmband), ybandindex = list(lsmrpos) )
   rr
 }
 ## ==========================================================================
 smoothLm <- function(x, y, weights = NULL, ...) {
-  if (is.null(weights)) lm.fit(cbind(1,x), y, ...)$fitted
-  else  lm.wfit(cbind(1,x), y, weights, ...)$fitted
+  rr <- if (is.null(weights)) lm.fit(cbind(1,x), y, ...)$fitted
+        else  lm.wfit(cbind(1,x), y, weights, ...)$fitted
+  structure(rr, xtrim=0)
 }
 ## smoothRegrrob <- function(x,y,weights,par=3*length(x)^log10(1/2),iter=50)
 ## =======================================================================
@@ -4112,7 +4124,7 @@ c.dateticks <- data.frame(
 .ploptions <- ploptionsDefault <-
   list(
     colors = c.colors,
-    linewidth = c(1,1.3,1.7,1.3,1.2), cex = cexSize,
+    linewidth = c(1,1.3,1.7,1.3,1.2,1.15), cex = cexSize,
     ticklength = c(-0.5, 0, 0.2, -0.2),
     ## basic
     pch = 1, cex.pch=1, cex.plab=1,
@@ -4167,8 +4179,8 @@ c.dateticks <- data.frame(
     ## condquant
     condquant = TRUE, condprob.range = c(0,1), condquant.pale = c(0.5, 0.5), 
     ## plregr
-    functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelimit = c(0.99,0.5)
-  )
+    functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelimit = c(0.99,0.5),
+    debug = FALSE )
 .plargs <- list(ploptions=.ploptions)
   ## makes sure that  .plargs  extists when starting
 ## -----------------------------------------------------------------------
@@ -4233,7 +4245,8 @@ ploptionsCheck <-
     ## plregr
     functionxvalues = cnr(c(5,500)),
     smooth.xtrim = list(cfn(), cnr(c(0,0.4), na.ok=FALSE)),
-      leveragelimit = cnr(c(0.1,1))
+    leveragelimit = cnr(c(0.1,1)),
+    debug = clg()
   )
 ## ==========================================================================
 i.col2hex <- function(col) {

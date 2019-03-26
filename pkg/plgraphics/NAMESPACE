@@ -67,7 +67,7 @@ export(asinp,
        robrange,
        showd,
        simresiduals, simresiduals.default, simresiduals.glm, 
-       smoothRegr, smoothxtrim, stamp,
+       smoothRegr, smoothLm, smoothxtrim, stamp,
        stdresiduals, sumNA,
        Surv, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without

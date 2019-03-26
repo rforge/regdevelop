@@ -3025,68 +3025,6 @@ print.modelTable <- function (x, tex = FALSE, transpose=FALSE, ...)
 ## ==========================================================================
 ## additional useful functions
 ## ===========================================================================
-dropdata <- function (data, rowid=NULL, incol="row.names", colid=NULL)
-{
-  ## Purpose:   drop observations from a data frame
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel
-  li <- lj <- NULL
-  lattr <- attributes(data)
-  lattr <- lattr[is.na(match(names(lattr),
-                             c("dim","dimnames","row.names","names")))]
-  ln <- NROW(data)
-  if (!is.null(rowid)) {
-    lrn <- if (length(dim(data))) row.names(data) else names(data)
-    if (is.null(lrn)) lrn <- as.character(1:NROW(data))
-    if (incol=="row.names")
-      li <- match(as.character(rowid),lrn,nomatch=0)
-    else {
-      incol <- if (is.numeric(incol)) (1:ncol(data))[incol] else
-      match(incol, colnames(data))
-      if (is.na(incol)) stop("misspecified argument `incol`")
-      li <- match(rowid,data[,incol],nomatch=0)
-    }
-    if (any(li==0)) warning(":dropdata: observations",
-              paste(rowid[li==0],collapse=", "),"not found")
-    li <- li[li>0]
-    if (!is.null(li)) {
-      data <- cbind(data)[-li,]
-      names(li) <- lrn[li]
-    }
-  }
-  ## drop variables
-  if (!is.null(colid)) {
-    lj <- match(as.character(colid),names(data),nomatch=0)
-    if (any(lj==0)) warning(":dropdata: variables  ",
-              paste(colid[lj==0],collapse=", "),"  not found")
-    lj <- lj[lj>0]
-    if (!is.null(lj)) data <- data[,-lj,drop=FALSE]
-  }
-  if (length(li)==0&length(lj)==0) {
-      warning(":dropdata: no data to be dropped")
-      return(data)
-    }
-  if (length(li)) {
-    if (length(li)==NROW(data)) warning(":dropobs: no observations left")
-    if (length(lattr$na.action))  {
-      lin <- which(naresid(lattr$na.action, 1:ln%in%li))
-      names(lin) <- lrn[li]
-      li <- c(lattr$na.action, lin)
-    }
-    class(li) <- "exclude"
-    lattr$na.action <- li
-  }
-  attributes(data) <- c(attributes(data),lattr)
-  data
-}
-## ======================================================================
-subset <- function (x, ...) {
-  ## function subset that preserves attributes 'doc' and 'tit'
-  lattr <- attributes(x)[c("doc","tit")]
-  lsubs <- base::subset(x, ...)
-  attributes(lsubs) <- c(attributes(lsubs),lattr)
-  lsubs
-}
 ## ======================================================================
 quinterpol <- function (x, probs = c(0.25,0.5,0.75), extend=TRUE)
 {
@@ -3252,7 +3190,7 @@ regrAllEqns <-
   lwhs <- lwhich[liok,ljok,drop=FALSE]
   colnames(lwhs) <- lnm <- ltermnm[ljint+lasgn[colnames(lwhich)]][ljok]
   ## codes
-  if (is.null(codes) || (length(codes)==1 & is.na(codes)))
+  if (is.null(codes) || (length(codes)==1 && is.na(codes)))
     codes <- c(LETTERS,letters)
   if (length(names(codes))) {
     if (length(lwr <- setdiff(lnm,names(codes)))) {

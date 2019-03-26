@@ -35,7 +35,7 @@
   This is not a time series in the sense of \code{ts} of R.
   The date-time information is contained in the variables \code{date} and
   \code{hour}.
-  
+}  
 %%- \references{
 %%- %%  ~~ possibly secondary sources and usages ~~
 %%- }

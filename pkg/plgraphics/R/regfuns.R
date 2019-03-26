@@ -806,42 +806,38 @@ simresiduals.default <-
         return(NULL)
       }
       if (length(lnaaction)) ldata <- ldata[-lnaaction,]
-  }
-##-   if ("omit"==class(lnaaction <- object$na.action)) {
-##-     lkeep <- rep(TRUE, nrow(ldata))
-##-     lkeep[lnaaction] <- FALSE
-##-     ldata <- ldata[lkeep,]
-##-   }
-##  lcall$na.action <- NULL
-##-   lfit <- object$fitted.values
-##-   if (is.null(lfit)) lfit <- object$linear.predictors
-##-   if (is.null(lfit)) lfit <- 0
+    }
   lres <- i.def(stdresiduals, object$stdresiduals)
+  if (is.null(lres)) {
+    if (length(lnaaction)) 
+      object$na.action <- structure(lnaaction, class="na.omit")
+    lres <- stdresiduals(object)
+  }
   lnc <- NCOL(object$coefficients)
   ## -------
+  lsig <- sigma
+  if (length(lsig)==0)
+    lsig <- apply(as.matrix(object$resid)^2, 2, sum) / object$df.residual
+  if (length(lsig)!=lnc) {
+    warning(":simresiduals.default: inadequate length of 'sigma'",
+            " No simulated residuals returned")
+    return(NULL)
+  }
   if (lrgen <- length(simfunction)>0) {
-    if (!is.function(simfunction)) simfunction <- rnorm
+    if (u.true(simfunction) || !is.function(simfunction)) simfunction <- rnorm
     ## ---
     ## weibull not yet implemented
-    lsig <- sigma
-    if (length(lsig)==0) lsig <- rep(1,lnc)  ## only standardized res useful!
-    if (length(lsig)!=lnc) {
-      warning(":simresiduals.default: inadequate length of 'sigma'")
-      return(NULL)
-    }
     if (length(lres)==0) lres <- matrix(0, nrow(ldata),length(lsig)) 
   } else { ## not yet for multivariate !!!
-    lrs <- if (length(lres)==0) matrix(0,1,1) else as.matrix(lres)
-    if(all(lrs[,1]==lrs[1,1])||all(!is.finite(lrs[,1]))) {
+    lres <- if (length(lres)==0) matrix(0,1,1) else as.matrix(lres)
+    if(all(lres[,1]==lres[1,1])||all(!is.finite(lres[,1]))) {
       lres <- object$resid
       if(is.null(lres)) {
         warning(":simresiduals: no (distinct) residuals found",
                 "-> No simulated residuals")
         return(NULL)
-      } else lres <- as.matrix(lres)
-    }
-    else
-      lres <- sweep(as.matrix(lres), 2, object$sigma, "*") ## may still be d.f
+      }
+    } else lres <- sweep(as.matrix(lres), 2, lsig, "*")
     if (length(lcq <- attr(lres[,1], "condquant"))>0) { ##!!! mult!
       li <- lcq[,"index"]
       lres[li,1] <- lcq[,"random"] ##structure(lres[,"random"], names=row.names(lres))
@@ -884,12 +880,12 @@ simresiduals.default <-
   if (length(lfam)==0) lfam <- object$family$family
 ##  if (lfam%in%c("gaussian","Gaussian")) 
   lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
+  lenv <- environment()
   for (lr in 1:nrep) {
     ldata[,lynm] <-
       ##-    if (lrgen) simfunction(lnrow,lfit,lsig) else lfit + sample(lresj)
       if (lrgen) simfunction(lnrow,0,lsig) else sample(lresj)
     ## this would not work with polr or other matrix residuals
-    lenv <- environment()
     lrs <- eval(lcall, envir=lenv) ## update(x, formula=lfo, data=ldata)
     lrsr <- residuals(lrs)
     if (inherits(lrsr, "condquant"))
@@ -897,7 +893,8 @@ simresiduals.default <-
     lsimres[,lr] <- lrsr
   }
   ##naresid(lnaaction, lsimres)
-  naresid(lnaaction, lsimres)
+  structure(naresid(lnaaction, lsimres),
+            type=ifelse(lrgen, "simulated", "resampled"))
 }
 ## ==========================================================================
 

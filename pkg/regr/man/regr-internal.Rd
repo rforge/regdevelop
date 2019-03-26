@@ -11,7 +11,7 @@
 \alias{i.smooth}
 %
 \alias{print.mregr}
-\alias{subset}
+%% \alias{subset}
 \description{
   Internal functions of package \pkg{regr} that are exported, but
   should normally not be called by the user directly.
@@ -25,7 +25,6 @@
 ## i.smooth(...)
 
 \method{print}{mregr}(x, na.print=getUseroption("na.print"), ...)
-subset(x, ...)
 }
 \arguments{
   \item{x,y, object}{\R objects}

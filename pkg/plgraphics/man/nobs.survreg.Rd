@@ -8,8 +8,8 @@
   \code{survreg} and \code{coxph} (since they are lacking presently)
 }
 \usage{
-nobs.survreg(object, ...)
-nobs.coxph(object, ...)
+\method{nobs}{survreg}(object, ...)
+\method{nobs}{coxph}(object, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

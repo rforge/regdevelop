@@ -40,24 +40,27 @@ gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
 \details{This function is useful for generating the smooths enhancing
   residual plots.
   It generates a smooth for a single x
-  variable and multiple y's. It is used to draw smooths from simulated
-  residuals.
+  variable and multiple y's.
+  It is also used to draw smooths from simulated residuals.
 
   NA's in either \code{x} or any column of \code{y} cause dropping the
   observation (equivalent to \code{na.omit}).
 
   The smoothing function used to produce the smooth is
-  \code{\link{smoothRegr}}, which relies \code{\link{loess}} by default.
-  This may be changed via \code{options(smoothFunction = func)} where
+  \code{\link{smoothRegr}}, which relies \code{\link{loess}}, by default.
+  This may be changed via \code{ploptions(smooth.function = func)} where
   \code{func} is a smoothing function with the same arguments as
   \code{\link{smoothRegr}}.
 
-%%   \item{par, parband}{argument to be passed to the smoothing function,
-%%     \code{parband} when calculating "band" smooths
-%%   }
-%%   \item{iterations}{argument passed on to the smoothing function.
-%%   }
-
+  The result of the smoothing function may carry an attribute
+  \code{xtrim}. This regulates if the fitted values corresponding to
+  extreme x values will be suppressed when plotting:
+  The number of extreme x values corresponding to
+  \code{ploptions("smooth.xtrim")} will be multiplied by
+  this attribute to obtain the number of extreme points suppressed at
+  each end. If the smoothing function is \code{smoothLm}, which fits a
+  straight line, then trimming is suppressed since this function returns
+  0 as the \code{xtrim} attribute.
 }
 \value{
   A list with components:  

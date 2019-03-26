@@ -5,8 +5,9 @@
 \title{Smoothing function used as a default in plgraphics /
   straight line "smoother"
 }
-\description{This function wraps the \code{loess} smoothing function in
-  order to meet the argument conventions used in the \code{regr0} package.
+\description{These functions wrap the \code{loess} smoothing function or
+  the \code{lm.fit} function in order to meet the argument conventions
+  used in the \code{plgraphics} package.
 }
 \usage{
 smoothRegr(x, y, weights = NULL, par = 5 / length(x)^0.3,
@@ -33,8 +34,9 @@ smoothLm(x, y, weights = NULL, ...)
 \item{...}{Further arguments, passed to \code{loess}.
 }
 }
-\value{vector of smoothed values. If \code{loess} fails, NAs will be
-  returned without issuing a warning.}
+\value{vector of smoothed values, with an attribute \code{xtrim},
+  which is 1 for \code{smoothRegr} and 0 for \code{smoothLm}.
+  If \code{loess} fails, NAs will be returned without issuing a warning.}
 \author{Werner A. Stahel, ETH Zurich}
 
 \seealso{\code{\link{loess}}, \code{\link{gensmooth}}
@@ -49,6 +51,8 @@ r.sm1 <- smoothRegr(t.x, t.y, iterations=1, par=0.5)
 plot(t.x,t.y)
 lines(t.x,r.sm, col=2)
 lines(t.x,r.sm1, col=3)
+
+
 }
 \keyword{regression}
 

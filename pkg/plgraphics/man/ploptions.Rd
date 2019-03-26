@@ -63,6 +63,13 @@ ploptionsDefault
   \cr very incomplete for the time being!!!
   %% ===========================================================
   \itemize{
+    \item{linewidth}{vector of \code{lwd} values to be used for
+      the different line types (\code{lty}). The package
+      sets \code{lwd} to a value
+      \code{ploptions("linewidth")[lty]*lwd} intending to balance
+      the visual impact of the different line types, e.g.,
+      to allow a dotted line to make a similar impression as a solid
+      line.}
     \item{ticklength}{vector of 4 scalars: tickmark length,
       corresponding to \code{par("tcl")}. The first 2 elements
       define the length of the regular tickmarks, the other two,
@@ -101,6 +108,11 @@ ploptionsDefault
       both sides when drawing a smooth line, either a number or a function
       that takes the number of points as its argument.
       The default is the simple function \code{2^log10(n)/n}.
+      The smoothing function may produce an attribute \code{xtrim}
+      that is used as an additional factor to \code{smooth.xtrim}.
+      This is applied, e.g., to suppress trimming if a straight line is
+      fitted instead of a smooth by requiring \code{smoothLm} as the
+      smoothing function.
     }
     \item{condquant...}{Conditional quantiles for censored residuals.
       \itemize{

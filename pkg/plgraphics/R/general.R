@@ -316,10 +316,14 @@ quinterpol <- function (x, probs = c(0.25,0.5,0.75), extend=TRUE)
   ln <- length(lx)
   lnn <- length(ltb)
   ln1 <- lnn+1
-  lxx <- as.numeric(names(ltb))
+  lxx <- sort(unique(lx))
   lxm <- (lxx[-1]+lxx[-lnn])/2
-  lx0 <- if(extend) 2*lxx[1]-lxm[1] else lxx[1]
-  lx1 <- if(extend) 2*lxx[lnn]-lxm[lnn-1] else lxx[lnn]
+  lx0 <- lxx[1]
+  lxn <- lxx[lnn]
+  if(extend) {
+    lx0 <- 2*lxx[1]-lxm[1]
+    lx1 <- 2*lxx[lnn]-lxm[lnn-1]
+  }
   lxe <- c(rbind(c(lx0,lxm),lxx),lx1)
   lp <- c(0,cumsum(ltb)/ln)
   lpp <- (lp[-1]+lp[-ln1])/2
