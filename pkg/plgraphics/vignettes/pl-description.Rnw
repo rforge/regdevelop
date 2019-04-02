@@ -1010,7 +1010,7 @@ Priorities:
   (excemption, see 2.).
 \item
   In the case of multiple $y$s, colors are determined primarily by 
-  the argument \T{ycol} of the high level \T{pl} function, 
+  the argument \T{vcol} of the high level \T{pl} function, 
   scondarily by the \T{col} attribute of the variables. 
   Thirdly, the \T{variables} component of \T{plappearance} is used,
   avoiding colors that are already specified for some variables by the

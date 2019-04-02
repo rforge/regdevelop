@@ -74,7 +74,7 @@ plmboxes(Sepal.Length~Species, data=iris,
 data(d.blast)
 dd <- genvarattributes(d.blast)
 str(attributes(dd$tremor))
-ddd <- varattributes(dd, list( tremor=list(axisat=seq(0,24,2),
+ddd <- setvarattributes(dd, list( tremor=list(axisat=seq(0,24,2),
   axislabels = seq(0,24,10)) ) )
 str(attr(ddd$tremor, "axislabels"))
 

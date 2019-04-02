@@ -10,7 +10,7 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
   psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
   markextremes = NULL, smooth = NULL,
   cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
-  ycol = NULL, ylty = NULL, ypch = NULL, 
+  vcol = NULL, vlty = NULL, vpch = NULL, 
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
   ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
 }
@@ -48,7 +48,7 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
     element for each variable,
     or a named vector, where names correspond to such variables.
   }
-  \item{ycol, ylty, ypch}{color, line type and plotting character
+  \item{vcol, vlty, vpch}{color, line type and plotting character
     to be used when multiple y-s are plotted (in the sense of
     \code{matplot})
   }

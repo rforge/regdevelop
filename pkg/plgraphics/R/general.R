@@ -264,8 +264,12 @@ last <- function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## -----------------------------------------------------------------
-dropNA <- function (x,inf=TRUE)
-  if (is.numeric(x)&inf) x[is.finite(x)] else x[!is.na(x)]
+dropNA <- function (x, inf=TRUE) {
+  if (length(dim(x))) {
+    if (is.numeric(x)&inf) x[apply(is.finite(x),1,all)]
+    else x[!apply(as.matrix(is.na(x)), 1, any),] ## as.matrix needed for Surv obj
+  } else if (is.numeric(x)&inf) x[is.finite(x)] else x[!is.na(x)]
+}
 shorten <- function (x, n=50, endstring="...")
   if (nchar(x)>n)
     paste(substring(x, 1, n-nchar(endstring)),endstring, sep="") else x
@@ -497,7 +501,7 @@ getvariables <-
     lvmode <- sapply(variables, mode)
     if (any(li <- lvmode%nin%c("numeric","character","logical")))
       stop("!getvariables! variable(s)  ",paste(lvn[li],collapse=", "),
-           "  has(have) wrong mode")  ## !!! convert into 'delayed error' as below
+           "  not found (or have wrong mode)")  ## !!! convert into 'delayed error' as below
     variables <- data.frame(variables, check.names=FALSE)
     if (length(rr)) {
       if (nrow(rr)!=nrow(variables))
@@ -573,8 +577,8 @@ getvariables <-
 ## ------------------------------------------------------------------------
 i.getvarattribute <- function (attr, value=NULL, data, ploptionscomp, drop=0)
 { ## get plot property  attr  either from a direct argument  value ,
-  ## or a stored property  ploptionscomp
-  ## The function avoid a duplicated use of the property
+  ## or an attribute of a variable in data, or a stored property  ploptionscomp
+  ## The function avoids a duplicated use of the property
   var <- names(data)
   pla <- setNames(rep(NA, length(var)), var)
   ## set values from argument  value

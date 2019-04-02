@@ -7,7 +7,7 @@ pl.control <-
            psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
            markextremes = NULL, smooth = NULL,
            cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
-           ycol = NULL, ylty = NULL, ypch = NULL, 
+           vcol = NULL, vlty = NULL, vpch = NULL, 
            main = NULL, sub = ":", .subdefault = NULL, mar = NULL,
            ## needed because it hides  markextremes  otherwise
            ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
@@ -139,6 +139,8 @@ pl.control <-
     ## --- subset
     if (length(lcall$subset)) {
       lsub <- eval(lcall$subset, data)
+      if (sum(lsub)==0)
+        stop("!plsubset! No data fulfills the selection criteria")
       lpldata <- plsubset(lpldata, lsub)
     }
     ## --- attributes of variables
@@ -148,8 +150,8 @@ pl.control <-
     lvarnames <- attr(lpldata,"variables")
     if (length(lvarnames)) {
       lpldata[,lvarnames] <- 
-        genvarattributes(lpldata[,lvarnames, drop=FALSE], ynames = lynames,
-                         ycol = ycol, ylty = ylty, ypch = ypch,
+        genvarattributes(lpldata[,lvarnames, drop=FALSE], vnames = lynames,
+                         vcol = vcol, vlty = vlty, vpch = vpch,
                          varlabels = varlabels, ploptions=ploptions)
       lnr <- nrow(lpldata)
       lnobs <- lnr-median(sumNA(lpldata[,lvarnames]))
@@ -339,7 +341,7 @@ plinnerrange <-
 }
 ## ---------------------------------------------------------------
 genvarattributes <-
-  function(data, ynames = NULL, ycol = NULL, ylty = NULL, ypch = NULL,
+  function(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
            varlabels = NULL, innerrange.limits = NULL,
            replace = FALSE, ploptions = NULL)
 {
@@ -391,17 +393,17 @@ genvarattributes <-
     if (inherits(ld <- data[,lj], "Date") && is.null(attr(ld, "numvalues")))
       data[,lj] <- gendateaxis(setNames(ld,lrown))
   ## line color and type
-  if (is.null(ynames))
-    ynames <- union(union(names(ycol),names(ylty)),names(ypch))
-  lny <- length(ynames)
+  if (is.null(vnames))
+    vnames <- union(union(names(vcol),names(vlty)),names(vpch))
+  lny <- length(vnames)
   if (lImulty <- lny>0) {
-    ldt <- data[,ynames, drop=FALSE]
-    lypch <- 
-      i.getvarattribute("pch", ypch, ldt, ploptions$variables.pch, drop=lny>1)
-    lylty <- 
-      i.getvarattribute("lty", ylty, ldt, ploptions$variables.lty, drop=lny>1)
-    lycol <-
-      i.getvarattribute("col", ycol, ldt, ploptions$variables.col, drop=lny>1)
+    ldt <- data[,vnames, drop=FALSE]
+    lvpch <- 
+      i.getvarattribute("vpch", vpch, ldt, ploptions$variables.pch, drop=lny>1)
+    lvlty <- 
+      i.getvarattribute("vlty", vlty, ldt, ploptions$variables.lty, drop=lny>1)
+    lvcol <-
+      i.getvarattribute("vcol", vcol, ldt, ploptions$variables.col, drop=lny>1)
   }
   ## --- loop
   for (lv in lnm) {
@@ -416,11 +418,12 @@ genvarattributes <-
     if (lcls=="character") lvv <- factor(lvv)
     ##    if (lv %in% lfacgen)  class(lvv) <- c(class(lvv, "usedAsFactor"))
     if (lImulty) { ## line color and type, pch
-      if(lv%in% names(lycol)) attr(lvv, "col") <- lycol[lv]
-      if(lv%in% names(lylty)) attr(lvv, "lty") <- lylty[lv]
-      if(lv%in% names(lypch)) attr(lvv, "pch") <- lypch[lv]
+      if(lv%in% names(lvcol)) attr(lvv, "vcol") <- lvcol[lv]
+      if(lv%in% names(lvlty)) attr(lvv, "vlty") <- lvlty[lv]
+      if(lv%in% names(lvpch)) attr(lvv, "vpch") <- lvpch[lv]
     }
-    if (inherits(lvv, c("factor", "usedAsFactor"))) {
+    if (inherits(lvv, c("factor", "usedAsFactor", "character"))) {
+      data[[lv]] <- lvv <- factor(lvv)
       ## factor
       lat <- seq_along(levels(lvv))
       if (replace || is.null(attr(lvv, "plrange")))
@@ -798,8 +801,7 @@ pltitle <-
 }
 ## -----------------------------------------------------------------
 plpoints <-
-  function(x = NULL, y = NULL, type = "p",
-           plab = NULL, pch = NULL,
+  function(x = NULL, y = NULL, type = "p", plab = NULL, pch = NULL,
            col = NULL, lcol = col, lty = NULL, lwd = NULL, psize = NULL,
            plargs = NULL, ploptions = plargs$ploptions, ...)
 {
@@ -848,7 +850,7 @@ plpoints <-
     if (is.null(psize)) 1  else  sqrt(psize/median(psize, na.rm=TRUE))
   if (is.null(plab)) plab <- pldata[["(plab)"]]
   if (is.null(pch))
-    pch <- i.def(i.def(pldata[["(pch)"]], lattry$ypch),
+    pch <- i.def(i.def(pldata[["(pch)"]], lattry$vpch),
                  i.getploption("pch"), valuefalse="")
   pch <- rep(pch, length=lnr)
   lpcol <- i.def(col, pldata[["(pcol)"]])
@@ -857,7 +859,7 @@ plpoints <-
     if (is.factor(lpcol)) lpcol <- as.numeric(lpcol)
     if (is.numeric(lpcol)) lpcol <- rep(lgrpcol, length=max(lpcol))[lpcol]
     if (is.logical(lpcol)) lpcol <- lgrpcol[lpcol+1]
-  } else lpcol <- i.getploption("col")[1]
+  } else lpcol <- i.getploption("vcol")[1]
   pcol <- rep( lpcol, length=lnr)
   lty <- i.def(lty, i.getploption("lty"))
   lwd <- i.def(lwd, i.getploption("lwd")) * i.getploption("linewidth")[lty]
@@ -1315,7 +1317,7 @@ gendateaxis <-
     function(tickunit, tickint, llev, lkvmax, ystart, mstart, lnlev) {
       ## generate ticks in  tickint [tickunit]  intervals
       ## date is unclass(POSIXlt) contains 2 dates, start and end
-      limpossible <- c(229, 230, 231, 431, 631, 931, 1131) ## non-existing days
+      limpossible <- c(229, 230, 231, 431, 631, 931, 1131)-1 ## non-existing days
       if (tickunit=="y") return(ystart)
       lkunit <- match(tickunit, names(lnlev))
       llev[[lkunit]] <- ltatu <- seq(0, lnlev[lkunit], tickint)
@@ -1347,7 +1349,7 @@ gendateaxis <-
           }}}}
       structure(ltat, at.inunit=ltatu)
     } ## end lf.tickat
-  lnlev <- c(y=100, m=11, d=30, h=23, M=59, s=59)##!!! move to main function
+  lnlev <- c(y=100, m=11, d=30, h=23, M=59, s=59)
   ## ---------------------------------------
   ## --- prepare
   lcall <- match.call()
@@ -1359,7 +1361,14 @@ gendateaxis <-
   mode(lcall) <- "call"
   date <- eval(lcall, sys.parent())
   ## ---------
-  lx <- unclass(date-as.POSIXct("2000-01-01")) ## /(24*3600) 
+  lx <- unclass(date-as.POSIXct("2000-01-01")) ## /(24*3600)
+  lattr <- attributes(lx)
+  if (length(lattr)) { ## avoid piling up of attributes
+    li <-
+      setdiff(names(lattr),
+              c("numvalues", "ticksat", "ticklabelsat", "ticklabels", "units") )  
+    attributes(lx) <- lattr[li]
+  }
   lndays <- diff(range(lx))
   lidtk <- which(ldtk$limit<lndays)[1]
   ## -----------------------------------------------------------------
@@ -1417,7 +1426,7 @@ gendateaxis <-
            s = paste(ll$u2, ll$u1, sep = if(ll$sep) ":" else ""),
            warning(":gendateaxis: labels went wrong. check ploptions(\"dateticks\"")
            )
-  ## drop labels for impossible days
+  ## drop labels outside range
   lina <- is.na(clipat(ltatlabel, range(lx), clipped=NA))
   if (any(lina)) {
     ltatlabel <- ltatlabel[!lina]
@@ -1430,7 +1439,7 @@ gendateaxis <-
     ltatlabel <- outer(ltatlabel, c(0, c(365, 30, 1, 1/24, 1/(24*60))[lku]), "+")
 ##      at.inunit = attr(ltatlabel, "at.inunit") )
   if (llunit=="d" & ldtk[lidtk,"labelint"]!=1) { ## drop mark at day 31
-    li30 <- ltatu%%100==31
+    li30 <- ltatu%%100==30
     li30[length(li30)] <- FALSE ## do not drop at end of scale
     llab[li30] <- ""
   }
@@ -1634,7 +1643,7 @@ plyx <-
                               ploptions=ploptions)
       lattr <- attributes(lyy[,1])[c("innerrange", "plrange", "ticksat",
                                      "ticklabelsat")]
-      ly <- varattributes(ly, setNames(rep(list(lattr), lny), lynm))
+      ly <- setvarattributes(ly, setNames(rep(list(lattr), lny), lynm))
       lrgy <- matrix(lf.rg(ly[,1]), 2, lny)
       for (lj in 1:lny) 
         attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
@@ -1700,7 +1709,7 @@ plyx <-
       for (lig in (lc+1):lnc) { ## groups
         lg <- lgrp[lig]
         if(lny>1)  {
-          lyaxcol <- lsmcol <- lpcol <- attr(ly1, "col")
+          lyaxcol <- lsmcol <- lpcol <- attr(ly1, "vcol")
           plargs$ploptions$smooth.col <- lsmcol
           pldata["(pcol)"] <- lpcol
           if(!lIpch) 
@@ -1737,7 +1746,7 @@ plyx <-
           if (length(lplab)==lnr) lplabg <- lplab[li]
         }
         if (lny>1) 
-          plargs$ploptions$lcol <- plargs$pldata$"(pcol)" <- attr(ly1g,"col")
+          plargs$ploptions$lcol <- plargs$pldata$"(pcol)" <- attr(ly1g,"vcol") 
         panel(lxjg, ly1g, type=type, plargs=plargs)
         ## multiple y
         lusr <- par("usr")
@@ -1745,7 +1754,7 @@ plyx <-
           for (lj in 2:lny) {
             lyjg <- lyg[,lj]
             lrgj <- lrgy[,lj]
-            lpcol <- attr(lyjg, "col") ##  the color must reflect the variable
+            lpcol <- attr(lyjg, "vcol") ##  the color must reflect the variable
             if (!lIpch) lpchg <- attr(lyjg, "pch")
             if (rescale>0) {
               lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
@@ -1773,30 +1782,49 @@ plyx <-
   }
 }
 ## ==========================================================================
-varattributes <-
-  function(data, attributes = NULL)
+setvarattributes <-
+  function(data, attributes = NULL, list = NULL, ...)
 {
   data <- as.data.frame(data)
-  if (!is.list(attributes))
-    stop("!varattributes! argument 'attributes' must be a list")
-  if (is.null(names(attributes))) {
-    if (length(attributes)!=ncol(data))
-      stop("!varattributes! argument 'attributes' must have names ",
-           "or be of appropriate length")
-    names(attributes) <- names(data)
-  }
-  lnames <- names(attributes)
-  if (any(linm <- lnames%nin%names(data)))
-    stop("!varattributes! names of argument 'attributes' not in ",
-         "names of 'data': ", paste(lnames[linm], collapse=", "))
-  for (lnm in lnames) {
-    lattr <- attributes(data[[lnm]])
-    lattr[names(attributes[[lnm]])] <- attributes[[lnm]]
-    attributes(data[[lnm]]) <- lattr
-    if (lnm=="innerrange") {
-    ## call plcoord !!!
+  lnmdata <- names(data)
+  list <- c(list, list(...))
+  if (length(list) && !is.list(list))
+      warning(":setvarattributes: argument 'list' must be a list")
+  list <- c(list, list(...))
+  if (length(list)) {
+    lnames <- names(list)
+    for (lnm in lnames) {
+      lls <- as.list(list[[lnm]])
+      llnm <- names(lls)
+      if (any(linm <- llnm%nin%lnmdata))
+        stop("!setvarattributes! names of  ",lnm,"  not in ",
+             "names of 'data': ", paste(llnm[linm], collapse=", "))
+      for (lnmv in llnm)
+        attr(data[[lnmv]], lnm) <- lls[[lnmv]]
     }
-  }
+  } else if (length(attributes)==0) warning(":setvarattributes: no attributes")
+  if (length(attributes)) {
+    if (!is.list(attributes))
+      stop("!setvarattributes! argument 'attributes' must be a list")
+    if (is.null(names(attributes))) {
+      if (length(attributes)!=ncol(data))
+        stop("!setvarattributes! argument 'attributes' must have names ",
+             "or be of appropriate length")
+      names(attributes) <- names(data)
+    }
+    lnames <- names(attributes)
+    if (any(linm <- lnames%nin%names(data)))
+      stop("!setvarattributes! names of argument 'attributes' not in ",
+           "names of 'data': ", paste(lnames[linm], collapse=", "))
+    for (lnm in lnames) {
+      lattr <- attributes(data[[lnm]])
+      lattr[names(attributes[[lnm]])] <- attributes[[lnm]]
+      attributes(data[[lnm]]) <- lattr
+      if (lnm=="innerrange") {
+        ## call plcoord !!!
+      }
+    }
+  } 
   invisible(data)
 }
 ## ==========================================================================
@@ -2124,7 +2152,7 @@ i.argPldata <- c("psize", "plab", "pch", "pcol",
                  "group", "smooth.group", "smooth.weights")
 i.argPlcontr <-
   c("x", "y", "data", "transformed", "subset", ## "cex", "markextremes",
-    "ycol", "ylty", "ypch", ##  "smooth",
+    "vcol", "vlty", "vpch", ##  "smooth",
     "main", "sub", ".subdefault", ## "mar",
     "xlab", "ylab", "varlabels",
     "ploptions", ".environment.")
@@ -3260,8 +3288,19 @@ plpanel <-
     if (length(x)==0) x <- pldata[,2]
     if (length(y)==0) y <- pldata[,1]
   }
+  if (length(dropNA(unique(x)))==0) {
+    warning(":plpanel: no finite values of variable ", names(pldata[,2]),
+            ". Nothing to plot")
+    return()
+  }
+  if (length(dropNA(unique(y)))==0) {
+    warning(":plpanel: no finite values of variable ", names(pldata[,1]),
+            ". Nothing to plot")
+    return()
+  }
   if (is.character(x)) x <- factor(x) ## !!! attributes!
   if (is.character(y)) y <- factor(y)
+  if (length(dropNA(unique(x)))==1) x <- factor(x)
   if (is.factor(x)) { lIsm <- FALSE
     if (!is.factor(y) & mbox) {
       plargs$pldata <- data.frame(x=x,y=y)
@@ -3461,6 +3500,9 @@ plmboxes.default <-
   pldata <- plargs$pldata
   x <- pldata[,i.def(attr(pldata,"xvar"),1), drop=FALSE] ## may have two columns
   y <- pldata[,i.def(attr(pldata,"yvar")[1],2)]
+  y <- i.def(i.def(attr(y, "numvalues"), attr(y, "plcoord")), y)
+  if (!is.numeric(y))
+    stop("!plmboxes.default! 'y' must be numeric")
   lhoriz <- as.logical(i.def(horizontal, FALSE, valuetrue=TRUE))
   ## widths
   lwfac <- modarg(widthfac, c(max=2, med=1.3, medmin=0.3, outl=NA, sep=0.003))

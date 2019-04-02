@@ -1,6 +1,6 @@
 Package: regr0
 Type: Package
-Title: Building regression models
+Title: Building Regression Models (Old Version)
 Version: 1.0-5
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
@@ -8,5 +8,6 @@ Imports: stats, graphics, MASS, nnet, survival, robustbase, quantreg, leaps
 Description: Helps to perform efficient model building for many kinds of
  regression models, including graphical residuals analysis. It also
  contains some useful utility functions.
+ This version is deprecated. It is replaced by regr and plgraphics.
 License: GPL-2
 LazyLoad: yes
