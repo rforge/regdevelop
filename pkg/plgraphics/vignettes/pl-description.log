@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  18 MAR 2019 13:22
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.8.4)  11 APR 2019 12:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -718,7 +718,7 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 320--321
 [9 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plyx-mul
 tipley-1.pdf>]
 Package color Info: Redefining color shadecolor on input line 326.
- <figure/plyx-multiplex-1.pdf, id=82, 578.16pt x 289.08pt>
+ <figure/plyx-multiplex-1.pdf, id=81, 578.16pt x 289.08pt>
 File: figure/plyx-multiplex-1.pdf Graphic file (type pdf)
 
 <use figure/plyx-multiplex-1.pdf>
@@ -732,7 +732,7 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 333--334
 [10 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plyx-ti
 me-1.pdf>]
 Package color Info: Redefining color shadecolor on input line 351.
- <figure/markextremes-1.pdf, id=92, 578.16pt x 289.08pt>
+ <figure/markextremes-1.pdf, id=90, 578.16pt x 289.08pt>
 File: figure/markextremes-1.pdf Graphic file (type pdf)
 
 <use figure/markextremes-1.pdf>
@@ -746,7 +746,7 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 362--363
 [11 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plyx-mu
 ltiplex-1.pdf>]
 Package color Info: Redefining color shadecolor on input line 377.
- <figure/mboxes-1.pdf, id=103, 578.16pt x 433.62pt>
+ <figure/mboxes-1.pdf, id=101, 578.16pt x 433.62pt>
 File: figure/mboxes-1.pdf Graphic file (type pdf)
 
 <use figure/mboxes-1.pdf>
@@ -760,66 +760,66 @@ Overfull \hbox (17.0pt too wide) in paragraph at lines 384--385
 [12 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/markext
 remes-1.pdf>]
 Package color Info: Redefining color shadecolor on input line 396.
- <figure/censored-1.pdf, id=113, 578.16pt x 433.62pt>
+ <figure/censored-1.pdf, id=111, 578.16pt x 433.62pt>
 File: figure/censored-1.pdf Graphic file (type pdf)
 
 <use figure/censored-1.pdf>
-Package pdftex.def Info: figure/censored-1.pdf used on input line 403.
+Package pdftex.def Info: figure/censored-1.pdf used on input line 408.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 403--404
+Overfull \hbox (17.0pt too wide) in paragraph at lines 408--409
 [][] 
  []
 
 [13 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/mboxes-
 1.pdf>] [14 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure
 /censored-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 436.
- <figure/plmatrix-1.pdf, id=132, 722.7pt x 722.7pt>
+Package color Info: Redefining color shadecolor on input line 441.
+ <figure/plmatrix-1.pdf, id=130, 722.7pt x 722.7pt>
 File: figure/plmatrix-1.pdf Graphic file (type pdf)
 
 <use figure/plmatrix-1.pdf>
-Package pdftex.def Info: figure/plmatrix-1.pdf used on input line 441.
+Package pdftex.def Info: figure/plmatrix-1.pdf used on input line 446.
 (pdftex.def)             Requested size: 483.69684pt x 483.69922pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 441--442
+Overfull \hbox (17.0pt too wide) in paragraph at lines 446--447
 [][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 447.
+Package color Info: Redefining color shadecolor on input line 452.
 [15 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plmatri
-x-1.pdf>] <figure/plmatrix_sub-1.pdf, id=142, 578.16pt x 433.62pt>
+x-1.pdf>] <figure/plmatrix_sub-1.pdf, id=140, 578.16pt x 433.62pt>
 File: figure/plmatrix_sub-1.pdf Graphic file (type pdf)
 
 <use figure/plmatrix_sub-1.pdf>
-Package pdftex.def Info: figure/plmatrix_sub-1.pdf used on input line 453.
+Package pdftex.def Info: figure/plmatrix_sub-1.pdf used on input line 458.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 453--454
+Overfull \hbox (17.0pt too wide) in paragraph at lines 458--459
 [][] 
  []
 
-Package color Info: Redefining color shadecolor on input line 478.
+Package color Info: Redefining color shadecolor on input line 483.
 [16 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plmatri
-x_sub-1.pdf>] <figure/plotregr-1.pdf, id=152, 578.16pt x 542.025pt>
+x_sub-1.pdf>] <figure/plotregr-1.pdf, id=149, 578.16pt x 542.025pt>
 File: figure/plotregr-1.pdf Graphic file (type pdf)
 
 <use figure/plotregr-1.pdf>
-Package pdftex.def Info: figure/plotregr-1.pdf used on input line 486.
+Package pdftex.def Info: figure/plotregr-1.pdf used on input line 491.
 (pdftex.def)             Requested size: 483.69684pt x 453.4618pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 486--487
+Overfull \hbox (17.0pt too wide) in paragraph at lines 491--492
 [][] 
  []
 
 [17 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plotreg
 r-1.pdf>]
-Underfull \hbox (badness 10000) detected at line 522
+Underfull \hbox (badness 10000) detected at line 527
 []
  []
 
 
-Underfull \hbox (badness 10000) detected at line 525
+Underfull \hbox (badness 10000) detected at line 530
 []
  []
 
@@ -827,215 +827,203 @@ Underfull \hbox (badness 10000) detected at line 525
 
 Package amsmath Warning: Foreign command \over;
 (amsmath)                \frac or \genfrac should be used instead
-(amsmath)                 on input line 575.
+(amsmath)                 on input line 580.
 
-Package color Info: Redefining color shadecolor on input line 601.
-<figure/plresx-1.pdf, id=171, 578.16pt x 542.025pt>
-File: figure/plresx-1.pdf Graphic file (type pdf)
- <use figure/plresx-1.pdf>
-Package pdftex.def Info: figure/plresx-1.pdf used on input line 606.
-(pdftex.def)             Requested size: 483.69684pt x 453.4618pt.
+Package color Info: Redefining color shadecolor on input line 606.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 606--607
-[][] 
+Overfull \hbox (4.94162pt too wide) in paragraph at lines 612--612
+[]\OT1/cmtt/m/n/10.95 ## Error in apply(lstdres, 2, function(x) plmark(lmxres, 
+x, plabel = plargs$plabel)):
  []
 
-[19]
-Package color Info: Redefining color shadecolor on input line 619.
- <figure/plresx_trs-1.pdf, id=180, 578.16pt x 542.025pt>
-File: figure/plresx_trs-1.pdf Graphic file (type pdf)
+Package color Info: Redefining color shadecolor on input line 624.
 
-<use figure/plresx_trs-1.pdf>
-Package pdftex.def Info: figure/plresx_trs-1.pdf used on input line 624.
-(pdftex.def)             Requested size: 483.69684pt x 453.4618pt.
-
-Overfull \hbox (17.0pt too wide) in paragraph at lines 624--625
-[][] 
+Overfull \hbox (4.94162pt too wide) in paragraph at lines 630--630
+[]\OT1/cmtt/m/n/10.95 ## Error in apply(lstdres, 2, function(x) plmark(lmxres, 
+x, plabel = plargs$plabel)):
  []
 
-[20 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plresx-
-1.pdf>]
-Overfull \hbox (123.56621pt too wide) in paragraph at lines 634--635
+
+Overfull \hbox (123.56621pt too wide) in paragraph at lines 639--640
 []\OT1/cmr/m/n/10 The trans-formed in-put vari-ables are those ap-pear-ing in t
 he terms of the for-mula, as de-liv-ered by  \OT1/cmtt/m/n/10 rownames(attr(ter
 ms(formula[1:2]),
  []
 
-[21 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plresx_
-trs-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 656.
- <figure/plres2x-1.pdf, id=199, 578.16pt x 433.62pt>
+[19]
+Package color Info: Redefining color shadecolor on input line 661.
+ <figure/plres2x-1.pdf, id=176, 578.16pt x 433.62pt>
 File: figure/plres2x-1.pdf Graphic file (type pdf)
 
 <use figure/plres2x-1.pdf>
-Package pdftex.def Info: figure/plres2x-1.pdf used on input line 665.
+Package pdftex.def Info: figure/plres2x-1.pdf used on input line 670.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 665--666
+Overfull \hbox (17.0pt too wide) in paragraph at lines 670--671
 [][] 
  []
 
-[22 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plres2x
+[20 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/plres2x
 -1.pdf>]
-Package color Info: Redefining color shadecolor on input line 694.
- <figure/survresiduals-1.pdf, id=209, 578.16pt x 433.62pt>
+Package color Info: Redefining color shadecolor on input line 699.
+ <figure/survresiduals-1.pdf, id=186, 578.16pt x 433.62pt>
 File: figure/survresiduals-1.pdf Graphic file (type pdf)
 
 <use figure/survresiduals-1.pdf>
-Package pdftex.def Info: figure/survresiduals-1.pdf used on input line 707.
+Package pdftex.def Info: figure/survresiduals-1.pdf used on input line 708.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 707--708
+Overfull \hbox (17.0pt too wide) in paragraph at lines 708--709
 [][] 
  []
 
-[23 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/survres
-iduals-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 752.
-Package color Info: Redefining color shadecolor on input line 770.
- <figure/resfitbin-1.pdf, id=219, 578.16pt x 433.62pt>
+[21] [22 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/su
+rvresiduals-1.pdf>]
+Package color Info: Redefining color shadecolor on input line 753.
+Package color Info: Redefining color shadecolor on input line 771.
+ <figure/resfitbin-1.pdf, id=199, 578.16pt x 433.62pt>
 File: figure/resfitbin-1.pdf Graphic file (type pdf)
 
 <use figure/resfitbin-1.pdf>
-Package pdftex.def Info: figure/resfitbin-1.pdf used on input line 778.
+Package pdftex.def Info: figure/resfitbin-1.pdf used on input line 779.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 778--779
+Overfull \hbox (17.0pt too wide) in paragraph at lines 779--780
 [][] 
  []
 
-[24] <figure/resfitbin-2.pdf, id=223, 578.16pt x 433.62pt>
+[23] <figure/resfitbin-2.pdf, id=203, 578.16pt x 433.62pt>
 File: figure/resfitbin-2.pdf Graphic file (type pdf)
 
 <use figure/resfitbin-2.pdf>
-Package pdftex.def Info: figure/resfitbin-2.pdf used on input line 784.
+Package pdftex.def Info: figure/resfitbin-2.pdf used on input line 785.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 784--785
+Overfull \hbox (17.0pt too wide) in paragraph at lines 785--786
 [][] 
  []
 
-[25 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/resfitb
+[24 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/resfitb
 in-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 811.
- [26 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/resfit
-bin-2.pdf>] <figure/ploptions-1.pdf, id=243, 578.16pt x 433.62pt>
+Package color Info: Redefining color shadecolor on input line 812.
+ [25 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/resfit
+bin-2.pdf>] <figure/ploptions-1.pdf, id=223, 578.16pt x 433.62pt>
 File: figure/ploptions-1.pdf Graphic file (type pdf)
 
 <use figure/ploptions-1.pdf>
-Package pdftex.def Info: figure/ploptions-1.pdf used on input line 817.
+Package pdftex.def Info: figure/ploptions-1.pdf used on input line 818.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 817--818
+Overfull \hbox (17.0pt too wide) in paragraph at lines 818--819
 [][] 
  []
 
 
-Underfull \hbox (badness 10000) detected at line 826
+Underfull \hbox (badness 10000) detected at line 827
 []
  []
 
 
-Underfull \hbox (badness 10000) detected at line 829
+Underfull \hbox (badness 10000) detected at line 830
 []
  []
 
 
-Underfull \hbox (badness 10000) detected at line 833
+Underfull \hbox (badness 10000) detected at line 834
 []
  []
 
 
-Underfull \hbox (badness 10000) detected at line 836
+Underfull \hbox (badness 10000) detected at line 837
 []
  []
 
-[27 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/ploptio
+[26 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/ploptio
 ns-1.pdf>]
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 869.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 870.
 
  (/scratch/local/app/teTeX/08.16/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 869.
-[28]
-Overfull \hbox (108.64064pt too wide) in paragraph at lines 945--950
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 870.
+[27]
+Overfull \hbox (108.64064pt too wide) in paragraph at lines 946--951
 []\OT1/cmr/m/n/10.95 a group  \OT1/cmtt/m/n/10.95 smooth \OT1/cmr/m/n/10.95 . I
 f  \OT1/cmtt/m/n/10.95 smooth \OT1/cmr/m/n/10.95 is  \OT1/cmtt/m/n/10.95 TRUE \
 OT1/cmr/m/n/10.95 , a smooth-ing func-tion with de-fault  
  []
 
-[29]
-Package color Info: Redefining color shadecolor on input line 1013.
- <figure/plyx_pattr-1.pdf, id=258, 578.16pt x 433.62pt>
+[28]
+Package color Info: Redefining color shadecolor on input line 1014.
+ <figure/plyx_pattr-1.pdf, id=239, 578.16pt x 433.62pt>
 File: figure/plyx_pattr-1.pdf Graphic file (type pdf)
 
 <use figure/plyx_pattr-1.pdf>
-Package pdftex.def Info: figure/plyx_pattr-1.pdf used on input line 1019.
+Package pdftex.def Info: figure/plyx_pattr-1.pdf used on input line 1020.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 1019--1020
+Overfull \hbox (17.0pt too wide) in paragraph at lines 1020--1021
 [][] 
  []
 
-[30] [31 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/pl
+[29] [30 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/pl
 yx_pattr-1.pdf>]
-Package color Info: Redefining color shadecolor on input line 1066.
- <figure/varattributes-1.pdf, id=272, 578.16pt x 433.62pt>
+Package color Info: Redefining color shadecolor on input line 1067.
+ <figure/varattributes-1.pdf, id=252, 578.16pt x 433.62pt>
 File: figure/varattributes-1.pdf Graphic file (type pdf)
 
 <use figure/varattributes-1.pdf>
-Package pdftex.def Info: figure/varattributes-1.pdf used on input line 1075.
+Package pdftex.def Info: figure/varattributes-1.pdf used on input line 1076.
 (pdftex.def)             Requested size: 483.69684pt x 362.76945pt.
 
-Overfull \hbox (17.0pt too wide) in paragraph at lines 1075--1076
+Overfull \hbox (17.0pt too wide) in paragraph at lines 1076--1077
 [][] 
  []
 
-[32 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/varattr
+[31 </scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/figure/varattr
 ibutes-1.pdf>]
-Overfull \hbox (1.35622pt too wide) in paragraph at lines 1104--1118
+Overfull \hbox (1.35622pt too wide) in paragraph at lines 1105--1119
 \OT1/cmtt/m/n/10.95 plpoints \OT1/cmr/m/n/10.95 also in-cludes the ca-pa-bil-i-
 ties of  \OT1/cmtt/m/n/10.95 text \OT1/cmr/m/n/10.95 : If the ar-gu-ment  \OT1/
 cmtt/m/n/10.95 plab \OT1/cmr/m/n/10.95 is set (or  \OT1/cmtt/m/n/10.95 plargs$p
 ladata
  []
 
-[33] [34]
-Overfull \hbox (29.73381pt too wide) in paragraph at lines 1235--1240
+[32] [33]
+Overfull \hbox (29.73381pt too wide) in paragraph at lines 1236--1241
 \OT1/cmr/bx/n/10.95 Color  \OT1/cmr/m/n/10.95 If color ( \OT1/cmtt/m/n/10.95 pc
 ol \OT1/cmr/m/n/10.95 ) is a fac-tor, it will be con-verted into  \OT1/cmtt/m/n
 /10.95 ploptions("group.col")[as.numeric(pcol)]
  []
 
 
-Overfull \hbox (0.81181pt too wide) in paragraph at lines 1251--1254
+Overfull \hbox (0.81181pt too wide) in paragraph at lines 1252--1255
 []\OT1/cmr/m/n/10.95 Set the  \OT1/cmtt/m/n/10.95 innerrange \OT1/cmr/m/n/10.95
  at-tribute by call-ing gen-varat-tributes. Oth-er-wise, you need to call also 
  \OT1/cmtt/m/n/10.95 plcoord
  []
 
-[35]
+[34]
 LaTeX Font Info:    Font shape `OT1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 1294.
+(Font)              Font shape `OT1/cmtt/m/n' tried instead on input line 1295.
 
 
-Overfull \hbox (34.00883pt too wide) in paragraph at lines 1296--1309
+Overfull \hbox (34.00883pt too wide) in paragraph at lines 1297--1310
 \OT1/cmr/m/n/10.95 Since a method for resid-u-als is not avail-able in the  \OT
 1/cmtt/m/n/10.95 MASS \OT1/cmr/m/n/10.95 pack-age for  \OT1/cmtt/m/n/10.95 polr
  \OT1/cmr/m/n/10.95 fit-ted mod-els,  \OT1/cmtt/m/n/10.95 residuals.regrpolr
  []
 
-Package color Info: Redefining color shadecolor on input line 1333.
-[36] [37]
+Package color Info: Redefining color shadecolor on input line 1334.
+[35] [36]
 (/scratch/users/stahel/R/regdevelop/pkg/plgraphics/vignettes/pl-description.aux
 ) ) 
 Here is how much of TeX's memory you used:
- 3284 strings out of 493014
- 46151 string characters out of 6130583
+ 3274 strings out of 493014
+ 45917 string characters out of 6130583
  116632 words of memory out of 5000000
- 6723 multiletter control sequences out of 15000+600000
+ 6715 multiletter control sequences out of 15000+600000
  14288 words of font info for 53 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  40i,6n,31p,326b,249s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1060,10 +1048,10 @@ atch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb
 ts/cm/cmti10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/public/
 amsfonts/cm/cmtt10.pfb></scratch/local/app/teTeX/08.16/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmtt12.pfb>
-Output written on pl-description.pdf (37 pages, 633901 bytes).
+Output written on pl-description.pdf (36 pages, 567505 bytes).
 PDF statistics:
- 362 PDF objects out of 1000 (max. 8388607)
- 255 compressed objects within 3 object streams
+ 340 PDF objects out of 1000 (max. 8388607)
+ 238 compressed objects within 3 object streams
  0 named destinations out of 1000 (max. 500000)
- 116 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 106 words of extra memory for PDF output out of 10000 (max. 10000000)
 

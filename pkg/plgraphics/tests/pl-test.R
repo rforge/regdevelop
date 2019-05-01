@@ -64,6 +64,8 @@ ff(Sepal.Width~Sepal.Length, data=iris, pcol=I("gray"), smooth=T)
 plmatrix(iris, pch=as.numeric(Species))
 plmatrix(~Sepal.Length+Sepal.Width, ~Petal.Length+Petal.Width, data=iris,
          smooth=TRUE, pch=as.numeric(iris[,"Species"]))
+plmatrix(~Sepal.Length+Sepal.Width, ~Petal.Length+Petal.Width, data=iris,
+         panel=points)
 
 ## plmboxes
 plmboxes(Sepal.Width~Species, data=iris, labelsvert=1, main="iris")
@@ -127,6 +129,11 @@ rr <-
   lm(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region,
                 data=d.fossileSamples)
 plregr(rr)
+data(d.fossileSamples)
+r.foss <-
+  lm(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region+N,
+  data=d.fossileSamples)
+plregr(r.foss, plotselect=c(resfit=3, resmatrix=1, qqmult=1))
 
 ## ================================================
 ## glm
@@ -148,9 +155,11 @@ plregr(rr, factor.show="jitter")
 ## survreg
 data(lung, package="survival")
 lung$gender <- factor(c("m","f")[lung$sex])
-r.sr <- survival::survreg(Surv(time, status) ~ age + gender + ph.karno, data=lung) 
+r.sr <- survival::survreg(
+  survival::Surv(time, status) ~ age + gender + ph.karno, data=lung) 
 plregr(r.sr, group=gender, pcol=gender, xvar=~age)
-r.cox <- survival::coxph(Surv(time, status) ~ age + gender + ph.karno, data=lung) 
+r.cox <- survival::coxph(
+  survival::Surv(time, status) ~ age + gender + ph.karno, data=lung) 
 plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 
 ## =================================================================

@@ -8,7 +8,7 @@
 }
 \usage{
 gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
-  plargs=NULL, ploptions=plargs$ploptions, ...)
+  plargs=NULL, ploptions=NULL, ...)
 }
 \arguments{
   \item{x}{vector of x values.

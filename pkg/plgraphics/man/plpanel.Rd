@@ -10,9 +10,9 @@
 }
 \usage{
 plpanel(x, y, indx = NULL, indy = NULL, type = "p", frame = FALSE,
-  title = FALSE, plargs = NULL, ploptions = plargs$ploptions, ...)
+  title = FALSE, plargs = NULL, ploptions = NULL, ...)
 
-panelSmooth(x, y, indx, indy, plargs=.plargs, ploptions=plargs$ploptions, ...)
+panelSmooth(x, y, indx, indy, plargs = NULL, ploptions = NULL, ...)
 }
 
 \arguments{
@@ -38,7 +38,7 @@ panelSmooth(x, y, indx, indy, plargs=.plargs, ploptions=plargs$ploptions, ...)
 \details{
   The panel function draws a scatterplot if both \code{x} and \code{y} are
   numerical, and a multibox plot if one of them is a factor and
-  \code{plargs$ploptions$factor.show == "mbox"}.\cr
+  \code{ploptions$factor.show == "mbox"}.\cr
   Grouping, reference and smooth lines and properties of the points
   are determined by the component of \code{plargs} in \code{plpanel}.
 

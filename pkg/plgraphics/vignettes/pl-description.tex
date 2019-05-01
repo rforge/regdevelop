@@ -395,6 +395,11 @@ the x and y variables.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
+\hlkwd{require}\hlstd{(}\hlstr{"survival"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
 \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
@@ -602,9 +607,9 @@ It does so by calling \T{plresx}, which can also be done directly.
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr)}
 \end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/plresx-1} 
 
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in apply(lstdres, 2, function(x) plmark(lmxres, x, plabel = plargs\$plabel)): dim(X) must have a positive length}}\end{kframe}
 \end{knitrout}
 The input variables are often transformed before they are used 
 in the linear predictor,
@@ -620,9 +625,9 @@ plot. The transformed variables can be called for by setting
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
 \end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
 
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in apply(lstdres, 2, function(x) plmark(lmxres, x, plabel = plargs\$plabel)): dim(X) must have a positive length}}\end{kframe}
 \end{knitrout}
 
 \Detail{
@@ -694,12 +699,8 @@ This results in residual plots like those shown in the figure.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(survival)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung)}
-\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(survival}\hlopt{::}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
 \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
           \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
 \end{alltt}
@@ -1211,7 +1212,7 @@ Priorities:
   (excemption, see 2.).
 \item
   In the case of multiple $y$s, colors are determined primarily by 
-  the argument \T{ycol} of the high level \T{pl} function, 
+  the argument \T{vcol} of the high level \T{pl} function, 
   scondarily by the \T{col} attribute of the variables. 
   Thirdly, the \T{variables} component of \T{plappearance} is used,
   avoiding colors that are already specified for some variables by the

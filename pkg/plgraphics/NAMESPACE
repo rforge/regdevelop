@@ -28,7 +28,7 @@ importFrom("grDevices", col2rgb, dev.list, palette, rgb)
 
 importFrom("MASS", polr)
 ## importFrom("nnet", multinom, nnet.default)
-importFrom("survival", coxph, survreg, Surv)
+importFrom("survival", coxph, survreg)
 
 importFrom("lme4", lmer) ## , family.merMod
 ## importFrom("robustbase", lmrob)
@@ -69,9 +69,6 @@ export(asinp,
        simresiduals, simresiduals.default, simresiduals.glm, 
        smoothRegr, smoothLm, smoothxtrim, stamp,
        stdresiduals, sumNA,
-       Surv, ## need to export these since otherwise,
-       ## they cannot be used in the formula of a regr call without
-       ## require-ing the package survreg
        Tobit,
        tit, "tit<-", transferAttributes, 
        warn,

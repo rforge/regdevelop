@@ -23,7 +23,7 @@ plmboxes(x, ...)
     add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsperp=FALSE, xmar=NULL,
     widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, 
-    .subdefault=NULL, plargs = NULL, ploptions = plargs$ploptions, ...)
+    .subdefault=NULL, plargs = NULL, ploptions = NULL, ...)
 
 plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     width=1, wfac=NULL, minheight=NULL, adj=0.5, extquant=TRUE, 

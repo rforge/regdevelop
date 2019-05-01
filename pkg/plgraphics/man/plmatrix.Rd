@@ -9,12 +9,12 @@
   1 plot page.
 }
 \usage{
-plmatrix(x, y = NULL, data = NULL, panel = plpanel, 
+plmatrix(x, y = NULL, data = NULL, panel = plpanel, panelargs = plargs, 
          nrow = 0, ncol = nrow, reduce = TRUE, keeppar = FALSE,
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
-         oma=NULL, mar=NULL, cex.diaglabels = 1.5,
-         plargs = NULL, ploptions = plargs$ploptions, ...) 
+         oma=NULL, cex = NULL, diaglabel.cex = NULL,
+         plargs = NULL, ploptions = NULL, ...) 
 }
 
 \arguments{
@@ -26,11 +26,19 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel,
     or \code{y} is a formula}
   \item{panel}{a function that generates the marks of the individual
     panels, see Details.
-    Defaults essentially to \code{\link{points}} or \code{\link{text}}
+    Defaults to \code{plpanel}, which results essentially in
+    \code{\link{points}} or \code{\link{text}}
     depending on the argument \code{pch},
-    to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not,
-    or to a modification of \code{sunflowers} if both are factors.
+    to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not or
+    vice versa,
+    or to a modification of \code{sunflowers} if both are factors.\cr
+    The function must have the arguments \code{x} and \code{y}
+    to take the coordinates of the points and may have the arguments
+    \code{indx} and \code{indy} to transfer the variables\' index and
+    \code{panelargs} for any additional objects to be passed on.
   }
+  \item{panelargs}{a list of arguments to be passed to the \code{panel}
+    function, in addition to \code{x, y, indx, indy}}
   \item{nrow}{number of rows of panels on a page}
   \item{ncol}{number of columns of panels on a page}
   \item{reduce}{if y is not provided and \code{reduce==TRUE},
@@ -47,8 +55,9 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel,
   \item{xlab, ylab}{not used (introduced to avoid confusion with
     \code{xlabmar, ylabmar})}
   \item{oma}{width of outer margins, ee \code{\link{par}}}
-  \item{mar}{margins for the panels}
-  \item{cex.diaglabels}{Character expansion for labels appearing in the
+  \item{cex}{general character expansion, will be multiplied by
+    \code{par("cex")}}
+  \item{diaglabel.cex}{Character expansion for labels appearing in the
     "diagonal" of the scatterplot matrix (if present)}
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.

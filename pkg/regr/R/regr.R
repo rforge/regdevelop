@@ -374,6 +374,7 @@ i.lm <-
 	     rlm = quote(MASS::rlm),
              rq = quote(quantreg::rq),
              lm = quote(stats::lm),
+             nls = quote(stats::nls),
 	     ## default:
 	     as.name(fn))
   }
@@ -430,19 +431,19 @@ i.lm <-
     lreg$df <- c(length(coef(lreg))-attr(terms(lreg),"intercept"),
                  length(lreg$residuals)-length(coef(lreg)))
   lreg$df.residual <- ldfr <- df.residual(lreg)
+  ## coef table
   lcftab <- lreg1$coefficients
   if (NCOL(lcftab)>1) {
     lcf <- lcftab[,1]
     attr(lcf, "se") <- lcftab[,2]
     lreg$coefficients <- lcf
     lreg$coeftable <- ciSignif(lcftab, df=lreg$df.residual, testlevel=testlevel)
-    if (nonlinear) {
-      ltq <- qt(1-testlevel/2, ldfr)
-      lci <- lcftab[,1]*(1+outer(ltq*lcftab[,2], c(ciLow=-1,ciUp=1)))
-      lreg$termtable <- data.frame(coef=lcftab[,1],se=lcftab[,2],lci)
-    }
+##-     if (nonlinear) {
+##-       lreg$termtable <- 
+##-     }
 #   lreg$r.squared <- 1-(lsig/lsdy)^2
   }
+  ##
   lreg$adj.r.squared <- 1-(1-lreg$r.squared)*(length(lreg$residuals)-1)/ldfr
   ## cov of estimates
   lcov <- lreg$cov.unscaled*lsig^2
@@ -1188,7 +1189,7 @@ i.termtable <-
   if(length(attr(lterms,"term.labels"))==0)
     return(list(termtable = data.frame(
       coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciUp=NA, 
-      df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+      df=1, testst=NA, signif=NA, p.value=NA, p.symbol="", stcoef=NA, R2.x=NA,
       stringsAsFactors=FALSE)
                 ))
 ## degrees of freedom
@@ -1197,7 +1198,7 @@ i.termtable <-
     warning(":regr/i.termtable: no degrees of freedom left.")
     return(list(termtable = data.frame(
       coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciUp=NA, 
-      df=1, testst=NA, signif=NA, p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+      df=1, testst=NA, signif=NA, p.value=NA, p.symbol="", stcoef=NA, R2.x=NA,
       stringsAsFactors=FALSE)
                 ))
   }    
@@ -1266,7 +1267,7 @@ i.termtable <-
   lpv <- ldr1[,lpvcol]
   ltb <- data.frame(coef=NA, se=NA, ciLow=NA, ciUp=NA, 
                     df=ldr1[,1], testst=ldr1[,lpvcol-1], signif=NA,
-                    p.value=lpv, p.symb="", stcoef=NA, R2.x=lr2,
+                    p.value=lpv, p.symbol="", stcoef=NA, R2.x=lr2,
                     stringsAsFactors=FALSE)
   row.names(ltb) <- row.names(ldr1)
   ## intercept
@@ -1278,14 +1279,14 @@ i.termtable <-
       "(Intercept)"=
         data.frame(coef=NA, se=NA, ciLow=NA, ciUp=NA, 
                    df=1, testst=NA, signif=NA,
-                   p.value=NA, p.symb="", stcoef=NA, R2.x=NA,
+                   p.value=NA, p.symbol="", stcoef=NA, R2.x=NA,
                    stringsAsFactors=FALSE),
       ltb)
     ltstq <- c(ltstq1, ltstq)
     lcont <- c(0, lcont)
   }
   lcont1 <- lcont+ljint  # row number in dr1
-## p.symb and signif
+## p.symbol and signif
   ltb$signif <- sqrt(pmax(0,ltb$testst)/ltstq)
 ## coefficients and statistics for terms with 1 df
   if (length(lcont)) { ## lcont refers to assign
@@ -1315,7 +1316,7 @@ i.termtable <-
   }
 ## p-symbol
   lipv <- as.numeric(cut(ltb$p.value, pvCutpoints))
-  ltb[,"p.symb"] <- pvSymbols[lipv]
+  ltb[,"p.symbol"] <- pvSymbols[lipv]
   attr(ltb, "legend") <- pvLegend
   class(ltb) <- c("termtable", "data.frame")
   ## --- termeffects (dummy coef)
@@ -1452,6 +1453,7 @@ print.regr <-
     termeffects = getUseroption("show.termeffects"),
     termcolumns = getUseroption("termcolumns"),
     termeffcolumns = getUseroption("termeffcolumns"),
+    coefcolumns = getUseroption("coefcolumns"),
     digits = getUseroption("digits"), 
     symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
     na.print = getUseroption("na.print"),
@@ -1499,21 +1501,20 @@ print.regr <-
                 "residuals are 0: no residual degrees of freedom!\n")
     }
   }
-  ## coefficients
-    nsingular <- df[3] - df[1]
-    if ((!is.na(nsingular))&&nsingular>0)
-        cat("\nCoefficients: (", nsingular,
-            " not defined because of singularities)\n", sep = "")
-    # else {
-    if (!is.null(x$sigma))
-      if((!is.finite(x$sigma))||x$sigma<=0)
-        cat("\n!!! Error variance is 0 !!!")
-  ## coef table
+  ##
+  nsingular <- df[3] - df[1]
+  if ((!is.na(nsingular))&&nsingular>0)
+    cat("\nCoefficients: (", nsingular,
+        " not defined because of singularities)\n", sep = "")
+  if (!is.null(x$sigma))
+    if((!is.finite(x$sigma))||x$sigma<=0)
+      cat("\n!!! Error variance is 0 !!!")
+  ## termtable
   lttab <- x$termtable
   if (length(lttab)>0) {
     if (inherits(lttab, "termtable")) {
       lIttab <- TRUE
-      if (signif.stars) termcolumns <- union(termcolumns, "p.symb")
+      if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
       if(!is.null(termcolumns)) {
         if (all(termcolumns=="")) lIttab <- FALSE else {
           ljp <- match(termcolumns,colnames(lttab), nomatch=0)
@@ -1540,9 +1541,9 @@ print.regr <-
     } else print(lttab, digits=digits, na.print=na.print) ## !inherits(.,"termtable")
   ## --- error block
   } else {
-    if (length(x$coef)) {
+    if (length(x$coeftable)) {
       cat("\nCoefficients:\n")
-      print(x$coef, na.print=na.print, digits=digits)
+      print(x$coeftable[,coefcolumns], na.print=na.print, digits=digits)
     }
   }
 ##-   if (length(x$binlevels)>0) {
@@ -2144,21 +2145,21 @@ termeffects <-
 print.termeffects <- function (x, columns=NULL, transpose=FALSE, ...)
 {
   if (is.null(columns)) columns <- "all"
-  columns[columns=="coef"] <- "estimate"
+  columns[columns=="estimate"] <- "coef"
   csymb <- "coefsymb"%in%columns
   if ("all"%in%columns)  columns <-
       if(csymb)
         c("coefsymb", "se", "ciLow", "ciUp", "testst",
           "signif", "p.value") else
-        c("estimate", "se", "ciLow", "ciUp", "testst",
+        c("coef", "se", "ciLow", "ciUp", "testst",
           "signif", "p.value")
   for (li in seq_along(x)) {
     xi <- x[[li]]
     if (is.null(dim(xi))) next
     if (csymb)
       xi$coefsymb <-
-        if ("p.symb"%in%names(xi)) {
-          lps <- as.character(xi[,"p.symb"])
+        if ("p.symbol"%in%names(xi)) {
+          lps <- as.character(xi[,"p.symbol"])
 ##          lps[is.na(lps)] <- na.print  ## would be misleading!
           paste(format(xi[,1],...), lps)
         } else  xi[,1]
@@ -3775,8 +3776,9 @@ c.colors <- c("black","red3","deepskyblue3","darkgreen",
   mar=c(3,3,3,1), mgp=c(2,0.8,0), plext=0.05, digits=4,
   regr.contrasts=c(unordered="contr.wsum", ordered="contr.wpoly"),
   termcolumns=c("coef",  "df", "ciLow","ciUp","R2.x",
-    "signif", "p.value", "p.symb"),
+    "signif", "p.value", "p.symbol"),
   termeffcolumns="coefsymb",
+  coefcolumns=c("coef", "ciLow","ciUp", "signif", "p.value", "p.symbol"),
   na.print=".",
   smoothFunction="smoothRegr", smoothMinobs = 8,
   debug=0
@@ -3819,3 +3821,7 @@ check.arg <- function(optname, value, list=NULL, fname="") {
 ## -----------------------------------------------------------------------
 useroptionsCheck <- list()
 ## ==========================================================================
+shift <- function(x, k = 1)
+  if (k>0) c(rep(NA, k), last(x, -k)) else
+  if (k==0) x else c(last(x, k), rep(NA, -k))
+

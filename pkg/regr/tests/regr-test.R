@@ -1,5 +1,7 @@
+## install.packages("regr", repos="http://R-forge.R-project.org")
+install.packages("~/R/regdevelop/pkg/regr_1.0-5.tar.gz", repos=NULL)
 ## library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
-library(regr) ##, lib="~/R/regdevelop/pkg/regr.Rcheck")
+## library(regr) ##, lib="~/R/regdevelop/pkg/regr.Rcheck")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)

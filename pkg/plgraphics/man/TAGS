@@ -8,28 +8,32 @@ d.babysurvival.Rd,19
 d.fossileShapes.Rd,20
 \usage{sage13,459
 
-d.river.Rd,46
+d.river.Rd,118
 \usage{sage9,251
-\examples{xamples37,1151
+    \item{\code{date}}{Date of the observation, class \code{ode14,391
+\examples{xamples42,1329
 
 leverage.Rd,27
 \examples{xamples44,1415
+
+plframe.Rd,28
+\examples{xamples106,4097
 
 plmboxes.Rd,32
 \description{escription10,124
 
 ploptions.Rd,56
 \arguments{rguments16,437
-\examples{xamples125,5419
-
-plpoints.Rd,28
-\examples{xamples168,6859
+\examples{xamples146,6502
 
 plregr.Rd,20
 \usage{sage16,573
 
 smoothRegr.Rd,20
-\usage{sage11,293
+\usage{sage12,331
+
+stdresiduals.Rd,27
+\examples{xamples46,1557
 
 xdistResdiff.Rd,0
 
@@ -39,7 +43,7 @@ transferAttributes.Rd,0
 
 Tobit.Rd,0
 
-sumna.Rd,0
+sumNA.Rd,0
 
 stamp.Rd,0
 
@@ -67,9 +71,11 @@ plsubset.Rd,0
 
 plres2x.Rd,0
 
-plpanel.Rd,0
+plregr.control.Rd,0
 
-plotregr.control.Rd,0
+plpoints.Rd,0
+
+plpanel.Rd,0
 
 plmfg.Rd,0
 
@@ -87,7 +93,7 @@ plcoord.Rd,0
 
 pl.control.Rd,0
 
-notna.Rd,0
+nobs.survreg.Rd,0
 
 nainf.exclude.Rd,0
 
@@ -107,13 +113,17 @@ getmeth.Rd,0
 
 genvarattributes.Rd,0
 
-gentimeaxis.Rd,0
-
 gensmooth.Rd,0
+
+gendateaxis.Rd,0
 
 fitcomp.Rd,0
 
+dropNA.Rd,0
+
 dropdata.Rd,0
+
+d.pollZH16.Rd,0
 
 doc.Rd,0
 

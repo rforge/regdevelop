@@ -9,7 +9,7 @@ Further Arguments to \code{plregr}
 }
 \usage{
 plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
-  weights = NULL,
+  weights = NULL, stdresid = TRUE, mar = NULL,
   glm.restype = "working", condquant = TRUE, smresid = TRUE,
   partial.resid = TRUE, cookdistlines = 1:2,
   leveragelimit = c(0.99, 0.5), condprobRange = NULL,
@@ -17,7 +17,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   smooth = 2, %% smoothPar = NA, smoothIter = NULL,
   smooth.sim = NULL,
   xlabs = NULL, reslabs = NULL, markextremes = NULL,
-  mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, multmar = NULL,
+  mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, %% multmar = NULL,
   oma = NULL, ...)
 } %%    jitter = TRUE, jitterbinary = TRUE, mbox = TRUE,
 \arguments{
@@ -33,6 +33,10 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   \item{transformed}{see \code{?\link{plregr}}}
   \item{weights}{logical: should residuals be plotted against weights?
     Used in \code{plresx}.}
+  \item{stdresid}{logical: should leverages and standardized residuals
+    be calculated? This is avoided for \code{plresx}}
+  \item{mar}{plot margins
+    }
   \item{glm.restype}{type of residuals to be used for glm models.
     In addition to those allowed in \code{residuals()} for
     \code{glm} objects, type \code{condquant} is possible for
@@ -83,8 +87,8 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   \item{mfcol}{if TRUE, the panel will be filled columnwise}
   \item{multnrow, multncol}{number of rows and columns of panels on
     one page, for residuals of multivariate regression only}
-  \item{multmar}{plot margins for scatterplot matrices in the case of
-    multivariate regression}
+%%-   \item{multmar}{plot margins for scatterplot matrices in the case of
+%%-     multivariate regression}
   \item{oma}{vector of length 4 giving the number of lines in the outer
     margin. If it is of length 2, they refer to top an right margins.}
   \item{...}{further arguments in the call, to be ignored by

@@ -287,6 +287,7 @@ corresponding to the combined cases of no, right and left censoring of
 the x and y variables.
 
 <<censored>>=
+require("survival")
 data(lung, package="survival")
 plmfg(1,2,mar=c(3,3,1,1))
 plyx(Surv(time,status) ~ age+wt.loss, data=lung, pcol=sex)
@@ -545,7 +546,7 @@ This results in residual plots like those shown in the figure.
 <<survresiduals>>=
 require(survival)
 data(lung)
-rr <- survreg(Surv(time,status) ~ age+sex+wt.loss, data=lung)
+rr <- survreg(survival::Surv(time,status) ~ age+sex+wt.loss, data=lung)
 plregr(rr, plotselect=c(default=0, resfit=1), xvar=FALSE, mf=c(1,1),
           smooth.sim=0)
 @ 
@@ -642,7 +643,8 @@ ploptions(list=attr(t.plopt, "old"))
 There are some differences between the behavior of \T{ploptions} and \T{par}:
 \Itm
 The pl options are stored in a list \T{.ploptions} in the global
-environment and are therefore not erased when leaving the R session. 
+environment and are therefore not erased when leaving the R session with
+saving the workspace (\T{q(save="yes")}).
 \Itm
 There is a list \T{ploptionsDefault} in the package. It collects the
 package's default settings and is used as a backup if some components should
@@ -689,7 +691,10 @@ The components of these lists include
   If the line types are shown with the same \T{lwd}, they are perceived
   with different intensity. \T{linewidth} intends to compensate this effect.
 \item
-  \T{cex}, the median character expansion.
+  \T{cex}, a factor applied to the current value of \T{par("cex")} to
+  determine the general character expansion used by the pl functions.
+\item
+  \T{cex.pch}, the median character expansion.
   The default is the function \T{cexSize} with an argument \T{n}, defined as
   \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
   observations is available. Alternatively, a fixed scalar can be given.
@@ -787,6 +792,22 @@ The components of these lists include
   \T{leveragelimit} determines the range used for leverage values
   when plotting residuals against leverages.
 \end{itemize}
+
+If these options modify any setting of R's \T{par} list and they are 
+set as arguments to high level pl functions 
+(\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe},
+they should be restored after leaving the function.
+When \T{plmfg} is called by the user, the information to restore 
+the old settings is contained in its (invisible) value.
+Thus, 
+<<>>=
+op <- plmfg(1,3)
+## plyx(Sepal.Width~Sepal.Length, data=iris, group=Species, mar=c(3,1,3,0))
+par(attr(op, "oldpar"))
+par("mfg")
+@ 
+will restore the old settings. Here, we have commented out the plotting
+statement to save space.
 
 %% ---------------------------------
 \subsection{Organization of graphical metadata}

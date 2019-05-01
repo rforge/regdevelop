@@ -16,20 +16,20 @@
 \usage{
 plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=col,
   lty=NULL, lwd=NULL, psize=NULL,
-  plargs = NULL, ploptions = plargs$ploptions, ...)
+  plargs = NULL, ploptions = NULL, ...)
 
 pllines(x, y, type="l", ...)
 
-plbars(x, y, plargs = NULL, ploptions = plargs$ploptions)
+plbars(x, y, plargs = NULL, ploptions = NULL)
 
-plsmooth(x, y, band=NULL, power = NULL, plargs = NULL, ploptions = plargs$ploptions)
-plsmoothline(smoothline, x, y, plargs=NULL, ploptions = plargs$ploptions)
+plsmooth(x, y, band=NULL, power = NULL, plargs = NULL, ploptions = NULL)
+plsmoothline(smoothline, x, y, plargs=NULL, ploptions = NULL, ...)
 
 plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
-  cutrange = c(x = TRUE, y = FALSE), plargs=NULL, ploptions=plargs$ploptions)
+  cutrange = c(x = TRUE, y = FALSE), plargs=NULL, ploptions=NULL, ...)
 
 plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
-  plargs=NULL, ploptions=plargs$ploptions)
+  plargs=NULL, ploptions=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -82,6 +82,14 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }
   \item{\dots}{absorbs extra arguments}
+}
+\value{\code{plpoints}invisibly returns the former \code{par("mar")}
+  if \code{setpar} is \code{TRUE}, otherwise \code{NULL}.
+
+  \code{plsmooth} invisibly returns the data.frame needed for
+  drawing the smooth line.
+
+  !!!
 }
 \details{
   \code{plargs} and \code{ploptions} may be specified explicitly,

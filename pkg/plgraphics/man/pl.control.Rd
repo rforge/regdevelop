@@ -6,10 +6,10 @@
 }
 \usage{
 pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
-  gensequence = NULL,
-  psize = NULL, plab = FALSE, pch = NULL, pcol = NULL,
+  gensequence = NULL, cex = NULL, 
+  psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, cex.pch = NULL, 
   markextremes = NULL, smooth = NULL,
-  cex = NULL, xlab = NULL, ylab = NULL, varlabels = NULL,
+  xlab = NULL, ylab = NULL, varlabels = NULL,
   vcol = NULL, vlty = NULL, vpch = NULL, 
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
   ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
@@ -26,6 +26,9 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
     should the other of these be specified as the sequence
     \code{1:nobs} (where \code{nobs} is the number of observations)?
   }
+  \item{cex}{character expansion, applied to both labels and plotting
+    characters.
+  }
   \item{psize, plab, pch, pcol}{Plotting characteristics of points,
     specified as a (unquoted) variable name found in \code{data}
     or as a vector.
@@ -33,13 +36,13 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
     strings), plotting character, and color, respectively.\cr
     \code{plabs = TRUE} asks for using the row names of \code{data}.
   }
+  \item{cex.pch}{expansion of plotting symbol relative to
+    \code{par("pch")}.
+    By default, it adjusts to the number of observations.
+  }
   \item{markextremes}{scalar: proportion of extreme points to be labelled
   }
   \item{smooth}{logical: should a smooth line be added?
-  }
-  \item{cex}{character expansion, applied to both labels and plotting
-    characters.
-    By default, it adjusts to the number of observations.
   }
   \item{xlab, ylab}{axis labels}
   \item{varlabels}{

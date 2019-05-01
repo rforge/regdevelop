@@ -11,14 +11,16 @@
 }
 \usage{
 plframe(x, y, xlab = NULL, ylab = NULL, ticklabels = TRUE, plextext = NULL,
-  axcol = rep(1, 4), plargs = NULL, ploptions = plargs$ploptions)
+  axcol = rep(1, 4), mar = NULL, 
+  plargs = NULL, ploptions = NULL, setpar = TRUE)
 
 pltitle(main=NULL, sub=NULL, cex=NULL, cexmin=NULL, 
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
-  doc=NULL, show=TRUE, plargs=NULL, ploptions = plargs$ploptions, ...)
+  doc=NULL, show=TRUE, plargs=NULL, ploptions = NULL, ...)
 
 plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
-  tickintervals=NULL, plargs = NULL, ploptions = plargs$ploptions, ...) 
+  tickintervals=NULL,
+  plargs = NULL, ploptions = NULL, setpar = TRUE, ...) 
 
 }
 %- maybe also 'usage' for other objects documented here.
@@ -29,6 +31,7 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   }
   \item{axcol}{colors for drawing axes scales
   }
+  \item{mar}{plot margins}
   \item{xlab, ylab}{axis labels}
   \item{main, sub}{main title and subtitle}
   \item{varlabel}{variable name}
@@ -65,11 +68,14 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }
+  \item{setpar}{logical: should graphical parameters
+    \code{cex, mar, mgp} be set according to \code{ploptions}?
+  }    
   \item{\dots}{absorbs extra arguments}
 }
-\value{\code{plsmooth} invisibly returns the data.frame needed for
-  drawing the smooth line.
-  !!! 
+\value{\code{plframe} and \code{plaxis} invisibly return the former
+  \code{par(c("cex", "mar", "mgp"))}
+  if \code{setpar} is \code{TRUE}, otherwise \code{NULL}.
 }
 \details{
   \code{plframe} draws axes according to argument \code{axes},
@@ -102,12 +108,13 @@ plyx(Sepal.Width ~ Sepal.Length, data=iris)
 
 ## again, each step separately
 t.dt <- .plargs$pldata
-.plargs$grid <- TRUE
-plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
+ploptions(grid=TRUE)
+oldpar <- plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
 plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
 t.plab <- plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03,
                  plargs=.plargs)
 plpoints(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs, plab=t.plab) 
+par(oldpar)   ## reset the changed graphical parameters
 }
 
 \keyword{aplot}

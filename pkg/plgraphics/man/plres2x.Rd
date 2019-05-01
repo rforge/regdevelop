@@ -9,7 +9,7 @@
 \usage{
 plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
   size = 2, xlab = NULL, ylab = NULL, plextext = NULL, pale = 0.2,
-  plargs = NULL, ploptions = plargs$ploptions, ...)
+  plargs = NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

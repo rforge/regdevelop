@@ -572,8 +572,10 @@ leverage <- function (object)
   lh <- object$leverage
   lnm <- names(i.def(object$residuals, object$resid))
   if (is.null(object$rank)) object$rank <- length(coefficients(object))
-  if (is.null(lh)) {
+  if (is.null(lh)) { 
     lqr <- object$qr
+    if (inherits(object, "nls"))
+      lqr <- get("QR", envir=environment(object$m$resid))
     if (is.null(lqr)) {
       if (length(lx <- object[["x"]])==0) {
         if (inherits(object, "regrMer"))
@@ -787,9 +789,11 @@ simresiduals.default <-
 ##-             "I can simulate only for `regr`, `lm`, or `glm` objects")
 ##-     return(NULL)
   ##-   }
-  if (!inherits(object, c("lm", "lmrob")))
-      stop("!simresiduals! I cannot simulate for model class  ",
-           paste(class(object), collapse="  "))
+  if (!inherits(object, c("lm", "lmrob", "nls"))) {
+    warning(":simresiduals: I cannot simulate for model class  ",
+            paste(class(object), collapse="  "))
+    return(NULL)
+  }
   lcall <- object$call
   if ("weights"%in%names(lcall)) {
     warning(":simresiduals: I cannot simulate for weighted regression (yet)")
@@ -879,7 +883,8 @@ simresiduals.default <-
   lfam <- object$distrname
   if (length(lfam)==0) lfam <- object$family$family
 ##  if (lfam%in%c("gaussian","Gaussian")) 
-  lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
+  if (!inherits(object, "nls"))
+    lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
   lenv <- environment()
   for (lr in 1:nrep) {
     ldata[,lynm] <-

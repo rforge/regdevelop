@@ -10,7 +10,7 @@
 plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   panel = plpanel,
   xlab = NULL, ylab = NULL, markextremes = 0, rescale = TRUE,
-  mar = NULL, plargs = NULL, ploptions = plargs$ploptions, ...)
+  mar = NULL, plargs = NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
