@@ -25,10 +25,11 @@ importFrom("graphics", plot, abline, axis, box, frame, legend,
            lines, matlines, mtext, par, points, polygon,
            segments, symbols, text)
 importFrom("grDevices", col2rgb, dev.list, palette, rgb)
+importFrom("chron", chron, dates, month.day.year, hours, minutes, seconds)
 
 importFrom("MASS", polr)
 ## importFrom("nnet", multinom, nnet.default)
-importFrom("survival", coxph, survreg)
+importFrom("survival", coxph, survreg, Surv)
 
 importFrom("lme4", lmer) ## , family.merMod
 ## importFrom("robustbase", lmrob)
@@ -51,7 +52,7 @@ export(asinp,
        nobs.survreg, nobs.coxph,
        panelSmooth,
        ploptions, ploptionsDefault, .ploptions, .plargs, 
-       plyx, plmatrix, plmfg, plpanel, 
+       plyx, plmatrix, plmframe, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, pllines, plbars, 

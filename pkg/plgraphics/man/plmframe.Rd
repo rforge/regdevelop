@@ -1,12 +1,12 @@
-\name{plmfg}
-\alias{plmfg}
+\name{plmframe}
+\alias{plmframe}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Multiple Frames for Plotting}
 \description{
   This is a short-cut to set some graphical parameters
 }
 \usage{
-plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, nrow = NULL, ncol = NULL,
+plmframe(mfrow = NULL, mfcol = NULL, mft = NULL, nrow = NULL, ncol = NULL,
   byrow = TRUE,
   oma = NULL, mar = NULL, mgp = NULL, \dots)
 }
@@ -32,7 +32,7 @@ plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, nrow = NULL, ncol = NULL,
 }
 \details{
   The function calls \code{par}. Its purpose is to simplify a call like
-  \code{par(mfrow=c(3,4))} to \code{plmfg(3,4)} and to set some
+  \code{par(mfrow=c(3,4))} to \code{plmframe(3,4)} and to set some
   defaults differently from \code{par}.
 }
 \value{
@@ -43,8 +43,8 @@ plmfg(mfrow = NULL, mfcol = NULL, mft = NULL, nrow = NULL, ncol = NULL,
 \seealso{\code{\link{par}}
 }
 \examples{
-plmfg(2,3)
-plmfg(mft=15)  ## will split the plotting area into >= 15 panels,
-plmfg()  ## reset to 1 panel
+plmframe(2,3)
+plmframe(mft=15)  ## will split the plotting area into >= 15 panels,
+plmframe()  ## reset to 1 panel
 }
 \keyword{utilities}

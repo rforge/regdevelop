@@ -8,7 +8,7 @@ pl.control <-
            markextremes = NULL, smooth = NULL,
            xlab = NULL, ylab = NULL, varlabels = NULL,
            vcol = NULL, vlty = NULL, vpch = NULL, 
-           main = NULL, sub = ":", .subdefault = NULL, mar = NULL,
+           main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
            ## needed because it hides  markextremes  otherwise
            ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
   ## get data for plotting, collect and check arguments
@@ -386,7 +386,7 @@ genvarattributes <-
   lrown <- row.names(data)
   ## Date
   for (lj in 1:ncol(data))
-    if (inherits(ld <- data[,lj], c("Date", "POSIXt")) &&
+    if (inherits(ld <- data[,lj], c("Date", "times")) &&
         is.null(attr(ld, "numvalues")))
       data[,lj] <- gendateaxis(setNames(ld,lrown))
   ## line color and type
@@ -554,7 +554,7 @@ plframe <-
   lyy <- lcoord$xx
   lrgy <- lcoord$range
   ## margins
-  lmar <- rep(i.getplopt(mar), length=4)
+  lmar <- rep(i.getplopt(mar, ploptions), length=4)
   if (anyNA(lmar)) lmar <- ifelse(is.na(lmar), par("mar"), lmar)
   lmgp <- i.getploption("mgp")
   lop <- NULL
@@ -807,9 +807,10 @@ pltitle <-
   minadj <- 0.2
   ##
   lImain <- length(main) && main!=""
-  lIsub <- length(sub) && sub!=""
+  lIsub <- length(sub) && sub%nin%c("",":")
   lIdoc <- length(doc) && doc!=""
   lmarmax <- if (outer.margin) par("oma")[side] else par("mar")[side]
+  lmarmax <- lmarmax-lcexdef[1]
   llinedef <- sum(lcexdef*c(lImain, lIsub, lIdoc))
   line <- min(i.def(line, llinedef), lmarmax)
   lside24 <- side%in%c(2,4)
@@ -1198,7 +1199,8 @@ plcoord <-
            plext=NULL, ploptions=NULL)
 {
   ## Purpose:    values for plot with limited "inner" plot range
-  ldtrg <- range(x, na.rm=TRUE)
+  lx <- structure(as.numeric(x), dim=dim(x))
+  ldtrg <- range(lx, na.rm=TRUE)
   lirfunc <- i.getploption("innerrange.function")
   if (is.character(lirfunc)) lirfunc <- get(lirfunc)
   innerrange.factor <- i.getplopt(innerrange.factor, ploptions)
@@ -1211,7 +1213,7 @@ plcoord <-
       lrg <- NULL
     } 
   } else lrg <- NULL
-  if (length(lrg)==0) lrg <- lirfunc(x, fac=innerrange.factor)
+  if (length(lrg)==0) lrg <- lirfunc(lx, fac=innerrange.factor)
   ## inner range must not extend beyond data
   if (length(lrg)==0) lrg <- ldtrg
   if (diff(lrg)==0) lrg <- c(-1,1)*lrg
@@ -1219,8 +1221,8 @@ plcoord <-
   if (ldtrg[1]>=lrgext[1]) lrg[1] <- ldtrg[1]
   if (ldtrg[2]<=lrgext[2]) lrg[2] <- ldtrg[2]
   ## --------- transformation of data into plcoord
-  rr <- pmax(pmin(x,lrg[2]),lrg[1])
-  lxd <- x-rr
+  rr <- pmax(pmin(lx,lrg[2]),lrg[1])
+  lxd <- lx-rr
   lnmod <- c(sum(lxd<0,na.rm=TRUE),sum(lxd>0,na.rm=TRUE))
   if (sum(lnmod)>0) rr <- rr+lxd/(1+abs(lxd)/(diff(lrg)*innerrange.ext))
   ## if data fits into extended inner range, then avoid inner range
@@ -1235,49 +1237,46 @@ plcoord <-
     ## needed for transforming further quantities
   attr(rr,"nmod") <- lnmod
   attr(rr,"plrange") <- lplrg
-  class(rr) <- class(x)
+  class(rr) <- class(lx)
   rr
 }
 ## -------------------------------------------------------------------
 ## =====================================================================
 gendate <-
-  function (date=NULL, year=2000, month=1, mon=0, day=1, mday=1,
-            hour=0, min=0, sec=0, data=NULL, dateformat="%Y-%m-%d")
+  function (date=NULL, year=2000, month=1, day=1, hour=0, min=0, sec=0,
+            data=NULL, format="y-m-d", origin=NULL)
 {
-  ## generate time -> POSIXct
+  ## generate time -> chron
   ## -------------------------------------------------------------
-  lf.2char <- function(x) {
-    x <- round(x)
-    substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
-  }
-  ltimeargs <- c("date", "year", "month", "mon", "day", "mday", "hour", "min", "sec")
-  ldefaults <- list(NULL, 2000, 1,0, 1,1, 0,0,0)
+  lcall <- match.call()
+  ltimeargs <- c("date", "year", "month", "day", "hour", "min", "sec")
+  ldt <- list(date=NA, year=2000, month=1, day=1, hour=0, min=0, sec=0)
+  origin <- i.def(origin, c(month=1, day=1, year=i.getploption("date.origin")) )
   lnm <- NULL
   ## --- arguments
-  lcall <- match.call()
-  largs <- intersect(names(lcall), ltimeargs)
-  ldt <- setNames(ldefaults, ltimeargs)
-  ## arguments can be names of variables in  data
-##  if (length(data)) { ## get years, months, ... from  data !!! -> eval
+  largs <- setdiff(names(lcall)[-1], c("data", "format","origin"))
   data <- as.data.frame(data)
-  lnm <- row.names(data)
-  ## arguments that are names of variables
-  if (length(largs)==0)  stop("!gendate! no date arguments found")
-  inp <- parse(text = paste("list(", paste(lcall[largs], collapse = ","),")"),
-               keep.source = FALSE)
-  vars <- try(eval(inp, if (length(data)) data else parent.frame()), silent=TRUE) 
+  if (length(largs)==0)    stop("!gendate! no date and time variables specified")
+  inp <-
+    parse(text = paste("list(", paste(as.list(lcall[largs]), collapse = ","),")"),
+                 keep.source = FALSE)
+  vars <- try(eval(inp, data, enclos=parent.frame()), silent=TRUE)
   if (class(vars)=="try-error") {
     lvnmiss <- setdiff(largs, names(data))
     stop(sub("object", "!gendate! variable (or object)",
-             attr(vars, "condition")$message),
+               attr(vars, "condition")$message),
          if (length(lvnmiss)>1)
            paste(". \n    All of ",
                  paste(lvnmiss, collapse=", "), "may be unavailable.")
          )
   }
+  names(vars) <- largs
   ldt[largs] <- vars
-  if ("month"%nin%largs) ldt$month <- ldt$mon + 1
-  if ("day"%nin%largs) ldt$day <- ldt$mday
+  ldt <- as.data.frame(ldt)
+  ##
+  lln <- unique(lapply(ldt, length))
+  if (length(lln[lln>1])>1)
+    stop("!gendate! differing lengths of arguments")
   ## month
   if (is.factor(ldt$month)) ldt$month <- as.character(ldt$month)
   if (is.character(ldt$month)) {
@@ -1289,64 +1288,65 @@ gendate <-
   }
   ## --- argument 'date'
   date <- ldt$date
-  if (length(date)) { ## get  timeargs  from  date
-    if (inherits(date, "Date")) date <- as.POSIXct(format(date))
+  if (length(date)&&!all(is.na(date))) { ## get  timeargs  from  date
+    if (inherits(date, "Date"))
+      date <- chron::dates(format(date), format="y-m-d", origin=origin)
     else {
       if (inherits(date,"factor")) date <- as.character(date)
-      if (is.character(date)) date <- as.POSIXct(date, format=dateformat)
+      if (is.character(date))
+        date <- chron::dates(date, format=c(format, "h:m:s"), origin=origin)
     }
-    if (!inherits(date, "POSIXt")) 
-      stop(":gendate: argument 'date' not suitable.")
-    if (length(setdiff(largs, "date"))==0) return(date)
-    ldate <- unclass(as.POSIXlt(date))
-    ldate$year <- ldate$year+1900
-    ldate$month <- ldate$mon+1
-    ldate$day <- ldate$mday
-    la <- setdiff(ltimeargs, largs)
-    ldt[la] <- ldate[la]
-  }
-  ## make sure everything is of the correct length
-  ldt <- data.frame(ldt[-1])
-  ## -----------------------------------------------------------------
-  date <- as.POSIXct(paste(ldt$year,lf.2char(ldt$month),lf.2char(ldt$day),sep="-"))
-  ## --- convert too large numbers
+    if (!inherits(date, "times")) 
+      stop("!gendate! argument 'date' not suitable.")
+##    if (length(setdiff(largs, "date"))==0) return(chron::chron(date))
+  } else 
+    date <- chron::dates(
+      paste(ldt$year, ldt$month, floor(as.numeric(ldt$day)), sep="-"),
+      format="y-m-d", origin=origin)
+  ## ---
+  if (inherits(date, "chron")) ## date already has 'times'
+    return(structure(date, format=i.getploption("date.format")) )
+  ## --- hours, min, sec
+  ## convert too large numbers
   if ("sec"%in%largs && any(li <- ldt$sec>=60, na.rm=TRUE)) {
+    li <- which(li)
     ldt$min[li] <- ldt$min[li]+ldt$sec[li]%/%60
     ldt$sec[li] <- ldt$sec[li]%%60
   }
   if ("min"%in%largs && any(li <- ldt$min>=60, na.rm=TRUE)) {
+    li <- which(li)
     ldt$hour[li] <- ldt$hour[li]+ldt$min[li]%/%60
     ldt$min[li] <- ldt$min[li]%%60
   }
   if ("hour"%in%largs && any(li <- ldt$hour>=24, na.rm=TRUE)) {
-    date[li] <- date[li]+ 24*3600*(ldt$hour[li]%/%24)
+    li <- which(li)
+    date[li] <- date[li]+ ldt$hour[li]%/%24
     ldt$hour[li] <- ldt$hour[li]%%24
   }
   ## convert decimals to lower units
-  lf.dec <- function(x) x-floor(x)
+  lf.dec <- function(x)  round(x,2)-floor(x+0.005) ## not general enough
   if ("day"%in%largs && any(0!= (ldec <- lf.dec(ldt$day)), na.rm=TRUE)) {
     ldt$day <- floor(ldt$day) 
-    if ("hour"%nin%largs) ldt$hour <- ldec*24 + ldt$hour
+    if ("hour"%nin%largs) ldt$hour <- round(ldec*24 + ldt$hour - 0.000005, 5)
   }
   if (any(0!= (ldec <- lf.dec(ldt$hour)), na.rm=TRUE)) {
-    ldt$hour <- floor(ldt$hour)
-    if ("min"%nin%largs) ldt$min <- ldec*60 + ldt$min
+    ldt$hour <- floor(ldt$hour+0.005)
+    if ("min"%nin%largs) ldt$min <- round(ldec*60 + ldt$min - 0.0005)
   }
-  if (any(0!= (ldec <- lf.dec(ldt$min)), na.rm=TRUE)) {
-    ldt$min <- floor(ldt$min)
-    if ("sec"%nin%largs) ldt$sec <- ldec*60 ## + ldt$sec  must be zero
+  if (any(0.001<abs(ldec <- lf.dec(ldt$min)), na.rm=TRUE)) {
+    ldt$min <- floor(ldt$min+0.005)
+    if ("sec"%nin%largs) ldt$sec <- round(ldec*60 - 0.5) ## + ldt$sec  must be zero
   }
   ##
-  date <- as.POSIXct(paste(substring(format(date), 1,10),
-      paste(lf.2char(ldt$hour),lf.2char(ldt$min),lf.2char(ldt$sec),sep=":")
-    ))
+  date <- chron::chron(date, paste(ldt$hour, ldt$min, ldt$sec, sep=":"),
+                       format=c(dates=format, times="h:m:s"))
   if (length(lnm)) names(date) <- lnm
-  date
+  structure(date, format=i.getploption("date.format"))
 } ## end gendate
 ## =====================================================================
 gendateaxis <-
-  function(date=NULL, year=2000, month=1, mon=0, day=1, mday=1, hour=0,
-           min=0, sec=0,  data=NULL, dateformat="%Y-%m-%d", ploptions=NULL)
+  function(date=NULL, year=2000, month=1, day=1, hour=0, min=0, sec=0,
+           data=NULL, format="y-m-d", origin=NULL, ploptions=NULL)
 {
   ## generate time axis.
   ## resulting tick labels may exceed data range by quite a bit
@@ -1356,28 +1356,28 @@ gendateaxis <-
       substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
   lf.seq <- function(x) seq(min(x),max(x))
   lf.tickat <-
-    function(tickunit, tickint, llev, lkvmax, ystart, mstart, lnlev) {
+    function(tickunit, tickint, llev, llvlg, ystart, mstart, lnlev) {
       ## generate ticks in  tickint [tickunit]  intervals
-      limpossible <- c(229, 230, 231, 431, 631, 931, 1131)-1 ## non-existing days
       if (tickunit=="y") return(ystart)
-      lkunit <- match(tickunit, names(lnlev))
-      llev[[lkunit]] <- ltatu <- seq(0, lnlev[lkunit], tickint)
+      llunit <- match(tickunit, names(lnlev))
+      llev[[llunit]] <- ltatu <-
+        seq(0, lnlev[llunit], tickint) + (llunit%in%2:3) ## m and d start at 1
       ## keep llev component of highest category if higher than tickunit,
       ## generate all levels of lower ones
-      lv1 <- llev[[lkvmax]]
-      if (lkvmax < lkunit-1) {
-        for (lk in (lkvmax+1):lkunit-1) {
-          llev[[lk]] <- llv <- 0:lnlev[lk]
+      lv1 <- llev[[llvlg]]
+      if (llvlg < llunit-1) {
+        for (ll in (llvlg+1):llunit-1) {
+          llev[[ll]] <- llv <- 0:lnlev[ll] + (ll%in%2:3) ## m and d start at 1
           lv1 <- c(outer(llv, lv1*100, "+"))
         }
       }
-      if (lkvmax<lkunit)
+      if (llvlg<llunit)
         ltatu <- c(outer(ltatu, lv1*100, "+")) ## information for getting label
       ## ---
       if (tickunit=="m")  ltat <- mstart[seq(1, length(mstart), tickint)]
       else { ## mstart contains start of month for whole year(s). select those needed
-        ltat <- c(outer(llev[["d"]]-1, mstart[llev[["m"]]+1], "+")) ## day starts with 1
-        liat <- c(outer(llev[["d"]], 100*(llev[["m"]]+1), "+"))%nin% limpossible
+        ltat <- c(outer(llev[["d"]]-1, mstart[llev[["m"]]], "+")) ## day starts with 1
+        liat <- c(outer(llev[["d"]], 100*(llev[["m"]]), "+"))%nin% limpossible
         ltat <- ltat[liat]
         ltatu <- ltatu[liat]
         ##  ltatu <- ltatu[liat]
@@ -1395,61 +1395,64 @@ gendateaxis <-
       structure(ltat, at.inunit=ltatu)
     } ## end lf.tickat
   lnlev <- c(y=100, m=11, d=30, h=23, M=59, s=59)
+  limpossible <- c(229, 230, 231, 431, 631, 931, 1131) ## non-existing days
   ## ---------------------------------------
   ## --- prepare
   lcall <- match.call()
   ltickint <- i.getploption("tickintervals")
-  ldtk <- i.getploption("dateticks")
+  ldtk <- i.getploption("date.ticks")
   ## gendate
   lcall$ploptions <- NULL
   lcall[[1]] <- quote(gendate)
   mode(lcall) <- "call"
   date <- eval(lcall, sys.parent())
   ## ---------
-  lx <- unclass(date-as.POSIXct("2000-01-01")) ## /(24*3600)
-  lattr <- attributes(lx)
+  lattr <- attributes(date)
+  lvlab <- lattr$varlabel ## for later use
+  lorigin <- if (length(lor <- attr(date, "origin")))
+    julian(as.Date(paste(lor[c("year","month","day")], collapse="-"))) else 0  
   if (length(lattr)) { ## avoid piling up of attributes
     li <-
       setdiff(names(lattr),
               c("numvalues", "ticksat", "ticklabelsat", "ticklabels", "units") )  
-    attributes(lx) <- lattr[li]
+    attributes(date) <- lattr[li]
   }
-  lndays <- diff(range(lx))
+  lndays <- diff(range(date))
   lidtk <- which(ldtk$limit<lndays)[1]
   ## -----------------------------------------------------------------
-  ldate <- as.data.frame(unclass(as.POSIXlt(date))[1:6])
-  ldate$year <- ldate$year+1900
+  ldate <- data.frame(chron::month.day.year(date+lorigin)[c(3,1,2)],
+    hour = chron::hours(date), min = chron::minutes(date),
+    sec = chron::seconds(date))
   ## avoid new day or month or year caused by a midnight obs.
   if (diff(range(ldate$hour))!=0)
-    ldate <- ldate[!(ldate$mday==1&ldate$hour==0&ldate$min==0),]
-  llev <- rev(lapply(ldate, lf.seq))
+    ldate <- ldate[!(ldate$day==1&ldate$hour==0&ldate$min==0),]
+  llev <- lapply(ldate, lf.seq)
   names(llev) <- names(lnlev)
+  ## which units vary?
   lvr <- sapply(llev, length) >1
-  lkvmax <- which(lvr)[1]
-  lkvmin <- length(lvr)+1-which(rev(lvr))[1]
+  llvlg <- which(lvr)[1]
+  llsm <- length(lvr)+1-which(rev(lvr))[1]
   ##
   lIym <- length(c(unique(ldate$year), unique(ldate$mon)))>2
   lyr <- lf.seq(ldate$year)
-  lystart <- julian(as.Date(paste(lyr,"01-01", sep="-")),
-                    origin = as.Date("2000-01-01"))
-  lmn <- 1:12 ## if (lkvmax>=3) lf.seq(ldate$mon)+1 else 1:12
+  lystart <- julian(as.Date(paste(lyr,"1-1", sep="-")))-lorigin
+  lmn <- 1:12 ## if (llvlg>=3) lf.seq(ldate$mon)+1 else 1:12
   lyy <- if (length(lyr)==1) lyr else rep(lyr, each=12)
-  lmstart <- julian(as.Date(paste(lyy,lf.2char(lmn),"01", sep="-")),
-                            origin = as.Date("2000-01-01"))
+  lmstart <- julian(as.Date(paste(lyy,lmn,"1", sep="-")))-lorigin
   ##
   ltatsmall <-
-    lf.tickat(ldtk$smallunit[lidtk], ldtk$smallint[lidtk],
-              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
-              lnlev=lnlev)
+    c(lf.tickat(ldtk$smallunit[lidtk], ldtk$smallint[lidtk],
+                llev=llev, llvlg=llvlg, ystart=lystart, mstart=lmstart,
+                lnlev=lnlev) ) ## ( attribute "at.inunit" may be too short )
   ltatbig <-
-    lf.tickat(ldtk$bigunit[lidtk], ldtk$bigint[lidtk],
-              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
-              lnlev=lnlev)
+    c(lf.tickat(ldtk$bigunit[lidtk], ldtk$bigint[lidtk],
+                llev=llev, llvlg=llvlg, ystart=lystart, mstart=lmstart,
+                lnlev=lnlev) )
   llunit <- ldtk$labelunit[lidtk]
   llint <- ldtk$labelint[lidtk]
   ltatlabel <-
     lf.tickat(llunit, llint,
-              llev=llev, lkvmax=lkvmax, ystart=lystart, mstart=lmstart,
+              llev=llev, llvlg=llvlg, ystart=lystart, mstart=lmstart,
               lnlev=lnlev)
   ## --- ticklabels
   ltatu <- attr(ltatlabel, "at.inunit")
@@ -1458,39 +1461,40 @@ gendateaxis <-
   llab <- 
     switch(llunit,
            y = as.character(lyr),
-           m = paste(c.mon[ll$u1+1], ll$u2, sep = if(ll$sep) "." else ""),
-           d = paste(ll$u1+1, c.mon[ll$u2+1]),
+           m = paste(c.mon[ll$u1], ll$u2, sep = if(ll$sep) "." else ""),
+           d = paste(ll$u1, c.mon[ll$u2], sep=if(ll$sep) " " else ""),
            h = paste(ll$u2, ll$u1, sep = if(ll$sep) "|" else ""),
            M = paste(ll$u2, ll$u1, sep = if(ll$sep) ":" else ""),
            s = paste(ll$u2, ll$u1, sep = if(ll$sep) ":" else ""),
            {
-             warning(":gendateaxis: labels went wrong. check ploptions(\"dateticks\"")
-             "time"
+             warning(":gendateaxis: labels went wrong. check ploptions(\"date.ticks\"")
+             NULL
            }
            )
-  lvlab <-
-    i.def(attr(date, "vlabel"),
-      switch(llunit,
-             y = "year",
-             m = if (lls) "year" else as.character(lyr),
-             d = if (lls) as.character(lyr[1]) else c.months[ldate[1,"mon"]],
-             h = if (lls) c.months[ldate[1,"mon"]] else format(date[1]),
-             M = if (lls) "hour" else "minute",
-             s = if (lls) "minute" else "second",
-             "time"
-             )
-          )
+  if (length(lvlab)==0 || u.notfalse(attr(lvlab, "setbyuser")) ) {
+    llv1 <- c("A",names(llev))[llvlg] ## level that does not vary
+    lvlab <- structure(
+      switch(llv1,
+             A = "year",
+             y = as.character(llev[[1]]),
+             m = paste(c.months[llev[[2]]], llev[[1]]), 
+             d = paste(llev[[3]], c.months[llev[[2]]]),
+             h = "minute",
+             M = "second",
+             "time"),
+      setbyuser = FALSE)
+  }
   ## drop labels outside range
-  lina <- is.na(clipat(ltatlabel, i.extendrange(range(lx)), clipped=NA))
+  lina <- is.na(clipat(ltatlabel, i.extendrange(unclass(range(date))), clipped=NA))
   if (any(lina)) {
     ltatlabel <- ltatlabel[!lina]
     llab <- llab[!lina]
     ltatu <- ltatu[!lina]
   }
   ## ticklabelsat
-  lku <- match(llunit, c("y","m","d","h","M","s"), nomatch=0)
-  if (lku<lkvmin) ## turn into interval
-    ltatlabel <- outer(ltatlabel, c(0, c(365, 30, 1, 0,0)[lku]), "+")
+  llu <- match(llunit, c("y","m","d","h","M","s"), nomatch=0)
+  if (llu<llsm) ## turn into interval
+    ltatlabel <- outer(ltatlabel, c(0, c(365, 30, 1, 0,0)[llu]), "+")
   ## 1/24, 1/(24*60)
 ##      at.inunit = attr(ltatlabel, "at.inunit") )
   if (llunit=="d" & ldtk[lidtk,"labelint"]!=1) { ## drop mark at day 31
@@ -1499,8 +1503,9 @@ gendateaxis <-
     llab[li30] <- ""
   }
   attr(ltatlabel, "at.inunit") <- NULL
-  structure(date, numvalues=lx, ticksat=structure(ltatbig, small=ltatsmall),
-       ticklabelsat=ltatlabel, ticklabels=llab, varlabel=lvlab)
+  structure(date, numvalues=c(unclass(date)),
+            ticksat=structure(ltatbig, small=ltatsmall),
+            ticklabelsat=ltatlabel, ticklabels=llab, varlabel=lvlab)
 }
 ## ===========================================================================
 i.pchcens <-
@@ -1578,8 +1583,10 @@ plsubset <-
     return(rr)
   }
   ## ----- attributes
-  lf.rgratio <- function(x, r)
-    diff(range(x[r], na.rm=TRUE))/diff(range(x, na.rm=TRUE))
+  lf.rgratio <- function(x, r) {
+    lrx <- diff(range(x, na.rm=TRUE))
+    if (lrx>0) diff(range(x[r], na.rm=TRUE))/lrx else 1
+  }
   for (lj in seq_len(ncol(rr))) {
     lxj <- x[,lj]
     if (length(lattr <- attributes(lxj))) {
@@ -1607,7 +1614,7 @@ plsubset <-
         lats <- c("ticksat","ticklabelsat","ticklabels")
         lattr <- lattr[setdiff(names(lattr), lats)]
         ## !!! getvarattributes(...)
-        if (inherits(lxj, "POSIXt")) {
+        if (inherits(lxj, c("Date", "times"))) {
           lattr <- attributes(gendateaxis(rr[,lj]))
           lattr[names(lattr)] <- lattr
         }
@@ -1741,7 +1748,7 @@ plyx <-
     loma[1:2] <- pmax(lmgp[1]+1, loma[1:2])
     if (lny>1) loma[4] <- max(lmgp[1]+1, loma[4])
     if (lnx>1) {
-      lmfig <- plmfg(lnx, lngrp, oma=loma)
+      lmfig <- plmframe(lnx, lngrp, oma=loma)
       loldp <- attr(lmfig, "oldpar")
       lnr <- lmfig$mfig[1]
       lnc <- lmfig$mfig[2]
@@ -1777,7 +1784,6 @@ plyx <-
             lpchg <-
               if (lny>1) attr(ly1, "pch") else i.getploption("pch")[1]
         }
-        browser()
         ## frame
         lop <- plframe(lxj, ly1, xlab=xlab, ylab=ylab,
                        axcol=c(NA,lyaxcol,NA,NA), ploptions=ploptions,
@@ -1836,7 +1842,7 @@ plyx <-
               lmfg <- par("mfg")
               plaxis(4, lyjg, lab=lmar[4]>=lmgp[2]+1 | lmfg[2]==lmfg[4],
                      range=lrgj, col=lpcol,
-                     tickintervals=i.getploption("tickintervals"))
+                     tickintervals=i.getploption("tickintervals"), setpar=FALSE)
             }
           }
         }
@@ -2019,7 +2025,7 @@ plregr.control <-
   if (length(lxvar)&u.notfalse(lxvar)) {
     lcall$x <- lxvar
     lcall$transformed <- transformed
-    lcall$.subdefault <- i.form2char(lform)
+    ## lcall$.subdefault <- i.form2char(lform) ## transfer to main
     ## --- data argument
     if (length(lxvar)||any(names(lcall)%in%i.argPldata)) {
       ldata <- x$model
@@ -2065,6 +2071,8 @@ plregr.control <-
   plargs <- eval(lcall, parent.frame())  ## pl.control
   ## -------------------------------------
   plargs$ploptions$smooth <- i.getplopt(smooth)
+  ploptions <- plargs$ploptions
+  plargs$main <- i.def(ploptions$main, i.form2char(lform))
   lpldata <- plargs$pldata
   ## margins for multivariate regression
   lmmar <- rep(i.getploption("panelsep"), length=4)
@@ -2191,10 +2199,10 @@ plregr.control <-
       resplab = lresplab,
       mf=mf, multnrow = multnrow, multncol = multncol, multmar = lmmar,
       oma=oma #,
-    ) )
+      ) )
   assign(".plargs", rr, pos=1)
   rr
-}
+} ## end  plregr.control
 ## -----------------------------------------------------------------------
 i.merprep <- function(x) {
   ldfr <- df.residual(x)
@@ -2262,7 +2270,6 @@ plregr <-
   if (is.null(plargs)) {
 ##-     lcl <- match.call()
 ##-     lcall <- sys.call() ## match.call modifies argument names
-##-     brower()
 ##-     lcnm <- i.def(names(lcall), names(lcl))
 ##-     names(lcall) <- ifelse(lcnm=="", names(lcl), lcnm)
 ##-     lcall <- lcall[setdiff(names(lcall), i.argPlregr)]
@@ -2393,7 +2400,7 @@ plregr <-
     lstdres <- genvarattributes(lstdres, ploptions=ploptions)
   }
   ## --- multiple frames xxx
-  lmf <- plargs$mf  ## i.def(lmf, TRUE, TRUE, FALSE)
+  lmf <- i.def(plargs$mf, NULL, TRUE, NULL)
   if (length(lmf)) {
     if (u.true(lmf)) ## is.logical(lmf)&&lmf)
       lmf <- if (lmres>1) {
@@ -2415,22 +2422,25 @@ plregr <-
     }
   }
   lbyrow <- i.def(ploptions$byrow, FALSE)
-  loma <- i.def(plargs$oma,
-                c(0,0,2,1)*(length(lmf)>0)+c(3,3,0,1)*(lmres>1), valuefalse=NULL)
+  loma <- i.def(plargs$oma, c(3,3,2,1)*(length(lmf)>0), valuefalse=NULL)
+  ##              c(0,0,2,1)*(length(lmf)>0)+c(3,3,0,1)*(lmres>1),
   if (length(loma)<4) loma <- c(0,0,loma,0)[1:4]
   loldpar <-
-    c(par(c("cex","mar","mgp","mfrow")),
+    c(par(c("cex","mar","mgp")),
       if (length(lmf)&(!is.logical(lmf))) {
-        lop <-
+        lop <-  
           if (length(lmf)==1)
-            attr(plmfg(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
-        attr(plmfg(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
-        lop[setdiff(names(lop), c("mfig","mrow","mcol"))]
-      } else par(oma=loma) ## , ask=plargs$ask
+            attr(plmframe(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
+        attr(plmframe(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
+        c(par("mfrow"), lop[setdiff(names(lop), c("mfig","mrow","mcol"))])
+      } ## else par(oma=loma) ## , ask=plargs$ask
       )
   loldpar <- loldpar[!duplicated(names(loldpar))]
-  loldcex <- loldpar$cex
   on.exit(par(loldpar), add=TRUE)
+  ## reduce  mar[3]
+  ploptions$mar <- pmax(i.getploption("mar")-c(0,0,1.5,0), 0)
+  lcex <- par("cex") ## *i.getploption("cex") is done in plframe
+  ## par(cex=lcex)
   lmar <- if (lmres>1 && lmres==par("mfg")[3])
             plargs$multmar else  i.getploption("mar")
   lnewplot <- TRUE ## !!!
@@ -2479,9 +2489,8 @@ plregr <-
                    plab=if(lIrpl) lresplab[,lj], setpar=FALSE)
           pltitle(plargs=plargs, show=NA)
         }
-        par(cex=loldcex)
+        par(cex=lcex)
       }
-
       ## --- scale plot
       if(lpls=="absresfit")
         if(length(lstdres)) {
@@ -2516,7 +2525,7 @@ plregr <-
                    plab=if(lIrpl) lresplab[,lj], plargs=plargs, setpar=FALSE) 
             pltitle(plargs=plargs, show=FALSE)
           }
-          par(cex=loldcex)
+          par(cex=lcex)
         }  else
         warning(":plregr: No standardized residuals found")
 
@@ -2552,7 +2561,7 @@ plregr <-
                      plab=if(lIrpl) lresplab[,lj], setpar=FALSE)
             pltitle(plargs=plargs, show=FALSE)
           } }
-        par(cex=loldcex)
+        par(cex=lcex)
       }
 
       ## --- normal plot qq plot
@@ -2580,11 +2589,6 @@ plregr <-
           plframe(lxx, llr, xlab = "theoretical quantiles",
                   ylab = lstdresname[lj], mar=lmar, plargs=plargs)
           ##-  lxy <- qqnorm(llr, ylab = lstdresname[lj], main="", type="n", )
-          plpoints(lxx, llr, plargs=list(pldata=plargs$pldata[lio,]),
-                   ploptions=ploptions)
-          lquart <- quantile(llr, c(0.25,0.75), na.rm=TRUE)
-          ## qq line
-          plrefline(c(0, diff(lquart)/(2*qnorm(0.75))), plargs=plargs)
           if (lnsims>0) {
             for (lr in 1:lnsims) {
               llty <- last(i.getploption("smooth.lty"))
@@ -2593,13 +2597,18 @@ plregr <-
                     col=last(i.getploption("smooth.col")) )
             }
           }
+          plpoints(lxx, llr, plargs=list(pldata=plargs$pldata[lio,]),
+                   ploptions=ploptions)
+          lquart <- quantile(llr, c(0.25,0.75), na.rm=TRUE)
+          ## qq line
+          plrefline(c(0, diff(lquart)/(2*qnorm(0.75))), plargs=plargs)
           if(lIcq & lj==lmres)
             legend("bottomright",
                    pch=c(rep(ploptions$censored.pch,length=2)),
                    legend=c("uncensored","censored"))
           pltitle(plargs=plargs, show=FALSE)
         }
-        par(cex=loldcex)
+        par(cex=lcex)
       }
       
       ## --- leverage plot. If weight are present, use "almost unweighted h"
@@ -2644,7 +2653,7 @@ plregr <-
             pltitle(plargs=plargs, show=FALSE)
           }
         }
-        par(cex=loldcex)
+        par(cex=lcex)
       }
       
       ## -----------------------------------------------------------------
@@ -2774,6 +2783,7 @@ plresx <-
   } ## else  eval(lcall[["plargs"]]) ## , sys.frame(1))
   ##  plargs$ploptions$smooth <- i.getplopt(smooth)
   if (length(ploptions)==0) ploptions <- plargs$ploptions
+  ploptions$mar <- pmax(i.getploption("mar")-c(0,0,1.5,0), 0)
   ## -------------------------------------------------------------------
   if (inherits(x,"mulltinom"))
     stop("!plresx! I do not know how to plot residuals of a mulitnomial regression")
@@ -2902,24 +2912,28 @@ plresx <-
     return()
   }
   ## ------------------------------------------------------------------
-  lmf <- plargs$mf
+  lmf <- i.def(plargs$mf, NULL, TRUE, NULL)
   if (length(lmf)) {
-    if (is.logical(lmf)&&lmf)
+    if (u.true(lmf))
       lmf <- if (lnvars<=6) lnvars else
         min(lnvars,ceiling(lnvars/((lnvars-1)%/%6+1)))
-    }
+  }
+  lbyrow <- i.def(ploptions$byrow, FALSE)
   loma <- i.def(plargs$oma, c(2,1)*(length(lmf)>0), valuefalse=NULL)
   if (length(loma)<4) loma <- c(0,0,loma,0)[1:4]
   loldpar <-
-    c(
-      if (length(lmf)&(!is.logical(lmf))) 
-        attr(if (length(lmf)==1) plmfg(mft=lmf, oma=loma) else
-           plmfg(lmf[1], lmf[2], oma=loma), "oldpar") ,
-      par(c("cex","mar","mgp"))
+    c(par(c("cex","mar","mgp")),
+      if (length(lmf)&(!is.logical(lmf))) {
+        lop <- 
+          if (length(lmf)==1)
+            attr(plmframe(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
+        attr(plmframe(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
+        c(par("mfrow"), lop[setdiff(names(lop), c("mfig","mrow","mcol"))])
+      } ## else par(oma=loma) ## , ask=plargs$ask
       )
-    ## else par(oma=loma)  ## , ask=plargs$ask
-    loldcex <- loldpar$cex
-    on.exit(par(loldpar), add=TRUE)
+  on.exit(par(loldpar), add=TRUE)
+  lcex <- par("cex") ## *i.getploption("cex")
+  ## par(cex=lcex)
   ##
   lmbox <- ploptions$factor.show=="mbox"
   lIjitter <- !lmbox ## ploptions$factor.show=="jitter"
@@ -3011,7 +3025,7 @@ plresx <-
       ## points
       plpoints(lvv,lrs1, plargs=plargs, plab=if (lIrpl) lrpl, setpar=FALSE)
     } ## ends  if factor else
-    par(cex=loldcex)
+    par(cex=lcex)
   }
   invisible(plargs)
 } ## end plresx
@@ -3119,20 +3133,24 @@ gensmooth <-
       lsmrpos[lig] <- lip <- lsmr>=0
       ## high end
       lii <- which(lip)
-      lsmrh <- lsmr[lii]
-      ligi <- lig[lii]
-      lsmh <- lsmfunc(lxo[ligi], sqrt(lsmrh),
-                      weights=if (lIwgt) lwgto[ligi] else NULL,
-                      par=lparband, iterations=liter)
-      if (length(lsmh)) lysmb[lii] <- lsmh^2
+      if(length(lii)) {
+        lsmrh <- lsmr[lii]
+        ligi <- lig[lii]
+        lsmh <- lsmfunc(lxo[ligi], sqrt(lsmrh),
+                        weights=if (lIwgt) lwgto[ligi] else NULL,
+                        par=lparband, iterations=liter)
+        if (length(lsmh)) lysmb[lii] <- lsmh^2
+      }
       ## low end
-      lii <- which(!lip)
-      lsmrl <- - lsmr[lii]
-      ligi <- lig[lii]
-      lsml <- lsmfunc(lxo[ligi], sqrt(lsmrl),
-                      weights=if (lIwgt) lwgto[ligi] else NULL,
-                      par=lparband, iterations=liter)
-      if (length(lsml)) lysmb[lii] <- - lsml^2
+      if(length(lii)) {
+        lii <- which(!lip)
+        lsmrl <- - lsmr[lii]
+        ligi <- lig[lii]
+        lsml <- lsmfunc(lxo[ligi], sqrt(lsmrl),
+                        weights=if (lIwgt) lwgto[ligi] else NULL,
+                        par=lparband, iterations=liter)
+        if (length(lsml)) lysmb[lii] <- - lsml^2
+      }
       ## resulting band
       lysmband[lig] <- lysmb + lsm
     }
@@ -3280,7 +3298,7 @@ plmatrix <-
              2+(yaxmar==4)+(ylabmar==4))
   ## set par
   ## if (!keeppar)
-  loldp <- plmfg(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
+  loldp <- plmframe(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
   ## on.exit(par(attr(loldp, "oldp"))) ## !!!
   lcex <- i.getploption("cex")*par("cex")
@@ -3916,7 +3934,7 @@ plfitpairs <- function(object, ssize=0.02, main=NULL, ...)
 }
 ## ============================================================================
 ## ============================================================================
-plmfg <-
+plmframe <-
   function(mfrow=NULL, mfcol=NULL, mft=NULL, nrow=NULL, ncol=NULL, byrow=TRUE,
            oma=NULL, mar=NULL, mgp=NULL, ...)
 {
@@ -4285,7 +4303,7 @@ c.dateticks <- data.frame(
     axes = 1:2, mar=c(3.1,3.1,2.1,1.1), oma=c(2.1,2.1,2.1,2.1), mgp=c(2,0.8,0),
     panel = "plpanel", panelsep = 0.5, 
     tickintervals = c(7,3),
-    dateticks = c.dateticks,
+    date.ticks = c.dateticks, date.origin = 2000, date.format=c("y-m-d", "h:m:s"), 
     xlab = "", ylab = "",
     stamp=1, doc=TRUE, 
     mfgtotal = 30, 
@@ -4352,7 +4370,8 @@ ploptionsCheck <-
     ## frame
     mar=cnr(c(0,20)), oma=cnr(c(0,5)), mgp=cnr(c(0,5), na.ok=FALSE, length=3),
     panelsep=cnr(c(0,3)),
-    tickintervals = cnr(c(2,20)), ## dateticks = cdf(names=...)
+    tickintervals = cnr(c(2,20)), ## date.ticks = cdf(names=...)
+    date.origin = cnr(c(1900,2050)), date.format = ccv(),
     stamp=list(clg(),cnr(c(-1,2))),
     mfgtotal = cnr(c(4,100)), 
     innerrange = list(clg(),cnr()), innerrange.factor=cnr(c(0.5,10)),
@@ -4440,5 +4459,4 @@ clipat <- function(x, range=NULL, clipped=NULL) {
   }
   x
 }
-
 

@@ -20,18 +20,18 @@ attr(t.plo, "old")
 ploptions("col")
 t.plo$col
 
-plmfg(2,2)
+plmframe(2,2)
 plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo)
 plyx(Sepal.Width~Sepal.Length, data=iris, 
      psize=Petal.Length^3, pcol=Species, pch=Species, cex=1.5)
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=2, smooth.group=Species)
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, group=Species)
-plmfg()
+plmframe()
 plyx(jitter(Sepal.Width) ~ jitter(Sepal.Length), data=iris, axp=7, plab=T)
-plmfg(2,3, mar=c(NA, 0.5), oma=c(2,2,2,2)+2)
+plmframe(2,3, mar=c(NA, 0.5), oma=c(2,2,2,2)+2)
 plyx(Petal.Length+Petal.Width~Sepal.Length+Sepal.Width, group=Species,
      data=iris)
-plmfg(2,2)
+plmframe(2,2)
 plyx(Petal.Length ~ Sepal.Length+Sepal.Width, data=iris, smooth=TRUE,
      smooth.group=iris$Species, reflines=lm)
 plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, markextremes=0.1)
@@ -167,13 +167,13 @@ plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 rr <- gendate(year=2010, month=c("Jan","Apr"), day=c(3,30),
             hour=25, min=c(0,70), sec=c(0,300))
 stopifnot(all(
-  print(rr) == c("2010-01-04 01:00:00 CET", "2010-05-01 02:15:00 CEST")
+  format(rr) == c("(10-01-04 01:00:00)", "(10-05-01 02:15:00)")
   ))
 td <- data.frame(datum=as.Date(c("2010-05-20","1968-05-01")),
                  tag=c(1.5, 3), min=c(30,70))
 rr <- gendate(date=datum, day=tag, hour=6, data=td, min=min)
 stopifnot(all(
-  print(rr) == c( "2010-05-02 06:30:00 CEST",  "1968-05-03 07:10:00 CET")
+  format(rr) == c("(10-05-20 06:30:00)", "(68-05-01 07:10:00)")
   ))
 gendate(day=tag, hour=4, data=td, min=min) 
 gendate(day=tag, data=td, min=min, sec=8) 
