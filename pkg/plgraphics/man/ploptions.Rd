@@ -5,7 +5,7 @@
 \title{Set and Get User "Session" Options that influence "regr0"s behavior}
 \description{
   The user can set (and get) "Session" options which influence the
-  behavior \pkg{regr0} functions, notably \code{\link{stamp}()}.
+  behavior \pkg{plgraphics} functions, notably \code{\link{stamp}()}.
 }
 \usage{
 ploptions(x = NULL, default = NULL, list = NULL, ploptions = NULL,

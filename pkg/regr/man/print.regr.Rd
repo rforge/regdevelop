@@ -10,6 +10,7 @@
       termeffects = getUseroption("show.termeffects"),
       termcolumns = getUseroption("termcolumns"),
       termeffcolumns = getUseroption("termeffcolumns"),
+      coefcolumns = getUseroption("coefcolumns"),
       digits = getUseroption("digits"), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
       na.print = getUseroption("na.print"),
@@ -25,8 +26,10 @@
     to factors are shown. If $>1$, all termeffects are shown}
   \item{termcolumns}{columns of the term table to be printed.
     If \code{NULL}, all columns will be printed.}
-  \item{termeffcolumns}{columns of the (dummy) coefficent tables to be
+  \item{termeffcolumns}{columns of the term effects table to be
     printed.} % See \code{\link{print.termeffects}}.
+  \item{coefcolumns}{columns of the (dummy) coefficent tables to be
+    printed.} % See \code{\link{print.coeftable}}.
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
   \item{signif.stars}{logical: should significance asterisks be shown?

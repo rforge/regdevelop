@@ -107,4 +107,5 @@ S3method(print, regr)
 S3method(print, termeffects)
 
 S3method("[", modelTable)
+S3method(print, regrAllEqns)
 S3method(plot, regrAllEqns)

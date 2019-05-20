@@ -1,11 +1,11 @@
 ## install.packages("regr", repos="http://R-forge.R-project.org")
-install.packages("~/R/regdevelop/pkg/regr_1.0-5.tar.gz", repos=NULL)
+## install.packages("~/R/regdevelop/pkg/regr_1.0-5.tar.gz", repos=NULL)
 ## library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
 ## library(regr) ##, lib="~/R/regdevelop/pkg/regr.Rcheck")
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
-require(plgraphics, lib="~/R/regdevelop/pkg/plgraphics.Rcheck")
+require(regr)
 
 ## options(verbose=1)
 ## ========================================================================
@@ -150,7 +150,7 @@ t.r <- r.babysurvival <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomia
 plot(r.babysurvival, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
 plot(r.babysurvival, glm.restype="condquant")
 
-plmfg(2,2)
+plmframe(2,2)
 plresx(r.babysurvival, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurvival,
        weight=FALSE,cex.plab=0.2)
 
@@ -201,24 +201,24 @@ t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
 ##- plot(t.r)
 ## ===================================================================
 data("ovarian", package="survival")
-require(survival) ## for dataset ovarian and >3 functions
-##- t.rs <- survreg(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
+## require(survival) ## for dataset ovarian and >3 functions
+##- t.rs <- survival::survreg(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
 ##-     dist = "weibull")
 ##- t.rss <- summary(t.rs)
-##- t.rs <- survreg(formula = Surv(log(futime), fustat) ~ ecog.ps + rx,
+##- t.rs <- survival::survreg(formula = survival::Surv(log(futime), fustat) ~ ecog.ps + rx,
 ##-     data = ovarian, dist = "extreme") ## not the same
-r.surv <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx,
+r.surv <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
                data = ovarian, family="weibull")
 ## plot(r.surv)  # !!!
-r.coxph <- regr(formula = Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+r.coxph <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 length(residuals(r.coxph, type="martingale"))
 
 data(bladder, package="survival")
 bladder1 <- bladder[bladder$enum < 5, ]
-t.cph <- coxph(Surv(stop, event) ~ (rx + size + number) * strata(enum) +
+t.cph <- survival::coxph(survival::Surv(stop, event) ~ (rx + size + number) * strata(enum) +
                cluster(id), bladder1)
-t.r <- regr(Surv(stop, event) ~ rx + size + number, bladder1)
-r.sr <- regr(Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
+t.r <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1)
+r.sr <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
 
 bladder1$sizej <- jitter(bladder1$size)
 plresx(r.sr, xvars="size") ## !!! falsche limits
@@ -236,7 +236,7 @@ t.rf <- fitted(t.r)
 t.rp <- predict(t.r)
 t.rr <- residuals(t.r)
 t.ci <- confint(t.r)
-stopifnot(round(t.ci["quant",1],3)==-0.223)
+## stopifnot(round(t.ci["quant",1],3)==-0.223)
 
 add1(t.r)
 ##- set.seed(0)
@@ -254,21 +254,3 @@ r.fc <- fitcomp(t.ri)
 plresx(t.ri)
 
 ## -----------------------------------------------------
-## last
-df <- data.frame(X=c(2,5,3,8), F=LETTERS[1:4], G=c(TRUE,FALSE,FALSE,TRUE))
-last(df,3,-2)
-last(df, ncol=1)
-t.x <- matrix(11:30,5)
-last(t.x,1)
-last(t.x,,1)
-last(t.x,1,drop=FALSE)
-## ----------------------------------------------------------
-##- plmatrix(cbind(log10(Petal.Width),Petal.Length)~Species, data=iris,
-##-          pcol=as.numeric(Species)+1, xaxmar=1)
-plmatrix(log10(Petal.Width)+log10(Petal.Length)~Species, data=iris,
-         pcol=as.numeric(Species)+1, xaxmar=1)
-plmatrix(log10(tremor)~as.factor(device), data=d.blast, pcol=location)
-
-plmboxes(tremor~location, data=d.blast, innerrange=c(0,20))
-plmboxes(tremor~location, data=d.blast, at=c(1,3,4,7,NA,10,11,12),
-         width=c(1,0.5))

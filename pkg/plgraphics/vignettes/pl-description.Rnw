@@ -451,6 +451,11 @@ Least Squares estimator with suitable weights.
 Therefore, the weighted version of the leverage plot is produced for such
 models. 
 
+\Detail{
+\T{plregr} tries to save space around the panels: it reduces 
+\T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
+Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
+}
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot

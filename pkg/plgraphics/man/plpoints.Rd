@@ -16,7 +16,7 @@
 \usage{
 plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=col,
   lty=NULL, lwd=NULL, psize=NULL,
-  plargs = NULL, ploptions = NULL, ...)
+  plargs = NULL, ploptions = NULL, setpar = TRUE, ...)
 
 pllines(x, y, type="l", ...)
 
@@ -81,6 +81,9 @@ plmark(x, y=NULL, markextremes=NULL, plabel=NULL,
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }
+  \item{setpar}{logical: should graphical parameters
+    \code{cex, mar, mgp} be set according to \code{ploptions}?
+  }    
   \item{\dots}{absorbs extra arguments}
 }
 \value{\code{plpoints}invisibly returns the former \code{par("mar")}
