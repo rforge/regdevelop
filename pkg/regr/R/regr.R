@@ -192,8 +192,7 @@ regr <-
 	     "i.survreg" = quote(regr::i.survreg),
 	     ## default:
 	     as.name(lfitname))
-  if (lfitname=="i.glm") lcl$family <- lfam
-##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
+##!!!  if (lfitname=="i.glm") lcl$family <- lfam
   if (lfitname=="i.survreg") {
     lcl$yy <- lyy
     lcl$model <- TRUE  ## model needed, see below
@@ -226,9 +225,6 @@ regr <-
   }
   lcl$data <- lallvars ## must be evaluated!
   lcall$na.action <- lcl$na.action <- largs$na.action
-##    ldata <- lallvars
-## environment(lcl$formula) <- environment() ## !!!
-##  lcl$call <- as.list(lcl[-1])
   mode(lcl) <- "call"
   ## === --------------------------------------------
   ##-   lreg <- eval(lcl, envir=environment(formula))
@@ -1479,7 +1475,15 @@ print.regr <-
       cat("\nCall:\n")
       cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
     }
-    cat("Fitting function: ",x$fitfun,"\n")
+    cat("Fitting function: ",x$fitfun,
+        if (length(lfam <- x$family))
+          paste("  Family:",
+                if(inherits(lfam, "family"))
+                  paste(lfam$family,
+                        if (length(llink <- lfam$link))
+                          paste("  Link:",llink)
+                        )
+                ), "\n")
   }
   df <- x$df
     rdf <- c(x$df.resid,df[2])[1]
@@ -2160,7 +2164,7 @@ print.termeffects <- function (x, columns=NULL, transpose=FALSE, ...)
       xi$coefsymb <-
         if ("p.symbol"%in%names(xi)) {
           lps <- as.character(xi[,"p.symbol"])
-##          lps[is.na(lps)] <- na.print  ## would be misleading!
+          lps[is.na(lps)] <- "   "  ##  misleading?
           paste(format(xi[,1],...), lps)
         } else  xi[,1]
     xif <- format(xi[,intersect(columns,names(xi)), drop=FALSE],...)

@@ -187,7 +187,7 @@ regr <- function(formula, data=NULL, family=NULL,
 	     "i.survreg" = quote(regr0::i.survreg),
 	     ## default:
 	     as.name(lfitname))
-  if (lfitname=="i.glm") lcl$family <- lfam
+##  if (lfitname=="i.glm") lcl$family <- lfam
 ##  lcl[[1]] <- as.name(lfitname) ## sonst geht das debuggen nicht.
   if (lfitname=="i.survreg") {
     lcl$yy <- lyy
