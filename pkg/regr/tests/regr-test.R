@@ -6,7 +6,7 @@
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
 require(regr)
-
+require(plgraphics)
 ## options(verbose=1)
 ## ========================================================================
 ## --- lm

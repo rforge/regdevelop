@@ -1482,7 +1482,7 @@ print.regr <-
                   paste(lfam$family,
                         if (length(llink <- lfam$link))
                           paste("  Link:",llink)
-                        )
+                        ) else lfam
                 ), "\n")
   }
   df <- x$df
