@@ -150,6 +150,11 @@ t.r <- r.babysurvival <- regr(Survival~Weight+Age+Apgar1,data=t.d,family=binomia
 plot(r.babysurvival, xvars=~Weight,cex.plab=0.7, ylim=c(-5,5))
 plot(r.babysurvival, glm.restype="condquant")
 
+search()
+"is plgraphics in the path?"
+plgraphics::plmframe(2,2)
+"will this work?"
+
 plmframe(2,2)
 plresx(r.babysurvival, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurvival,
        weight=FALSE,cex.plab=0.2)
