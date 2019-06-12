@@ -20,18 +20,18 @@ attr(t.plo, "old")
 ploptions("col")
 t.plo$col
 
-plmframe(2,2)
+plmframes(2,2)
 plyx(Sepal.Width~Sepal.Length, data=iris, ploptions=t.plo)
 plyx(Sepal.Width~Sepal.Length, data=iris, 
      psize=Petal.Length^3, pcol=Species, pch=Species, cex=1.5)
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=2, smooth.group=Species)
 plyx(Sepal.Width~Sepal.Length, data=iris, smooth=TRUE, group=Species)
-plmframe()
+plmframes()
 plyx(jitter(Sepal.Width) ~ jitter(Sepal.Length), data=iris, axp=7, plab=T)
-plmframe(2,3, mar=c(NA, 0.5), oma=c(2,2,2,2)+2)
+plmframes(2,3, mar=c(NA, 0.5), oma=c(2,2,2,2)+2)
 plyx(Petal.Length+Petal.Width~Sepal.Length+Sepal.Width, group=Species,
      data=iris)
-plmframe(2,2)
+plmframes(2,2)
 plyx(Petal.Length ~ Sepal.Length+Sepal.Width, data=iris, smooth=TRUE,
      smooth.group=iris$Species, reflines=lm)
 plyx(Sepal.Width~Sepal.Length, data=iris[1:50,], smooth=F, markextremes=0.1)

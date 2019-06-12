@@ -1,7 +1,7 @@
 Package: plgraphics
 Type: Package
 Title: User Oriented Plotting Functions
-Version: 0.5
+Version: 1.0
 Author: Werner A. Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
 Imports: stats, utils, graphics, grDevices, chron, survival, MASS, lme4

@@ -139,6 +139,8 @@ pl.control <-
     ##        ----
     if (inherits(lpldata, "pl-error"))
       stop("!pl.control! ", attr(lpldata, "message"))
+    if (length(lpldata)==0)
+      stop("!pl.control! No data found")
     ## set varlabels in a special case
     if (length(lxnames)==1 && is.formula(lcx <- lcall$x) && length(lcx)==2)
         attr(lpldata[[lxnames]], "varlabel") <- sub("~","",format(lcx))
@@ -1375,7 +1377,7 @@ gendateaxis <-
       llev[[llunit]] <- ltatu <-
         seq(0, lnlev[llunit], tickint) + (llunit%in%2:3) ## m and d start at 1
       ## keep llev component of highest category if higher than tickunit,
-      ## generate all levels of lower ones
+      ## generate levels of lower ones for the whole span PLUS 1 for the end
       lv1 <- llev[[llvlg]]
       if (llvlg < llunit-1) {
         for (ll in (llvlg+1):llunit-1) {
@@ -1390,8 +1392,8 @@ gendateaxis <-
       else { ## mstart contains start of month for whole year(s). select those needed
         ltat <- c(outer(llev[["d"]]-1, mstart[llev[["m"]]], "+")) ## day starts with 1
         lmd <- c(outer(llev[["d"]], 100*(llev[["m"]]), "+"))
-        ltatu[lmd%in%c(limpossible, limpossible+1)] <- NA
-        liat <- lmd%nin% (limpossible+1)
+        ltatu[lmd%in%c(limpossible, limpossible+1)] <- NA 
+        liat <- lmd%nin% (limpossible+1) ## +1: keep tick at end of last day month
         ltat <- ltat[liat]
         ltatu <- ltatu[liat]
         ##  ltatu <- ltatu[liat]
@@ -1486,8 +1488,9 @@ gendateaxis <-
              NULL
            }
            )
-  if (llunit=="d") {
-  }
+  llab[is.na(ltatu)] <- ""
+##-   if (llunit=="d") {
+##-   }
   if (length(lvlab)==0 || (length(l <- attr(lvlab, "setbyuser"))&&!l) ) {
     llv1 <- c("A",names(llev))[llvlg] ## level that does not vary
     lvlab <- structure(
@@ -1513,7 +1516,7 @@ gendateaxis <-
   if (llu<llsm) ## turn into interval
     ltatlabel <- outer(ltatlabel, c(0, c(365, 30, 1, 0,0)[llu]), "+")
   ## 1/24, 1/(24*60)
-##      at.inunit = attr(ltatlabel, "at.inunit") )
+  ##      at.inunit = attr(ltatlabel, "at.inunit") )
   if (llunit=="d" & ldtk[lidtk,"labelint"]!=1) { ## drop mark at day 31
     li30 <- ltatu%%100==30
     li30[length(li30)] <- FALSE ## do not drop at end of scale
@@ -1766,7 +1769,7 @@ plyx <-
     loma[1:2] <- pmax(lmgp[1]+1, loma[1:2])
     if (lny>1) loma[4] <- max(lmgp[1]+1, loma[4])
     if (lnx>1) {
-      lmfig <- plmframe(lnx, lngrp, oma=loma)
+      lmfig <- plmframes(lnx, lngrp, oma=loma)
       loldp <- attr(lmfig, "oldpar")
       lnr <- lmfig$mfig[1]
       lnc <- lmfig$mfig[2]
@@ -2156,9 +2159,9 @@ plregr.control <-
   lnsims <- i.def(smooth.sim, 19, 19, 0)
   if (inherits(x, c("mlm", "polr", "survreg", "coxph", "regrMer"))) lnsims <- 0
   if (lmres>1) lnsims <- 0 # !!! not yet programmed for mlm
-  if (lnsims>0 & !inherits(x, c("lm","glm","nls"))) {
+  if (lnsims>0 & !inherits(x, c("lm","glm","lmrob","nls"))) {
     warning(":plregr/simresiduals: ",
-            "I can simulate only for 'lm', 'nls' and 'glm' objects")
+            "I can simulate only for 'lm', 'lmrob', 'nls' and 'glm' objects")
     lnsims <- 0
   }
   lsimres <- NULL
@@ -2449,8 +2452,8 @@ plregr <-
       if (length(lmf)&(!is.logical(lmf))) {
         lop <-  
           if (length(lmf)==1)
-            attr(plmframe(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
-        attr(plmframe(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
+            attr(plmframes(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
+        attr(plmframes(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
         c(par("mfrow"), lop[setdiff(names(lop), c("mfig","mrow","mcol"))])
       } ## else par(oma=loma) ## , ask=plargs$ask
       )
@@ -2945,8 +2948,8 @@ plresx <-
       if (length(lmf)&(!is.logical(lmf))) {
         lop <- 
           if (length(lmf)==1)
-            attr(plmframe(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
-        attr(plmframe(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
+            attr(plmframes(mft=lmf, oma=loma, byrow=lbyrow),"oldpar") else
+        attr(plmframes(lmf[1], lmf[2], oma=loma, byrow=lbyrow),"oldpar")
         c(par("mfrow"), lop[setdiff(names(lop), c("mfig","mrow","mcol"))])
       } ## else par(oma=loma) ## , ask=plargs$ask
       )
@@ -3315,7 +3318,7 @@ plmatrix <-
              2+(yaxmar==4)+(ylabmar==4))
   ## set par
   ## if (!keeppar)
-  loldp <- plmframe(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
+  loldp <- plmframes(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
   on.exit(par(loldp), add=TRUE, after=FALSE)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
   ## on.exit(par(attr(loldp, "oldp"))) ## !!!
@@ -3953,7 +3956,7 @@ plfitpairs <- function(object, ssize=0.02, main=NULL, ...)
 }
 ## ============================================================================
 ## ============================================================================
-plmframe <-
+plmframes <-
   function(mfrow=NULL, mfcol=NULL, mft=NULL, nrow=NULL, ncol=NULL, byrow=TRUE,
            oma=NULL, mar=NULL, mgp=NULL, ...)
 {

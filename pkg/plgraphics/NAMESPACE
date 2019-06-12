@@ -26,6 +26,7 @@ importFrom("graphics", plot, abline, axis, box, frame, legend,
            segments, symbols, text)
 importFrom("grDevices", col2rgb, dev.list, palette, rgb)
 importFrom("chron", chron, dates, month.day.year, hours, minutes, seconds)
+##           S3method(axis, chron)
 
 importFrom("MASS", polr)
 ## importFrom("nnet", multinom, nnet.default)
@@ -52,7 +53,7 @@ export(asinp,
        nobs.survreg, nobs.coxph,
        panelSmooth,
        ploptions, ploptionsDefault, .ploptions, .plargs, 
-       plyx, plmatrix, plmframe, plpanel, 
+       plyx, plmatrix, plmframes, plpanel, 
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, pllines, plbars, 

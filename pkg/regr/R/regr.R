@@ -1547,7 +1547,10 @@ print.regr <-
   } else {
     if (length(x$coeftable)) {
       cat("\nCoefficients:\n")
-      print(x$coeftable[,coefcolumns], na.print=na.print, digits=digits)
+      lcftb <- x$coeftable
+      if("coef"%in%coefcolumns & "estimate"%in%names(lcftb))
+        names(lcftb)[match("estimate", names(lcftb))] <- "coef"
+      print(lcftb[,coefcolumns], na.print=na.print, digits=digits)
     }
   }
 ##-   if (length(x$binlevels)>0) {
@@ -1566,10 +1569,10 @@ print.regr <-
         "  on", rdf, "degrees of freedom\n")
   if (length(x$r.squared)&&!is.na(x$r.squared))
     cat("Multiple R^2: ", formatC(x$r.squared, digits = digits),
-        "   Adjusted R^2: ",
-        formatC(x$adj.r.squared, digits = digits),
+        if (length(lr2a <- x$adj.r.squared))
+          paste("   Adjusted R^2: ", formatC(lr2a, digits = digits)),
         if (length(lAIC <- x$AIC)&&!is.na(lAIC))
-          "   AIC: ", formatC(lAIC, digits = log10(abs(lAIC))+3),"\n" )
+          paste("   AIC: ", formatC(lAIC, digits = log10(abs(lAIC))+3),"\n" ) )
   if (length(x$fstatistic)>0) {
     cat("F-statistic:  ", formatC(x$fstatistic[1],
             digits = digits), "  on", x$fstatistic[2], "and", x$fstatistic[3],

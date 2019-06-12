@@ -623,8 +623,8 @@ i.setvarattribute <- function(attr, value=NULL, data)
   lnm <- names(value)
   ljvar <- match(lnm, var, nomatch=0)
   if (any(ljvar==0)) {
-    warning(":i.setvarattribute: name ",paste(lnm[ljvar==0], collapse=", "),
-            "of 'value' not in names(data). Attribute '",attr,
+    warning(":i.setvarattribute: name  ",paste(lnm[ljvar==0], collapse=", "),
+            "  of 'value' not in names(data). Attribute '",attr,
             "' not set.")
   }
   lvar <- var[ljvar]

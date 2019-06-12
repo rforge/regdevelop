@@ -80,8 +80,8 @@ gendateaxis(date = NULL, year = 2000, month = 1, day = 1, hour = 0,
 \author{Werner A. Stahel
 }
 
-\seealso{\code{\link{genvarattributes}, \link{axis.Date},
-    \link[chron]{axis.chron}} %% in package \code{chron}
+\seealso{\code{\link{genvarattributes}, \link{axis.Date}}
+  %%  \link[chron]{axis} %% in package \code{chron}
 }
 \examples{
 ## call gendateaxis without 'real' data

@@ -17,14 +17,14 @@ leverage.Rd,27
 \examples{xamples44,1415
 
 plframe.Rd,28
-\examples{xamples106,4097
+\examples{xamples106,4061
 
 plmboxes.Rd,32
 \description{escription10,124
 
 ploptions.Rd,56
-\arguments{rguments16,437
-\examples{xamples146,6502
+\arguments{rguments16,442
+\examples{xamples146,6507
 
 plregr.Rd,20
 \usage{sage16,573
@@ -77,7 +77,7 @@ plpoints.Rd,0
 
 plpanel.Rd,0
 
-plmfg.Rd,0
+plmframes.Rd,0
 
 plmatrix.Rd,0
 

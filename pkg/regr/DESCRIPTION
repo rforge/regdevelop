@@ -1,7 +1,7 @@
 Package: regr
 Type: Package
 Title: Building Regression Models
-Version: 1.0-5
+Version: 1.0
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
 Depends: plgraphics
