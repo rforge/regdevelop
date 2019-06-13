@@ -1318,8 +1318,8 @@ gendate <-
       paste(ldt$year, ldt$month, floor(as.numeric(ldt$day)), sep="-"),
       format="y-m-d", origin=origin)
   ## ---
-  if (inherits(date, "chron")) ## date already has 'times'
-    return(structure(date, format=i.getploption("date.format")) )
+##-   if (inherits(date, "chron")) ## date already has 'times'
+##-     return(structure(date, format=i.getploption("date.format")) )
   ## --- hours, min, sec
   ## convert too large numbers
   if ("sec"%in%largs && any(li <- ldt$sec>=60, na.rm=TRUE)) {
@@ -1352,8 +1352,9 @@ gendate <-
     if ("sec"%nin%largs) ldt$sec <- round(ldec*60 - 0.5) ## + ldt$sec  must be zero
   }
   ##
-  date <- chron::chron(date, paste(ldt$hour, ldt$min, ldt$sec, sep=":"),
-                       format=c(dates=format, times="h:m:s"))
+  date <-
+    chron::chron(date, paste(ldt$hour, ldt$min, ldt$sec, sep=":"),
+                 format=c(dates=format, times="h:m:s"), origin=attr(date,"origin"))
   if (length(lnm)) names(date) <- lnm
   structure(date, format=i.getploption("date.format"))
 } ## end gendate
@@ -1425,7 +1426,7 @@ gendateaxis <-
   ## ---------
   lattr <- attributes(date)
   lvlab <- lattr$varlabel ## for later use
-  lorigin <- if (length(lor <- attr(date, "origin")))
+  lorigin <- if (length(lor <- lattr$origin))
     julian(as.Date(paste(lor[c("year","month","day")], collapse="-"))) else 0  
   if (length(lattr)) { ## avoid piling up of attributes
     li <-

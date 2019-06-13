@@ -152,6 +152,8 @@ plot(r.babysurvival, glm.restype="condquant")
 
 "is plgraphics in the path?"
 search()
+ls("package:plgraphics")
+help(package="plgraphics")
 
 plmframes(2,2)
 plresx(r.babysurvival, xvars=~Age+Apgar1+Apgar5+pH, data=d.babysurvival,
