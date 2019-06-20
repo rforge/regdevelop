@@ -566,8 +566,6 @@ plframe <-
   if (setpar)
     loldp <- c(par(cex=i.getploption("cex")*par("cex")),
              par(mar=lmar, mgp=lmgp)) 
-##-     loldp <- c(as.list(c(par(cex=i.getploption("cex")*par("cex")),
-##-              par(mar=lmar, mgp=lmgp))), usr=list(par("usr")))
   ## do not combine with previous line. mar will be in wrong (?) units
   ## on.exit(par(loldp))  ## produces artifact!
   plot(i.extendrange(lrgx, plextext[1:2]), i.extendrange(lrgy, plextext[3:4]),
@@ -1656,7 +1654,6 @@ plyx <-
            plargs = NULL, ploptions = NULL, ...)
 {
   ## --- intro
-##  lcl <- match.call()
   lcall <- match.call() ## match.call modifies argument names -> sys.call
 ##-   lcnm <- i.def(names(lcall), names(lcl))
 ##-   names(lcall) <- ifelse(lcnm=="", names(lcl), lcnm)
@@ -1727,7 +1724,7 @@ plyx <-
   ## inner plotting range
   lnmody <- as.matrix(sapply(ly, function(x) c(attr(x,"nmod"),0,0)[1:2]>0 ))
   lIinner <- apply(lnmody, 1, any)
-  if (lny>1) {
+  if (lny>1) { ## need to examine all y's and possibly reset plrange for ly[,1]
     if (rescale==0) {
       lyy <- genvarattributes(as.data.frame(c(as.matrix(ly))),
                               ploptions=ploptions)
@@ -1737,16 +1734,20 @@ plyx <-
       lrgy <- matrix(lf.rg(ly[,1]), 2, lny)
       for (lj in 1:lny) 
         attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
-    } else
+    } else {
       if (rescale<0) { ## do not adjust tick marks etc
         lrgyy <- c(min(lrgy[1,]),max(lrgy[2,]))
         for (lj in 1:lny) 
-          attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
-        attr(ly[,1],"plrange") <-     ## extend
-          lrgyy + diff(lrgyy)*c(-1,1)*
-            ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
-      } ## !!! welche attr sollen wirklich gesetzt werden?
-  }
+          attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgyy)
+      } 
+      else  ## rescale >0
+        lrgyy <- lrgy[,1]
+      attr(ly[,1],"plrange") <-     ## extend the plrange of ly[,1] if needed
+        lrgyy + diff(lrgyy)*c(-1,1)*
+          ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
+    } ## !!! welche attr sollen wirklich gesetzt werden?
+    attr(ly[,1], "nmod") <- lIinner ## plframe is called for ly[,1], needs attr
+  } ## end lny>1
   ly1 <- ly1g <- ly[,1]
   lrgy1 <- lrgy[,1]
   ## mark extremes
@@ -1809,6 +1810,7 @@ plyx <-
               if (lny>1) attr(ly1, "pch") else i.getploption("pch")[1]
         }
         ## frame
+        ## attr(ly1, "nmod") <- lIinner 
         lop <- plframe(lxj, ly1, xlab=xlab, ylab=ylab,
                        axcol=c(NA,lyaxcol,NA,NA), ploptions=ploptions,
                        setpar=lIfirst)

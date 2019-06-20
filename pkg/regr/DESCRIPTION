@@ -7,6 +7,8 @@ Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
 Depends: plgraphics
 Imports: stats, graphics, 
   MASS, nnet, survival, robustbase, quantreg, leaps
+Suggests: knitr
+VignetteBuider: knitr
 Description: Perform efficient model building for many kinds of
  regression models.
  Input, numerical output and model building functions for these models are

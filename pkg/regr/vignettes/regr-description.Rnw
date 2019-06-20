@@ -54,8 +54,8 @@ It is available from \T{R-forge} and is still in development.
 <<preliminary, echo=F>>=
 library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 library(regr) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
-mframe()
-userOptions(project="regr documentation")
+plmframes()
+useroptions(project="regr documentation")
 
 options(warn=1)
 @ 
@@ -185,7 +185,7 @@ not printed by default:
 \Tit{User options.}
 The default for the columns to be printed is set by an option stored 
 in the \T{UserOptions} list and controled by the function 
-\T{userOption} in the same way that the usual options are
+\T{useroption} in the same way that the usual options are
 controled by the function \T{options}.
 
 \Tit{Significance}
@@ -238,7 +238,7 @@ They are also stored in \T{rr\$termtable} as the column \T{stcoef}.
 
 <<termtable>>=
 names(r.blast$termtable)
-userOptions(termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
+useroptions(termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
 
 r.blast
 @ 
@@ -486,7 +486,7 @@ features, including those for which the default behavior is discussed below.
 
 The plotting pages are marked in the right lower corner by the date and a
 project title and step label, if available from \T{options}. 
-(This \T{stamp} can be suppressed by setting \T{userOptions(stamp=FALSE)}.) 
+(This \T{stamp} can be suppressed by setting \T{useroptions(stamp=FALSE)}.) 
 
 The default plotting character is a plus sign. Its size is adjusted to
 the number of points.
@@ -1010,7 +1010,7 @@ control over the precise content of the different plots.
   package gets a ``stamp'' in the lower right corner that indicates date
   and time of its creation and, if specified by the user before that 
   time point, a project title and a step name (by writing\\
-  \T{userOptions(project=projecttitle, step=stepname)}).\\
+  \T{useroptions(project=projecttitle, step=stepname)}).\\
   (This stamp can of course be suppressed for producing publication
   graphics.) 
 \item
@@ -1029,7 +1029,7 @@ There is an additional function \T{dropdata} which allows for dropping
 observations or variables based on their names.
 
 \subsection{Multiple Frames}
-Function \T{mframe} splits the screen by calling \T{par(mfrow=...)}.
+Function \T{plmframes} splits the screen by calling \T{par(mfrow=...)}.
 It adds flexibility and sets other defaults for margin widths and the like. 
 \\[10mm]
 

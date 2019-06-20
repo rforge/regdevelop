@@ -174,10 +174,10 @@ r.gam <- regr(Time~Type1+Type2, data=d.transaction, family=Gamma)
 r.gami <- regr(Time~Type1+Type2, data=d.transaction,
                family=Gamma(link=identity))
 
-data(wafer, package="faraway")
-r.gammalog <-
-  regr(resist ~ x1 + x2 + x3 + x4, family = Gamma(link = "log"), data=wafer)
-stopifnot(r.gammalog[["family"]][["link"]]=="log")
+##- data(wafer, package="faraway")
+##- r.gammalog <-
+##-   regr(resist ~ x1 + x2 + x3 + x4, family = Gamma(link = "log"), data=wafer)
+##- stopifnot(r.gammalog[["family"]][["link"]]=="log")
 
 ## ===========================================================
 ##- multinom
