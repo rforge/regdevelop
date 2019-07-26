@@ -8,9 +8,10 @@
 pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
   gensequence = NULL, cex = NULL, 
   psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, cex.pch = NULL, 
+  smooth.weights = NULL, smooth.weight = NULL,
   markextremes = NULL, smooth = NULL,
   xlab = NULL, ylab = NULL, varlabels = NULL,
-  vcol = NULL, vlty = NULL, vpch = NULL, 
+  vcol = NULL, vlty = NULL, vpch = NULL, plscale = NULL, log = NULL,
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
   ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
 }
@@ -40,6 +41,9 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
     \code{par("pch")}.
     By default, it adjusts to the number of observations.
   }
+  \item{smooth.weights, smooth.weight}{weights to be used in calculating
+    smooth lines. Both are equivalent.
+  }
   \item{markextremes}{scalar: proportion of extreme points to be labelled
   }
   \item{smooth}{logical: should a smooth line be added?
@@ -55,6 +59,13 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
     to be used when multiple y-s are plotted (in the sense of
     \code{matplot})
   }
+  \item{plscale}{plot scale: name of the function to be used for
+    generating a plotting scale, like \code{"log"}.
+    A named character vector can be given, where the names correspond
+    to variable names in \code{data}.
+  }
+  \item{log}{requires log scale as in R's basic plot function,
+    e.g., equals either \code{"x"}, \code{"y"} or \code{"xy"}}
   \item{main, sub}{string. Main title of the plot(s).
     If \code{sub} starts by \code{":"} (the default),
     \code{pl.control} tries to generate an informative subtitle,

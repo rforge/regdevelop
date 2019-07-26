@@ -11,7 +11,8 @@
 }
 \usage{
 genvarattributes(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
-  varlabels = NULL, innerrange.limits = NULL, replace=FALSE, ploptions = NULL)
+  varlabels = NULL, innerrange = NULL, innerrange.limits = NULL, plscale = NULL,
+  replace=FALSE, ploptions = NULL)
 
 setvarattributes(data, attributes = NULL, list = NULL, ...)
 }
@@ -28,8 +29,15 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
   \item{varlabels}{labels of the variables, in the case that the
     \code{names} of \code{data} are not appropriate.
   }
+  \item{innerrange}{logical indicating whether inner plotting ranges
+    should be determined and/or used} 
   \item{innerrange.limits}{limits of the inner plotting range, if
     predetermined} 
+  \item{plscale}{plot scale: name of the function to be used for
+    generating a plotting scale, like \code{"log"}.
+    A named character vector can be given, where the names correspond
+    to variable names in \code{data}.
+  }
   \item{ploptions}{list containing the plotting elements
     needed to set the attributes}
   \item{replace}{logical: should existing attributes be replaced?}
@@ -85,7 +93,8 @@ plyx(O2+H2CO3+T ~ date, data=d.river, subset=as.Date(date)<as.Date("2010-02-28")
 dd <- setvarattributes(d.river,
   list=list(vcol=c(O2="blue", T="red")), vpch=c(O2=1, T="T", H2CO3=5) )
 attributes(dd$O2)
-plyx(O2+H2CO3+T ~ date, data=d.river, subset=as.Date(date)<as.Date("2010-02-28"))
+plyx(O2+H2CO3+T ~ date, data=d.river, subset=as.Date(date)<as.Date("2010-02-28"),
+  plscale = c(O2="log", H2CO3="log") )
 }
 
 \keyword{utilities}

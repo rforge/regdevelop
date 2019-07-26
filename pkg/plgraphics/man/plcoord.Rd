@@ -47,19 +47,22 @@ plcoord(x, range = NULL, innerrange.factor = NULL,
   \item{attr(,"plrange")}{the range to be used when plotting}
   \item{attr(,"range")}{the "inner" plot range, either the argument
   \code{range} or the values determined by default.}
-  \item{attr(,"nmod")}{the number of modified observations}
+  \item{attr(,"nouter")}{the number of modified observations}
 }
 % \references{ ~put references to the literature/web site here ~ }
 \author{Werner Stahel}
 \seealso{ \code{\link{robrange}} }
 \examples{
-  x <- c(rnorm(20),rnorm(3,5,20))
+  set.seed(0)
+  x <- c(rnorm(20),rnorm(3,5,10))
   ( xmod <- plcoord(x) )
 
   plot(x,xmod)
+## This shows what high level pl functions do by default
   plot(xmod)
   abline(h=attr(xmod,"innerrange"),lty=3, lwd=2)
-## This shows what high level pl functions do by default
+## plgraphics
+  plyx(x)  
 }
 \keyword{manip}
 \keyword{aplot}

@@ -18,6 +18,10 @@
     "pldescr")
    (TeX-add-symbols
     "wh"
-    "Gets"))
+    "Gets")
+   (LaTeX-add-labels
+    "intro.plscale"
+    "options.smooth"
+    "options.dateaxis"))
  :latex)
 

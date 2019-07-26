@@ -30,7 +30,8 @@
 ##- c.mon
 ##- c.quarters
 ## ======================================================================
-showd <- function (data, first=3, nrow.=4, ncol.=NULL)
+showd <-
+  function (data, first=3, nrow.=4, ncol.=NULL, digits=getOption("digits"))
 {
   ## print some rows (and columns) of a matrix or data.frame
   if (length(data)==0) {
@@ -45,7 +46,7 @@ showd <- function (data, first=3, nrow.=4, ncol.=NULL)
   if (lldim>2) stop("!showd not yet programmed for arrays")
   if (lldim>0) cat("dim: ",dim(data),"\n") else
     if (is.factor(data)) data <- as.character(data)
-  ldata <- cbind(data)
+  ldata <- as.data.frame(data)
   l.nr <- nrow(ldata)
   l.nc <- ncol(ldata)
   if (is.null(colnames(ldata))) colnames(ldata) <- paste("c",1:l.nc,sep=".")
@@ -60,7 +61,8 @@ showd <- function (data, first=3, nrow.=4, ncol.=NULL)
     }
   }
   ## select rows
-  if (l.nr<=nrow.+first)  l.dc <- format(ldata[,l.ic, drop=FALSE])  else {
+  if (l.nr<=nrow.+first)
+    l.dc <- format(ldata[,l.ic, drop=FALSE], digits=digits)  else {
     l.ir <- c(1:first,round(seq(first,l.nr,length=nrow.+1))[-1])
     l.ir <- unique(c(last(l.ir,-1),l.nr))
     l.dc <- data.frame(u.merge(format(ldata[l.ir,l.ic]),"",after=first),
@@ -74,10 +76,10 @@ showd <- function (data, first=3, nrow.=4, ncol.=NULL)
   if (l.nc==1) {
     if (lldim>0) cat("     transposed column\n")
     row.names(l.dc) <-
-      format(rbind(row.names(l.dc),l.dc[,1]),justify="right")[1,]
+      format(rbind(row.names(l.dc),l.dc[,1]),justify="right", digits=digits)[1,]
     l.dc <- t(l.dc)
   }
-  print(l.dc,quote=FALSE)
+  print(l.dc,quote=FALSE, digits=digits)
   if (length(ldoc)&&ldoc&&length(doc(data)))
     cat("\ndoc:  ",paste(doc(data),collapse="\n  "),"\n")
   invisible(l.dc)
@@ -155,7 +157,10 @@ logst <- function (data, calib=data, threshold=NULL, mult=1)
   data
 }
 ## ===========================================================================
-asinp <- function (x) asin(sqrt(x/100))/asin(1)
+asinp <-
+  structure( function (x) asin(sqrt(x/100))/asin(1),
+            inverse = function(x) 100* sin(x*asin(1))^2
+            )
 ## asinperc <- asinp  ## compatibility
 ## ==============================================================
 nainf.exclude <- function (object, ...)

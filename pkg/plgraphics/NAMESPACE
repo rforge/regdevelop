@@ -21,8 +21,8 @@ importFrom("stats",
            model.response, napredict, naresid, qt,
            update, update.formula, var)
 importFrom("utils", getS3method, recover, str)
-importFrom("graphics", plot, abline, axis, box, frame, legend,
-           lines, matlines, mtext, par, points, polygon,
+importFrom("graphics", plot, abline, axis, axTicks, box, frame, legend,
+           lines, matlines, mtext, par, points, polygon, 
            segments, symbols, text)
 importFrom("grDevices", col2rgb, dev.list, palette, rgb)
 importFrom("chron", chron, dates, month.day.year, hours, minutes, seconds)
@@ -57,10 +57,10 @@ export(asinp,
        plmbox, plmboxes, plmboxes.formula, plmboxes.default, 
        pl.control, plinnerrange, pllimits, plcoord, plmark,
        plframe, pltitle, plaxis, plpoints, pllines, plbars, 
-       plsmooth, plsmoothline, plrefline, plsubset, 
+       plsmooth, plsmoothline, plrefline, plscale, plsubset, 
        plregr, plregr.control, plot.xdistResscale,
        plres2x, plresx, plfitpairs, 
-       predict.regrpolr, ## predict.regr, predict.mlm, 
+       prettyscale, predict.regrpolr, ## predict.regr, predict.mlm, 
        drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        quantilew, quinterpol,
        ## residuals.regr, 

@@ -3832,3 +3832,8 @@ shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else
   if (k==0) x else c(last(x, k), rep(NA, -k))
 
+.onLoad <- function() {
+  require("knitr")
+  tools::vignetteEngine("knitr")
+## , weave = vweave, tangle = vtangle, pattern = "[.]Rmd$", package = "knitr")
+}

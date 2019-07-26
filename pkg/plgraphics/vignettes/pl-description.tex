@@ -1,8 +1,8 @@
 % -*- Mode: noweb; noweb-default-code-mode: R-mode; -*-
 %\SweaveUTF8
 \documentclass[11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
-%% maxwidth is the original width if it is less than linewidth
-%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
 \def\maxwidth{ %
   \ifdim\Gin@nat@width>\linewidth
@@ -198,7 +198,7 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
@@ -210,10 +210,10 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \end{knitrout}
 Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
 lines to be the same.
-The call to \T{plmfg} splits the screen essentially like 
+The call to \T{plmframes} splits the screen essentially like 
 \T{par(mfrow=c(1,2))}.
 
-%%- The function \T{plmfg} splits the figure region into multiple figures 
+%%- The function \T{plmframes} splits the figure region into multiple figures 
 %%- (by setting \T{par(mrow=...)}).
 
 \Tit{Groups.}
@@ -223,7 +223,7 @@ for the different groups, thereby maintaining the plot ranges.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{)}
+\hlkwd{plmframes}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{)}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{group}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
@@ -257,7 +257,7 @@ plotted without and with inner plotting limits.
 \hlstd{dd} \hlkwb{<-} \hlstd{d.blast}
 \hlstd{dd}\hlopt{$}\hlstd{distance[}\hlnum{2}\hlstd{]} \hlkwb{<-} \hlnum{200}
 
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd)}
@@ -305,8 +305,9 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \end{knitrout}
 
 The following plot shows a more elaborate example of a time series plot,
-see ... for details about the generation of a time axis and
-the additional arguments of \T{plyx}, respectively
+see \ref{options.dateaxis} and \ref{options.smooth}
+for details about the generation of a time axis and
+the additional arguments of \T{plyx}, respectively.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -325,7 +326,7 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Petal.Length,} \hlkwc{data}\hlstd{=iris,}
      \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
@@ -338,9 +339,48 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 %%- The argument \T{group} is used to generate multiple plots, one for each 
 %%- factor level, using the same plotting scales and ranges.
 %%- <plyx_group, fig_height=4>
-%%- plmfg(1,3, mar=c(1,1,1,1))
+%%- plmframes(1,3, mar=c(1,1,1,1))
 %%- plyx(Sepal.Width~Sepal.Length, data=iris, group=Species)
 %%- @ 
+\subsection{Nonlinear plotting scales}
+
+In basic R graphics, ``log scale'' may be selected by specifying 
+\T{log="y"} (or \T{="x"} or \T{="xy"}). 
+\T{plgraphics} allows for any monotone transformation.
+For example, the arc sine transformation 
+$\mbox{asinp}\fn x = \mbox{arcsin}\fn{\sqrt{x/100}} / \mbox{arcsin}\fn{1}$
+is recommended as a ``first aid transformation'' for percentages.
+Rather than plotting the transformed variable, the \T{plgraphics}
+functions offer the argument \T{plscale}, which leads to using the 
+function \T{plscale} and shows the transformed data with tick marks
+refelcting the original scale (as \T{log="y"} would do it for basic R).
+\label{intro.plscale}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{data}\hlstd{(d.babysurvGr)}
+  \hlkwd{showd}\hlstd{(d.babysurvGr)}
+\end{alltt}
+\begin{verbatim}
+## dim:  10 4 
+##      n Survival.0 Survival.1 Weight
+## 1   10         10          0    550
+## 2   14         12          2    650
+## 3   27         18          9    750
+## ...                                
+## 5   32          9         23    950
+## 6   28          7         21   1050
+## 8   26          7         19   1250
+## 10  32          3         29   1450
+\end{verbatim}
+\begin{alltt}
+  \hlkwd{plyx}\hlstd{(}\hlkwd{I}\hlstd{(}\hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)} \hlopt{~} \hlstd{Weight,} \hlkwc{data}\hlstd{=d.babysurvGr,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"log"}\hlstd{,}\hlstr{"asinp"}\hlstd{) )}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx-plscale-1} 
+
+\end{knitrout}
 
 \subsection{Marking extreme points}
 
@@ -350,7 +390,7 @@ are labelled. This is achieved by setting the argument \T{markextremes}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlnum{0.1}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
@@ -376,7 +416,7 @@ The multibox plot can also be called directly.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plmfg}\hlstd{()}  \hlcom{## reset to just 1 figure per plot}
+\hlkwd{plmframes}\hlstd{()}  \hlcom{## reset to just 1 figure per plot}
 \hlcom{## plyx(Sepal.Width~Species, data=iris)  ## -- or --}
 \hlkwd{plmboxes}\hlstd{(Petal.Length}\hlopt{~}\hlstd{Species,} \hlkwc{data}\hlstd{=iris)}
 \end{alltt}
@@ -396,12 +436,8 @@ the x and y variables.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(}\hlstr{"survival"}\hlstd{)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
-\hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
+\hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
 \end{alltt}
 \end{kframe}
@@ -585,6 +621,11 @@ Least Squares estimator with suitable weights.
 Therefore, the weighted version of the leverage plot is produced for such
 models. 
 
+\Detail{
+\T{plregr} tries to save space around the panels: it reduces 
+\T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
+Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
+}
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
@@ -607,9 +648,9 @@ It does so by calling \T{plresx}, which can also be done directly.
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr)}
 \end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plresx-1} 
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in apply(lstdres, 2, function(x) plmark(lmxres, x, plabel = plargs\$plabel)): dim(X) must have a positive length}}\end{kframe}
 \end{knitrout}
 The input variables are often transformed before they are used 
 in the linear predictor,
@@ -625,9 +666,9 @@ plot. The transformed variables can be called for by setting
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
 \end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
 
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in apply(lstdres, 2, function(x) plmark(lmxres, x, plabel = plargs\$plabel)): dim(X) must have a positive length}}\end{kframe}
 \end{knitrout}
 
 \Detail{
@@ -772,7 +813,7 @@ one of the usual choices.
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.babysurvival)}
   \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
-  \hlkwd{plmfg}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
+  \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
   \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -824,20 +865,24 @@ functions \T{par} and \T{options}.
 \end{knitrout}
 
 There are some differences between the behavior of \T{ploptions} and \T{par}:
-\Itm
+\begin{itemize}
+\item 
 The pl options are stored in a list \T{.ploptions} in the global
-environment and are therefore not erased when leaving the R session. 
-\Itm
+environment and are therefore not erased when leaving the R session with
+saving the workspace (\T{q(save="yes")}).
+\item
 There is a list \T{ploptionsDefault} in the package. It collects the
 package's default settings and is used as a backup if some components should
 not be contained in \T{.ploptions}.
-\Itm
+\item
 Both of these lists can be overriden by objects with the same name
 that appear earlier in the search list than the \T{plgraphics} package.
-\Itm
+\item
 The value returned by \T{ploptions} is the entire, modified list of 
 pl options. The old values are stored in the attribute \T{attr( ,"old")}
 to be used for restoring them, see above.
+\end{itemize}
+
 
 \Tit{Remark:}
 The concept of the ploptions list is a version of a more general idea, 
@@ -873,7 +918,10 @@ The components of these lists include
   If the line types are shown with the same \T{lwd}, they are perceived
   with different intensity. \T{linewidth} intends to compensate this effect.
 \item
-  \T{cex}, the median character expansion.
+  \T{cex}, a factor applied to the current value of \T{par("cex")} to
+  determine the general character expansion used by the pl functions.
+\item
+  \T{cex.pch}, the median character expansion.
   The default is the function \T{cexSize} with an argument \T{n}, defined as
   \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
   observations is available. Alternatively, a fixed scalar can be given.
@@ -939,14 +987,14 @@ The components of these lists include
   a group \T{refline}, again setting the properties \T{lty, lwd, col},
   to be used in \T{plrefline};
 \item
-  a group \T{smoothline}, analogous to \T{refline}, used to draw smooths
-  when \T{smooth} is \T{TRUE} by calling \T{plsmoothline};
-  %% usually generated by setting \T{smooth} to \T{TRUE}.
-\item
-  a group \T{smooth}. If \T{smooth} is \T{TRUE}, a smoothing function 
-  with default \Hneed{80mm} \T{ploptions("smooth.function")} 
-  is called to calculate a
-  smooth line and show it according toe the \T{smoothline} properties;
+  a group \T{smooth}, containing items needed for generating and drawing
+  smooth lines;
+  \label{options.smooth}
+%%- \item
+%%-   a group \T{smooth}. If \T{smooth} is \T{TRUE}, a smoothing function 
+%%-   with default \Hneed{80mm} \T{ploptions("smooth.function")} 
+%%-   is called to calculate a
+%%-   smooth line and show it according toe the \T{smoothline} properties;
 \item
   a group \T{bar} needed to show reference values for levels of factors
   used as explanatory variables in regression diagnostic plots;
@@ -972,11 +1020,36 @@ The components of these lists include
   when plotting residuals against leverages.
 \end{itemize}
 
+If these options modify any setting of R's \T{par} list and they are 
+set as arguments to high level pl functions 
+(\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe},
+they should be restored after leaving the function.
+When \T{plmframes} is called by the user, the information to restore 
+the old settings is contained in its (invisible) value.
+Thus, 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{op} \hlkwb{<-} \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)}
+\hlcom{## plyx(Sepal.Width~Sepal.Length, data=iris, group=Species, mar=c(3,1,3,0))}
+\hlkwd{par}\hlstd{(}\hlkwd{attr}\hlstd{(op,} \hlstr{"oldpar"}\hlstd{))}
+\hlkwd{par}\hlstd{(}\hlstr{"mfg"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] 1 1 1 1
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+will restore the old settings. Here, we have commented out the plotting
+statement to save space.
+
 %% ---------------------------------
-\subsection{Organization of graphical metadata}
+\subsection{Graphical metadata, plotting attributes of variables}
 %%pl.control, pldata, plargs
 Pl graphics rely on generating and maintaining metadata that guide the
 details of creating the plots. This is implemented in the following way.
+
+!!! reorganize: first show what metadata are, mention ticks, plscale
 
 \Tit{\T{pl.control}.}
 High level pl functions call the function \T{pl.control} first.
@@ -995,14 +1068,14 @@ observations or individual variables.
 Those related to the observations include:
 \begin{itemize}
 \item 
-  plotting symbol (character) \T{pch};
+  \T{pch}: plotting symbol (character);
 \item
-  plotting label, an extension of \T{pch} to more than one symbol,
-  often used to identify observations, \T{plab};
+  \T{plab}: plotting label, an extension of \T{pch} to more than one symbol,
+  often used to identify observations;
 \item
-  plotting size \T{psize}, scaled by the pl option \T{cex};
+  \T{psize}: plotting size, scaled by the pl option \T{cex};
 \item
-  color of the symbol, \T{pcol}.
+  \T{pcol}: color of the symbol.
 \end{itemize}
 These elements are stored in \T{pldata} as columns with names
 \T{(pch)}, \T{(plab)}, \T{(psize)}, \T{(pcol)}.
@@ -1032,33 +1105,38 @@ argument \T{data}.)
 The elements attached to variables are
 \begin{itemize}
 \item
-  a variable name \T{varname} and a variable \T{label} 
-  (to be used for labelling the axis on which the variable is shown), 
+  \T{varname} and \T{varlabel}: variable name and label --  
+  to be used for labelling the axis on which the variable is shown --, 
   typically identical to the name of the variable
   in the data.frame it comes from;
 \item
-  the values for which tick marks and labels should be shown in plots,
-  \T{ticksat, ticklabelsat}, and the possibly tick labels \T{ticklabels};
+  \T{ticksat}: the values for which tick marks will be shown in plots.
+  This item may carry an attribute \T{small} that leads to an additional
+  set of smaller tickmarks;
 \item
-  an inner and an outer plotting range, \T{innerrange} and \T{plrange};
+  \T{ticklabelsat} the possibly tick labels \T{ticklabels}:
+  positions of labels to indicate values of the variable, and the lablels
+  themselves;
 \item
-  the extension \T{innerrange.ext} used to calculate \T{plrange}
+  \T{innerrange, plrange}: inner and outer plotting range;
+\item
+  \T{innerrange.ext}: extension used to calculate \T{plrange}
   from \T{innerrange}, if the latter does not cover all points;
 \item 
-  the number of points modified at each end of the inner range,
-  \T{nmod};
+  \T{nouter}: the number of points modified at each end of the inner range;
 \item
-  numerical values \T{numvalues} to represent the given data values in case
-  these are not numeric;
+  \T{numvalues}: numerical values to represent the given data values in
+  case these are not numeric or for other reasons, see \T{plscale} and
+  \T{gendateaxis} below;
 \item
-  coordinates \T{plcoord}, possibly different from the variable's data values,
-  typically when an inner plotting range or jittering is active;
+  \T{plcoord}: coordinates, possibly different from the variable's data
+  values, typically when an inner plotting range or jittering is active;
 \item
-  line type \T{lty} and color \T{col}
-  to be used if multiple y's are shown in a plot.
+  \T{pch, lty, col}: plotting symbol, line type and color to be used 
+  if multiple y's are shown in a plot.
 \end{itemize}
 These elements are stored as attributes of the variables,
-e.g., \T{attr(var, "axisat")}.
+e.g., \T{attr(var, "thicksat")}.
 They can be either set (or generated by the function \T{genvarattributes} and 
 then modified) before calling the high level pl function, such as \T{plyx}.
 Those that are needed and have not been stored beforehand will be 
@@ -1067,7 +1145,7 @@ generated by \T{pl.control} when calling such a function.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{attr}\hlstd{(iris}\hlopt{$}\hlstd{Sepal.Length,} \hlstr{"ticksat"}\hlstd{)} \hlkwb{<-}
-  \hlkwd{structure}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{8}\hlstd{,} \hlnum{0.5}\hlstd{),} \hlkwc{small}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.1}\hlstd{))}
+  \hlkwd{structure}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{8}\hlstd{,} \hlnum{1}\hlstd{),} \hlkwc{small}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.1}\hlstd{))}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,}
   \hlkwc{gridlines}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{Sepal.Length}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.5}\hlstd{)))}
@@ -1077,16 +1155,63 @@ generated by \T{pl.control} when calling such a function.
 
 \end{knitrout}
 
-\T{getvariables}
-\T{genvarattributes}
-\T{varattributes}
+%% ------------------------------------------
 
-\Tit{\T{gendateaxis}.}
-The function \T{gendateaxis} provides nice tick values and labels for 
-variables expressing a date having a time scale. 
-Dates should be expressed in \T{POSIXt} or \T{Date} format.
-The function \T{gendate} helps to generate such a date. It is an extension
-of \T{as.POSIXct}.
+\Tit{Plot scale.}
+Showing a variable with a ``plot scale'', like ``log scale'', means
+to transform the values with a given function (\T{log}), storing them
+in the attribute \T{numvalues}, and setting 
+\T{ticksat, ticklabelsat} and \T{ticklabels} corresponding to ``pretty''
+values of the original scale.
+The function that generates these attributes is \T{plscale}.
+It can be called explicitly in order to fix the scale as a property
+of the variable in the dataset it comes from, or implicitly by 
+setting the argument \T{plscale} when calling a high level function,
+see \ref{intro.plscale}.
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlstd{dd} \hlkwb{<-} \hlstd{d.babysurvGr}
+  \hlstd{dd}\hlopt{$}\hlstd{Weight} \hlkwb{<-} \hlkwd{plscale}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"log"}\hlstd{)}
+  \hlkwd{attr}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"ticklabels"}\hlstd{)}
+\end{alltt}
+\begin{verbatim}
+## [1] "600"  "800"  "1000"
+\end{verbatim}
+\begin{alltt}
+  \hlcom{## or}
+  \hlstd{dd}\hlopt{$}\hlstd{SurvPerc} \hlkwb{<-} \hlkwd{with}\hlstd{(dd,} \hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)}
+  \hlstd{dd} \hlkwb{<-} \hlkwd{genvarattributes}\hlstd{(dd,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{Weight}\hlstd{=}\hlstr{"log"}\hlstd{,}\hlkwc{SurvPerc}\hlstd{=}\hlstr{"asinp"}\hlstd{))}
+  \hlkwd{str}\hlstd{(dd}\hlopt{$}\hlstd{SurvPerc)}
+\end{alltt}
+\begin{verbatim}
+##  num [1:10] 0 14.3 33.3 36.4 71.9 ...
+##  - attr(*, "numvalues")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
+##  - attr(*, "ticksat")= num [1:3] 0 0.5 1
+##  - attr(*, "ticklabels")= chr [1:3] "0" "50" "100"
+##  - attr(*, "plscale")= Named chr "asinp"
+##   ..- attr(*, "names")= chr "SurvPerc"
+##  - attr(*, "varname")= chr "SurvPerc"
+##  - attr(*, "nvalues")= int 10
+##  - attr(*, "innerrange")= num [1:2] -0.0404 0.8484
+##  - attr(*, "innerrange.ext")= num 0.1
+##  - attr(*, "nouter")= int [1:2] 0 0
+##  - attr(*, "plrange")= num [1:2] -0.0404 0.8484
+##  - attr(*, "plcoord")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
+##  - attr(*, "varlabel")= chr "SurvPerc"
+\end{verbatim}
+\begin{alltt}
+  \hlcom{## plyx(SurvPerc~Weight, data=dd) ## now produces the same plot as above}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\Tit{Date variable.}\label{options.dateaxis}
+Similarly, the function \T{gendateaxis} provides nice tick values and labels 
+for variables expressing a date or time. 
+The function \T{gendate} helps to generate such a date. 
+If a variable inherits from class \T{Date} or \T{times}, it will be shown
+automatically in this way.
 
 \section{Low level graphics}
 
@@ -1096,8 +1221,8 @@ generate a full plot. Low level plotting functions include:
 
 \begin{itemize}
 \item 
-\T{plframe} generates a new frame, frames the inner and outer plotting
-ranges and draws gridlines and axes, the latter by calling \T{plaxis}. 
+  \T{plframe} generates a new frame, frames the inner and outer plotting
+  ranges and draws gridlines and axes, the latter by calling \T{plaxis}. 
 \item
   \T{plaxis} draws an axis based on the attributes of the variable given as
   the second argument.   
@@ -1172,6 +1297,8 @@ Other auxiliary functions include
   \T{robrange}
 \item
   \T{colorpale}
+\item
+  \T{getvariables}
 \end{itemize}
 
 \section{Details}
@@ -1187,7 +1314,7 @@ Some arguments to low level pl functions need to be set by changing
 the \T{ploptions} argument.
 Example:
 
-residuals in pargs are data.frame
+residuals in plargs are data.frame
 
 variable colors, ... stored in pdata
 generated in pl.control avoiding elements already in use 
@@ -1254,17 +1381,28 @@ Otherwise, you need to call also \T{plcoord} in order to have a conforming
 \T{plcoord} attribute of the variable(s).
 
 Note that the resulting \T{innerrange} may differ from the required 
-inner range at the end(s) where no data are modified (\T{nmod==0}).
-
-!!!
+inner range at the end(s) where no data are modified (\T{nouter==0}).
 
 \Tit{Tick marks}
 The tick mark occur in three ``degrees'', the first one being labelled,
-the second being only shown by a mark, the third, by a short mark.
+the second (called ``regular'') being only shown by a mark, the third, 
+by a short mark.
+(The lengths of the tick marks are determined by the ploption \T{ticklength}.)
 
-\Tit{Gridlines}
-If \T{gridlines} is \T{TRUE}, grid lines will be drawn at each (regular)
-tick of both axes.
+\Tit{Gridlines, zeroline}
+If the ploption \T{grid} is \T{TRUE}, grid lines will be drawn at each (regular)
+tick of both axes. 
+Alternatively, the variable attribute \T{gridline} can be specified either 
+directly or by \T{setvarattribute}
+(The plotting properties \T{col, lty, lwd} are determined by the ploptions
+\T{grid.col, grid.lty, grid.lwd}.)
+
+Likewise, lines can be obtained by setting the variable attribute \T{zeroline}
+and the respective options. By default, a zero line is drawn at 0.
+
+\Tit{Axis label}
+The plotting routine (\T{plframe}) will look for an attribute \T{varlabel}.
+If it is not available, the name of the variable will be used.
 
 \subsection{Standardized residuals}
 

@@ -8,10 +8,10 @@
   of getting acquainted with the data.
 }
 \usage{
-showd(data, first = 3, nrow. = 4, ncol. = NULL)
+showd(data, first = 3, nrow. = 4, ncol. = NULL, digits=getOption("digits"))
 }
 \arguments{
-  \item{data}{a data.frame (or a matrix)}
+  \item{data}{a data.frame, a matrix, or a vector}
   \item{first}{the first \code{first} rows will be shown and ...}
   \item{nrow.}{a selection of \code{nrow.} rows will be shown in
     addition. They will be selected with equal row number differences.
@@ -19,6 +19,7 @@ showd(data, first = 3, nrow. = 4, ncol. = NULL)
   \item{ncol.}{number of columns (variables) to be shown. The first and
     last columns will also be included. If \code{ncol.} has more than
     one element, it is used to identify the columns directly.}
+  \item{digits}{number of significant digits used in formatting numbers}
 }
 \details{
   The \code{tit} attribute of \code{data} will be printed if available and

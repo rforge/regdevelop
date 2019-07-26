@@ -76,13 +76,41 @@ plmboxes(Sepal.Length~Species, data=iris,
 data(d.blast)
 dd <- genvarattributes(d.blast)
 str(attributes(dd$tremor))
-ddd <- setvarattributes(dd, list( tremor=list(axisat=seq(0,24,2),
-  axislabels = seq(0,24,10)) ) )
-str(attr(ddd$tremor, "axislabels"))
+ddd <- setvarattributes(dd, list( tremor=list(ticksat=seq(0,24,2),
+  ticklabelsat = seq(0,24,10)) ) )
+str(attr(ddd$tremor, "ticklabels"))
 
+plyx(tremor~distance, data=ddd, subset=location=="loc3")
+
+dd <- d.blast[d.blast$location=="loc6",]
+## outliers and type="l" or "b"
+dd$distance[2:5] <- c(150, 130, 110, 125)
+dd$tremor[c(2,4)] <- 6
+plyx(tremor~distance, data=dd, innerrange.factor=2, type="b")
+## ------------------------------------------------------------
+## gendate
+rr <- gendate(year=2010, month=c("Jan","Apr"), day=c(3,30),
+            hour=25, min=c(0,70), sec=c(0,300))
+stopifnot(all(
+  format(rr) == c("(10-01-04 01:00:00)", "(10-05-01 02:15:00)")
+  ))
+td <- data.frame(datum=as.Date(c("2010-05-20","1968-05-01")),
+                 tag=c(1.5, 3), min=c(30,70))
+rr <- gendate(date=datum, day=tag, hour=6, data=td, min=min)
+stopifnot(all(
+  format(rr) == c("(10-05-20 06:30:00)", "(68-05-01 07:10:00)")
+  ))
+gendate(day=tag, hour=4, data=td, min=min) 
+gendate(day=tag, data=td, min=min, sec=8) 
+## -----------------------------------------------
+rr <- plscale(c(0.01,1,2,5,10), "log")
+## inverse function
+aa <- c(0.1,10,50,100)
+stopifnot(all( abs(attr(asinp, "inverse")(asinp(aa)) - aa)<1e-13) )
 ## =========================================
 #require(regr0)
 ## attach("../div/pl-data.rda")
+showd(dd)
 data(d.blast)
 rr <- r.blast <-
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
@@ -162,18 +190,3 @@ r.cox <- survival::coxph(
   survival::Surv(time, status) ~ age + gender + ph.karno, data=lung) 
 plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 
-## =================================================================
-## gendate
-rr <- gendate(year=2010, month=c("Jan","Apr"), day=c(3,30),
-            hour=25, min=c(0,70), sec=c(0,300))
-stopifnot(all(
-  format(rr) == c("(10-01-04 01:00:00)", "(10-05-01 02:15:00)")
-  ))
-td <- data.frame(datum=as.Date(c("2010-05-20","1968-05-01")),
-                 tag=c(1.5, 3), min=c(30,70))
-rr <- gendate(date=datum, day=tag, hour=6, data=td, min=min)
-stopifnot(all(
-  format(rr) == c("(10-05-20 06:30:00)", "(68-05-01 07:10:00)")
-  ))
-gendate(day=tag, hour=4, data=td, min=min) 
-gendate(day=tag, data=td, min=min, sec=8) 
