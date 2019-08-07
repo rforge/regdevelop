@@ -159,7 +159,8 @@ logst <- function (data, calib=data, threshold=NULL, mult=1)
 ## ===========================================================================
 asinp <-
   structure( function (x) asin(sqrt(x/100))/asin(1),
-            inverse = function(x) 100* sin(x*asin(1))^2
+            inverse = function(x) { 100* sin(x*asin(1))^2 },
+            range = c(0,100), range.transformed = c(0,1)
             )
 ## asinperc <- asinp  ## compatibility
 ## ==============================================================

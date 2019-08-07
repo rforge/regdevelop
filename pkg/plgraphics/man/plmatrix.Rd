@@ -9,7 +9,7 @@
   1 plot page.
 }
 \usage{
-plmatrix(x, y = NULL, data = NULL, panel = plpanel, panelargs = plargs, 
+plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs, 
          nrow = 0, ncol = nrow, reduce = TRUE, keeppar = FALSE,
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
@@ -26,16 +26,6 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel, panelargs = plargs,
     or \code{y} is a formula}
   \item{panel}{a function that generates the marks of the individual
     panels, see Details.
-    Defaults to \code{plpanel}, which results essentially in
-    \code{\link{points}} or \code{\link{text}}
-    depending on the argument \code{pch},
-    to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not or
-    vice versa,
-    or to a modification of \code{sunflowers} if both are factors.\cr
-    The function must have the arguments \code{x} and \code{y}
-    to take the coordinates of the points and may have the arguments
-    \code{indx} and \code{indy} to transfer the variables\' index and
-    \code{panelargs} for any additional objects to be passed on.
   }
   \item{panelargs}{a list of arguments to be passed to the \code{panel}
     function, in addition to \code{x, y, indx, indy}}
@@ -81,6 +71,17 @@ plmatrix(x, y = NULL, data = NULL, panel = plpanel, panelargs = plargs,
   \code{ncol} columns. If these numbers are missing, they default to
   \code{nrow=5} and \code{ncol=6} for landscape pages, and to
   \code{nrow=8} and \code{ncol=5} for portrait pages.
+
+  The \code{panel} argument efaults to \code{plpanel}, which results
+  essentially in \code{\link{points}} or \code{\link{text}}
+  depending on the argument \code{pch}, including a smooth line,
+  to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not or
+  vice versa,
+  or to a modification of \code{sunflowers} if both are factors.\cr
+  The function must have the arguments \code{x} and \code{y}
+  to take the coordinates of the points and may have the arguments
+  \code{indx} and \code{indy} to transfer the variables\' index and
+  \code{panelargs} for any additional objects to be passed on.
 }
 \value{
   none

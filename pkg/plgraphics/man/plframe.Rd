@@ -76,6 +76,9 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
 \value{\code{plframe} and \code{plaxis} invisibly return the former
   \code{par(c("cex", "mar", "mgp"))}
   if \code{setpar} is \code{TRUE}, otherwise \code{NULL}.
+
+  \code{pltitle} invisibly return a list consisting of the \code{main}
+  and \code{sub} title.
 }
 \details{
   \code{plframe} draws axes according to argument \code{axes},

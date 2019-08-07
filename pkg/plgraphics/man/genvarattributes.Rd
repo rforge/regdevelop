@@ -32,7 +32,7 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
   \item{innerrange}{logical indicating whether inner plotting ranges
     should be determined and/or used} 
   \item{innerrange.limits}{limits of the inner plotting range, if
-    predetermined} 
+    predetermined, see Details} 
   \item{plscale}{plot scale: name of the function to be used for
     generating a plotting scale, like \code{"log"}.
     A named character vector can be given, where the names correspond
@@ -58,6 +58,14 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
 \details{
   If the attribute \code{innerrange} is replaced, then \code{plcoord} is
   also replaced.
+
+  \code{innerrange.limits} may be a named list of ranges with names
+  corresponding to variables (not necessarily all of them),
+  or a scalar vector of length 2 to be used as range for all the
+  variables. 
+  It can also be a logical vector superseding the argument
+  \code{innerrange}, either named (as just mentioned) or
+  unnamed, to be repeated the appropriate number of times.
 }
 \value{
   Data.frame, returning the original values, but the variables are

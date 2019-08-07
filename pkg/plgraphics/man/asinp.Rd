@@ -18,11 +18,13 @@ asinp(x)
 \value{
 vector of transformed values}
 \author{Werner A. Stahel, ETH Zurich}
-\note{This very simple function is provided in order to simplify formulas
+\note{This very simple function is provided in order to simplify
+  formulas. It has an attribute \code{"inverse"} that contains
+  the inverse function, see example.  
 }
 \examples{
 asinp(seq(0,100,10))
+( y <- asinp(c(1,50,90,95,99)) )
+attr(asinp, "inverse")(y)
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{manip}
+\keyword{math}
