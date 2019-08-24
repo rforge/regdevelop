@@ -16,7 +16,7 @@ gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
   \item{y}{vector or matrix of y values.
   }
   \item{band}{logical: Should a band consisting of low and high smooth
-    be calculated?
+    be calculated? It will only be calculated for the first column of \code{y}.
   }
   \item{power}{\code{y} will be raised to \code{power} before smoothing.
     Results will be back-transformed. (Useful for smoothing absolute

@@ -18,7 +18,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   smooth.sim = NULL,
   xlabs = NULL, reslabs = NULL, markextremes = NULL,
   mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, %% multmar = NULL,
-  oma = NULL, ...)
+  oma = NULL, assign = TRUE, ...)
 } %%    jitter = TRUE, jitterbinary = TRUE, mbox = TRUE,
 \arguments{
   \item{x}{an object (result of a call to a model fitting function
@@ -91,6 +91,12 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
 %%-     multivariate regression}
   \item{oma}{vector of length 4 giving the number of lines in the outer
     margin. If it is of length 2, they refer to top an right margins.}
+    \item{assign}{logical: should the result of \code{pl.control} be
+    assigned to \code{.plargs} in the global environment?
+    This will be done for high level pl functions, but avoided for low
+    level ones. It allows for reusing the settings and helps debug
+    unexpected behavior.
+  }
   \item{...}{further arguments in the call, to be ignored by
     'plotregr.control'}
 }

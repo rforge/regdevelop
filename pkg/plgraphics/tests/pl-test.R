@@ -112,11 +112,12 @@ stopifnot(all( abs(attr(asinp, "inverse")(asinp(aa)) - aa)<1e-13) )
 ## attach("../div/pl-data.rda")
 showd(dd)
 data(d.blast)
+rr <-  lm(logst(tremor)~location*log10(distance)+log10(charge), data=d.blast)
 rr <- r.blast <-
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 plregr(rr)
 plregr(rr, xvar=FALSE)
-plregr(rr, transformed=TRUE, reflinesband=TRUE)
+plregr(rr, transformed=TRUE, reflinesband=TRUE, sequence=TRUE)
 
 dd <- d.blast[as.numeric(d.blast$location)<=3,]
 dd[1,"distance"] <- 200

@@ -15,11 +15,11 @@
 }
 \usage{
 plregr(x, data = NULL, plotselect = NULL, xvar = TRUE,
-  transformed = FALSE, sequence = FALSE, weights = NULL,
+  transformed = NULL, sequence = FALSE, weights = NULL,
   addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
   mar = NULL, byrow = NULL, plargs = NULL, ploptions = NULL, ...)
 
-plresx(x, data = NULL, xvar = TRUE, transformed=FALSE,
+plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
   sequence = FALSE, weights = NULL,
   addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
   plargs = NULL, ploptions = NULL, ...)

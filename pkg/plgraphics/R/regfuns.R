@@ -56,7 +56,7 @@ residuals.regrcoxph <- function (object, type="CoxSnellMod", ...)
   li <- which(lii)
   if (length(li)) {
     llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
-    lr <- condquant(llim, "normal", sig=1) ## ???
+    lr <- condquant(llim, "normal", sigma=1) ## ???
     lr[,"index"] <- li
     lres[li] <- lr[,"median"]
     lr[,'index'] <- which(naresid(lnaaction, lii))
@@ -92,13 +92,12 @@ residuals.regrsurvreg <- function (object, type="condquant", ...)
     lsig <- 1
   }
   lfit <- naresid(lnaaction, object$linear.predictors)
-##  lres <- ly[,1]-lfit
   lres <- ly[,1]-lfit
-  li <- match(ldist, c("weibull","lognormal","loglogistic"))
-  if (!is.na(li)) ldist <- c("revgumbel","normal","logistic")[li]
+  lidist <- match(ldist, c("weibull","lognormal","loglogistic"))
+  if (!is.na(lidist)) ldist <- c("revgumbel","normal","logistic")[lidist]
   ## for user-defined survreg.distributions with transformation,
-  ##   this is not enough.
-  ## censoring
+  ##   this is not enough. xxx
+  ## --- censoring
   lst <- ly[,2]  # status
   ltt <- attr(object$response, "type")
   ltl <- length(ltt)>0&&ltt=="left"
@@ -106,10 +105,9 @@ residuals.regrsurvreg <- function (object, type="condquant", ...)
   li <- which(lii)
   if (length(li)) {
     llim <- if(ltl) cbind(-Inf,lres[li]) else cbind(lres[li],Inf)
-    lr <- condquant(llim, ldist, lsig)
+    lr <- condquant(llim, ldist, sigma = lsig)
     lr[,"index"] <- li
     lres[li] <- lr[,"median"]
-    ## lr[,'index'] <- which(naresid(lnaaction, lii)) ## !! not needed (?)
   } else lr <- NULL
   structure(lres, condquant=lr, type=type, family=ldist)
 }
@@ -253,14 +251,17 @@ fitcomp <-
   ## !!! why vars??? can possibly be much simpler!!!
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  6 Jan 2004, 22:24
-  
   ltransf <- i.def(transformed, FALSE, TRUE, FALSE)
-  if (ltransf) data <- model.frame(object)[,-1,drop=FALSE]
-  else {
+  lform <- formula(object)[-2]
+  if (ltransf) {
+    data <- model.frame(object)[,-1,drop=FALSE]
+    lvars <- names(data)
+  } else {
+    lvars <- all.vars(lform)
     if (length(data)==0) {
       data <- object$allvars
       if (length(data)==0)
-        data <- eval(object$call$data)
+        data <- eval(object$call$data)[,lvars,drop=FALSE]
     }
   }
 ##  llog <- inherits(object, c("survreg")) &&
@@ -270,8 +271,6 @@ fitcomp <-
             paste(class(object), collapse="  "), "models. 'se' set to FALSE")
     se <- FALSE
   }
-  lform <- formula(object)[-2]
-  lvars <- if (ltransf) names(data) else all.vars(lform)
   if (lIlns <- inherits(object, "nls")) ## c(eval(object$call$nonlinear),FALSE)[1]
     lvars <- lvars[match(lvars,names(coefficients(object)),nomatch=0)==0]
   lvmiss <- setdiff(lvars,names(data))
@@ -280,10 +279,9 @@ fitcomp <-
                "not in data"))
   if (length(lvars)==0)
     stop("!fitcomp! no variables selected")
-  ldata <- data[,lvars,drop=FALSE]
-  for (lj in 1:length(ldata))
-    if (is.character(ldata[[lj]])|is.factor(ldata[[lj]]))
-      ldata[,lj] <- factor(ldata[,lj])
+  for (lj in 1:length(data))
+    if (is.character(data[[lj]])|is.factor(data[[lj]]))
+      data[,lj] <- factor(data[,lj])
   lformfac <- NULL
   if (!lIlns) {
     if (length(c(grep("factor *\\(", format(lform)),
@@ -300,15 +298,15 @@ fitcomp <-
   ## if (inherits(object, "polr")) class(object) <- "lm"
   ## generate means  xm  if needed
   if (length(xm)>0) {
-    if ((!is.data.frame(xm))||any(names(xm)!=names(ldata))) {
+    if ((!is.data.frame(xm))||any(names(xm)!=names(data))) {
       warning(":fitcomp: arg. xm  not suitable -> not used")
       xm <- NULL } else xm <- xm[1,]
   }
   ## median point and prediction for it
   if (length(xm)==0) {
-    xm <- ldata[1,,drop=FALSE]
-    for (lj in 1:length(ldata)) {
-      lv <- ldata[,lj]
+    xm <- data[1,,drop=FALSE]
+    for (lj in 1:length(data)) {
+      lv <- data[,lj]
       if (is.character(lv)) lv <- factor(lv)
       lnhalf <- ceiling(sum(!is.na(lv))/2)
       xm[1,lj] <-
@@ -334,43 +332,54 @@ fitcomp <-
   if (inherits(object, "polr")) class(object) <- "regrpolr"
   if (ltransf) {
     lobj <- structure(object, class="list")
-    lobj[["terms"]] <- lterms <- delete.response(terms(object))
-    lobj[["x"]] <- model.matrix(lobj, structure(xm, terms=lterms))
-    lobj[["offset"]] <- NULL
-    lobj[["na.action"]] <- NULL
+    lfo <- as.character(structure(terms(object), class="formula")[3])
+    for (lj in seq_along(lvars))
+      lfo <- gsub(lvars[lj], paste("V",lj,sep=""), lfo, fixed=TRUE)
+    lobj[["terms"]] <- lterms <- terms(as.formula(paste("~",lfo)))
+    names(xm) <- names(data) <- paste("V", seq_along(lvars), sep="")
+    if (length(lxl <- lobj[["xlevels"]]))
+      names(lobj[["xlevels"]]) <- paste("V",match(names(lxl), lvars), sep="")
+    lxx <- stats::model.matrix(lobj, structure(xm, terms=lterms))
+    if (inherits(lobj, "survreg"))
+      lprm <- drop(lxx %*% lobj$coefficients) ## + offset, see predict.survreg
+    else {
+      lobj[["x"]] <- lxx
+      lobj[["offset"]] <- lobj[["na.action"]] <- lobj[["contrasts"]] <- NULL
     ## somehow, it needs the  terms  in both places...
-    lprm <- c(predict(structure(lobj, class=class(object)), type=ltype))
+      lprm <- c(predict(structure(lobj, class=class(object)), type=ltype,
+                        newdata=xm))
+    }
   } else 
     lprm <- c(predict(object, newdata=xm, type=ltype)) # lf.
   lny <- length(lprm)
 ##  expand to matrix
   if (xfromdata) {
-    lx <- ldata
+    lx <- data
   } else {
-    lnxj <- sapply(ldata,
+    lnxj <- sapply(data,
                    function(x) if (is.factor(x)) length(levels(x)) else 0)
     if(!is.null(noexpand) && is.numeric(noexpand))
-      noexpand <- names(noexpand)[noexpand>0]
+      noexpand <- names(noexpand)[noexpand>0] ## !!! incorrect if ltransf
     noexpand <- c(noexpand, lformfac) ## 
-    lvconv <- names(ldata) %in% noexpand
-    names(lvconv) <- names(ldata)
+    lvconv <- names(data) %in% noexpand
+    names(lvconv) <- names(data)
     if (any(lvconv)) lnxj[lvconv] <-
-      sapply(ldata[lvconv], function(x) length(unique(x)) )
+      sapply(data[lvconv], function(x) length(unique(x)) )
     lnxc <- max(nxcomp, lnxj)
-    lx <- ldata[1,,drop=FALSE][1:lnxc,,drop=FALSE]
+    lx <- data[1,,drop=FALSE][1:lnxc,,drop=FALSE]
     row.names(lx) <- 1:lnxc
   }
   ##  lxm: data.frame of suitable dimension filled with "median"
   lxm <- lx
   for (lv in names(lxm)) lxm[,lv] <- xm[,lv]
-  ##
-  lvcomp <- names(ldata)
+  ## ---
+  lvcomp <- lvars
   if (!is.null(vars)) lvcomp <- intersect(lvcomp, vars)
   if (is.null(lvcomp)) {
     warning(":fitcomp: no variables found. Result is NULL")
     return(NULL)
   }
-##  components
+  ##  components
   lcomp <- array(dim=c(nrow(lx), length(lvcomp), lny)) 
   dimnames(lcomp) <- list(dimnames(lx)[[1]], lvcomp, names(lprm))
   lcse <- if (se) lcomp  else NULL
@@ -389,75 +398,91 @@ fitcomp <-
       } else scale
   }
   ## ------------------------
-  for (lv in lvcomp) {
+  for (lj in seq_along(lvcomp)) {
+    ljd <- match(lvcomp[lj], lvars)
     if (xfromdata) {
       ld <- lxm  ## suitable dimension
-      ld[,lv] <- ldata[,lv]
+      ld[,ljd] <- data[,ljd]
       lfc <- sapply(ld,is.factor) # eliminate extra levels of factors
       if (any(lfc)) ld[lfc] <- lapply(ld[lfc], factor)
     } else { # +++
-      ldv <- ldata[,lv]
-      if (lnxj[lv]) { # factor levels
-        ldx <- if (lvconv[lv]) sort(unique(ldv)) else factor(levels(ldv))
+      ldv <- data[,ljd]
+      if (lnxj[ljd]) { # factor levels
+        ldx <- if (lvconv[ljd]) sort(unique(ldv)) else factor(levels(ldv))
         lnl <- length(ldx)
         ld <- lxm[1:lnl,,drop=FALSE]
-        ld[,lv] <- ldx
+        ld[,ljd] <- ldx
 ##-         lx[,lv] <- factor(c(1:lnl,rep(NA,lnxc-lnl)),labels=levels(ldv))
-        lx[,lv] <- c(ldx,rep(NA,lnxc-lnl))
+        lx[,ljd] <- c(ldx,rep(NA,lnxc-lnl))
         ##
         if (ltransf) {
-          lobj[["x"]] <- model.matrix(lobj, structure(ld, terms=lterms))
-          lpr <- predict(structure(lobj, class=class(object)), scale=lsigma, 
-                     type=ltype, se.fit=se)
+          lxx <- model.matrix(lobj, structure(ld, terms=lterms))
+          if (inherits(object, "survreg"))
+            lpr <- drop(lxx %*% lobj$coefficients) ## + offset, see predict.survreg
+            ## !!! se missing
+          else {
+            lobj[["x"]] <- lxx
+            lpr <- predict(structure(lobj, class=class(object)), scale=lsigma, 
+                           type=ltype, se.fit=se)
+          }
         } else 
           lpr <- try( predict(object, newdata=ld, type=ltype, se.fit = se),
                      silent=TRUE)
         if (class(lpr)=="try-error") {
-          warning(":fitcomp: no fitcomp for variable  ", lv)
+          warning(":fitcomp: no fitcomp for variable  ", lvcomp[lj])
           ## predict finds new levels of formfac variables
           next
         }
         if (se) {
           lc <- lpr$fit
-          lcse[1:lnl,lv,] <- lpr$se.fit
+          lcse[1:lnl,lj,] <- lpr$se.fit
         } else lc <- lpr
-        lcomp[1:lnl,lv,] <- lc
+        lcomp[1:lnl,lj,] <- lc
         next # end for loop
       } else { # continuous var
         ld <- lxm
-        lx[,lv] <- ld[,lv] <-
+        lx[,ljd] <- ld[,ljd] <-
           seq(min(ldv,na.rm=TRUE),max(ldv,na.rm=TRUE),length=lnxc)
       } # ---
     } # +++
     ## continuous variable or xfromdata
     if (ltransf) {
-      lobj[["x"]] <- model.matrix(lobj, structure(ld, terms=lterms))
-      lpr <- predict(structure(lobj, class=class(object)), scale=lsigma, 
-                     type=ltype, se.fit=se)
+      lxx <- stats::model.matrix(lobj, structure(ld, terms=lterms))
+      if (inherits(object, "survreg"))
+        lpr <- drop(lxx %*% lobj$coefficients) ## + offset, see predict.survreg
+        ## !!! se !
+      else {
+        lobj[["x"]] <- lxx
+        lpr <- predict(structure(lobj, class=class(object)), scale=lsigma, 
+                       type=ltype, se.fit=se)
+      }
     } else 
       lpr <- predict(object, newdata=ld, type=ltype, se = se) # lf.
     if (se) {
-      lcomp[,lv,] <- lpr$fit
-      lcse[,lv,] <- lpr$se.fit
-    } else lcomp[,lv,] <- lpr
+      lcomp[,lj,] <- lpr$fit
+      lcse[,lj,] <- lpr$se.fit
+    } else lcomp[,lj,] <- lpr
   }
 ##-   if (llog) {
 ##-     lcomp <- log(lcomp)
 ##-     lprm <- log(lprm)
 ##-   }
   if (lny==1) {
-    dim(lcomp) <- dim(lcomp)[1:2]
-    dimnames(lcomp) <- dimnames(lx[,lvcomp,drop=FALSE])
+    lcomp <- structure(lcomp, dim=dim(lcomp)[1:2], dimnames=dimnames(lcomp)[1:2])
+    ## dimnames(lx[,lvcomp,drop=FALSE])
     lcomp <- lcomp-lprm
     if (se) {
       dim(lcse) <- dim(lcse)[1:2]
       dimnames(lcse) <- dimnames(lcomp)
     }
   } else   lcomp <- sweep(lcomp,3,lprm)
-  list(comp=lcomp, x=lx[,lvars,drop=FALSE], xm=xm[,lvars,drop=FALSE], se=lcse)
+  if (ltransf) {
+    names(lx) <- names(xm) <- lvars
+  }
+  list(comp=lcomp, x=lx, xm=xm, se=lcse) ## [,lvars,drop=FALSE]
 }
 ## ==========================================================================
-condquant <- function (x, dist="normal", mu=0, sig=1, randomrange=0.9)
+condquant <- function (x, dist="normal", mu=0, sigma=1, randomrange=0.9)
 {
   ## Purpose:   conditional quantiles and random numbers
   ## works only for centered scale families
@@ -482,19 +507,19 @@ condquant <- function (x, dist="normal", mu=0, sig=1, randomrange=0.9)
     dimnames=
       list(row.names(x)[lii],
            c("median","lowq","uppq","random","limlow","limup","prob","index")),
-    class="condquant")
+    class=c("condquant", "matrix"))
   if (length(lii)==0) {
     message(".condquant. All intervals of length 0. ",
             "I return a matrix with 0 lines")
     return(rr)
   }
   lx <- t(apply(x[lii,], 1,sort))
-  lp <- fp((lx-mu)/sig)
+  lp <- fp((lx-mu)/sigma)
   lpp <- rbind(rbind(lp)%*%rbind(c(0.5,0.75,0.25),c(0.5,0.25,0.75)))
   lprand <- lp[,1]+(lp[,2]-lp[,1])*
     runif(nrow(lp),(1-randomrange)/2,(1+randomrange)/2)
   rr[,1:4] <- cbind(median=fq(lpp[,1]),lowq=fq(lpp[,2]),
-                    uppq=fq(lpp[,3]), random=fq(lprand))*sig
+                    uppq=fq(lpp[,3]), random=fq(lprand)) *sigma + mu
   rr[,5:6] <- lx
   rr[,7] <- lp[,2]-lp[,1]
   if (any(lp0 <- lp[,2]<=0)) rr[lp0,1:4] <- matrix(lx[lp0,2],sum(lp0),4)
@@ -505,9 +530,8 @@ condquant <- function (x, dist="normal", mu=0, sig=1, randomrange=0.9)
     else
       message(".condquant. probabilities <=0 or >=1")
   }
-  attr(rr,"distribution") <- list(distribution = dist, mu = mu, sigma = sig)
   ##
-  rr
+  structure(rr, distribution = structure(dist, mu = mu, sigma = sigma) )
 }
 ## =========================================================================
 Tobit <- function (data, limit=0, limhigh=NULL, transform=NULL, log=FALSE, ...)

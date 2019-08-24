@@ -19,7 +19,9 @@ fitcomp(object, data = NULL, vars=NULL, transformed=FALSE, se = FALSE,
     If not provided, it is obtained from \code{object}.}
   \item{vars}{character vector of names of variables for which
     components are required. Only variables that appear in \code{data}
-    will be used.}
+    will be used. If \code{NULL} (the default), all variables in
+    \code{data} are used.
+  }
   \item{transformed}{logical: should components be calculated for 
     transformed explanatory variables? If \code{TRUE}, the variables are
     transformed as implied by the model.}
@@ -43,8 +45,8 @@ fitcomp(object, data = NULL, vars=NULL, transformed=FALSE, se = FALSE,
 }
 \details{
 The component effect is defined as the curve of fitted values
-obtained by varying the explanatory variable, keeping all the other
-variables at their "central value" (the mean of continuous variables
+obtained by varying the explanatory variable or term, keeping all the other
+variables (terms) at their "central value" \code{xm} (the mean of continuous variables
 and the mode of factors).
 }
 \value{A list consisting of

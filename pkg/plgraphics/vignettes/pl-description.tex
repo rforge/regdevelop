@@ -79,7 +79,7 @@
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 %% \SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
-\setkeys{Gin}{width=1\textwidth}
+\setkeys{Gin}{width=0.9\textwidth}
 \baselineskip 15pt
 \parskip 10pt
 
@@ -174,7 +174,7 @@ More arguments allow to specify many aspects of the plot.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,}
-     \hlkwc{psize}\hlstd{=Petal.Length}\hlopt{^}\hlnum{2}\hlstd{,} \hlkwc{pcol}\hlstd{=Species,} \hlkwc{pch}\hlstd{=Species,} \hlkwc{cex}\hlstd{=}\hlnum{1.5}\hlstd{)}
+     \hlkwc{psize}\hlstd{=Petal.Length}\hlopt{^}\hlnum{2}\hlstd{,} \hlkwc{pcol}\hlstd{=Species,} \hlkwc{pch}\hlstd{=Species,} \hlkwc{cex}\hlstd{=}\hlnum{1.3}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_pchar-1} 
@@ -186,7 +186,7 @@ The median size is determined by \T{cex}.
 By default, this value adjusts to the number of observations.
 \T{pcol} specifies the colors of the symbols.
 
-See ... for details.
+See \ref{plproperties} for details.
 
 \Tit{Smooth.}
 A smooth line fitting the data in the plot is produced if 
@@ -326,13 +326,14 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
-\hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Petal.Length,} \hlkwc{data}\hlstd{=iris,}
+\hlkwd{plyx}\hlstd{(Sepal.Length}\hlopt{~}\hlstd{Petal.Length}\hlopt{+}\hlstd{Petal.Width,} \hlkwc{data}\hlstd{=iris,}
      \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multiplex-1} 
 
 \end{knitrout}
+%% \label{multiplex}
 
 %%- \subsection{Groups}
 %%- The argument \T{group} is used to generate multiple plots, one for each 
@@ -341,6 +342,42 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 %%- plmframes(1,3, mar=c(1,1,1,1))
 %%- plyx(Sepal.Width~Sepal.Length, data=iris, group=Species)
 %%- @ 
+
+\Tit{Raw or transformed variables?}
+Simple formulas just include names of variables on both sides of the $\sim$
+symbol, separated by ``+'' if there are more than one. 
+More advanced formulas consist of terms.
+(Interaction terms act as two separate terms here.)
+The user can choose if he or she wants to plot the terms or the variables
+that are involved. 
+The most common terms beyond raw variables are transformed variables.
+If the argument \T{transformed} is \T{TRUE}, the terms will be used as
+plotting variables (horizontal or vertical). 
+Otherwise, the plotting variables are obained by applying \T{all.vars} to
+both sides of the formula.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{plyx}\hlstd{(}\hlkwd{log10}\hlstd{(Sepal.Length)} \hlopt{~} \hlkwd{log10}\hlstd{(Petal.Length}\hlopt{*}\hlstd{Petal.Width),}
+       \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/pluntransformed-1} 
+
+\end{knitrout}
+
+Setting \T{transformed = FALSE} produces the same figure as
+\ref{multiplex}
+
+%%- <<pltransformed, fig.height=4>>=
+%%-   plmframes(1,2)
+%%-   plyx(log10(Sepal.Length) ~ log10(Petal.Length*Petal.Width), 
+%%-        data=iris, smooth.group=Species, pcol=Species, transformed=FALSE)
+%%- @ 
+
+
+
 \subsection{Nonlinear plotting scales}
 
 In basic R graphics, ``log scale'' may be selected by specifying 
@@ -374,7 +411,7 @@ refelcting the original scale (as \T{log="y"} would do it for basic R).
 ## 10  32          3         29   1450
 \end{verbatim}
 \begin{alltt}
-  \hlkwd{plyx}\hlstd{(}\hlkwd{I}\hlstd{(}\hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)} \hlopt{~} \hlstd{Weight,} \hlkwc{data}\hlstd{=d.babysurvGr,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"log"}\hlstd{,}\hlstr{"asinp"}\hlstd{) )}
+  \hlkwd{plyx}\hlstd{(}\hlkwd{I}\hlstd{(}\hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)} \hlopt{~} \hlstd{Weight,} \hlkwc{data}\hlstd{=d.babysurvGr,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"log"}\hlstd{,}\hlstr{"asinp"}\hlstd{))}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-plscale-1} 
@@ -423,10 +460,10 @@ The multibox plot can also be called directly.
 \includegraphics[width=\maxwidth]{figure/mboxes-1} 
 
 \end{knitrout}
-%% !!! ausreisser verschwindet
 
-\Tit{Censored data}
+\subsection{Censored data}
 Censored data is shown with special symbols, determined by the ploption
+\linebreak[3]
 \T{censored.pch}. The default for this option contains 8 elements
 corresponding to the combined cases of no, right and left censoring of 
 the x and y variables.
@@ -435,10 +472,6 @@ the x and y variables.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(}\hlstr{"survival"}\hlstd{)}
-\end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
@@ -447,22 +480,6 @@ the x and y variables.
 \includegraphics[width=\maxwidth]{figure/censored-1} 
 
 \end{knitrout}
-
-\Tit{Raw or transformed variables?}
-Simple formulas just include names of variables on both sides of the $\sim$
-symbol, separated by ``+'' if there are more than one. 
-More advanced formulas consist of terms.
-(Interaction terms act as two separate terms here.)
-The user can choose if he or she wants to plot the terms or the variables
-that are involved. 
-The most common terms beyond raw variables are transformed variables.
-If the argument \T{transformed} is \T{TRUE}, the terms will be used as
-plotting variables (horizontal or vertical). 
-Otherwise, the plotting variables are obained by applying \T{all.vars} to
-both sides of the formula.
-
-
-pmax(x1,x2)
 
 
 \section{Scatterplot matrix}
@@ -535,7 +552,13 @@ principle guiding the design of diagnostics.
 Each diagnostic (plot) should be specific for a well-identified potential 
 deficiency of the model.
 
-\Tit{Residuals against fit: the Tukey-Anscombe plot.}
+\Detail{
+\T{plregr} tries to save space around the panels: it reduces 
+\T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
+Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
+}
+
+\Tit{Residuals against fit, Tukey-Anscombe plot.}
 By default, the scatterplot of residuals against fitted values shows
 the points with the feature of outlier margins and marking of extremes in
 the residual direction. It adds a smooth line to show deviations from
@@ -557,15 +580,17 @@ could help to avoid any significant curvature.
 }
 
 \Tit{Absolute residuals against fit.}
-As a second diagram, the plot of absolute residuals against fitted values
-is shown.
-%% !!! V1 in absresfit
+As a second diagram (often below the first one), the plot of 
+absolute residuals against fitted values is shown.
+
 Note that the absolute residuals shown here in this plot are not the 
 absolute values of the residuals used in the first plot. 
 They differ in two ways:
 \Itm
 They are standardized to have the same variances.
-... weighted
+If there are weights of observations (argument \T{weights} in the call to
+the fitting function), these are taken as inverse relative variances of
+the random errors.
 \Itm
 By default, they are modified because in the following way.
 Note first that the plot should show any dependence of the scale of the
@@ -578,19 +603,32 @@ used in the plot of absolute residuals against fit.
 Additionally, they are standardized using the same factor that is commonly
 used for standardizing the ordinary residuals.
 
-censored: no intervals
+\Detail{Basic R's plot method for \T{lm} models (and related ones)
+  shows the square root of the absolute residuals.
+  They are more symmetrically distributed and therefore more suitable
+  for calculating a smooth. 
+  \T{plregr} also uses these transformed values for generating the smooth,
+  but still shows the absolute residuals and the smoothing line in the
+  original scale, since this version is more intuitive.
+}
 
-\Tit{QQ-plot}
-only for Gaussian
+%% censored: no intervals
 
-\Tit{Residuals against leverage}
+\Tit{QQ-plot.}
+The next plot is the normal quantile-quantile plot. It is only shown if the
+residuals are expected to follow a normal distribution.
+(qq-plots for other distributions are planned.)
+The standardized residuals are used since a qq-plot for observations with 
+different scales does not make sense.
+
+\Tit{Residuals against leverage.}
 The influence of individual observations on the results of fitting the model
 is measured by the quantities produced by the function \T{influence}.
 The most important measures are functions of the residuals and the 
 leverage values, often denoted as $h_i$, which are proportional to
 Mahalanobis distances from the center of the design based on the 
 (formal) covariance matrix of the design.
-Therefore, a plot of resuduals against leverages should reveal the overly
+Therefore, a plot of residuals against leverages should reveal the overly
 influential observations.
 
 The leverage plot of \T{plregr} uses \emph{standardized} residuals
@@ -624,11 +662,6 @@ Least Squares estimator with suitable weights.
 Therefore, the weighted version of the leverage plot is produced for such
 models. 
 
-\Detail{
-\T{plregr} tries to save space around the panels: it reduces 
-\T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
-Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
-}
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
@@ -676,10 +709,10 @@ plot. The transformed variables can be called for by setting
 
 \Detail{
 The raw input variables are those appearing in the formula, as delivered by
-\T{all.vars(formula)}.
-
+\Hneed{30mm}\T{all.vars(formula)}.
 The transformed input variables are those appearing in the terms of the
-formula, as delivered by \T{rownames(attr(terms(formula[1:2]), "factors"))}.
+formula, as delivered by 
+\Hneed{60mm}\T{rownames(attr(terms(formula[1:2]), "factors"))}.
 }
 
 plregr(rr, transformed=TRUE, reflinesband=TRUE)
@@ -819,17 +852,13 @@ one of the usual choices.
   \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
   \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in loess.control(...): as.integer(iterations) > 0L is not TRUE}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-1} 
 \begin{kframe}\begin{alltt}
   \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
             \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in loess.control(...): as.integer(iterations) > 0L is not TRUE}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-2} 
 
 \end{knitrout}
@@ -859,7 +888,7 @@ functions \T{par} and \T{options}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{col}\hlstd{=}\hlstr{"magenta"}\hlstd{,} \hlkwc{pch}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{smoothlines.lty}\hlstd{=}\hlnum{3}\hlstd{)}
+\hlstd{t.plopt} \hlkwb{<-} \hlkwd{ploptions}\hlstd{(}\hlkwc{col}\hlstd{=}\hlstr{"magenta"}\hlstd{,} \hlkwc{pch}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{smooth.lty}\hlstd{=}\hlnum{3}\hlstd{)}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris)}
 \end{alltt}
 \end{kframe}
@@ -1029,7 +1058,7 @@ The components of these lists include
 
 If these options modify any setting of R's \T{par} list and they are 
 set as arguments to high level pl functions 
-(\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe},
+(\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe} and \T{plaxis},
 they should be restored after leaving the function.
 When \T{plmframes} is called by the user, the information to restore 
 the old settings is contained in its (invisible) value.
@@ -1070,6 +1099,7 @@ This allows for inspection of the plotting data
 and thereby helps debugging.
 
 \Tit{Plotting properties data.}
+\label{plproperties}
 There are plotting elements that are useful to represent individual
 observations or individual variables.
 Those related to the observations include:
@@ -1181,7 +1211,7 @@ see \ref{intro.plscale}.
   \hlkwd{attr}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"ticklabels"}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
-## [1] "600"  "800"  "1000" "1200" "1500"
+## [1] "600"  "700"  "800"  "1000" "1200" "1500"
 \end{verbatim}
 \begin{alltt}
   \hlcom{## or}
@@ -1192,8 +1222,8 @@ see \ref{intro.plscale}.
 \begin{verbatim}
 ##  num [1:10] 0 14.3 33.3 36.4 71.9 ...
 ##  - attr(*, "numvalues")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
-##  - attr(*, "ticksat")= num [1:4] 0 0.295 0.5 0.705
-##  - attr(*, "ticklabels")= chr [1:4] "0" "20" "50" "80"
+##  - attr(*, "ticksat")= num [1:6] 0 0.205 0.295 0.436 0.564 ...
+##  - attr(*, "ticklabels")= chr [1:6] "0" "10" "20" "40" ...
 ##  - attr(*, "plscale")= Named chr "asinp"
 ##   ..- attr(*, "names")= chr "SurvPerc"
 ##  - attr(*, "varname")= chr "SurvPerc"
@@ -1247,12 +1277,12 @@ generate a full plot. Low level plotting functions include:
   \T{plargs\$pldata[,"psize"]} if available and by the ploptions
   \T{cex} and \T{cex.pch}.
 
-  censored
+!!!  censored
 \item
   \T{plmark} can be used to mark extreme points by labels and leave the
   non-extreme ones to be shown by the plotting symbol.
 \item
-  \T{plsmooth} and \T{plsmlines} generate a smooth line and draws it 
+  \T{plsmooth} and \T{plsmlines} generates a smooth line and draws it 
   in the plot, respectively.
 \item
   \T{plrefline} adds reference lines (straight lines or curves) to a plot.
@@ -1277,7 +1307,8 @@ generate a full plot. Low level plotting functions include:
   The user can re-program this function to modify and expand the actions that
   are taken, store the modified function, e.g. under \T{my.panel}
   and then set %% \T{ploptions(panel=my.panel)}
-  the argument \T{panel = my.panel} in \T{plyx} and \T{plmatrix}.
+  the argument \T{panel = my.panel} in \T{plyx} and \T{plmatrix},
+  or change the ploption, \T{ploptions(panel=my.panel)}.
 \end{itemize}
 
 \section{Auxiliary functions}
@@ -1412,8 +1443,8 @@ If it is not available, the name of the variable will be used.
 \subsection{Smooths}
 
 Within the graphical functions, smooths are generated by calling 
-\T{gensmooth}, that in turn calls the function determined by
-\T{options("smooth.function")} which defaults to \T{smoothRegr}, and that
+\T{gensmooth}. It calls the function determined by
+\T{options("smooth.function")}, which defaults to \T{smoothRegr}, and that
 function calls basic R's \T{loess}.
 
 The smoothing parameter, which in the default option is the \T{span}

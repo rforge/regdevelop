@@ -19,14 +19,16 @@ plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=col,
 
 pllines(x, y, type="l", ...)
 
-plbars(x = NULL, y = NULL, midpointwidth = NULL, plargs = NULL, 
-  ploptions = NULL, setpar = TRUE)
-
-plsmooth(x, y, band=NULL, power = NULL, plargs = NULL, ploptions = NULL)
-plsmoothline(smoothline, x, y, plargs=NULL, ploptions = NULL, ...)
+plbars(x = NULL, y = NULL, midpointwidth = NULL, 
+  plargs = NULL, ploptions = NULL, setpar = TRUE)
 
 plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
   cutrange = c(x = TRUE, y = FALSE), plargs=NULL, ploptions=NULL, ...)
+
+plsmooth(x, y, ysec = NULL, band=NULL, power = NULL,
+  plargs = NULL, ploptions = NULL)
+plsmoothline(smoothline, x, y, ysec = NULL,
+  plargs=NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -48,13 +50,6 @@ plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
   \item{midpointwidth}{for \code{plbars}: determines the length of the
     segments that mark the midpoint. See Details.
   }
-  \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
-  \item{band}{logical: should a band (e.g., a confidence band)
-    be drawn together with the smooth?
-  }
-  \item{power}{for \code{plsmooth}: smooth will be calcutated for
-    \code{y^power} and the back-transformed. Usually, \code{power=0}.
-  }
   \item{refline}{for \code{plrefline}:
     A vector giving intercept and slope of a straight line, 
     or a function that returns this list, such as \code{lm}}
@@ -63,9 +58,20 @@ plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
     from the \code{innerrange} attribute of the horizontal variable}
   \item{cutrange}{for \code{plrefline}: logical vector of length 2:
     should the reference line(s) be cut at the inner plotting ranges in
-  x- and y-direction?
+    x- and y-direction?
     Otherwise, it will be continued outside it with the appropriate
     transformation.
+  }
+  \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
+  \item{ysec}{for \code{plsmooth, plsmoothline}:
+    matrix of secondary y values. The smooths generated or given by its
+    columns will be drawn thinner and with paled color.
+  }
+  \item{band}{logical: should a band (e.g., a confidence band)
+    be drawn together with the smooth?
+  }
+  \item{power}{for \code{plsmooth}: smooth will be calcutated for
+    \code{y^power} and the back-transformed. Usually, \code{power=0}.
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }

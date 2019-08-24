@@ -11,7 +11,8 @@
 }
 \usage{
 genvarattributes(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
-  varlabels = NULL, innerrange = NULL, innerrange.limits = NULL, plscale = NULL,
+  varlabels = NULL, innerrange = NULL, innerrange.limits = NULL,
+  plscale = NULL, zeroline = NULL, 
   replace=FALSE, ploptions = NULL)
 
 setvarattributes(data, attributes = NULL, list = NULL, ...)
@@ -38,6 +39,10 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
     A named character vector can be given, where the names correspond
     to variable names in \code{data}.
   }
+  \item{zeroline}{value(s) for which a horizontal or vertical line will be
+    drawn (in addition to the gridlines). The default is given by
+    \code{ploptions("zeroline")}.
+  }
   \item{ploptions}{list containing the plotting elements
     needed to set the attributes}
   \item{replace}{logical: should existing attributes be replaced?}
@@ -53,7 +58,7 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
     \code{data} for which the attributes are set.
     See examples to understand this.}
   \item{...}{further arguments, which will be collected and used as or
-    added to\code{list}}
+    added to \code{list}}
 }
 \details{
   If the attribute \code{innerrange} is replaced, then \code{plcoord} is
@@ -79,6 +84,9 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
   \item{ticksat}{tick marks for axis
   }
   \item{varlabel}{label to be used as axis label
+  }
+  \item{zeroline}{value(s) for which a horizontal or vertical line will be
+    drawn (in addition to the gridlines)
   }
 }
 \author{Werner A. Stahel

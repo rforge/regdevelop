@@ -8,7 +8,7 @@
   \code{x})
 }
 \usage{
-condquant(x, dist = "normal", mu = 0, sig = 1, randomrange = 0.9)
+condquant(x, dist = "normal", mu = 0, sigma = 1, randomrange = 0.9)
 }
 \arguments{
   \item{x}{matrix with 2 columns or vector of length 2 giving the
@@ -18,7 +18,7 @@ condquant(x, dist = "normal", mu = 0, sig = 1, randomrange = 0.9)
     \code{logistic} and \code{revgumbel} (reverse-Gumbel,
     distribution of the logarithm of a Weibull variable) are implemented.
   }
-  \item{mu, sig}{locarion and scale parameter of the distribution
+  \item{mu, sigma}{locarion and scale parameter of the distribution
   }
   \item{randomrange}{random numbers from the conditional distribution
     are drawn for the inner \code{100*randomrange} percent of the
@@ -33,6 +33,8 @@ condquant(x, dist = "normal", mu = 0, sig = 1, randomrange = 0.9)
     (one for each row)}
   \item{prob}{probability of the condition being true}
   \item{index}{(row) index of the corresponding entry in the input 'x'}
+  Attribute \code{distribution} comprises the arguments
+  \code{dist, mu, sigma}.
 }
 \author{Werner A. Stahel, Seminar for Statistics, ETH Zurich}
 %%- \note{The function is needed for \code{\link{residuals.polr}} and

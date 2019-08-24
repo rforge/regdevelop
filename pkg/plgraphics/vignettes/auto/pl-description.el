@@ -22,6 +22,7 @@
    (LaTeX-add-labels
     "intro.plscale"
     "options.smooth"
+    "plproperties"
     "options.dateaxis"))
  :latex)
 
