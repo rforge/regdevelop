@@ -188,6 +188,7 @@ plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
 r.savings <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data = LifeCycleSavings)
 plregr(r.savings)
 
+## ---
 data(d.blast)
 r.blast <-
      lm(log10(tremor)~location+log10(distance)+log10(charge),
@@ -195,17 +196,20 @@ r.blast <-
 plregr(r.blast, sequence=TRUE, transformed=TRUE) 
 plregr(r.blast, xvar=FALSE, innerrange.fit=c(0.3,1.2))
 
+## --- multivariate regression
 data(d.fossileSamples)
 r.foss <-
   lm(cbind(sAngle,lLength,rWidth)~SST+Salinity+lChlorophyll+Region+N,
   data=d.fossileSamples)
 plregr(r.foss, plotselect=c(resfit=3, resmatrix=1, qqmult=1))
 
+## --- logistic regression
 data(d.babysurvival)
 rr <- glm(Survival~Weight+Age+Apgar1, data=d.babysurvival, family=binomial)
 plregr(rr, xvar= ~Weight, cex.plab=0.7, ylim=c(-5,5))
 plregr(rr, condquant=FALSE)
 
+## --- ordinal regression
 data(housing, package="MASS")
 rr <- MASS::polr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
 plregr(rr, factor.show="jitter")

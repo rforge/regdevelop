@@ -13,6 +13,7 @@
     '("bmath" 1)
     '("vc" 1)
     '("fn" 1)
+    '("Remark" 1)
     '("Detail" 1)
     '("Tit" 1)
     '("code" 1)

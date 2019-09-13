@@ -701,7 +701,7 @@ stdresiduals <-
   for (lj in 1:lmres) {
     if (length(lcq <- attr(lres[,lj], "condquant")))
       attr(lstdres[,lj], "condquant") <-
-        cbind(lcq[,1:4]*lstdresratio[lcq[,"index"]], lcq[,5:6])
+        cbind(lcq[,1:4]*lstdresratio[lcq[,"index"]], lcq[,-(1:4)])
   }
   structure(lstdres, leverage = llev, stdresratio = lstdresratio,
             weights=weights, stddev = sigma)

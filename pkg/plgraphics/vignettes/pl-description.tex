@@ -539,21 +539,29 @@ The figure shows the versions of these displays obtained by \T{plregr}.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{data}\hlstd{(d.blast)}
-\hlstd{rr} \hlkwb{<-}
+\hlstd{r.blast} \hlkwb{<-}
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
-\hlkwd{plregr}\hlstd{(rr,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+\hlkwd{plregr}\hlstd{(r.blast,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
 
 \end{knitrout}
-Before we describe the plots in some detail, let us first explain a 
-principle guiding the design of diagnostics.
+Before we describe the plots in some detail, let us first explain  
+principles guiding the design of diagnostics.
+\Itm
 Each diagnostic (plot) should be specific for a well-identified potential 
 deficiency of the model.
+\Itm
+Plots are selectively shown in accordance with the type of model that has 
+been fitted. For example, a normal plot is only shown if the model assumes
+a normal distribution of the random error.
 
 \Detail{
-\T{plregr} tries to save space around the panels: it reduces 
+  The \t{plotselect} argument is used to modify the default selection and
+  to indicate if a smooth should be shown.
+  For example, \T{plregr(rr, plotselect=list(yfit=2, qq=0))}
+\T{plregr} saves space around the panels: it reduces 
 \T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
 Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
 }
@@ -572,18 +580,23 @@ could help to avoid any significant curvature.
 \Detail{The smoother used by default to generate the smooth lines in the
   plot is \code{\link{loess}(..., span=smooth.par, iter=smooth.iter)},
   where \code{smooth.par} and \code{smooth.iter} are given in 
-  \code{ploptions}.
+  \code{ploptions} and the default \code{smooth.par} adapts to the number
+  of observations by calling the function \T{smoothpar}.
   If the response of the model is a count (binary-binomial, Poisson with a
   low maximal count, or of class \code{polr}), the non-robust version is 
-  called by setting \code{iter} to 0 and \code{family} to \code{gaussian}.
+  called by setting \code{iter} to 0 and the \code{family} argument to 
+  \code{gaussian}.
   Otherwise, \code{loess} produces a robust smoother.
 }
 
 \Tit{Absolute residuals against fit.}
 As a second diagram (often below the first one), the plot of 
 absolute residuals against fitted values is shown.
+It is intended to detect heteroscedasticity, more precisely,
+variances of the random deviations that depend on the expected value
+of the response.
 
-Note that the absolute residuals shown here in this plot are not the 
+Note that the absolute residuals shown in this plot are not the 
 absolute values of the residuals used in the first plot. 
 They differ in two ways:
 \Itm
@@ -609,7 +622,7 @@ used for standardizing the ordinary residuals.
   for calculating a smooth. 
   \T{plregr} also uses these transformed values for generating the smooth,
   but still shows the absolute residuals and the smoothing line in the
-  original scale, since this version is more intuitive.
+  original scale, since this version is easier to understand.
 }
 
 %% censored: no intervals
@@ -617,7 +630,7 @@ used for standardizing the ordinary residuals.
 \Tit{QQ-plot.}
 The next plot is the normal quantile-quantile plot. It is only shown if the
 residuals are expected to follow a normal distribution.
-(qq-plots for other distributions are planned.)
+(QQ-plots for other distributions are planned.)
 The standardized residuals are used since a qq-plot for observations with 
 different scales does not make sense.
 
@@ -646,9 +659,10 @@ Mahalanobis distances.
   defined as
 \[
   D\sups C_i = \frac{r_i^2}{p\wh\sigma^2}\cdot\frac{h_i}{(1-h_i)^2}
-    = {\textstyle 1\over p} r_i^{*2} \frac{h_i}{1-h_i}
-\;.
+    = {\textstyle 1\over p} \; r_i^{*2} \frac{h_i}{1-h_i}
+\;,
 \]
+where $r_i^*$ denotes the standardized residual.
   Since the mean of $h_i$ is $1/p$, an observation with this leverage
   and a standardized residual of $1$ has $D\sups C=1\big/(p-1)$.
   Contour lines are drawn for $D_i\sups C=\pm c^2\big/(p-1)$, where $c$ is given 
@@ -666,28 +680,49 @@ models.
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
 indicates that by default, \T{plregr} 
-shows more diagrams: The plots of residuals against explanatory variables.
+shows more diagrams: The plots of residuals against input variables.
+
+The diagrams shown by \T{plregr} and their sequence are determined by
+the argument \T{plotselect}, see \T{?plregr} for details.
 
 \subsection{Residuals against input variables}
 Since the ``x'' variables in a regression model cannot always be
-interpreted as explaining the variability of the response $Y$,
-we call them ``input'' variables here.
+interpreted as \emph{explaining} the variability of the response $Y$,
+we call them ``input'' rather than ``explanatory'' variables here.
 
 The plots of residuals against these variables are important regression
-diagnostics. They are often neglected since the ordinary plot function
+diagnostics since they help to find better models. 
+They are often neglected since R's ordinary plot function
 for models does not show them. 
-\T{plregr} does, unless \T{xvars=FALSE} is used as it was above.
+\T{plregr} does, unless \T{xvar=FALSE} is used as it was above.
 It does so by calling \T{plresx}, which can also be done directly.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plresx}\hlstd{(rr)}
+\hlkwd{plresx}\hlstd{(r.blast)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx-1} 
 
 \end{knitrout}
+The diagrams show a smooth and similated smooth lines as described
+for the ``resfit'' plot above.
+For the variables appearing in the model, they also show a reference line 
+in analogy to that plot.
+Its precise interpretation is somewhat more complicated, but the intention
+is again to show a line of constant response values.
+Since the other variables also influence the response, 
+this can only be achieved keeping all other variables constant.
+
+\Detail{The function \T{fitcomp} calculates the coordinates of the 
+  reference line. The ``other variables'' are set to their median
+  if numeric and to their mode if ordinal.
+  
+  A band for it can be requested by setting \T{reflineband=TRUE}.
+  It reflects a confidence band for the regression function value.
+  }
+
 The input variables are often transformed before they are used 
 in the linear predictor,
 and the main purpose of showing a plot of residuals against them is
@@ -700,7 +735,7 @@ plot. The transformed variables can be called for by setting
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plresx}\hlstd{(rr,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{)}
+\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{reflineband}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{xvar}\hlstd{=}\hlopt{~}\hlstd{.}\hlopt{-}\hlstd{location)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
@@ -715,16 +750,18 @@ formula, as delivered by
 \Hneed{60mm}\T{rownames(attr(terms(formula[1:2]), "factors"))}.
 }
 
-plregr(rr, transformed=TRUE, reflinesband=TRUE)
-
 \Detail{
 If the fit object contains a variable \T{weight}, then residuals will be
 plotted against these weights by default, unless it is the result of 
 \T{glm}.
-  
+
+The argument \T{sequence=TRUE} will produce a plot of residuals against
+the sequence of the observations in the dataset. 
+This diagram may show serial correlations or groupings if the sequence
+reflects such patterns.
 }
 
-fitcomp: use model.frame -> model.matrix -> lm.fit
+%% ??? fitcomp: use model.frame -> model.matrix -> lm.fit
 
 \Tit{Plotting residuals against two regressors.}
 A missing interaction term between \T{x1} and \T{x2} may be found when
@@ -738,16 +775,28 @@ their sign. The absolute value determines the length of the segment.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{data}\hlstd{(d.blast)}
-\hlstd{dd} \hlkwb{<-} \hlstd{d.blast[}\hlkwd{as.numeric}\hlstd{(d.blast}\hlopt{$}\hlstd{location)}\hlopt{%in%}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{),]}
-\hlstd{rr} \hlkwb{<-} \hlkwd{lm}\hlstd{(}\hlkwd{log10}\hlstd{(tremor)}\hlopt{~}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge)}\hlopt{+}\hlstd{location,} \hlkwc{data}\hlstd{=dd)}
-\hlkwd{plres2x}\hlstd{(}\hlopt{~} \hlkwd{log10}\hlstd{(distance)} \hlopt{+} \hlkwd{log10}\hlstd{(charge),} \hlkwc{reg}\hlstd{=rr,} \hlkwc{transformed}\hlstd{=F,}
-        \hlkwc{pcol}\hlstd{=location)}
+\hlstd{dd} \hlkwb{<-} \hlkwd{plsubset}\hlstd{(d.blast,} \hlkwd{as.numeric}\hlstd{(location)}\hlopt{%in%}\hlnum{1}\hlopt{:}\hlnum{3}\hlstd{)}
+\hlstd{rsubs} \hlkwb{<-} \hlkwd{lm}\hlstd{(}\hlkwd{log10}\hlstd{(tremor)}\hlopt{~}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge)}\hlopt{+}\hlstd{location,} \hlkwc{data}\hlstd{=dd)}
+\hlkwd{plres2x}\hlstd{(}\hlopt{~} \hlkwd{log10}\hlstd{(distance)} \hlopt{+} \hlkwd{log10}\hlstd{(charge),} \hlkwc{reg}\hlstd{=rsubs,} \hlkwc{pcol}\hlstd{=location)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plres2x-1} 
 
 \end{knitrout}
 
+An interaction between a factor and a continuous variable may be examined
+more effectively by plotting the residuals against the continuous variable
+and asking for smooths for each level of the factor.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{xvar}\hlstd{=}\hlopt{~} \hlkwd{log10}\hlstd{(distance),} \hlkwc{pcol}\hlstd{=location,} \hlkwc{smooth.group}\hlstd{=location)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plresxgroup-1} 
+
+\end{knitrout}
 
 \subsection{Censored residuals, ordinal and binary regression, 
   conditional quantiles}
@@ -763,7 +812,7 @@ The fitted model defines a conditional distribution for the true residual.
 The same concept is available for an ordinal regression, where each observed
 value defines an interval for the latent variable underlying the model.
 
-\Tit{Conditional quantiles}
+\Tit{Conditional quantiles.}
 Function \T{condquant} calculates the quartiles of the conditional
 distribution for each residual and, in addition, generates a corresponding
 random number. It also stores the probability of the condition.
@@ -777,9 +826,8 @@ This results in residual plots like those shown in the figure.
 \begin{alltt}
 \hlkwd{require}\hlstd{(survival)}
 \hlkwd{data}\hlstd{(lung)}
-\hlstd{rr} \hlkwb{<-} \hlkwd{survreg}\hlstd{(survival}\hlopt{::}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
-\hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{),}
-          \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
+\hlstd{r.lung} \hlkwb{<-} \hlkwd{survreg}\hlstd{(survival}\hlopt{::}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{sex}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung)}
+\hlkwd{plregr}\hlstd{(r.lung,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{resfit}\hlstd{=}\hlnum{1}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{smooth.sim}\hlstd{=}\hlnum{0}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/survresiduals-1} 
@@ -801,7 +849,7 @@ them such that they then obey a standard normal distribution,
 Note that it is useless to draw a QQ-plot of these residuals, since they
 obey the normal law by construction. 
 They should be plotted against the linear predictor values 
-(Tukey-Anscombe plot) and against the explanatory variables.
+(Tukey-Anscombe plot) and against the input variables.
 
 %% !!!
 
@@ -848,14 +896,14 @@ one of the usual choices.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.babysurvival)}
-  \hlstd{rr} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
+  \hlstd{r.babys} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
   \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
-  \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-1} 
 \begin{kframe}\begin{alltt}
-  \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
             \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -920,7 +968,7 @@ to be used for restoring them, see above.
 \end{itemize}
 
 
-\Tit{Remark:}
+\Remark
 The concept of the ploptions list is a version of a more general idea, 
 suggesting that the default values of any ``high level'' R function should 
 have an associated list of default arguments, which is not contained in 
@@ -1017,8 +1065,9 @@ The components of these lists include
   properties for the gridlines.
 \item
   a group \T{zeroline}, which is analogous to \T{gridlines}, but the
-  default is the value 0 for both axes, and the properties are independent
-  of those for \T{gridlines};
+  default of \T{zeroline} is \T{TRUE}, which leads to using 
+  0 for numerical variables and none for factors. 
+  The properties are independent of those for \T{gridlines};
 \item
   a group \T{refline}, again setting the properties \T{lty, lwd, col},
   to be used in \T{plrefline};
@@ -1033,7 +1082,7 @@ The components of these lists include
 %%-   smooth line and show it according toe the \T{smoothline} properties;
 \item
   a group \T{bar} needed to show reference values for levels of factors
-  used as explanatory variables in regression diagnostic plots;
+  used as input variables in regression diagnostic plots;
 \item
   \T{factor.show} indicates the way in which plots with factors are shown,
   presently only if one of the two variables (x or y) is a factor and the
@@ -1059,7 +1108,7 @@ The components of these lists include
 If these options modify any setting of R's \T{par} list and they are 
 set as arguments to high level pl functions 
 (\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe} and \T{plaxis},
-they should be restored after leaving the function.
+they are restored after leaving the function (please report failures!).
 When \T{plmframes} is called by the user, the information to restore 
 the old settings is contained in its (invisible) value.
 Thus, 
@@ -1233,6 +1282,7 @@ see \ref{intro.plscale}.
 ##  - attr(*, "nouter")= int [1:2] 0 0
 ##  - attr(*, "plrange")= num [1:2] -0.0404 0.8484
 ##  - attr(*, "plcoord")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
+##  - attr(*, "zeroline")= logi TRUE
 ##  - attr(*, "varlabel")= chr "SurvPerc"
 \end{verbatim}
 \begin{alltt}
@@ -1342,7 +1392,7 @@ Other auxiliary functions include
 \subsection{plargs, ploptions, default values} 
 (if needed, see above)
 
-\Tit{Default values}
+\Tit{Default values.}
 \T{i.def}
 \T{i.getploption} and \T{i.getplopt}
 
@@ -1357,7 +1407,7 @@ generated in pl.control avoiding elements already in use
 
 \subsection{Components of ploptions}
 
-\Tit{innerrange}
+\Tit{innerrange.}
 \T{innerrange} is a logical, indicating if inner ranges
 should be determined.
 
@@ -1396,7 +1446,7 @@ Priorities:
 
 \subsection{Groups}
 
-\Tit{Color}
+\Tit{Color.}
 If color (\T{pcol}) is a factor, it will be converted into 
 \T{ploptions("group.col")[as.numeric(pcol)]}.
 In order to give color by color names, make sure that \T{pcol} is
@@ -1404,7 +1454,7 @@ a character variable.
 
 \subsection{Axes, plotting ranges}
 
-\Tit{Setting pl ranges}
+\Tit{Setting pl ranges.}
 The regular and inner plotting ranges can be set by specifying
 \T{plrange} and \T{innerrange} in the high level pl function 
 by giving a named list of vectors of length 2.
@@ -1419,13 +1469,13 @@ Otherwise, you need to call also \T{plcoord} in order to have a conforming
 Note that the resulting \T{innerrange} may differ from the required 
 inner range at the end(s) where no data are modified (\T{nouter==0}).
 
-\Tit{Tick marks}
+\Tit{Tick marks.}
 The tick mark occur in three ``degrees'', the first one being labelled,
 the second (called ``regular'') being only shown by a mark, the third, 
 by a short mark.
 (The lengths of the tick marks are determined by the ploption \T{ticklength}.)
 
-\Tit{Gridlines, zeroline}
+\Tit{Gridlines, zeroline.}
 If the ploption \T{grid} is \T{TRUE}, grid lines will be drawn at each (regular)
 tick of both axes. 
 Alternatively, the variable attribute \T{gridline} can be specified either 
@@ -1434,9 +1484,10 @@ directly or by \T{setvarattribute}
 \T{grid.col, grid.lty, grid.lwd}.)
 
 Likewise, lines can be obtained by setting the variable attribute \T{zeroline}
-and the respective options. By default, a zero line is drawn at 0.
+and the respective options. By default, a zero line is drawn at 0 for
+numerical variables.
 
-\Tit{Axis label}
+\Tit{Axis label.}
 The plotting routine (\T{plframe}) will look for an attribute \T{varlabel}.
 If it is not available, the name of the variable will be used.
 
@@ -1490,7 +1541,7 @@ Similarly, there are the methods
 \T{fitted.regrpolr, residuals.regrpolr, residuals.regrsurvreg, 
   residuals.regrcoxph}.
 Since a method for residuals is not available in the \T{MASS} package
-for \T{polr} fitted models, \T{residuals.regrpolr} is also
+for models fitted by \T{polr}, \Hneed{70mm}\T{residuals.regrpolr} is also
 made available as \T{residuals.polr} and thereby provides the missing
 method. 
 
