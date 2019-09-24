@@ -381,10 +381,11 @@ Setting \T{transformed = FALSE} produces the same figure as
 \subsection{Nonlinear plotting scales}
 
 In basic R graphics, ``log scale'' may be selected by specifying 
-\T{log="y"} (or \T{="x"} or \T{="xy"}). 
-\T{plgraphics} allows for any monotone transformation.
-For example, the arc sine transformation 
-$\mbox{asinp}\fn x = \mbox{arcsin}\fn{\sqrt{x/100}} / \mbox{arcsin}\fn{1}$
+\T{log="y"} (or \T{="x"} or \T{="xy"}). \Hneed{30mm}
+\T{plgraphics}\ allows for any monotone transformation.
+For example, the arc sine transformation \Hneed{60mm}
+$\mbox{asinp}\fn x = \mbox{arcsin}\big(\sqrt{x/100}\big) /
+\mbox{arcsin}\fn{1}$ \ 
 is recommended as a ``first aid transformation'' for percentages.
 Rather than plotting the transformed variable, the \T{plgraphics}
 functions offer the argument \T{plscale}, which leads to using the 
@@ -442,7 +443,7 @@ The default value of \T{markextremes} is 0 for \T{plyx}.
 If the argument is \T{NA}, it depends on the number of 
 observations: It is $1/(2\sqrt{n})$. 
 
-\subsection{Factors, multibox plot}
+\subsection{The Multibox Plot for factors}
 If the x variable is a factor, R's generic plot function draws box plots.
 Since this often results in too much simplification, \T{plyx} shows a 
 ``multibox plot'', which is a refinement of a boxplot, to be described in
@@ -735,7 +736,7 @@ plot. The transformed variables can be called for by setting
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{reflineband}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{xvar}\hlstd{=}\hlopt{~}\hlstd{.}\hlopt{-}\hlstd{location)}
+\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{reflineband}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{xvar}\hlstd{=}\hlopt{~}\hlstd{.}\hlopt{-}\hlstd{location,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{))}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
@@ -798,19 +799,17 @@ and asking for smooths for each level of the factor.
 
 \end{knitrout}
 
-\subsection{Censored residuals, ordinal and binary regression, 
-  conditional quantiles}
+\subsection{Censored residuals, conditional quantiles}
 
-In the case of censored observations or ordinal regression,
-response residuals are not clearly defined.
-
+For censored observations of a response variable, residuals are not 
+clearly defined.
 In the case of right censoring, the underlying response value of a censored
 observation is known to exceed a given threshold. Therefore, the 
 ``true residual'' exceeds a corresponding threshold.
-The fitted model defines a conditional distribution for the true residual.
+Then, the fitted model defines a conditional distribution for the true residual.
 
-The same concept is available for an ordinal regression, where each observed
-value defines an interval for the latent variable underlying the model.
+%%- The same idea applies to ordinal regression, where each observed
+%%- value defines an interval for the latent response variable underlying the model.
 
 \Tit{Conditional quantiles.}
 Function \T{condquant} calculates the quartiles of the conditional
@@ -871,22 +870,26 @@ model with logistic (or normal) error distribution.
 According to this construction, the latent variable $\widetilde Y_i$, given the
 observed ordered variable $Y_i$ and the linear predictor $\eta_i$, 
 follows a truncated logistic (or normal) distribution. 
-As with censored variables, this yields conditional quantiles, which
-can be represented as described in the previous subsection.
+As with censored variables (Section \ref{sec:censored}), this yields 
+conditional quantiles, which can be represented as described above.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{cat}\hlstd{(}\hlstr{"!!!"}\hlstd{)}
+\hlkwd{require}\hlstd{(MASS)}
+\hlkwd{data}\hlstd{(housing,} \hlkwc{package}\hlstd{=}\hlstr{"MASS"}\hlstd{)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{polr}\hlstd{(Sat} \hlopt{~} \hlstd{Infl} \hlopt{+} \hlstd{Type} \hlopt{+} \hlstd{Cont,} \hlkwc{weights} \hlstd{= Freq,} \hlkwc{data} \hlstd{= housing)}
+\hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-\begin{verbatim}
-## !!!
-\end{verbatim}
-\end{kframe}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# \\\#\# Re-fitting to get Hessian}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/ordered-1} 
+
 \end{knitrout}
 
 A logistic regression can be seen as a special case of an ordinal regression.
-Therefore, conditional quantiles can also be generated for the residuals,
+Therefore, conditional quantiles can also be obtained for the residuals,
 and the respective displays can be generated.
 The following figure shows the residuals against linear predictor values,
 first with conditional quantiles, then with ``working'' residuals,
@@ -897,17 +900,13 @@ one of the usual choices.
 \begin{alltt}
   \hlkwd{data}\hlstd{(d.babysurvival)}
   \hlstd{r.babys} \hlkwb{<-} \hlkwd{glm}\hlstd{(Survival}\hlopt{~}\hlstd{Weight}\hlopt{+}\hlstd{Age}\hlopt{+}\hlstd{Apgar1,}\hlkwc{data}\hlstd{=d.babysurvival,}\hlkwc{family}\hlstd{=binomial)}
-  \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
-  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+  \hlkwd{plmframes}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{1}\hlstd{,} \hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{))}
+  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlnum{FALSE}\hlstd{)}
+  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
+            \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{,} \hlkwc{mf}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/resfitbin-1} 
-\begin{kframe}\begin{alltt}
-  \hlkwd{plregr}\hlstd{(r.babys,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{condquant}\hlstd{=}\hlnum{FALSE}\hlstd{,}
-            \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/resfitbin-2} 
 
 \end{knitrout}
 
@@ -920,7 +919,7 @@ one of the usual choices.
 }
 
 %% ==============================================================
-\section{Options}
+\section{Selecting graphical elements}
 A central motivation underlying the \T{plgraphics} package consists of
 allowing for using graphical elements very flexibly and implementing an
 easy way to specify and maintain such options.
@@ -930,8 +929,11 @@ by high level pl functions and stored for further use.
 \subsection{Pl options}
 The graphical elements, like plotting character, color, line types, etc.\ 
 to be used in pl graphics are specified by the function \T{ploptions}
-like R's graphical ``parameters'' and other options are determined by the
-functions \T{par} and \T{options}.
+in the same way as R's graphical ``parameters'' and other options are 
+determined by the functions \T{par} and \T{options}.
+In addition to such general options, 
+elements determining how variables will be plotted are stored along 
+with the data as ``properties'' of variables.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -987,10 +989,11 @@ in
 \item
   the \T{ploptions} argument of the calling function,
 \item
-  the \T{.ploptions} list in the global environment,
+  the \T{.ploptions} list in the global environment or in the \T{search()} list,
 \item
   the list \T{ploptionsDefault} in the package \T{plgraphics}
   or in an environment hiding it.
+  %% same as .ploptions!
 \end{enumerate}
 
 The components of these lists include
@@ -1006,7 +1009,7 @@ The components of these lists include
   determine the general character expansion used by the pl functions.
 \item
   \T{cex.pch}, the median character expansion.
-  The default is the function \T{cexSize} with an argument \T{n}, defined as
+  The default is the function \T{cexSize}, with argument \T{n}, defined as
   \T{min(1.5/log10(n), 2)}, that is called when the number \T{n} of
   observations is available. Alternatively, a fixed scalar can be given.
 \item
@@ -1107,7 +1110,8 @@ The components of these lists include
 
 If these options modify any setting of R's \T{par} list and they are 
 set as arguments to high level pl functions 
-(\T{plyx, plmatrix, plmboxes, plregr}), as well as \T{plframe} and \T{plaxis},
+(\T{plyx, plmatrix, plmboxes, plregr, plresx}), as well as 
+\T{plframe} and \T{plaxis},
 they are restored after leaving the function (please report failures!).
 When \T{plmframes} is called by the user, the information to restore 
 the old settings is contained in its (invisible) value.
@@ -1128,30 +1132,27 @@ Thus,
 will restore the old settings. Here, we have commented out the plotting
 statement to save space.
 
+The options that are finally used in high level pl displays are saved 
+in the list \T{.plargs} in the global environment as
+\T{.plargs\$ploptions}.
+This allows for re-using the same settings and may help debugging when
+displays do not show what was desired.
+
 %% ---------------------------------
-\subsection{Graphical metadata, plotting attributes of variables}
+\subsection{Graphical metadata, attributes of variables used for plotting}
 %%pl.control, pldata, plargs
-Pl graphics rely on generating and maintaining metadata that guide the
-details of creating the plots. This is implemented in the following way.
-
-!!! reorganize: first show what metadata are, mention ticks, plscale
-
-\Tit{\T{pl.control}.}
-High level pl functions call the function \T{pl.control} first.
-It generates the ``plotting dataset'' \T{pldata}, which
-collects data dependent information needed for plotting in an enriched,
-standardized form. 
-It also takes any futher arguments to be passed on to \T{ploptions}.
-The result is stored as \T{.plargs} in the global environment.
-This allows for inspection of the plotting data
-\T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions})
-and thereby helps debugging.
-
-\Tit{Plotting properties data.}
 \label{plproperties}
-There are plotting elements that are useful to represent individual
-observations or individual variables.
-Those related to the observations include:
+Pl graphics rely on generating and maintaining metadata that guide the
+details of creating the plots. 
+%% They are described in the following paragraphs. 
+They are stored as an enriched dataset that contains the variables needed
+for the displays called \T{pldata}. We first describe them and then show
+how \T{pldata} is generated and made available.
+
+\Tit{Progperties of observations.}
+The first type of such properties relates to the observations and includes
+the plotting symbol, color and size for each of them.
+These specifications are
 \begin{itemize}
 \item 
   \T{pch}: plotting symbol (character);
@@ -1165,10 +1166,13 @@ Those related to the observations include:
 \end{itemize}
 These elements are stored in \T{pldata} as columns with names
 \T{(pch)}, \T{(plab)}, \T{(psize)}, \T{(pcol)}.
-They are generated in \T{pl.control} when the respective arguments
-\T{pch, plab, psize, pcol} are given to the high level pl function.
-(Alternatively, they may already be contained in the dataset given by the 
-argument \T{data}.)
+They are specified by the user usually by setting the corresponding
+arguments \T{pch, plab, psize, pcol} in high level pl functions.
+These arguments are not listed explicitly in the help files of 
+the high level functions. 
+Instead, these functions call \T{pl.control} to set them.
+Alternatively, they may already be contained in the dataset given by the 
+argument \T{data}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -1187,8 +1191,12 @@ argument \T{data}.)
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
+As the last statement shows, the \T{pldata} dataset is available after
+calling the plotting function as a component of the list \T{.plargs}.
 
-The elements attached to variables are
+\Tit{Properties of variables.}
+A second type of properties determines how variables should be displayed.
+These are
 \begin{itemize}
 \item
   \T{varname} and \T{varlabel}: variable name and label --  
@@ -1223,8 +1231,8 @@ The elements attached to variables are
 \end{itemize}
 These elements are stored as attributes of the variables,
 e.g., \T{attr(var, "thicksat")}.
-They can be either set (or generated by the function \T{genvarattributes} and 
-then modified) before calling the high level pl function, such as \T{plyx}.
+They can be set (or generated by the function \T{genvarattributes} and 
+then modified) before calling the high level pl function.
 Those that are needed and have not been stored beforehand will be 
 generated by \T{pl.control} when calling such a function.
 \begin{knitrout}
@@ -1241,6 +1249,17 @@ generated by \T{pl.control} when calling such a function.
 
 \end{knitrout}
 
+\Tit{\T{pl.control}.}
+High level pl functions call the function \T{pl.control} first.
+It generates the ``plotting dataset'' \T{pldata}, which
+collects data dependent information needed for plotting in an enriched,
+standardized form. 
+It also takes any futher arguments to be passed on to \T{ploptions}.
+The result is stored as \T{.plargs} in the global environment.
+This allows for inspection of the plotting data
+\T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions})
+and thereby helps debugging.
+
 \Tit{Plot scale.}
 Showing a variable with a ``plot scale'', like ``log scale'', means
 to transform the values with a given function (\T{log}), storing them
@@ -1256,6 +1275,14 @@ see \ref{intro.plscale}.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
   \hlstd{dd} \hlkwb{<-} \hlstd{d.babysurvGr}
+  \hlkwd{plyx}\hlstd{(}\hlkwd{I}\hlstd{(}\hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)} \hlopt{~} \hlstd{Weight,} \hlkwc{data}\hlstd{=d.babysurvGr,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlstr{"log"}\hlstd{,}\hlstr{"asinp"}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plscale-1} 
+\begin{kframe}\begin{alltt}
+  \hlcom{## or, in order to fix the plotting scale for further use}
+  \hlstd{t.survp} \hlkwb{<-} \hlkwd{with}\hlstd{(dd,} \hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)}
+  \hlstd{dd}\hlopt{$}\hlstd{SurvPerc} \hlkwb{<-} \hlkwd{plscale}\hlstd{(t.survp,} \hlstr{"asinp"}\hlstd{)}
   \hlstd{dd}\hlopt{$}\hlstd{Weight} \hlkwb{<-} \hlkwd{plscale}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"log"}\hlstd{)}
   \hlkwd{attr}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"ticklabels"}\hlstd{)}
 \end{alltt}
@@ -1263,9 +1290,6 @@ see \ref{intro.plscale}.
 ## [1] "600"  "700"  "800"  "1000" "1200" "1500"
 \end{verbatim}
 \begin{alltt}
-  \hlcom{## or}
-  \hlstd{dd}\hlopt{$}\hlstd{SurvPerc} \hlkwb{<-} \hlkwd{with}\hlstd{(dd,} \hlnum{100}\hlopt{*}\hlstd{Survival.1}\hlopt{/}\hlstd{n)}
-  \hlstd{dd} \hlkwb{<-} \hlkwd{genvarattributes}\hlstd{(dd,} \hlkwc{plscale}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{Weight}\hlstd{=}\hlstr{"log"}\hlstd{,}\hlkwc{SurvPerc}\hlstd{=}\hlstr{"asinp"}\hlstd{))}
   \hlkwd{str}\hlstd{(dd}\hlopt{$}\hlstd{SurvPerc)}
 \end{alltt}
 \begin{verbatim}
@@ -1273,19 +1297,10 @@ see \ref{intro.plscale}.
 ##  - attr(*, "numvalues")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
 ##  - attr(*, "ticksat")= num [1:6] 0 0.205 0.295 0.436 0.564 ...
 ##  - attr(*, "ticklabels")= chr [1:6] "0" "10" "20" "40" ...
-##  - attr(*, "plscale")= Named chr "asinp"
-##   ..- attr(*, "names")= chr "SurvPerc"
-##  - attr(*, "varname")= chr "SurvPerc"
-##  - attr(*, "nvalues")= int 10
-##  - attr(*, "innerrange")= num [1:2] -0.0404 0.8484
-##  - attr(*, "innerrange.ext")= num 0.1
-##  - attr(*, "nouter")= int [1:2] 0 0
-##  - attr(*, "plrange")= num [1:2] -0.0404 0.8484
-##  - attr(*, "plcoord")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
-##  - attr(*, "zeroline")= logi TRUE
-##  - attr(*, "varlabel")= chr "SurvPerc"
+##  - attr(*, "plscale")= chr "asinp"
 \end{verbatim}
 \begin{alltt}
+  \hlcom{## or  dd <- genvarattributes(dd, plscale=c(Weight="log",SurvPerc="asinp"))}
   \hlcom{## plyx(SurvPerc~Weight, data=dd) ## now produces the same plot as above}
 \end{alltt}
 \end{kframe}
@@ -1298,6 +1313,7 @@ The function \T{gendate} helps to generate such a date.
 If a variable inherits from class \T{Date} or \T{times}, it will be shown
 automatically in this way.
 
+%% -----------------------------------------------------------
 \section{Low level graphics}
 
 Like in basic R, there are ``low level'' graphical functions that
@@ -1316,8 +1332,9 @@ generate a full plot. Low level plotting functions include:
   In the simplest case, this function places the plotting symbol at the
   given coordinates. As the basic \T{points} function, it draws lines if 
   the argument \T{type} is set to \T{"l"} or \T{"b"}, and the argument
-  \T{pch} (or the column \T{"(pch")} in \T{plargs\$pldata}) can provide
+  \T{pch} (or the column \T{"(pch)"} in \T{plargs\$pldata}) can provide
   different plotting symbols for the different points.\\
+
   \T{plpoints} also includes the capabilities of \T{text}: 
   If the argument \T{plab} 
   is set (or \T{plargs\$pladata} contains a column named \T{"(plab)"}),
@@ -1327,7 +1344,10 @@ generate a full plot. Low level plotting functions include:
   \T{plargs\$pldata[,"psize"]} if available and by the ploptions
   \T{cex} and \T{cex.pch}.
 
-!!!  censored
+  If one or both coordinate variables contain censored values (that is,
+  if they inherit from the class \T{"Surv"}), the censored observations are
+  shown by the appropriate symbol from \T{ploptions("censored.pch")} and 
+  with paled color (according to \T{ploptions("censored.pale")}).
 \item
   \T{plmark} can be used to mark extreme points by labels and leave the
   non-extreme ones to be shown by the plotting symbol.
@@ -1351,73 +1371,139 @@ generate a full plot. Low level plotting functions include:
   \T{stamp} adds a time stamp and, if available, a project and analysis
   step title to the right bottom corner of the plotting page.
   This is avoided by setting \T{ploptions(stamp=FALSE)}.
-\item
-  \T{plpanel} is a ``medium level'' function. It calls all of the above
-  functions except for \T{plframe}. 
+\end{itemize}
+
+\Tit{\T{plpanel}} is a ``medium level'' function. It calls all of the above
+  functions.
   The user can re-program this function to modify and expand the actions that
   are taken, store the modified function, e.g. under \T{my.panel}
   and then set %% \T{ploptions(panel=my.panel)}
   the argument \T{panel = my.panel} in \T{plyx} and \T{plmatrix},
   or change the ploption, \T{ploptions(panel=my.panel)}.
-\end{itemize}
+
 
 \section{Auxiliary functions}
 These functions do calculations needed for generating graphical elements
 (like generating a smooth) or are useful additional functions,
 like \T{showd}, which displays a kind of summary of data.
-Let us start with the latter.
+Let us start with the latter category.
 
 \Tit{Displaying data by \T{showd}.}
+This function is useful for inspecting a data set or another object, 
+avoiding overwhelming output. 
+If the number of rows or list components is larger than 4,
+the first 3 of them and the last one are shown only.
+For rows in data.frames or matrices, two of the rows between the forth and
+the last one are also printed.
+
+\Tit{Counting \T{NA}'s.}
+\T{sumNA} counts the number of \T{NA}'s in vectors, matrices, and lists, 
+including data.frames. 
+For numerical objects, infinite values are counted as \T{NA}'s 
+(unless the argument \T{inf} is \T{FALSE}).
+
+\Tit{Started logarithm.}
+Variables that contain only positive numbers usually call for a 
+log transformation according to the ``first aid transformation'' principle
+of data analysis introduced by John Tukey.
+If they also contain zeros, the \T{log} function turns them into \T{NA}'s.
+This is rarely desirable. 
+A common way to avoid it is to add 1 to the variable before taking logs.
+This is unreasonable, since adding 1 has a very different effect on the
+result, depending on the magnitude of the range of non-zero values of the
+variable. At least, the constant should adapt to this magnitude.
+Another solution of the problem is given by the rule that below some
+value $c$, the function should be linear, with a smooth derivative in $c$.
+This is implemented in the function \T{logst}, defining the value $c$
+as a function of the quartiles of the non-zero values.
+
+The use of \T{logst} in regression will cause problems when calculating
+predicted values for new data, since its result depends on the whole
+dataset through the determination of $c$ by default. 
+Therefore, $c$ can be given to \T{logst} by the argument \T{threshold}.
+
 Other auxiliary functions include
-\T{clipat},
-\T{logst},
-\T{notna},
-\T{warn}
+\begin{itemize}
+\item 
+  \T{clipat}, drops data outside a range or recplaces them with \T{NA}
+  or a suitable value.
+\item
+  \T{warn} summarizes warnings, thus avoiding endless repetitions of the
+  same warning.
+\end{itemize}
+
+\Tit{Plotting properties.}
+Auxiliary functions used for getting plotting properties are
+\begin{itemize}
+\item
+  \T{gensmooth}, the wrapper function for getting smooths.
+  It in turn calls \T{smoothRegr} by default.
+\item 
+  \T{robrange} determines a robust range of data to be used as inner
+  plotting range.
+\item
+  \T{colorpale} determines a paled version of a color.
+\item
+  \T{getvariables} gets the variables contained in a formula.
+\end{itemize}
 
 \T{simresiduals}
 
-\begin{itemize}
-\item
-  \T{gensmooth}
-\item 
-  \T{robrange}
-\item
-  \T{colorpale}
-\item
-  \T{getvariables}
-\end{itemize}
-
+%% =========================================================================
 \section{Details}
 
-\subsection{plargs, ploptions, default values} 
-(if needed, see above)
-
-\Tit{Default values.}
-\T{i.def}
-\T{i.getploption} and \T{i.getplopt}
-
-Some arguments to low level pl functions need to be set by changing
-the \T{ploptions} argument.
-Example:
-
-residuals in plargs are data.frame
-
-variable colors, ... stored in pdata
-generated in pl.control avoiding elements already in use 
-
-\subsection{Components of ploptions}
-
-\Tit{innerrange.}
-\T{innerrange} is a logical, indicating if inner ranges
-should be determined.
-
-\T{innerrange.limits} is a vector of length 2 giving the range to be
-applied. If it is logical, it acts as \T{innerrange}.
-It can also be a named list of such objects, where the names reflect the 
-variables.
+%%- \subsection{plargs, ploptions, default values} 
+%%- (if needed, see above)
+%%- 
+%%- \Tit{Default values.}
+%%- \T{i.def}
+%%- \T{i.getploption} and \T{i.getplopt}
+%%- 
+%%- Some arguments to low level pl functions need to be set by changing
+%%- the \T{ploptions} argument.
+%%- Example:
+%%- 
+%%- residuals in plargs are data.frame
+%%- 
+%%- variable colors, ... stored in pdata
+%%- generated in pl.control avoiding elements already in use 
+\subsection{Palette}
+Even though the palette that is active in the global environment is not
+affected, the pl functions use an implicit palette given by 
+\T{ploptions("colors")}. By default, the list is
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{ploptionsDefault}\hlopt{$}\hlstd{colors}
+\end{alltt}
+\begin{verbatim}
+##  [1] "black"        "red"          "blue"         "darkgreen"   
+##  [5] "orange"       "purple"       "deepskyblue2" "green3"      
+##  [9] "brown"        "pink3"        "aquamarine3"  "brown2"
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+The selection of these colors has been driven by the following ideas:
+\begin{itemize}
+\item 
+  The first few should be readily distinguishable and reflect a common 
+  sequence: after the default ``black'', the most salient one is red,
+  followed by blue, then ``darkgreen'' because ``green'' is lighter than
+  the foregoing, and finally ``orange''.
+\item
+  The first colors should be simply named. If the user explicitly sets one
+  of them, e.g., by \T{attr(data\$var, "col") \Gets\ "red"}, the pl
+  functions have a chance to avoid them when making default decisions.
+\item
+  After the first group of 4 alternative colors, another group of 4 follows.
+  It is a modification of the first group. The third group is incomplete as
+  no blueish color could be found that would be distint enough from the 
+  foregoing colers.
+\end{itemize}
 
 \subsection{Point labelling and plotting character}
-Priorities:
+The properties of the symbols displaying observations are set by the
+following rules.
 \begin{enumerate}
 \item 
   If they are specified by the respective argument to high level \T{pl} 
@@ -1426,31 +1512,44 @@ Priorities:
 \item
   In the case of multiple $y$s, colors are determined primarily by 
   the argument \T{vcol} of the high level \T{pl} function, 
-  scondarily by the \T{col} attribute of the variables. 
-  Thirdly, the \T{variables} component of \T{plappearance} is used,
+  scondarily by the \T{vcol} attribute of the variables. 
+  Thirdly, \T{ploptions("variables.col")} is used,
   avoiding colors that are already specified for some variables by the
-  foregoing steps. 
-  [See \T{i.getPlattributes}, called by \T{genvarattributes} in 
-  \T{pl.control}.]\\
+  foregoing steps (see \T{i.getvarattribute}, called by 
+  \T{genvarattributes} in 
+  \T{pl.control}.)\\
   If \T{pch} is not determined otherwise (argument, see 1., or group,
   see 3.) it is set in the same way.\\
-  For plots of type \T{l} or \T{b}, the line type \T{lty} is determined 
+  For plots of type \T{"l"} or \T{"b"}, the line type \T{lty} is determined 
   in the same way as the color.
 \item
   If there is grouping and only a single $y$, the group determines \T{pch}
-  and its color by the \T{group} component of \T{plappearance} unless set
+  and its color by the \T{group} components of \T{ploptions} unless set
   by 1. above.
 \item
-  In other cases, the \T{default} component of \T{plappearance} is used.
+  In other cases, the \T{default} group of \T{ploptions} is used.
 \end{enumerate}
 
 \subsection{Groups}
 
-\Tit{Color.}
-If color (\T{pcol}) is a factor, it will be converted into 
-\T{ploptions("group.col")[as.numeric(pcol)]}.
-In order to give color by color names, make sure that \T{pcol} is
-a character variable.
+Pl functions may use a grouping of observations, defined by an argument
+\T{group=...} in different ways.
+\T{plyx} splits the observations accordingly and produces a panel for each group
+
+Other types of groupings are:
+\begin{itemize}
+\item
+  \ul{Smooth groups.} \
+  The argument \T{smooth.group} allows for drawing a separate smooth line 
+  for each group.
+\item 
+  \ul{Color.} \
+  Groups get different colors by specifying \T{pcol}.
+  If the value is a factor, it will be converted into 
+  \T{ploptions("group.col")[as.numeric(pcol)]}.
+  In order to give color by color names, make sure that \T{pcol} is
+  a character variable.
+\end{itemize}
 
 \subsection{Axes, plotting ranges}
 
@@ -1562,40 +1661,6 @@ the same length as the variables in the data.
 The pl functions \T{plregr, plresx, plres2x} work with the extended
 version. This is reflected in \T{.plargs\$pldata} and allows for
 combining that data.frame with the original dataset.
-
-\subsection{Palette}
-Even though the palette that is active in the global environment is not
-affected, the pl functions use an implicit palette given by 
-\T{ploptions("colors")}. By default, the list is
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{ploptionsDefault}\hlopt{$}\hlstd{colors}
-\end{alltt}
-\begin{verbatim}
-##  [1] "black"        "red"          "blue"         "darkgreen"   
-##  [5] "orange"       "purple"       "deepskyblue2" "green3"      
-##  [9] "brown"        "pink3"        "aquamarine3"  "brown2"
-\end{verbatim}
-\end{kframe}
-\end{knitrout}
-The selection of these colors has been driven by the following ideas:
-\begin{itemize}
-\item 
-  The first few should be readily distinguishable and reflect a common 
-  sequence: after the default ``black'', the most salient one is red,
-  followed by blue, then ``darkgreen'' because ``green'' is lighter than
-  the foregoing, and finally ``orange''.
-\item
-  The first colors should be simply named. If the user explicitly sets one
-  of them, e.g., by \T{attr(data\$var, "col") \Gets\ "red"}, the pl
-  functions have a chance to avoid them when making default decisions.
-\item
-  After the first group of 4 alternative colors, another group of 4 follows.
-  It is a modification of the first group. The third group is incomplete as
-  no blueish color could be found that would be distint enough from the 
-  foregoing colers.
-\end{itemize}
 
 %% =================================================================
 \vspace{10mm}\noindent

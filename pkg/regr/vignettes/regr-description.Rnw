@@ -30,7 +30,7 @@
 \baselineskip 15pt
 
 \title{\vspace*{-10mm}
-The R-Function \T{regr} and Package \T{regr} for an Augmented 
+Package \T{regr} for an Augmented 
 Regression Analysis}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle

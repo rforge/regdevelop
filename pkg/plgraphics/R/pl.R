@@ -227,16 +227,20 @@ pl.control <-
   ## default plotting character
   if (length(lpch)) {
     if (is.factor(lpch)) lpch <- as.numeric(lpch)
+    if (is.numeric(lpch)) {
+      if(length(lpna <- setdiff(lpch,c.pchvalues))) {
+        warning(":plcontrol: pch", paste(lpna, collapse=", "), " do not exist")
+        lpchunused <- i.def(setdiff(c.pchvalues, c(lpch,0)), 13)
+        li <- match(lpch, lpna, nomatch=0)
+        lpch[li>0] <- lpchunused[(li[li>0]-1)%%length(lpchunused) +1] ## recycle!
+      }
+    }  
     if (is.character(lpch) && any(nchar(lpch)>1)) {
       warning(":pl.control: 'pch' must be an integer or a single character.",
               " Use 'plab' to label points with strings")
       lpch <- substr(lpch,1,1)
     }
     if (is.logical(lpch)) lpch <- as.numeric(lpch)
-    if (is.numeric(lpch)&&any(li <- lpch<0|lpch>120|lpch%in%26:32)) { ##
-      warning(":plContol: unsuitable plotting character ('pch')")
-      lpch[li] <- 35
-    }
     lpldata$"(pch)" <- lpch
   }
   lplab <- lpldata$"(plab)"
@@ -259,9 +263,12 @@ pl.control <-
   lpcol <- lpldata$"(pcol)"
   if (length(lpcol)) {
     if (is.logical(lpcol)) lpldata[,"(pcol)"] <- lpcol+1
-    else if (is.factor(lpcol)) lpldata[,"(pcol)"] <- factor(lpcol) ## drop levels
+    else if (is.factor(lpcol)) {
+      lclr <- i.getploption("color")
+      lpldata[,"(pcol)"] <- lclr[(as.numeric(lpcol)-1)%%length(lclr)+1] ## recycle!
+    }
   }
-  ## pcol
+  ## smooth.group
   lsmgrp <- lpldata$"(smooth.group)"
   if (length(lsmgrp)) {
     if (is.logical(lsmgrp)) lpldata[,"(smooth.group)"] <- lsmgrp+1
@@ -3664,12 +3671,12 @@ plpanel <-
     }
   }
   if (is.data.frame(x)) x <- x[,1]
-  if (sum(is.finite(x))==0) {
+  if (sum(!is.na(x))==0) {
     warning(":plpanel: no finite values of variable ", lxnm,
             ". Nothing to plot")
     return()
   }
-  if (sum(is.finite(as.matrix(y)))==0) {
+  if (sum(!is.na(as.matrix(y)))==0) {
     warning(":plpanel: no finite values of variable(s) ", paste(lynm, collapse=", "),
             ". Nothing to plot")
     return()
@@ -3989,9 +3996,9 @@ plmboxes.default <-
     ylim <- lusr[3:4]
   } else {
     lxldf <- i.extendrange(
-      range(at, na.rm=TRUE) +
-        (max(width[c(1,length(width))]) - backback)*c(-1,1)*0.3* ## !!! is 0.3 ok???
-          i.getploption("plext"))
+      range(at, na.rm=TRUE) + ## max(diff(at)) * 
+        (max(width[c(1,length(width))]) - backback)*c(-1,1)*0.4) ## !!! is 0.4 ok???
+      ## *i.getploption("plext")
     xlim <- i.def(xlim, lxldf, valuefalse=lxldf)
     if (any(li <- is.na(xlim))) xlim[li] <- lxldf[li]
     if (lIna <- !is.null(na.pos)) {
@@ -4342,11 +4349,12 @@ colorpale <- function(col=NA, pale=0.3, ...)
 ploptions <-
   function (x=NULL, default=NULL, list=NULL, ploptions = NULL,
             assign=TRUE, ...)
-{ ## 
+{ ##
+  lpldef <- get("ploptionsDefault", pos=1)
   lnewo <- loldo <-
     if (is.null(ploptions)) {
     if (exists(".ploptions", where=1)) get(".ploptions", pos=1)
-    else  ploptionsDefault
+    else  lpldef
     } else ploptions
   largs <- c(list, list(...))
   lop <- c(names(largs))
@@ -4363,14 +4371,14 @@ ploptions <-
     if (u.true(default)) default <- "all"
     if (!is.character(default))
       stop("!ploptions! Argument 'default' must be of mode character or logical")
-    if (default[1]=="all") return(ploptions(list=ploptionsDefault, assign=assign))
+    if (default[1]=="all") return(ploptions(list=lpldef, assign=assign))
     ## resets all available components
     if (default[1]=="unset")
-      return(ploptions(list=ploptionsDefault[names(ploptionsDefault)%nin%
+      return(ploptions(list=lpldef[names(lpldef)%nin%
                                              names(loldo)],
                        assign=assign) )
     if (any(default!="")) {
-      llopt <- ploptionsDefault[default[default%in%names(ploptionsDefault)]]
+      llopt <- lpldef[default[default%in%names(lpldef)]]
       return( ploptions(list=llopt) )
     }
   }
@@ -4385,6 +4393,7 @@ ploptions <-
 ## ====================================================================
 i.getploption <- function(opt, plo=NULL) {
   ## opt is character, plo list or NULL
+  lpldef <- get("ploptionsDefault", pos=1)
   if (is.null(plo))
     plo <- get("ploptions", envir=parent.frame()) ## list in calling fn
   if (is.function(plo)) plo <- NULL
@@ -4394,11 +4403,12 @@ i.getploption <- function(opt, plo=NULL) {
   else {lopt <- check.ploption(opt, lopt)
     if (length(lopt)) lopt <- lopt[[1]]
   }
-  if (length(lopt)==0) lopt <- ploptionsDefault[[opt]]
+  if (length(lopt)==0) lopt <- lpldef[[opt]]
 ##  names(lopt) <- opt
   lopt
 }
 i.getplopt <- function(opt, plo = NULL) {
+  lpldef <- get("ploptionsDefault", pos=1)
   if (is.null(plo))
     plo <- get("ploptions", envir=parent.frame()) ## list in calling fn
   lnam <- as.character(substitute(opt))
@@ -4409,7 +4419,7 @@ i.getplopt <- function(opt, plo = NULL) {
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
     lopt <- ploptions(lnam)
   else unlist(check.ploption(lnam, lopt))   ## check
-  if (is.null(lopt)) lopt <- ploptionsDefault[[lnam]]
+  if (is.null(lopt)) lopt <- lpldef[[lnam]]
 ##  names(lopt) <- opt
   lopt
 }
@@ -4558,7 +4568,7 @@ clg <- function() list("check.logical", NULL)
 cfn <- function() list("check.function", NULL)
 cln <- function(values=NA) list("check.listnum", values=values)
 ## ---------------------------------------------------------------------
-c.pchvalues <- 0:180
+c.pchvalues <- c(0:25,33:120)
 c.ltyvalues <- 1:6
 ## ==========================================================================
 c.colors <- c("black","red","blue","darkgreen",  ##"deepskyblue3",
@@ -4595,7 +4605,7 @@ c.dateticks <- data.frame(
     variables.pch=1:18, variables.col=c.colors, variables.lty=1:6,
     variables.lcol=c.colors,
     ## censored
-    censored.pch =  c(62, 60, 24, 32, 32, 25, 32, 32),
+    censored.pch =  c(62, 60, 2, 23, 23, 6, 23, 23),
     ##                 >,  <, Delta, q,q, nabla, q,quadrat 
     censored.size=1.3, censored.pale = 0.3,
     ## frame

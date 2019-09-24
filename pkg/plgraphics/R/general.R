@@ -46,6 +46,20 @@ showd <-
   if (lldim>2) stop("!showd not yet programmed for arrays")
   if (lldim>0) cat("dim: ",dim(data),"\n") else
     if (is.factor(data)) data <- as.character(data)
+  if (is.list(data)&&!is.data.frame(data)) {
+    llen <- length(data)
+    lnm <- i.def(names(data), as.character(1:llen))
+    for (lil in seq_len(min(llen,3))) {
+      cat(paste("\n[[", lnm[lil],"]]\n", sep=""))
+      showd(data[[lil]])
+    }
+    if (llen>3) {
+      if (llen>4) cat("\n  ...\n")
+      cat(paste("\n[[", lnm[llen],"]]\n", sep=""))
+      showd(data[[llen]])
+    }
+    return(invisible(NULL))
+  }
   ldata <- as.data.frame(data)
   l.nr <- nrow(ldata)
   l.nc <- ncol(ldata)
@@ -85,7 +99,7 @@ showd <-
   invisible(l.dc)
 }
 ## ===================================================
-sumNA <- function (object,inf=TRUE)
+sumNA <- function (object, inf=TRUE)
 {
   ## Purpose:   count NAs along columns
   ## ----------------------------------------------------------------------
