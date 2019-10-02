@@ -253,7 +253,12 @@ add1(t.r)
 ##- dd$random <- rnorm(nrow(dd))
 ##- t.r2 <- regr(Tobit(durable) ~ age + quant + random, data=dd)
 t.rst <- step.regr(t.r)
-stopifnot(round(t.rst$anova[3,"Deviance"],3)==0.835)
+stopifnot(round(t.rst$anova[3,"Deviance"],3)==1.371) ## 0.835
+
+t.rr <- survival::survreg(Tobit(durable) ~ quant, data=tobin, dist="gaussian")
+add1(t.rr, scope=~.+age)
+step.regr(t.rr, scope=~.+age)
+
 ## =======================================================================
 ## trouble with complicated formula
 t.loc <- d.blast$location

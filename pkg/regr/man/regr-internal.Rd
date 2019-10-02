@@ -24,7 +24,7 @@
 ## i.polr(...)
 ## i.smooth(...)
 
-\method{print}{mregr}(x, na.print=getUseroption("na.print"), ...)
+\method{print}{mregr}(x, na.print=i.getoption("na.print"), ...)
 }
 \arguments{
   \item{x,y, object}{\R objects}

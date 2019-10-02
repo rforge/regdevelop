@@ -25,8 +25,8 @@ importFrom("grDevices", col2rgb, grey, palette,
 importFrom("plgraphics", asinp, dropNA, fitted.regrpolr,
            getvariables, 
            last, leverage, linear.predictors, linpred,  
-           nainf.exclude, "%nin%", plregr,
-           predict.regrpolr,
+           nainf.exclude, "%nin%",
+           plregr, predict.regrpolr,
            ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, 
            residuals.polr, residuals.regrpolr,
            residuals.regrcoxph, residuals.regrsurvreg,
@@ -59,7 +59,6 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        factorNA, ## fitcomp,
        fitted.regr, ## fitted.polr,
        format.modelTable,
-       getUseroption,
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
        ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.survreg,
@@ -75,7 +74,9 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        print.regrAllEqns, 
        ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        ## quantilew, quinterpol,
-       regr, regr.control, regrAllEqns, regrAllEqnsXtr, 
+       regr, regr.control,
+       regroptions, regroptionsDefault,
+       regrAllEqns, regrAllEqnsXtr, 
        residuals.regr,
        ## residuals.regrpolr, residuals.regrcoxph, residuals.regrsurvreg,
        ## simresiduals, simresiduals.default, simresiduals.glm, 
@@ -86,7 +87,6 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        ## they cannot be used in the formula of a regr call without
        ## require-ing the package survreg
        terms2order, termeffects, ## Tobit,
-       useroptions, .useroptions, useroptionsDefault,
        ## vif.regr,
        ## xdistResdiff, xdistResscale,
        xNA
@@ -102,7 +102,7 @@ S3method(drop1, multinom)
 S3method(drop1, regr)
 
 S3method(summary, regr)# trivial: returns it unchanged
-S3method(plot, regr)
+S3method(plot, regr) ## plgraphics::plregr
 S3method(print, regr)
 S3method(print, termeffects)
 

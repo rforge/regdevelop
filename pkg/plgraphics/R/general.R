@@ -1,34 +1,37 @@
-##- Functions in  general.R
-##- 
-##- showd
-##- sumNA
-##- logst
-##- asinp
-##- nainf.exclude
-##- dropdata
-##- last
-##- dropNA
-##- shorten
-##- 
-##- robrange
-##- quinterpol
-##- quantilew
-##- 
-##- modarg
-##- 
-##- doc
-##- "doc<-"
-##- tit
-##- "tit<-"
-##-
-##- RNAMES
-##- 
-##- ##- Other objects in  general.R
-##- c.weekdays
-##- c.wkd
-##- c.months
-##- c.mon
-##- c.quarters
+##   Functions in  general.R
+##   
+##   showd
+##   sumNA
+##   logst
+##   asinp
+##   nainf.exclude
+##   dropdata
+##   last
+##   dropNA
+##   shorten
+##   
+##   robrange
+##   quinterpol
+##   quantilew
+##   
+##   modarg
+##   
+##   doc
+##   "doc<-"
+##   tit
+##   "tit<-"
+##   
+##   RNAMES
+##   
+##   notice
+##   warn
+##   
+##   --- Other objects in  general.R
+##   c.weekdays
+##   c.wkd
+##   c.months
+##   c.mon
+##   c.quarters
 ## ======================================================================
 showd <-
   function (data, first=3, nrow.=4, ncol.=NULL, digits=getOption("digits"))
@@ -717,6 +720,7 @@ u.asformula <- function (x) {
   else stop("!u.asformula! inadequate argument")
 }
 ## ----------------------------------------------------------------
+notice <- function(printnotices = TRUE, ...)  if (printnotices) message("Notice in ",...)
 warn <- function ()
   table(paste(names(lw <- warnings()),"@",substr(unlist(lw),1,10)))
 

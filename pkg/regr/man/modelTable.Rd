@@ -22,7 +22,7 @@
 \usage{
 modelTable(models, seq = NULL) % data = NULL, 
 
-\method{format}{modelTable}(x, digits=getUseroption("digits"),
+\method{format}{modelTable}(x, digits=i.getoption("digits"),
        stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
 \method{print}{modelTable}(x, tex = FALSE, transpose = FALSE, ...)
 

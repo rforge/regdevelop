@@ -7,13 +7,13 @@
 }
 \usage{
 \method{print}{regr}(x, call=TRUE, correlation = FALSE,
-      termeffects = getUseroption("show.termeffects"),
-      termcolumns = getUseroption("termcolumns"),
-      termeffcolumns = getUseroption("termeffcolumns"),
-      coefcolumns = getUseroption("coefcolumns"),
-      digits = getUseroption("digits"), symbolic.cor = p > 4,
+      termeffects = i.getoption("show.termeffects"),
+      termcolumns = i.getoption("termcolumns"),
+      termeffcolumns = i.getoption("termeffcolumns"),
+      coefcolumns = i.getoption("coefcolumns"),
+      digits = i.getoption("digits"), symbolic.cor = p > 4,
       signif.stars = getOption("show.signif.stars"),
-      na.print = getUseroption("na.print"),
+      na.print = i.getoption("na.print"),
       residuals = FALSE, niterations = FALSE, ...)
 }
 \arguments{
@@ -44,8 +44,8 @@
 }
 \details{
   The \code{tit} attribute of \code{x} will be printed if available and
-  \code{getUseroption("doc") > 0}, and any \code{doc} attribute,
-  if \code{getUseroption("doc") >= 2} (see \code{\link{tit}}).
+  \code{i.getoption("doc") > 0}, and any \code{doc} attribute,
+  if \code{i.getoption("doc") >= 2} (see \code{\link{tit}}).
 }
 \value{Print functions return the object to be printed invisibly.
 }

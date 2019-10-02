@@ -4347,7 +4347,7 @@ colorpale <- function(col=NA, pale=0.3, ...)
 
 ## ======================================================================
 ploptions <-
-  function (x=NULL, default=NULL, list=NULL, ploptions = NULL,
+  function (x=NULL, list=NULL, default=NULL, ploptions = NULL,
             assign=TRUE, ...)
 { ##
   lpldef <- get("ploptionsDefault", pos=1)
@@ -4367,15 +4367,14 @@ ploptions <-
     return(if(length(x)==1) loldo[[x]] else loldo[x])
   }
   ## ---
-  if (u.notfalse(default) & !is.null(default)) { ## get default values
+  if (length(default) && u.notfalse(default)) { ## get default values
     if (u.true(default)) default <- "all"
     if (!is.character(default))
       stop("!ploptions! Argument 'default' must be of mode character or logical")
     if (default[1]=="all") return(ploptions(list=lpldef, assign=assign))
     ## resets all available components
     if (default[1]=="unset")
-      return(ploptions(list=lpldef[names(lpldef)%nin%
-                                             names(loldo)],
+      return(ploptions(list=lpldef[names(lpldef)%nin%names(loldo)],
                        assign=assign) )
     if (any(default!="")) {
       llopt <- lpldef[default[default%in%names(lpldef)]]
@@ -4386,9 +4385,11 @@ ploptions <-
   ## check
   largs <- check.ploption(list=largs)
   if (length(largs))  lnewo[names(largs)] <- largs
+  lo <- intersect(names(largs),names(loldo))
+  if (length(lo)) attr(lnewo, "old") <- loldo[lo]
   if (assign) assign(".ploptions", lnewo, pos=1)
   ## assignInMyNamespace does not work
-  invisible( structure(lnewo, old=loldo[intersect(lop,names(loldo))] ) )
+  invisible(lnewo)
 }
 ## ====================================================================
 i.getploption <- function(opt, plo=NULL) {

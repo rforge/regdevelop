@@ -8,13 +8,13 @@
   behavior \pkg{plgraphics} functions, notably \code{\link{stamp}()}.
 }
 \usage{
-ploptions(x = NULL, default = NULL, list = NULL, ploptions = NULL,
+ploptions(x = NULL, list = NULL, default = NULL, ploptions = NULL,
           assign = TRUE,...)
 .ploptions
 ploptionsDefault
 }
 \arguments{
-  \item{x}{character (vector) of name(s) of ploptions.
+  \item{x}{character (vector) of name(s) of ploptions to query.
 %%-     option to query (if character) or set (if a named object).
 %%-     It may be a character vector of options if it is a query.\cr
 %%-    For those ploptions that are lists, \code{x} must be a list, too.
@@ -22,12 +22,11 @@ ploptionsDefault
 %%-     example below.
     If \code{x} is set, all further arguments will be ignored.
   }
-  \item{list}{a named list of options to be set}
+  \item{list}{a named list of options to be set, see Details}
   \item{default}{character vector of option names.
-    The named options will be set according to \code{ploptionsDefault}.
+    These ploptions will be set according to \code{ploptionsDefault}.
     \code{default="all"} or \code{=TRUE} will reset all options.
-    If \code{default} is set and \code{x} is not, all further arguments
-    will be ignored.
+    If \code{default} is set, all further arguments will be ignored.
   }
   \item{ploptions}{the list of options that should be modified}
   \item{assign}{logical: should the list be assigned to
@@ -35,17 +34,18 @@ ploptionsDefault
   \item{...}{any ploptions can be defined or modified,
     using \code{name = value}, as in \code{\link{options}} of basic R.}
 }
-\value{For \code{ploptions()}, a list of all set UserOptions sorted by name.  
-
-  For \code{ploptions(x)}, where \code{x} is the name of a pl option,
-  a \emph{list} of length one containing the option,
+\value{For \code{ploptions(x)}, where \code{x} is the name of a pl option,
+  the current value of the option.
   or \code{NULL} if it is not such a name.
-
+  If \code{x} contains several (valid) names, the respective list.
+  
+  For \code{ploptions()}, the list of all plptions sorted by name.  
+  
   For uses setting one or more options, the important effect is a changed
-  list \code{.ploptions} that is used by the \code{pl} graphical
-  functions (if \code{assign} is \code{TRUE}).
+  list \code{.ploptions} that is used by the packages functions
+  (if \code{assign} is \code{TRUE}).
   The (invisibly) returned value is the same list, complemented by an
-  attribute \code{"old"} containing the previous values of those ploptions
+  attribute \code{"old"} containing the previous values of those options
   that have been changed.
   This list is useful for undoing the changes, usually at the end of
   graphical functions, to restore the previous status.
@@ -57,6 +57,11 @@ ploptionsDefault
   The second is stored in the package \code{plgraphics}.
 }
 \details{
+  If the argument \code{list} is set, it must be a named list,
+  and each component, with name \code{name} and value \code{value}
+  is used as described for arguments in \code{...}, see above
+  (in addition to such arguments).
+  
   Here is a list of the components of \code{ploptionsDefault},
   describing the suitable alternative values to be set by calling
   \code{ploptions}:
@@ -136,8 +141,8 @@ ploptionsDefault
 }
 \author{Werner A. Stahel}
 \note{In contrast to the \code{\link{options}} of R base,
-  the \code{plptions} are stored in the \code{.GlobalEnv}
-  (if anyone is changed)
+  the \code{.plptions} list is stored in the \code{.GlobalEnv}
+  (if any component is changed)
   and will be recovered if the latter is stored and loaded again.
 }
 \seealso{
