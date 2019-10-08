@@ -720,7 +720,9 @@ u.asformula <- function (x) {
   else stop("!u.asformula! inadequate argument")
 }
 ## ----------------------------------------------------------------
-notice <- function(printnotices = TRUE, ...)  if (printnotices) message("Notice in ",...)
+notice <- function(..., printnotices = NULL) 
+  if (i.getplopt(printnotices)) message(":Notice from ",...)
+
 warn <- function ()
   table(paste(names(lw <- warnings()),"@",substr(unlist(lw),1,10)))
 

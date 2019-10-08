@@ -1262,6 +1262,7 @@ plsmooth <-
   if (length(plargs)==0) plargs <- get(".plargs", globalenv())
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   lIsm <- i.getploption("smooth")
+  band <- i.def(band, i.getploption("smooth.band"))
   lsm <- NULL
   if (lIsm) {
     power <- i.def(power, 1,1,1)
@@ -3360,6 +3361,7 @@ gensmooth <-
   if (is.function(lpar)) lpar <- lpar(lnobs)
   lparband <- lpar[1]* i.def(lpar[2], 1.5, 1.5, 1)
   liter <- i.getploption("smooth.iter")
+  lminobs <- i.getploption("smooth.minobs")
   ## data: look for numvalues
   lx <- i.def(attr(x,"numvalues"),x)
 ##  if (inherits(lx, "POSIXt")) lx <- as.numeric(lx) 
@@ -3371,6 +3373,7 @@ gensmooth <-
   lxo <- lx[lio] # sorted without NA
   lyo <- ly[lio,,drop=F]
   lgrpo <- lgrp[lio]
+  lngrp <- length(levels(lgrpo))
   lgrpn <- as.numeric(lgrpo)
   lwgto <- if(lIwgt) lweights[lio] else NULL
   ## production
@@ -3381,38 +3384,53 @@ gensmooth <-
   if (band) lysmband <- lsmrpos <- lysm[,1]
   for (lgr in seq_along(levels(lgrpo))) {  ## smooth within groups (if >1)
     lig <- which(lgrpn==lgr)
+    lxg <- lxo[lig]
+    if (sum(!is.na(lxg))<lminobs) {
+      notice("gensmooth: too few non-missing observations",
+             if(lngrp>1) paste(" for group ",lgr) )
+      next
+    }
     for (j in ncol(lyo):1) {
-      lsm <- lsmfunc(lxo[lig], lyo[lig,j]^power,
+      lsm <- lsmfunc(lxg, lyo[lig,j]^power,
                      weights=if(lIwgt) lwgto[lig] else NULL,
                      par=lpar[1], iterations=ploptions$smooth.iter, ...)
-      if (length(lsm)) lysm[lig,j] <- lsm^(1/power)
+      if (length(lsm)==0) {
+        notice("gensmooth: too few observations for a smooth")
+      } else  lysm[lig,j] <- lsm^(1/power)
     }
+    ## band
     if (band & length(lsm)) {
-      lysmb <- rep(0, length(lsm))
-      lsmr <- lyo[lig,1]-lsm^(1/power) ## residual
+      lysmb <- rep(NA, length(lsm))
+      lsmr <- lyo[lig,1]^power-lsm^power ## residual
       lsmrpos[lig] <- lip <- lsmr>=0
       ## high end
       lii <- which(lip)
       if(length(lii)) {
         lsmrh <- lsmr[lii]
-        ligi <- lig[lii]
-        lsmh <- lsmfunc(lxo[ligi], sqrt(lsmrh),
-                        weights=if (lIwgt) lwgto[ligi] else NULL,
+      ##  ligi <- lig[lii]
+        lsmh <- lsmfunc(lxg[lii], sqrt(lsmrh),
+                        weights=if (lIwgt) lwgto[lig[lii]] else NULL,
                         par=lparband, iterations=liter)
-        if (length(lsmh)) lysmb[lii] <- lsmh^2
+        if (length(lsmh)==0) {
+          notice("gensmooth: too few observations for a 'high' smooth",
+                 if(lngrp>1) paste(" for group ",lgr) )
+        } else lysmb[lii] <- lsmh^2
       }
       ## low end
       if(length(lii)) {
         lii <- which(!lip)
         lsmrl <- - lsmr[lii]
-        ligi <- lig[lii]
-        lsml <- lsmfunc(lxo[ligi], sqrt(lsmrl),
-                        weights=if (lIwgt) lwgto[ligi] else NULL,
+      ##  ligi <- lig[lii]
+        lsml <- lsmfunc(lxg[lii], sqrt(lsmrl),
+                        weights=if (lIwgt) lwgto[lig[lii]] else NULL,
                         par=lparband, iterations=liter)
-        if (length(lsml)) lysmb[lii] <- - lsml^2
+        if (length(lsml)==0) {
+          notice("gensmooth: too few observations for a 'low' smooth",
+          if(lngrp>1) paste(" for group ",lgr) )
+        } else lysmb[lii] <- - lsml^2
       }
       ## resulting band
-      lysmband[lig] <- lysmb + lsm
+      lysmband[lig] <- (lysmb + lsm^power)^(1/power)
     }
   }
   lysmin <- matrix(NA, lnx, ncol(lyo), dimnames=list(names(x),colnames(lyo)))
@@ -4637,7 +4655,7 @@ c.dateticks <- data.frame(
     ## smooth
     smooth = TRUE, 
     smooth.function = "smoothRegr", smooth.par = smoothpar, smooth.iter = 50,
-    smooth.minobs = 8,
+    smooth.minobs = 8, smooth.band = TRUE,
     ## bars
     bar.midpointwidth = 1, bar.lty = 1, bar.lwd = c(2,1), bar.col = "burlywood4",
     ## factors
@@ -4653,7 +4671,7 @@ c.dateticks <- data.frame(
     diaglabel.cex = 1.5,
     ## plregr
     functionxvalues = 51, smooth.xtrim = smoothxtrim, leveragelimit = c(0.99,0.5),
-    debug = FALSE )
+    printnotices = TRUE, debug = FALSE )
 .plargs <- list(ploptions=.ploptions)
   ## makes sure that  .plargs  extists when starting
 ## -----------------------------------------------------------------------
@@ -4707,7 +4725,7 @@ ploptionsCheck <-
     smooth.col = ccl(), smooth.pale = cnr(c(0,1)),
     smooth = clg(), 
     smooth.function = cfn(), smooth.par = list(cfn(), cnr(c(0,2))),
-    smooth.minobs = cnr(c(3,20)),
+    smooth.minobs = cnr(c(3,20)), smooth.band = clg(),
     ## bars
     bar.lty = cnv(c.ltyvalues), bar.lwd = cnr(c(0.1,5)), bar.col = ccl(),
     bar.midpointwidth = cnr(c(0.1,5)),
@@ -4729,7 +4747,7 @@ ploptionsCheck <-
     functionxvalues = cnr(c(5,500)),
     smooth.xtrim = list(cfn(), cnr(c(0,0.4), na.ok=FALSE)),
     leveragelimit = cnr(c(0.1,1)),
-    debug = clg()
+    printnotices = clg(), debug = clg()
   )
 ## ==========================================================================
 i.col2hex <- function(col) {

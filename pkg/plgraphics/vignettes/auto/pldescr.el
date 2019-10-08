@@ -16,10 +16,12 @@
     '("Remark" 1)
     '("Detail" 1)
     '("Tit" 1)
+    '("wh" 1)
     '("code" 1)
     '("T" 1)
     "link"
     "ul"
+    "Gets"
     "inv"
     "tr"
     "Bfig"

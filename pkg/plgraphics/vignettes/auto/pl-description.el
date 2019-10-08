@@ -16,9 +16,6 @@
     "booktabs"
     "amsmath"
     "pldescr")
-   (TeX-add-symbols
-    "wh"
-    "Gets")
    (LaTeX-add-labels
     "intro.plscale"
     "options.smooth"

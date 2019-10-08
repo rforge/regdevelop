@@ -19,9 +19,6 @@
 %\VignetteDepends{plgraphics}
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
-\def\wh#1{\widehat{#1}}
-\def\Gets{$<-$}
-
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
@@ -345,8 +342,8 @@ showing the age distribution of the two genders on the two sides.
 In much the same way, asymmetric multibox plots can be drawn to visualize
 the relationship of the continuous variable with any binary variable.
 % Figure \ref{fig:mboxes2} shows the distribution of
-##-   Target variable \T{tremor} related to factor{location} and binary variable
-##-   \T{charge>5}
+%%-   Target variable \T{tremor} related to factor{location} and binary variable
+%%-   \T{charge>5}
 <<mboxes2>>=
 data(d.blast)
 plmboxes(tremor~location+I(charge>5), data=d.blast)
@@ -518,6 +515,20 @@ Of course, some users may disagree.
   \code{gaussian}.
   Otherwise, \code{loess} produces a robust smoother.
 }
+
+\Detail{
+  \textbf{Smooth band.} \ 
+  As mentioned above, in addition to a smooth line fitted to the points,
+  a ``low'' and a ``high'' smooth line are shown (unless suppressed).
+  They are obtained as follows: Residuals are calculated as the diference
+  between the observations and the respective smoothed values $\wh s_i$.
+  Then a smooth is calculated for the square roots of the positive residuals,
+  and the squared fitted values are added to the $\wh s_i$.
+  (The transformation by square roots makes the distribution of the residuals 
+  more symmetric.)
+  This defines the ``high'' smooth line. 
+  The construction of the ``low'' one is analogous.
+}  
 
 \Tit{Absolute residuals against fit.}
 As a second diagram (often below the first one), the plot of 
@@ -1666,8 +1677,8 @@ observed mean differences. Corresponding error bars are shown in the
 plot. 
 
 <<xdist>>=
-data(d.blast, package="plgraphics")
-rr <- regr(tremor~distance+charge, data=d.blast)
+data(d.blast)
+rr <- lm(tremor~distance+charge, data=d.blast)
 ## an inadequate model!
 xdrd <- xdistResdiff(rr)
 plot(xdrd)

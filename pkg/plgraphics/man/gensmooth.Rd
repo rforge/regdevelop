@@ -61,6 +61,21 @@ gensmooth(x, y, band = FALSE, power = 1, resid = "difference",
   each end. If the smoothing function is \code{smoothLm}, which fits a
   straight line, then trimming is suppressed since this function returns
   0 as the \code{xtrim} attribute.
+
+  If \code{band} is \code{TRUE}, a vector of "low" and a vector of
+  "high" smooth values will be calculated for the first column of
+  \code{y} in the following way:
+  Residuals are calculated as the diference
+  between the observations and the respective smoothed values hat.$s_i$.
+  Then a smooth is calculated for the square roots of the positive residuals,
+  and the squared fitted values are added to the hat.$s_i$.
+  (The transformation by square roots makes the distribution of the residuals 
+  more symmetric.)
+  This defines the ``high'' smooth values. 
+  The construction of the ``low'' one is analogous.
+  The resulting values of the two are stored in the list component
+  \code{yband}, and \code{ybandindex} contains the information to which
+  group ("low" or "high") the value belongs.
 }
 \value{
   A list with components:  

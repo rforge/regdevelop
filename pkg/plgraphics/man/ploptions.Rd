@@ -65,7 +65,7 @@ ploptionsDefault
   Here is a list of the components of \code{ploptionsDefault},
   describing the suitable alternative values to be set by calling
   \code{ploptions}:
-  \cr very incomplete for the time being!!!
+  \cr incomplete for the time being!!!
   %% ===========================================================
   \itemize{
     \item{linewidth}{vector of \code{lwd} values to be used for
@@ -119,6 +119,11 @@ ploptionsDefault
       fitted instead of a smooth by requiring \code{smoothLm} as the
       smoothing function.
     }
+    \item{smooth.minobs}{minimal number of observations needed for
+      calculating a smooth.}
+    \item{smooth.band}{Indicator (logical) determining
+      whether "low" and "high" smooth lines should be drawn.
+      See above for their definition.}
     \item{condquant...}{Conditional quantiles for censored residuals.
       \itemize{
 	\item{condquant}{logical: should bars be drawn for censored residuals?
