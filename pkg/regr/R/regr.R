@@ -299,14 +299,18 @@ regr <-
 }
 ## -----------------------------------------------------------------------
 regr.control <-
-  function (contrasts=i.getoption("regr.contrasts"), factorNA = TRUE, 
+  function (contrasts=i.getoption("regr.contrasts"), factorNA = NULL, 
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
-           model = FALSE, x = TRUE, termtable=TRUE, vif=TRUE,
-           testlevel = 0.05, leveragelimit=c(0.99,0.5), tit=NULL,
+           model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
+           testlevel = NULL, leveragelimit=c(0.99,0.5), tit=NULL,
            control = NULL
            )
 {
+  factorNA <- i.getopt(factorNA)
+  testlevel <- i.getopt(testlevel)
+  termtable <- i.getopt(termtable)
+  vif <- i.getopt(vif)
   list(contrasts=contrasts, factorNA=factorNA,
        na.action=as.name("nainf.exclude"), calcdisp=calcdisp,
        suffmean=suffmean,
@@ -3785,6 +3789,7 @@ regroptions <-
   ##-   colors = c.colors, colors.ra = c.colors.ra,
   ##-   mar=c(3,3,3,1), mgp=c(2,0.8,0), plext=0.05,
   regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
+  factorNA = TRUE, testlevel = 0.05,  termtable = TRUE, vif = TRUE,
   show.termeffects = TRUE, termcolumns = c("coef",  "df", "ciLow","ciUp","R2.x",
     "signif", "p.value", "p.symbol"),
   termeffcolumns = "coefsymb",
@@ -3849,22 +3854,22 @@ i.getoption <- function(opt, plo=NULL) {
   lopt
 }
 ## -----------------------------------------------------------
-##- i.getopt <- function(opt, plo = NULL) {
-##-   ldef <- get("regroptionsDefault", pos=1)
-##-   if (is.null(plo))
-##-     plo <- get("regroptions", envir=parent.frame()) ## list in calling fn
-##-   lnam <- as.character(substitute(opt))
-##-   lopt <- opt 
-##-   if (is.function(plo)) plo <- NULL
-##-   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-##-     lopt <- plo[[lnam]]
-##-   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
-##-     lopt <- regroptions(lnam)
-##-   else unlist(check.option(lnam, lopt))   ## check
-##-   if (is.null(lopt)) lopt <- ldef[[lnam]]
-##- ##  names(lopt) <- opt
-##-   lopt
-##- }
+i.getopt <- function(opt, plo = NULL) {
+  ldef <- get("regroptionsDefault", pos=1)
+  if (is.null(plo))
+    plo <- get("regroptions", envir=parent.frame()) ## list in calling fn
+  lnam <- as.character(substitute(opt))
+  lopt <- opt 
+  if (is.function(plo)) plo <- NULL
+  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
+    lopt <- plo[[lnam]]
+  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
+    lopt <- regroptions(lnam)
+  else unlist(check.option(lnam, lopt))   ## check
+  if (is.null(lopt)) lopt <- ldef[[lnam]]
+##  names(lopt) <- opt
+  lopt
+}
 ## ==========================================================================
 shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else

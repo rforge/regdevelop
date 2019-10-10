@@ -6,14 +6,14 @@ Further Arguments to \code{regr}
 }
 \description{
   Specify some arguments of minor importance for the function
-  \code{\link{regr}}
+  \code{\link{regr} and set some regroptions}
 }
 \usage{
 regr.control(contrasts = i.getoption("regr.contrasts"),
-  factorNA = TRUE, na.action = as.name("nainf.exclude"),
+  factorNA = NULL, na.action = as.name("nainf.exclude"),
   calcdisp = NULL, suffmean = 3, dist = NULL,
-  model = FALSE, x = TRUE, termtable = TRUE, vif = TRUE,
-  testlevel = 0.05, leveragelimit = c(0.99, 0.5), tit = NULL,
+  model = FALSE, x = TRUE, termtable = NULL, vif = NULL,
+  testlevel = NULL, leveragelimit = c(0.99, 0.5), tit = NULL,
   control = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
