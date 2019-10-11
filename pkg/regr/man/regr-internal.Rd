@@ -9,6 +9,7 @@
 \alias{i.polr}
 \alias{i.polrfit}
 \alias{i.smooth}
+\alias{notice}
 %
 \alias{print.mregr}
 %% \alias{subset}
@@ -25,6 +26,7 @@
 ## i.smooth(...)
 
 \method{print}{mregr}(x, na.print=i.getoption("na.print"), ...)
+notice(..., printnotices = NULL)
 }
 \arguments{
   \item{x,y, object}{\R objects}

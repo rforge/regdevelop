@@ -3875,8 +3875,8 @@ shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else
   if (k==0) x else c(last(x, k), rep(NA, -k))
 ## --------------------------------------------------------------------------
-##- notice <- function(..., printnotices = NULL)
-##-   if (i.getplopt(printnotices)) message("Notice in ",...)
+notice <- function(..., printnotices = NULL)
+  if (i.getopt(printnotices)) message("Notice in ",...)
 
 
 ##- plotregr <- function(x) {}

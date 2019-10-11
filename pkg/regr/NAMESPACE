@@ -25,7 +25,7 @@ importFrom("grDevices", col2rgb, grey, palette,
 importFrom("plgraphics", asinp, dropNA, fitted.regrpolr,
            getvariables, 
            last, leverage, linear.predictors, linpred,  
-           nainf.exclude, "%nin%", notice, 
+           nainf.exclude, "%nin%", ## notice, this keeps giving me an error
            plregr, predict.regrpolr,
            ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, 
            residuals.polr, residuals.regrpolr,
