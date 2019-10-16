@@ -641,13 +641,12 @@ leverage <- function (object)
 }
 ## ==========================================================================
 stdresiduals <-
-  function (x, residuals=NULL, sigma=x$sigma, weights=NULL,
-           leveragelimit = getOption("leveragelimit"))
+  function (x, residuals=NULL, sigma=x$sigma, weights=NULL, leveragelimit = NULL)
 { ## sigma=x$sigma, 
   ## Purpose:  calculate  hat  and  standardized residuals
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  1 Mar 2018, 15:45
-  llevlim <- i.def(leveragelimit, 0.99)[1]
+  llevlim <- i.def(i.getplopt(leveragelimit)[2], 0.99, valuetrue=0.99999,valuefalse=0.99999)
   lnaaction <- x$na.action
   ## residuals
   if (length(residuals)==0) residuals <- naresid(lnaaction, x$resid)
@@ -825,21 +824,24 @@ simresiduals.default <-
     return(NULL)
   }
   lnaaction <- object$na.action
-  ldata <- object$allvars ## NAs dropped
-  if (is.null(ldata)) {
-      ldata <- if (u.debug())  eval(lcall$data)  else
-      try(eval(lcall$data))
-      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
-        warning(":simresiduals: data not found -> No simulated residuals")
-        return(NULL)
-      }
-      if (length(lnaaction)) ldata <- ldata[-lnaaction,]
-    }
   lres <- i.def(stdresiduals, object$stdresiduals)
   if (is.null(lres)) {
     if (length(lnaaction)) 
       object$na.action <- structure(lnaaction, class="na.omit")
     lres <- stdresiduals(object)
+  }
+  ldata <- object$allvars ## NAs dropped
+  if (is.null(ldata)) {
+    ldata <-
+      ##      if (u.debug())
+      getvariables(all.vars(lcall$formula), eval(lcall$data), transformed=FALSE)
+    ## else  try(eval(lcall$data))
+      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+        warning(":simresiduals: data not found -> No simulated residuals")
+        return(NULL)
+      }
+    if ("subset"%in%names(lcall)) ldata <- ldata[row.names(lres),]
+      ## if (length(lnaaction)) ldata <- ldata[-lnaaction,]
   }
   lnc <- NCOL(object$coefficients)
   ## -------

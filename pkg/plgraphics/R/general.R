@@ -544,7 +544,7 @@ getvariables <-
   if (length(extranames)) {
     extras <- eval(extras, data, lenv)
     names(extras) <-
-      if (length(extranames)) paste("(",extranames,")",sep="") else NULL
+      if (length(extranames)) paste(".",extranames,".",sep="") else NULL
     lexl <- sapply(extras, length)
     if (any(lexwrong <- lexl%nin%c(1,nrow(rr)))) {
       warning(":getvariables: differing numbers of rows:   ",

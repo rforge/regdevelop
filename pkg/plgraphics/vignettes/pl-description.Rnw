@@ -668,7 +668,7 @@ The function \T{fitcomp} calculates the coordinates of the
   reference line. The ``other variables'' are set to their median
   if numeric and to their mode if ordinal.
   
-  A band for it can be requested by setting \T{reflineband=TRUE}.
+  A band for it can be requested by setting \T{refline=2}.
   It reflects a confidence band for the regression function value.
 }
 
@@ -698,7 +698,7 @@ plot. The transformed variables can be called for by setting
 \T{transformed=TRUE}.
 
 <<plresx_trs, fig.width=8, fig.height=4.5>>=
-plresx(r.blast, transformed=TRUE, reflineband=TRUE, xvar=~.-location, mf=c(1,2))
+plresx(r.blast, transformed=TRUE, refline=2, xvar=~.-location, mf=c(1,2))
 @ 
 
 \Detail{
@@ -1001,8 +1001,10 @@ The components of these lists include
   0 for numerical variables and none for factors. 
   The properties are independent of those for \T{gridlines};
 \item
-  a group \T{refline}, again setting the properties \T{lty, lwd, col},
-  to be used in \T{plrefline};
+  a group \T{refline}, where \T{refline} can be logical or \T{==2},
+  the latter indicating the a band should also be shown if available.
+  The properties \T{lty, lwd, col} to be used in \T{plrefline}
+  are again defined;
 \item
   a group \T{smooth}, containing items needed for generating and drawing
   smooth lines;
@@ -1099,7 +1101,7 @@ argument \T{data}.
 plyx(Sepal.Width~Sepal.Length, data=iris, 
      pch=Species, psize=Petal.Length, pcol=Species)
 
-table(.plargs$pldata[,"(pch)"])
+table(.plargs$pldata[,".pch."])
 @ 
 As the last statement shows, the \T{pldata} dataset is available after
 calling the plotting function as a component of the list \T{.plargs}.
@@ -1214,12 +1216,12 @@ generate a full plot. Low level plotting functions include:
   In the simplest case, this function places the plotting symbol at the
   given coordinates. As the basic \T{points} function, it draws lines if 
   the argument \T{type} is set to \T{"l"} or \T{"b"}, and the argument
-  \T{pch} (or the column \T{"(pch)"} in \T{plargs\$pldata}) can provide
+  \T{pch} (or the column \T{".pch."} in \T{plargs\$pldata}) can provide
   different plotting symbols for the different points.\\
 
   \T{plpoints} also includes the capabilities of \T{text}: 
   If the argument \T{plab} 
-  is set (or \T{plargs\$pladata} contains a column named \T{"(plab)"}),
+  is set (or \T{plargs\$pladata} contains a column named \T{".plab."}),
   it should be a character vector and is reproduced at the (x,y) locations,
   Values \T{NA} or \T{""} being replaced by the plotting symbol in \T{pch}.\\
   The size of the plotting symbols or strings is determined by

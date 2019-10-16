@@ -45,6 +45,8 @@ stopifnot(length(residuals(r.blast))==nrow(d.blast))
 ## t.r <- regr(tremor ~ distance + charge + location, data=d.blast)
 plot(r.blast, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=0))
 
+rsimple <- regr(log10(tremor)~log10(distance), data=d.blast, subset=location=="loc2")
+
 dd <- cbind( d.blast, indicator= factor(1==1:nrow(d.blast)) )
 t.rr <- regr(tremor ~ distance + charge + location + indicator, data=dd)
 plot(t.rr, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=2))

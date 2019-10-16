@@ -69,9 +69,6 @@
 %\VignetteDepends{plgraphics}
 %\VignetteIndexEntry{'plgraphics': A user-oriented collection of graphical R-functions based on the 'pl' concept}
 
-\def\wh#1{\widehat{#1}}
-\def\Gets{$<-$}
-
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
@@ -212,9 +209,6 @@ Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
 lines to be the same.
 The call to \T{plmframes} splits the screen essentially like 
 \T{par(mfrow=c(1,2))}.
-
-%%- The function \T{plmframes} splits the figure region into multiple figures 
-%%- (by setting \T{par(mrow=...)}).
 
 \Tit{Groups.}
 If the argument \T{group} is specified, separate plots will be generated
@@ -376,12 +370,10 @@ Setting \T{transformed = FALSE} produces the same figure as
 %%-        data=iris, smooth.group=Species, pcol=Species, transformed=FALSE)
 %%- @ 
 
-
-
 \subsection{Nonlinear plotting scales}
 
 In basic R graphics, ``log scale'' may be selected by specifying 
-\T{log="y"} (or \T{="x"} or \T{="xy"}). \Hneed{30mm}
+\T{log="y"} (or \T{="x"} or \T{="xy"}). \Hneed{35mm}
 \T{plgraphics}\ allows for any monotone transformation.
 For example, the arc sine transformation \Hneed{60mm}
 $\mbox{asinp}\fn x = \mbox{arcsin}\big(\sqrt{x/100}\big) /
@@ -444,12 +436,25 @@ If the argument is \T{NA}, it depends on the number of
 observations: It is $1/(2\sqrt{n})$. 
 
 \subsection{The Multibox Plot for factors}
-If the x variable is a factor, R's generic plot function draws box plots.
-Since this often results in too much simplification, \T{plyx} shows a 
-``multibox plot'', which is a refinement of a boxplot, to be described in
-more detail below.
+If the x variable is a factor, R's generic plot function for formula objects
+draws box plots.
+When there are many observations per group, a box plot constitutes a 
+very rough image of the distributeion.
+The ``multibox plot'' is a refinement that shows the distribution in more
+detail. 
 
-The multibox plot can also be called directly.
+The idea is to combine the virtues of the box plot, which is based on the
+quartiles, with those of a histogram that depicts the density of the
+distribution. 
+Essentially, a histogram is drawn using quantiles as class limits.
+(Since raw quantiles may be poor characterizations for discrete data,
+``interpolated quantiles'' are used as class limits.)
+
+The number of quantiles -- or the number of classes -- used should be
+adapted to the number of observations to be represented.
+For moderate sample sizes, ``octiles'' appear suitable.
+
+The multibox plot can be called directly.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -459,6 +464,26 @@ The multibox plot can also be called directly.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/mboxes-1} 
+
+\end{knitrout}
+
+The multiboxes %in Figure \ref{fig:mboxes} 
+resemble a well-known kind of
+presentation of age distributions. Often, these displays are asymmetric,
+showing the age distribution of the two genders on the two sides.
+In much the same way, asymmetric multibox plots can be drawn to visualize
+the relationship of the continuous variable with any binary variable.
+% Figure \ref{fig:mboxes2} shows the distribution of
+%%-   Target variable \T{tremor} related to factor{location} and binary variable
+%%-   \T{charge>5}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(d.blast)}
+\hlkwd{plmboxes}\hlstd{(tremor}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{I}\hlstd{(charge}\hlopt{>}\hlnum{5}\hlstd{),} \hlkwc{data}\hlstd{=d.blast)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/mboxes2-1} 
 
 \end{knitrout}
 
@@ -473,6 +498,10 @@ the x and y variables.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(}\hlstr{"survival"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
@@ -484,15 +513,8 @@ the x and y variables.
 
 
 \section{Scatterplot matrix}
-The \T{pairs} plotting function of R has some inconvenient restrictions.
-If the number of variables is larger than about 8, the panels become so
-small that hardly anything can be discerned. Furtherore, factors are simply 
-converted to numeric.
-
-The function \T{plmatrix} has much more flexibility. 
-If used for a small number of variables, it does a similar job as 
-\T{pairs}, but also provides the flexibility for the panels that have been
-described above.
+Scatterplot matrices are produced by the \T{pairs} function.
+The function \T{plmatrix} does a similar job.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -501,27 +523,26 @@ described above.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plmatrix-1} 
-
-\end{knitrout}
-
-\T{plmatrix} can also show any submatrix of the full scatterplot matrix.
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
+\begin{kframe}\begin{alltt}
 \hlkwd{plmatrix}\hlstd{(}\hlopt{~}\hlstd{Petal.Length}\hlopt{+}\hlstd{Petal.Width,} \hlopt{~}\hlstd{Sepal.Length}\hlopt{+}\hlstd{Sepal.Width,} \hlkwc{data}\hlstd{=iris,}
          \hlkwc{smooth.group}\hlstd{=Species,} \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/plmatrix_sub-1} 
+\includegraphics[width=\maxwidth]{figure/plmatrix-2} 
 
 \end{knitrout}
 
-When the number of variables to be shown in the x- or y-direction is large,
-\T{plmatrix} will split the array of plots to be shown onto a suitable
-number of plotting pages. The number of panels to be shown in either
-direction can be set by arguments \T{nrow} and \T{ncol}. Otherwise, the
-function will determine suitable numbers if the total number of panels
-exceeds the threshold set in \T{ploptions("mfgtotal")}. The default is 30.
+The second call to \T{plmatrix} shows that different variables can be
+selected for the horizontal and vertical axes. 
+
+If \T{plmatrix} is called for a large dataset, with more than 8 variables, 
+say, then it splits the scatterplot matrix into parts that appear on
+separate pages in order to avoid that the panels become too small.
+The number of panels to be shown in either direction can be set by 
+arguments \T{nrow} and \T{ncol}. 
+Otherwise, the function will determine suitable numbers 
+if the total number of panels exceeds the threshold set in 
+\T{ploptions("mfgtotal")}. The default is 30.
 
 
 \section{Regression diagnostic plots}
@@ -534,7 +555,8 @@ The features are obtained by using \T{plregr}.
 \subsection{The basic diagnostic plots}
 When R objects obtained from fitting a model are fed into R's \T{plot}
 function, some fundamental diagnostic plots appear. 
-The figure shows the versions of these displays obtained by \T{plregr}.
+The figure shows the versions of these displays obtained by \T{plregr}
+in the case of an ordinary regression.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -544,39 +566,109 @@ The figure shows the versions of these displays obtained by \T{plregr}.
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
 \hlkwd{plregr}\hlstd{(r.blast,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-\end{kframe}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.default(x, nrep = lnsims, simfunction = rnorm, sigma = apply(lstdres, : :simresiduals: <=2 residuals found -> No simulated residuals}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
 
 \end{knitrout}
 Before we describe the plots in some detail, let us first explain  
 principles guiding the design of diagnostics.
-\Itm
+\begin{itemize}
+\item
 Each diagnostic (plot) should be specific for a well-identified potential 
 deficiency of the model.
-\Itm
+\item
 Plots are selectively shown in accordance with the type of model that has 
 been fitted. For example, a normal plot is only shown if the model assumes
 a normal distribution of the random error.
+\item
+Most importantly, residuals are plotted against explanatory variables.
+This can also be achieved by calling \T{termplot} for other fit objects,  
+but experience shows that this is often neglected by average users.
+\item
+Residuals can be plotted easily against the index (sequence number) 
+of the observation (by setting \T{sequence=TRUE}), 
+since this may show trends or correlations of errors in time --
+if the sequence reflects time.
+\item
+The plots are augmented by a smooth line fitted to them -- which is also
+available in the classical R functions -- and two additional smooth lines
+that allow to judge the scale dependence on the variable shown.
+In addition, simulated smooths are added in order to assess an informal 
+``significance'' of curvature in the smooth of the data. 
+Furthermore, a reference line is given, which helps finding
+an appropriate modification of the model if significant curvature is
+found. 
+\item
+Finally, plotting methods are defined for models for which no useful 
+methods are available in the basic R packages, notably ordered response
+regression and censored responses.
+\end{itemize}
 
 \Detail{
   The \t{plotselect} argument is used to modify the default selection and
   to indicate if a smooth should be shown.
   For example, \T{plregr(rr, plotselect=list(yfit=2, qq=0))}
-\T{plregr} saves space around the panels: it reduces 
-\T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
-Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
+  The plots of residuals against input variables can be suppressed
+  by setting the argument \T{xvar=FALSE}.
 }
 
+\Detail{
+  \T{plregr} saves space around the panels: it reduces 
+  \T{ploptions("mar")[3]} by 1.5 (but not lower than 0.5).
+  Use \T{mar=c(...)} with a correspondingly larger \T{mar[3]} element if desired.
+}
+
+Let us now describe the panels shown above in some detail.
+
 \Tit{Residuals against fit, Tukey-Anscombe plot.}
+The plot of residuals against fitted values is the most important
+diagnostic tool to assesss the validity of model assumptions.
+It allows for detecting deviations from linearity, homoscedasticity,
+symmetry and normal distribution of the random deviations.
+
 By default, the scatterplot of residuals against fitted values shows
 the points with the feature of outlier margins and marking of extremes in
 the residual direction. It adds a smooth line to show deviations from
 the linearity assumption. Another 19 smooth lines are shown to 
 mimik the variability of this smooth line under the hypothesis that the
 model is correct.
-It also adds a reference line indicating the direction of constant observed
-response values $Y$. This helps to see whether a transformation of $Y$
-could help to avoid any significant curvature.
+
+If there is curvature, one remedy may be to transform the response
+variable. This can help only if the relation between fitted and
+response values is monotone -- otherwise, quadratic terms are the
+most straightforward modification of the model.
+Monotonicity is easy to see if the response is plotted on the vertical
+axis instead of the residuals.
+This display can also be requested from \T{plot.regr}
+(by setting \T{plotselect=c(yfit=3)}).
+
+In order to avoid the necessity to either call \T{plot} again or to 
+ask for the plot of response against fitted values routinely,
+a \ul{reference line} (green dot-dashed line in the Figure)
+is shown in the Tukey-Anscombe plot.
+It connects points with equal response values. Since the response can be
+determined by adding the two coordinates of the plot -- 
+fitted plus residual -- lines of equal response values have slope -1.
+The reference line shown is such a line, the one going through the center
+of the points in the plot.
+If the smooth never gets steeper than the reference line, then the
+suggested relation between fitted and response values is monotone, 
+and a transformation of the response may remove the non-linearity.
+
+One might argue that a plot of the response on the fit is more
+straightforwardly interpreted than the Tukey-Anscombe plot with the
+reference line. We think that the Tukey-Anscombe plot can show the
+deviations from model assumptions more clearly and should therefore be
+preferred, and that the reference line, after a short learning period, will
+be easy enough to work with and helps avoiding an additional display. 
+Of course, some users may disagree.
+%%- 
+%%- 
+%%- It also adds a reference line indicating the direction of constant observed
+%%- response values $Y$. This helps to see whether a transformation of $Y$
+%%- could help to avoid any significant curvature.
 
 \Detail{The smoother used by default to generate the smooth lines in the
   plot is \code{\link{loess}(..., span=smooth.par, iter=smooth.iter)},
@@ -590,6 +682,20 @@ could help to avoid any significant curvature.
   Otherwise, \code{loess} produces a robust smoother.
 }
 
+\Detail{
+  \textbf{Smooth band.} \ 
+  As mentioned above, in addition to a smooth line fitted to the points,
+  a ``low'' and a ``high'' smooth line are shown (unless suppressed).
+  They are obtained as follows: Residuals are calculated as the diference
+  between the observations and the respective smoothed values $\wh s_i$.
+  Then a smooth is calculated for the square roots of the positive residuals,
+  and the squared fitted values are added to the $\wh s_i$.
+  (The transformation by square roots makes the distribution of the residuals 
+  more symmetric.)
+  This defines the ``high'' smooth line. 
+  The construction of the ``low'' one is analogous.
+}  
+
 \Tit{Absolute residuals against fit.}
 As a second diagram (often below the first one), the plot of 
 absolute residuals against fitted values is shown.
@@ -597,7 +703,7 @@ It is intended to detect heteroscedasticity, more precisely,
 variances of the random deviations that depend on the expected value
 of the response.
 
-Note that the absolute residuals shown in this plot are not the 
+Note that the ``absolute residuals'' shown in this plot are not the 
 absolute values of the residuals used in the first plot. 
 They differ in two ways:
 \Itm
@@ -677,6 +783,17 @@ Least Squares estimator with suitable weights.
 Therefore, the weighted version of the leverage plot is produced for such
 models. 
 
+\Tit{Weights}
+If weights are given by the user, they should usually reflect different
+variances of the random errors $E_i$, and the residuals, multiplied by the
+square root of the weights, should have constant variance.
+The standardized absolute residuals are therefore plotted against the weights.
+If the size of these residuals is not constant but depends on the weight, 
+the rule or weighting function should be revised.
+
+If weights are given, they are also used as the sizes of the plotting
+symbols (circles) in other plots.
+
 %% =================================
 
 The argument \T{xvar=FALSE} in the statement generating the last plot
@@ -708,7 +825,7 @@ It does so by calling \T{plresx}, which can also be done directly.
 
 \end{knitrout}
 The diagrams show a smooth and similated smooth lines as described
-for the ``resfit'' plot above.
+for the paragraph on ``Residuals against fit'' above.
 For the variables appearing in the model, they also show a reference line 
 in analogy to that plot.
 Its precise interpretation is somewhat more complicated, but the intention
@@ -716,13 +833,32 @@ is again to show a line of constant response values.
 Since the other variables also influence the response, 
 this can only be achieved keeping all other variables constant.
 
-\Detail{The function \T{fitcomp} calculates the coordinates of the 
+\Detail{
+  More precisely, the reference line connects points for which the sum of 
+the ``component effect'' $\widehat\beta_j x^{(j)}$ plus residual is equal.
+The function \T{fitcomp} calculates the coordinates of the 
   reference line. The ``other variables'' are set to their median
   if numeric and to their mode if ordinal.
   
   A band for it can be requested by setting \T{reflineband=TRUE}.
   It reflects a confidence band for the regression function value.
-  }
+}
+
+Note that the slope of the reference line is negative if the regressor has
+a positive effect on the response.
+
+The line is again useful for finding an adequate modification if a curved
+smooth appears: If the smooth never gets steeper than the reference line,
+a monotone transformation of the regressor can help. 
+Otherwise, adding its square to the model may help.
+
+Alternatively, the sums 
+``component effect $\widehat\beta_j x^{(j)}$ plus residual''
+may be used as the vertical axis instead of the
+residuals for plotting. This display is usually called the 
+``partial residual plot'' and can be obtained from \T{plregr}, too. 
+It is related to the plots shown by default in the same way as the
+response versus fitted plot is to the Tukey-Anscombe plot.
 
 The input variables are often transformed before they are used 
 in the linear predictor,
@@ -877,6 +1013,10 @@ conditional quantiles, which can be represented as described above.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(MASS)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MASS}}\begin{alltt}
 \hlkwd{data}\hlstd{(housing,} \hlkwc{package}\hlstd{=}\hlstr{"MASS"}\hlstd{)}
 \hlstd{rr} \hlkwb{<-} \hlkwd{polr}\hlstd{(Sat} \hlopt{~} \hlstd{Infl} \hlopt{+} \hlstd{Type} \hlopt{+} \hlstd{Cont,} \hlkwc{weights} \hlstd{= Freq,} \hlkwc{data} \hlstd{= housing)}
 \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
@@ -917,6 +1057,17 @@ one of the usual choices.
   predictor values and the working residuals as fitted values and residuals.
   The weights are shown by the sizes of the plotting symbols.
 }
+
+\subsection{Residual plots for multivariate regression.}
+For multivariate regression, the plots corresponding to each target
+variable should be examined. 
+They are arranged such that the same type of plot for the different
+response variables are grouped together, and a matrix of plots is produced
+for residuals against input variables.
+In addition, the qq-plot of Mahalanobis norms of residuals is shown as well
+as the scatterplot matrix of residuals.
+
+%%!!! do it
 
 %% ==============================================================
 \section{Selecting graphical elements}
@@ -1182,7 +1333,7 @@ argument \T{data}.
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_pattr-1} 
 \begin{kframe}\begin{alltt}
-\hlkwd{table}\hlstd{(.plargs}\hlopt{$}\hlstd{pldata[,}\hlstr{"(pch)"}\hlstd{])}
+\hlkwd{table}\hlstd{(.plargs}\hlopt{$}\hlstd{pldata[,}\hlstr{".pch."}\hlstd{])}
 \end{alltt}
 \begin{verbatim}
 ## 
@@ -1332,12 +1483,12 @@ generate a full plot. Low level plotting functions include:
   In the simplest case, this function places the plotting symbol at the
   given coordinates. As the basic \T{points} function, it draws lines if 
   the argument \T{type} is set to \T{"l"} or \T{"b"}, and the argument
-  \T{pch} (or the column \T{"(pch)"} in \T{plargs\$pldata}) can provide
+  \T{pch} (or the column \T{".pch."} in \T{plargs\$pldata}) can provide
   different plotting symbols for the different points.\\
 
   \T{plpoints} also includes the capabilities of \T{text}: 
   If the argument \T{plab} 
-  is set (or \T{plargs\$pladata} contains a column named \T{"(plab)"}),
+  is set (or \T{plargs\$pladata} contains a column named \T{".plab."}),
   it should be a character vector and is reproduced at the (x,y) locations,
   Values \T{NA} or \T{""} being replaced by the plotting symbol in \T{pch}.\\
   The size of the plotting symbols or strings is determined by
@@ -1396,6 +1547,16 @@ the first 3 of them and the last one are shown only.
 For rows in data.frames or matrices, two of the rows between the forth and
 the last one are also printed.
 
+\Tit{Subset of a data.frame}
+The function \T{plsubset} extracts a subset of a data.frame in a similar way
+as the \T{subset} function of plain R.
+The essential enhancement is that it keeps the graphical metadata and 
+adjusts it where necessary.
+
+%% \T{dropdata}  braucht es das?
+%%- There is an additional function \T{dropdata} which allows for dropping
+%%- observations or variables based on their names.
+
 \Tit{Counting \T{NA}'s.}
 \T{sumNA} counts the number of \T{NA}'s in vectors, matrices, and lists, 
 including data.frames. 
@@ -1406,7 +1567,7 @@ For numerical objects, infinite values are counted as \T{NA}'s
 Variables that contain only positive numbers usually call for a 
 log transformation according to the ``first aid transformation'' principle
 of data analysis introduced by John Tukey.
-If they also contain zeros, the \T{log} function turns them into \T{NA}'s.
+If they also contain zeros, the \T{log} function turns them into \T{-Inf}.
 This is rarely desirable. 
 A common way to avoid it is to add 1 to the variable before taking logs.
 This is unreasonable, since adding 1 has a very different effect on the
@@ -1414,8 +1575,40 @@ result, depending on the magnitude of the range of non-zero values of the
 variable. At least, the constant should adapt to this magnitude.
 Another solution of the problem is given by the rule that below some
 value $c$, the function should be linear, with a smooth derivative in $c$.
+%%
+%%- \texttt{regr} includes a function \texttt{logst} that is based on the
+%%- following ideas:
+%%- \begin{itemize}
+%%- \item 
+%%- The modification should only affect the values for ``small'' arguments.
+%%- \item
+%%- What is ``small'' should be determined in connection with the non-zero 
+%%- values of the original variable, since it should behave well (be
+%%- equivariant) with respect to a change in the ``unit of measurement''.
+%%- \item
+%%- The function must remain monotone, and it should remain (weakly) convex.
+%%- \end{itemize}
 This is implemented in the function \T{logst}, defining the value $c$
 as a function of the quartiles of the non-zero values.
+
+%%- The function \texttt{logst} implements these criteria in the following way: 
+%%- The shape is determined by a threshold $c$ at which -- coming from above --
+%%- the log function switches to a linear function with the same slope at this
+%%- point. This is obtained by
+To be precise, \T{logst} is defined as
+$$
+%%  g(x) = 
+         \left\{\begin{array}{ll}\log_{10}(x) & \mbox{if\ \ } x\ge c\\
+         \log_{10}(c) - (c-x)/(c\log(10)) & \mbox{if\ \ } x< c
+         \end{array}\right.
+\;.$$
+The threshold $c$ is set to
+$ c = q_1^{1+r}/q_3^r$, where $q_1$ and $q_3$ are the quartiles of the 
+positive data and $r$ is a tuning constant. 
+The default of $r$ is 1 and leads to an expected
+percentage of about 2\% of the data below $c$ for log-normal data.
+It is certainly useful to inspect a graph of the function, as drawn in 
+\texttt{example(logst)}.
 
 The use of \T{logst} in regression will cause problems when calculating
 predicted values for new data, since its result depends on the whole
@@ -1424,6 +1617,8 @@ Therefore, $c$ can be given to \T{logst} by the argument \T{threshold}.
 
 Other auxiliary functions include
 \begin{itemize}
+\item
+  \T{getvariables} gets the variables contained in a formula.
 \item 
   \T{clipat}, drops data outside a range or recplaces them with \T{NA}
   or a suitable value.
@@ -1442,12 +1637,17 @@ Auxiliary functions used for getting plotting properties are
   \T{robrange} determines a robust range of data to be used as inner
   plotting range.
 \item
-  \T{colorpale} determines a paled version of a color.
+  \T{simresiduals} simulates residuals used for generating additional
+  smooths to which the actual one can be compared.
 \item
-  \T{getvariables} gets the variables contained in a formula.
+  \T{colorpale} determines a paled version of a color.
 \end{itemize}
 
-\T{simresiduals}
+
+%%- \subsection{Multiple Frames}
+%%- Function \T{plmframes} splits the screen by calling \T{par(mfrow=...)}.
+%%- It adds flexibility and sets other defaults for margin widths and the like. 
+%%- 
 
 %% =========================================================================
 \section{Details}
@@ -1661,6 +1861,137 @@ the same length as the variables in the data.
 The pl functions \T{plregr, plresx, plres2x} work with the extended
 version. This is reflected in \T{.plargs\$pldata} and allows for
 combining that data.frame with the original dataset.
+
+\subsection{Documentation}
+For a data analysis, it is often useful to save graphical displays in 
+documents or on paper. In an extended data analysis, one can easily lose
+control over the precise content of the different plots.
+\T{regr} provides some help for keeping track.
+\begin{itemize}
+\item 
+  Every graphical display generated by a graphical function from the
+  package gets a ``stamp'' in the lower right corner that indicates date
+  and time of its creation and, if specified by the user before that 
+  time point, a project title and a step name (by writing\\
+  \T{ploptions(project=projecttitle, step=stepname)}).\\
+  This stamp can of course be suppressed, e.g., for producing publication
+  graphics: set \T{ploptions(stamp=FALSE)}.
+\item
+  Data sets may be documented by attaching two attributes, \T{tit} and 
+  \T{doc} -- title and description --, which will be printed with
+  numerical output if desired.
+  Currently, this only works with the function \T{showd}.
+\end{itemize}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlkwd{tit}\hlstd{(iris)} \hlkwb{<-} \hlstr{"Fisher's iris data"}
+  \hlkwd{doc}\hlstd{(iris)} \hlkwb{<-} \hlstr{"The most famous statistical dataset ever"}
+  \hlkwd{showd}\hlstd{(iris)}
+\end{alltt}
+\begin{verbatim}
+## dim:  150 5 
+##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
+## 1            5.1         3.5          1.4         0.2     setosa
+## 2            4.9         3.0          1.4         0.2     setosa
+## 3            4.7         3.2          1.3         0.2     setosa
+## ...                                                             
+## 40           5.1         3.4          1.5         0.2     setosa
+## 76           6.6         3.0          4.4         1.4 versicolor
+## 113          6.8         3.0          5.5         2.1  virginica
+## 150          5.9         3.0          5.1         1.8  virginica
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+\section{Appendix}
+Additional functions and features.
+
+\subsection{Residual differences and Distance in $x$-space}
+If there are groups of observations with identical input variables
+(or identical $x_i$ vectors), then there is the possibility to perform a kind
+of overall goodness-of-fit test by comparing the variability of the
+residuals within these groups to the estimated variance of the error.
+This is performed by a simple Analysis of Variance of the standardized 
+residuals with the grouping just mentioned. 
+(Note that this method can be applied even if some or many $x_i$ vectors 
+are unique.)
+
+If such groups are not available, an old idea, described by
+Daniel and Wood (1971/80) is to use ``near replicates'' for this purpose. 
+They introduced a distance in $x$-space that they called WSSD and suggested
+to calculate all distances between observations along with the
+corresponding differences of residuals. If the differences of residuals
+are smaller for short distances than for long ones, then this points to a
+lack of fit of the model, which might be avoided by introducing 
+additional terms or modelling nonlinear dependencies through
+transformations of variables. The procedure however does not suggest
+which modifications may help.
+
+As to the distance measure $d_{hi}$, %\Cite{DanCW71} 
+Daniel \& Wood (1971) introduced their 
+WSSD (weighted Squared Standard Distance (?))
+with the intention to weigh variables according to their ``importance'' for
+the model. Since this feature seems too much dependent on the
+parametrization of the model, I prefer to use the Mahalanobis distance in
+the design space, 
+$$
+  d\sups X_{hi} = n(\vc x_i-\vc x_h)^T (\mx X^T\mx X)^{-1} (\vc x_i-\vc x_h)
+$$
+(which can be calculated efficiently from the QR decomposition of $\mx X$).
+
+The distance pairs and the respective differences of residuals are
+calculated by the function \Hneed{40mm}
+\code{xdistResdiff}. They are grouped and the
+corresponding group means of absolute residual differences are then
+produced by \code{xdistResscale}. 
+The distances are then classified, and the residual differences
+are averaged over these classes. This yields a pair of mean distance 
+$\wb d\sups X_k$ and mean residual differences $\wb d\sups R_k$ 
+for each class $k$. 
+(Trimmed means ($\alpha=1/6$) are used by default to obtain some
+robustness against outliers.)
+These pairs are then plotted.
+
+The class limits are chosen by fixing the percentages of distance values
+that they should contain. By default, the first class is quite small -- 
+because plausible deviations from the null hypothesis will lead to lower
+mean residual differences for short distances --, followed by a somewhat
+larger class, then a really big class for an intermediate range and finally
+a class (again somewhat smaller) for the upper end. 
+The current default limits are therefore at 3\%,10\%, and 90\%. 
+
+In order to assess the variability of the mean residual differences,
+we resort to simulation. The residuals are permuted among the observations,
+and then the calculation of differences is repeated.
+(In fact, the assignment of residual differences to the observation pairs 
+is re-determined.) This leads to simulated mean differences for each class,
+and their standard deviations can be used as standard errors of the 
+observed mean differences. Corresponding error bars are shown in the
+plot. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(d.blast)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{lm}\hlstd{(tremor}\hlopt{~}\hlstd{distance}\hlopt{+}\hlstd{charge,} \hlkwc{data}\hlstd{=d.blast)}
+\hlcom{## an inadequate model!}
+\hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
+\hlkwd{plot}\hlstd{(xdrd)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/xdist-1} 
+
+\end{knitrout}
+
+This idea can also be used for a test of goodness of fit: The test
+statistic 
+$$
+  T = \sum\nolimits_{k=1}^K \left((\wb d\sups R_k-\wb d)\big/\mbox{se}_k\right)^2
+$$
+should have a Chisquared distribution with $K-1$ degrees of freedom.
+The test is calculated by the function \texttt{xdistResscale} along with
+the mean distances and mean residual differences.
 
 %% =================================================================
 \vspace{10mm}\noindent

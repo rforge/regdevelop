@@ -7,7 +7,7 @@
 }
 \usage{
 stdresiduals(x, residuals=NULL, sigma=x$sigma, weights=NULL,
-    leveragelimit = getOption("leveragelimit"))
+    leveragelimit = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{

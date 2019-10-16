@@ -11,9 +11,10 @@ Further Arguments to \code{plregr}
 plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   weights = NULL, stdresid = TRUE, mar = NULL,
   glm.restype = "working", condquant = TRUE, smresid = TRUE,
-  partial.resid = TRUE, cookdistlines = 1:2,
-  leveragelimit = c(0.99, 0.5), condprobRange = NULL,
-  refline = TRUE, reflineband = FALSE, testlevel = 0.05,
+  partial.resid = TRUE, cookdistlines = NULL,
+  leveragelimit = NULL, condprobRange = NULL,
+  testlevel = 0.05,
+  refline = TRUE, 
   smooth = 2, %% smoothPar = NA, smoothIter = NULL,
   smooth.sim = NULL,
   xlabs = NULL, reslabs = NULL, markextremes = NULL,
@@ -61,10 +62,11 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
     \code{condprobRange[1]} and \code{condprobRange[1]}.
     Default is \code{c(0.05,0.8)} for less than 50 observations, and
     \code{c(0,0)}, suppressing the bars, otherwise.}
-  \item{refline}{logical: should reference line be shown?}
-  \item{reflineband}{logical: should a confidence band be drawn for the
-    component effects?}
   \item{testlevel}{level for statistical tests}
+  \item{refline}{logical: should reference line be shown?
+    If \code{refline==2}, a confidence band be drawn for the component
+    effects
+  }
   \item{smooth}{if TRUE (or 1), smooths are added to the plots where
     appropriate. If \code{==2}, smmooths to positive and negative
     residuals-from-smooth are also shown.}

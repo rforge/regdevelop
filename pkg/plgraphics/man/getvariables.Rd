@@ -27,7 +27,7 @@ getvarnames(formula, data = NULL, transformed = FALSE)
   \item{\dots}{further arguments such as
     \code{data, weight, subset, offset}
     used to create further columns in the resulting data.frame, with
-    parenthesised names such as '"(offset)"'}
+    names between dots such as '".offset."'}
 }
 %%- \details{
 %%- %%  ~~ If necessary, more details than the description above ~~

@@ -164,9 +164,9 @@ plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
   A coordinate pair may also be given.
   These possibilities can be used individually for each plot by
   giving a named vector or a named list, where the names are
-  one of "yfit", "resfit", "absresfit", "absresweight", "(xvar)" or
+  one of "yfit", "resfit", "absresfit", "absresweight", ".xvar." or
   names of x variables provided by the \code{xvar} argument.
-  A component "(xvar)" selects the first x variable.
+  A component ".xvar." selects the first x variable.
 
   There is an hidden argument \code{innerrange.fit} that allows
   for fixing an inner range for plotting the fitted values.

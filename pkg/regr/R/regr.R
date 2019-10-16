@@ -47,7 +47,7 @@ regr <-
     lform <- setdiff(all.vars(lform), names(start))
   ## nonlinear <- i.nonlincheck(nonlinear, lformula, ldata)
   ## ------------------------------------------------------------------  
-  ## d. === data 
+  ## d. === data
   lextrav <- as.list(lcall)[names(lcall)%in%c("weights", "offset", "subset")]
   lcgetv <- c(list(quote(plgraphics::getvariables)),
               list(formula = lform, data = data, transformed = FALSE),
@@ -57,9 +57,6 @@ regr <-
   ## ---------------------
   lallvars <- nainf.exclude(lallvars)
   lnaaction <- attr(lallvars, "na.action")
-  lextras <-
-    c(weights=as.name("(weights)"),offset=quote((offset)),
-      subset=quote((subset)))[names(lextrav)]
   ## !!! check errors
   ## lallvars <- as.data.frame(unclass(lallvars),row.names=row.names(lallvars))
   ## in rare cases, lallvars will store a wrong dimension
@@ -73,9 +70,12 @@ regr <-
 ##-   }
   ## --------------------------------------
   ## !!! extras: check, replace names
+  lextras <- 
+    c(weights=".weights.", offset=".offset.", subset=".subset.")[names(lextrav)]
   ## f. === compose call of fitting function
   lcl <- lcall
-  lcl[names(lextras)] <- lextras
+  lcl[names(lextras)] <-
+    lallvars[intersect(names(lallvars),c(".weights.",".offset.",".subset."))]
   ## missing response
   if (length(lform)>2) {
     lvy <- all.vars(lform[1:2])
@@ -1248,7 +1248,7 @@ i.termtable <-
   ## terms without factor involvement
   lfactors <- attr(lterms,"factors")
   lvcont <- !attr(lterms,"dataClasses")[row.names(lfactors)] %in%
-    c("numeric","logical") ## [...] excludes (weights) and possibly others
+    c("numeric","logical") ## [...] excludes .weights. and possibly others
   ## terms only containing continuous variables
   lcont <- which( lvcont %*% lfactors ==0 ) 
   ## licasg <- which(lasg%in%lcont)

@@ -127,7 +127,7 @@ abline(h=0)
 lines(r.smooth$x,r.smooth$y, col="red")
 
 ## grouped data
-t.plargs <- list(pdata=data.frame("(smooth.group)"=d.blast$location))
+t.plargs <- list(pdata=data.frame(".smooth.group."=d.blast$location))
 
 r.smx <- gensmooth( d.blast$dist, residuals(r.blast), plargs=t.plargs)
 
