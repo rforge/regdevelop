@@ -57,25 +57,15 @@ regr <-
   ## ---------------------
   lallvars <- nainf.exclude(lallvars)
   lnaaction <- attr(lallvars, "na.action")
-  ## !!! check errors
-  ## lallvars <- as.data.frame(unclass(lallvars),row.names=row.names(lallvars))
-  ## in rare cases, lallvars will store a wrong dimension
-  ## repair names of lallvars
-##-   if (anyNA(names(lallvars))) {
-##-     lnm <- all.vars(lform)
-##-     if (ldot <- match(".",lnm, nomatch=0))
-##-       lnm <- unique(c(lnm[-ldot], names(ldata)))
-##-     if (ncol(lallvars)==length(lnm)) names(lallvars) <- lnm  else
-##-     stop("!regr! bug: variables not correctly identified")
-##-   }
   ## --------------------------------------
-  ## !!! extras: check, replace names
-  lextras <- 
-    c(weights=".weights.", offset=".offset.", subset=".subset.")[names(lextrav)]
   ## f. === compose call of fitting function
   lcl <- lcall
-  lcl[names(lextras)] <-
-    lallvars[intersect(names(lallvars),c(".weights.",".offset.",".subset."))]
+  ## !!! extras: check, replace names
+  if (length(lextrav)) {
+    lextras <- 
+      c(weights=".weights.", offset=".offset.", subset=".subset.")[names(lextrav)]
+    lcl[names(lextras)] <- lallvars[lextras] ## was intersect(names(lallvars),c(".weights.",".offset.",".subset."))]
+  }
   ## missing response
   if (length(lform)>2) {
     lvy <- all.vars(lform[1:2])
