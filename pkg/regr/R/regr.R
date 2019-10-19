@@ -293,7 +293,7 @@ regr.control <-
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
            model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
-           testlevel = NULL, leveragelimit=c(0.99,0.5), tit=NULL,
+           testlevel = NULL, leveragelimit=NULL, tit=NULL,
            control = NULL
            )
 {
