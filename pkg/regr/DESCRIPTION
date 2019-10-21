@@ -1,10 +1,10 @@
 Package: regr
 Type: Package
 Title: Building Regression Models
-Version: 1.0
+Version: 1.1
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
-Depends: plgraphics
+Depends: plgraphics (>= 1.1)
 Imports: stats, graphics, 
   MASS, nnet, survival, robustbase, quantreg, leaps
 Suggests: knitr

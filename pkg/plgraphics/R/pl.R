@@ -2833,6 +2833,7 @@ plregr <-
           lpch <-
             if (lIcqu) i.pchcens(plargs, lcq)[order(llr)] else ploptions$pch[1]
           lxx <- qnorm(ppoints(lnobs))
+          attr(lxx, "zeroline") <- 0
           plframe(lxx, llr, xlab = "theoretical quantiles",
                   ylab = lstdresname[lj], mar=lmar, plargs=plargs)
           ##-  lxy <- qqnorm(llr, ylab = lstdresname[lj], main="", type="n", )

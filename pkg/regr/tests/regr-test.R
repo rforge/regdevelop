@@ -1,7 +1,5 @@
 ## install.packages("regr", repos="http://R-forge.R-project.org")
-## install.packages("~/R/regdevelop/pkg/regr_1.0-5.tar.gz", repos=NULL)
-## library(regr0)## <- do *NOT* change 'lib' here! {it must work on R-forge, CRAN, ..}
-## library(regr) ##, lib="~/R/regdevelop/pkg/regr.Rcheck")
+## install.packages("~/R/regdevelop/pkg/regr_1.0.tar.gz", repos=NULL)
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
@@ -191,6 +189,10 @@ r.mnom <- regr(responsibility~age+education+disturbance+sex,
           data=d.surveyenvir, family="multinomial")
 r.mnom2 <- regr(responsibility~age+education, data=d.surveyenvir[1:100,])
 drop1(r.mnom2)
+
+data(housing, package="MASS")
+t.r <- regr(Sat ~ Infl + Type + Cont, weights = Freq, data = housing)
+
 ## !!! wieso geht drop1 in der regr-fn nicht?
 ## ===================================================================
 ## nonlinear
