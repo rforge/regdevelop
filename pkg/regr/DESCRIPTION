@@ -9,9 +9,8 @@ Imports: stats, graphics,
   MASS, nnet, survival, robustbase, quantreg, leaps
 Suggests: knitr
 VignetteBuilder: knitr
-Description: Perform efficient model building for many kinds of
- regression models.
- Input, numerical output and model building functions for these models are
- unified in a user-friendly way.
+Description: Perform efficient model building for many kinds of regression models.
+ Input, numerical output and model building functions for these models are unified
+ in a user-friendly way.
 License: GPL-2
 LazyLoad: yes
