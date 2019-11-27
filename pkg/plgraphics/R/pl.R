@@ -114,7 +114,7 @@ pl.control <-
   if (length(data)==0)
     stop("!pl.control! arguments 'x', 'y', and 'data' are all empty")
   ## only  x  or  y : plot against sequence
-  if (is.null(lxnames)|is.null(lynames)) { 
+  if ((is.null(lxnames)|is.null(lynames))&&u.notfalse(gensequence)) { 
     data <-
       cbind(".sequence."= 1:NROW(data),data)
     lynames <- c(lxnames, lynames)
@@ -535,7 +535,7 @@ genvarattributes <-
         lat <- clipat(pretty(lrg, n=ltint, min.n=ltint-2), lrg)
         llabat <-
           if (length(tickintervals)>1)
-            clipat(pretty(lrg, n=tickintervals[2], min.n=1),lrg)  else lat
+            clipat(pretty(lat, n=tickintervals[2], min.n=1),lrg)  else lat
         llabat <- clipat(llabat, lat)
         if (length(llabat)<2) {
           llabat <- clipat(pretty(lrg, n=4, min.n=1), lat)  
@@ -928,11 +928,13 @@ pltitle <-
                length=3)
   main <- i.def(main, plargs$main)
   sub <- i.def(sub, plargs$sub, valuefalse=NULL) ## paste(":",plargs$sub,sep="")
-  lsub <- if (length(sub) && substr(sub,1,1)==":")
+  if (is.logical(sub)) sub <- if(sub) ":" else NULL
+  sub <- if (length(sub) && substr(sub,1,1)==":")
             paste(substring(sub,2,30), plargs$.subdefault, sep="")
           else as.character(sub)
-  if (length(main)==0 & length(lsub)==0) return()
-  if (length(main) && all(lsub==main)) lsub <- NULL
+  if (sub=="") sub <- NULL
+  if (length(main)==0 & length(sub)==0) return()
+  if (length(main) && all(sub==main)) sub <- NULL
   rr <- c(main=main, sub=sub)
   ## -------------------------
   lf.text <- function(text, cex, cexdef, adj, ...) {
@@ -965,9 +967,10 @@ pltitle <-
   lIsub <- length(sub) && sub%nin%c("",":")
   lIdoc <- length(doc) && doc!=""
   lmarmax <- if (outer.margin) par("oma")[side] else par("mar")[side]
-  lmarmax <- lmarmax-lcexdef[1]
-  llinedef <- sum(lcexdef*c(lImain, lIsub, lIdoc))
-  line <- min(i.def(line, llinedef), lmarmax)
+##-   lmarmax <- lmarmax-lcexdef[2-lImain]
+##-   llinedef <- sum(lcexdef*c(lImain, lIsub, lIdoc))
+##-   line <- min(i.def(line, llinedef), lmarmax)
+  line <- lmarmax-0.3-lcexdef[2-lImain] ## -0.3: leave some space above title
   lside24 <- side%in%c(2,4)
   lwid <- if (outer.margin) par("mfg")[4-lside24] else 1
   lfac <- lwid * scale*par("pin")[1+lside24]/(par("cin")[1]*par("cex"))
@@ -976,8 +979,8 @@ pltitle <-
     lcex <- lf.text(main, cex=lcex[1], cexdef=lcexdef[1], adj=ltadj[1], ...)
     line <- line-lcex*lparcex
   }
-  if (length(lsub) && as.character(lsub)!=":") {
-    lcex <- lf.text(lsub, cex=lcex[2], cexdef=lcexdef[2], adj=ltadj[2], ...)
+  if (lIsub) {
+    lcex <- lf.text(sub, cex=lcex[2], cexdef=lcexdef[2], adj=ltadj[2], ...)
     line <- line-lcex*lparcex
   }
   if (line>=0 && (!is.null(doc)) && doc && length(tit(main)))
@@ -3473,12 +3476,12 @@ plmatrix <-
   if (is.null(plargs)) {
     lcall[[1]] <- quote(pl.control)
     lcall$x <- x  ## needs evaluation
-    lcall$.subdefault <- as.character(substitute(x))
+    lcall$.subdefault <- format(as.expression(substitute(x))) ##as.character(as.expression(substitute(x)))
     lcall$y <- y
     lcall$data <-
       if(length(data)) {
         if (is.name(substitute(data)))
-          lcall$.subdefault <- as.character(substitute(data))
+          lcall$.subdefault <- format(as.expression(substitute(data)))
         data
       }
     lcall$gensequence <- FALSE
@@ -3563,7 +3566,12 @@ plmatrix <-
   ## title !!!
   lsub <- plargs$sub
   lmain <- plargs$main
-  lImain <- !( (length(lmain)==0||lmain=="") & is.logical(lsub)&&lsub )
+  lcexmain <- i.getploption("title.cex")
+  ## title: how many lines? 
+  lltit <- (length(lmain)>0&&lmain!="") * sum(lcexmain[1:2])
+  if (lltit==0) {
+    if(length(lsub)>0&&as.character(lsub)!="") lltit <- lcexmain[2] ## + 0.2
+  } else lltit <-  lltit ## +0.2
   ## --- position of tick marks and axis labels, oma
   xaxmar <- i.def(xaxmar, 1+(nv1*nv2>1))
   xaxmar <- ifelse(xaxmar>1,3,1)
@@ -3571,11 +3579,9 @@ plmatrix <-
   yaxmar <- ifelse(yaxmar>2,4,2)
   xlabmar <- i.def(xlabmar, if (nv1*nv2==1) xaxmar else 4-xaxmar )
   ylabmar <- i.def(ylabmar, if (nv1*nv2==1) yaxmar else 6-yaxmar )
-  lcexmain <- i.getploption("title.cex")
   if (length(oma)!=4)
-    oma <- c(2+(xaxmar==1)+(xlabmar==1), 2+(yaxmar==2)+(ylabmar==2),
-             1.5+(xaxmar==3)+(xlabmar==3)+lcexmain[1]*lImain,
-             2+(yaxmar==4)+(ylabmar==4))
+    oma <- c(1+(xaxmar==1)+(xlabmar==1), 1+(yaxmar==2)+(ylabmar==2),
+             1+(xaxmar==3)+(xlabmar==3) + lltit,  1+(yaxmar==4)+(ylabmar==4))
   ## set par
   ## if (!keeppar)
   loldp <- plmframes(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
@@ -3641,7 +3647,7 @@ plmatrix <-
         if (jc==1) lf.axis(2, v2, yaxmar, ylabmar, lylab)
         if (jr==1) lf.axis(3, v1, xaxmar, xlabmar, lxlab)
         if (jc==lnc||jd1==nv1) lf.axis(4, v2, yaxmar, ylabmar, lylab)
-        if (lImain)   pltitle(plargs=plargs, show=NA)
+        if (lltit>0)   pltitle(plargs=plargs, show=NA)
       } else frame()
     }
   }}
@@ -4088,7 +4094,7 @@ plmboxes.default <-
     lli <- llist[[li]]
     if (length(lli)) {
       attributes(lli) <- lattr
-      plmbox(lli,lpos[li]+lsep, probs=probs, outliers=outliers,
+      plmbox(lli,lpos[li]-lsep, probs=probs, outliers=outliers,
              horizontal=lhoriz,
              wfac=lfac[li], adj=1-0.5*(1-llr), na.pos=na.pos, extquant=TRUE,
              widthfac=lwfac, colors=lcol, lwd=llwd, warn=-1)
@@ -4097,7 +4103,7 @@ plmboxes.default <-
       llir <- llist[[li+lng]]
       if (length(llir)) {
         attributes(llir) <- lattr
-        plmbox(llir,lpos[li]-lsep,probs=probs, outliers=outliers,
+        plmbox(llir,lpos[li]+lsep,probs=probs, outliers=outliers,
                horizontal=lhoriz,
                wfac=lfac[li], adj=0, na.pos=na.pos, extquant=TRUE,
                widthfac=lwfac, colors=lcol, warn=-1)
