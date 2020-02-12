@@ -875,7 +875,7 @@ simresiduals.default <-
   }
   lresj <- lres[,1] ## wrong for multivariate
   if (nrow(ldata)!=length(lresj)) {
-    li <- match(names(lresj),row.names(ldata))
+    li <- match(row.names(lres),row.names(ldata))
     if (anyNA(li)) {
       warning(":simresiduals: data not suitable -> No simulated residuals")
       return(NULL)
@@ -1064,39 +1064,35 @@ xdistResscale <- function (x, perc=c(3,10,90), trim=1/6)
 }
 ## =======================================================================
 plot.xdistResscale <- function (x, lwd=2, cex=2, xlab="distance in x space",
-       ylab="average abs. residual difference", col.aux="grey30", ...)
+       ylab="average abs. residual difference", ...)
 {
   ## Purpose:   plot average residual difference^2 vs. x distance
   ## ----------------------------------------------------------------------
   ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 14 Oct 2011, 08:46
-  lxdist <- sqrt(x[,"xdist"])
-  lrd <- x[,-1,drop=FALSE]
-  lse <- attr(x,"se")
-  lIse <- length(lse)>0
-  if (lIse) ly2 <- lrd+2*lse
-  lymax <- if (lIse) max(ly2) else max(lrd)
+  lxdist <- x[,"xdist"]
   llim <- attr(x,"limits")
+  attr(lxdist,"zeroline") <- sqrt(llim[2:(length(llim)-1)])
+  lrd <- as.data.frame(x[,-1,drop=FALSE])
+  attr(lrd[[1]], "zeroline") <- attr(x,"resdMean")
+  lymax <- if (lIse <- length(lse <- attr(x,"se"))) max(lrd+2*lse) else max(lrd)
   ##
-  plot(lxdist, lrd, xlab=xlab, ylab=ylab,type="b", cex=cex,
-       xlim=c(0,sqrt(max(llim))), xaxs="i", yaxs="i", ylim=c(0,1.02*lymax),
-       axes=FALSE, ...)
-  box()
-  axis(2)
-  lxat <- pretty(c(0,0.8*last(llim)))
-  axis(1, at=sqrt(lxat), labels=format(lxat))
+  plyx(lxdist, lrd, xlab=xlab, ylab=ylab, type="b", plscale=c("sqrt",""),
+       smooth=FALSE,
+       xlim=c(0,sqrt(max(llim))), xaxs="i", yaxs="i", ylim=c(0,1.05*lymax),
+        ...)
   if (lIse) {
-    segments(lxdist,lrd-2*lse,lxdist,lrd-2*lse, lwd=lwd, col=col.aux)
+    plbars(lxdist, lrd+outer(lse, c(0,-2,2)))
+##    segments(lxdist,lrd-2*lse,lxdist,lrd-2*lse, lwd=lwd, col=col.aux)
     lysim <- attr(x,"resd.simmean")
     if (length(lysim)) {
       lxd <- sqrt(max(llim))/(nrow(x)*10)
-      segments(lxdist-lxd, lysim, lxdist+lxd, lysim, col=col.aux)
+      plbars(lxdist + outer(lxd,c(0,-1,1)),lysim)
+##      segments(lxdist-lxd, lysim, lxdist+lxd, lysim, col=col.aux)
     }
   }
 ##-   axis(3,at=c(0,sqrt(llim[-1])),labels=rep("",length(llim)), col=col.aux)
-  abline(h=attr(x,"resdMean"), lty=3, col=col.aux)
-  abline(v=sqrt(llim[2:(length(llim)-1)]), lty=3, col=col.aux)
   invisible(NULL)
 ##  "plot.xdistResscale done"
 }

@@ -11,7 +11,7 @@
   the number of observations.
 }
 \usage{
-smoothxtrim(n, c=1.5)
+smoothxtrim(n, c=2)
 }
 
 \arguments{
@@ -22,7 +22,7 @@ smoothxtrim(n, c=1.5)
   }
 }
 \value{proportion of x values for which the smoothline will not be shown
-  on both ends. Equals \ 2^(log(n)/c) / n
+  on both ends. Equals \ 1.6^(log10(n)*c) / n
 }
 \author{W. Stahel
 }

@@ -290,7 +290,7 @@ lines connecting the points, either \T{type="l"} or \T{type="b"}.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plyx}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{, EuStockMarkets[}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{,],} \hlkwc{type}\hlstd{=}\hlstr{"b"}\hlstd{)}
+\hlkwd{plyx}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{, EuStockMarkets[}\hlnum{1}\hlopt{:}\hlnum{40}\hlstd{,],} \hlkwc{type}\hlstd{=}\hlstr{"b"}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.05}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multipley-1} 
@@ -566,9 +566,7 @@ in the case of an ordinary regression.
   \hlkwd{lm}\hlstd{(}\hlkwd{logst}\hlstd{(tremor)}\hlopt{~}\hlstd{location}\hlopt{+}\hlkwd{log10}\hlstd{(distance)}\hlopt{+}\hlkwd{log10}\hlstd{(charge),} \hlkwc{data}\hlstd{=d.blast)}
 \hlkwd{plregr}\hlstd{(r.blast,} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in simresiduals.default(x, nrep = lnsims, simfunction = rnorm, sigma = apply(lstdres, : :simresiduals: <=2 residuals found -> No simulated residuals}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plotregr-1} 
 
 \end{knitrout}
@@ -840,7 +838,7 @@ The function \T{fitcomp} calculates the coordinates of the
   reference line. The ``other variables'' are set to their median
   if numeric and to their mode if ordinal.
   
-  A band for it can be requested by setting \T{reflineband=TRUE}.
+  A band for it can be requested by setting \T{refline=2}.
   It reflects a confidence band for the regression function value.
 }
 
@@ -872,7 +870,7 @@ plot. The transformed variables can be called for by setting
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{reflineband}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{xvar}\hlstd{=}\hlopt{~}\hlstd{.}\hlopt{-}\hlstd{location,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{))}
+\hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{transformed}\hlstd{=}\hlnum{TRUE}\hlstd{,} \hlkwc{refline}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{xvar}\hlstd{=}\hlopt{~}\hlstd{.}\hlopt{-}\hlstd{location,} \hlkwc{mf}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{))}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresx_trs-1} 
@@ -1069,8 +1067,98 @@ as the scatterplot matrix of residuals.
 
 %%!!! do it
 
+\subsection{Residual differences and Distance in $x$-space}
+If there are groups of observations with identical input variables
+(or identical $x_i$ vectors), then there is the possibility to perform a kind
+of overall goodness-of-fit test by comparing the variability of the
+residuals within these groups to the estimated variance of the error.
+This is performed by a simple Analysis of Variance of the standardized 
+residuals with the grouping just mentioned. 
+(Note that this method can be applied even if some or many $x_i$ vectors 
+are unique.)
+
+If such groups are not available, an old idea, described by
+Daniel and Wood (1971/80) is to use ``near replicates'' for this purpose. 
+They introduced a distance in $x$-space that they called WSSD and suggested
+to calculate all distances between observations along with the
+corresponding differences of residuals. If the differences of residuals
+are smaller for short distances than for long ones, then this points to a
+lack of fit of the model, which might be avoided by introducing 
+additional terms or modelling nonlinear dependencies through
+transformations of variables. The procedure however does not suggest
+which modifications may help.
+
+As to the distance measure $d_{hi}$, %\Cite{DanCW71} 
+Daniel \& Wood (1971) introduced their 
+WSSD (weighted Squared Standard Distance (?))
+with the intention to weigh variables according to their ``importance'' for
+the model. Since this feature seems too much dependent on the
+parametrization of the model, I prefer to use the Mahalanobis distance in
+the design space, 
+$$
+  d\sups X_{hi} = n(\vc x_i-\vc x_h)^T (\mx X^T\mx X)^{-1} (\vc x_i-\vc x_h)
+$$
+(which can be calculated efficiently from the QR decomposition of $\mx X$).
+
+The distance pairs and the respective differences of residuals are
+calculated by the function \Hneed{40mm}
+\code{xdistResdiff}. They are grouped and the
+corresponding group means of absolute residual differences are then
+produced by \code{xdistResscale}. 
+The distances are then classified, and the residual differences
+are averaged over these classes. This yields a pair of mean distance 
+$\wb d\sups X_k$ and mean residual differences $\wb d\sups R_k$ 
+for each class $k$. 
+(Trimmed means ($\alpha=1/6$) are used by default to obtain some
+robustness against outliers.)
+These pairs are then plotted.
+
+The class limits are chosen by fixing the percentages of distance values
+that they should contain. By default, the first class is quite small -- 
+because plausible deviations from the null hypothesis will lead to lower
+mean residual differences for short distances --, followed by a somewhat
+larger class, then a really big class for an intermediate range and finally
+a class (again somewhat smaller) for the upper end. 
+The current default limits are therefore at 3\%,10\%, and 90\%. 
+
+In order to assess the variability of the mean residual differences,
+we resort to simulation. The residuals are permuted among the observations,
+and then the calculation of differences is repeated.
+(In fact, the assignment of residual differences to the observation pairs 
+is re-determined.) This leads to simulated mean differences for each class,
+and their standard deviations can be used as standard errors of the 
+observed mean differences. Corresponding error bars are shown in the
+plot. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{data}\hlstd{(d.blast)}
+\hlstd{rr} \hlkwb{<-} \hlkwd{lm}\hlstd{(tremor}\hlopt{~}\hlstd{distance}\hlopt{+}\hlstd{charge,} \hlkwc{data}\hlstd{=d.blast)}
+\hlcom{## an inadequate model!}
+\hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
+\hlkwd{plot}\hlstd{(xdrd,} \hlkwc{zeroline.col}\hlstd{=}\hlstr{"darkgreen"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/xdist-1} 
+
+\end{knitrout}
+
+This idea can also be used for a test of goodness of fit: The test
+statistic 
+$$
+  T = \sum\nolimits_{k=1}^K \left((\wb d\sups R_k-\wb d)\big/\mbox{se}_k\right)^2
+$$
+should have a Chisquared distribution with $K-1$ degrees of freedom.
+The test is calculated by the function \texttt{xdistResscale} along with
+the mean distances and mean residual differences.
+
 %% ==============================================================
-\section{Selecting graphical elements}
+\section{Specification of graphical elements}
 A central motivation underlying the \T{plgraphics} package consists of
 allowing for using graphical elements very flexibly and implementing an
 easy way to specify and maintain such options.
@@ -1211,20 +1299,22 @@ The components of these lists include
   \T{title.cexmin}. 
   If \T{title.cex} has 2 elements, the second refers to the subtitle.
 \item
-  a group \T{gridlines}. If \code{gridlines} is a list of two vectors,
+  a group \T{grid}. If \code{grid} is a list of two vectors,
   it contains the values where vertical and horizontal thin lines are drawn.
   If it is \T{TRUE}, the gridlines correspond to the tickmarks of the
   two axes.
-  \T{gridlines.lty, gridlines.lwd, gridlines.col} set the respective
+  \T{grid.lty, grid.lwd, grid.col} set the respective
   properties for the gridlines.
 \item
-  a group \T{zeroline}, which is analogous to \T{gridlines}, but the
+  a group \T{zeroline}, which is analogous to \T{grid}, but the
   default of \T{zeroline} is \T{TRUE}, which leads to using 
   0 for numerical variables and none for factors. 
-  The properties are independent of those for \T{gridlines};
+  The properties are independent of those for \T{grid};
 \item
-  a group \T{refline}, again setting the properties \T{lty, lwd, col},
-  to be used in \T{plrefline};
+  a group \T{refline}, where \T{refline} can be logical or \T{==2},
+  the latter indicating the a band should also be shown if available.
+  The properties \T{lty, lwd, col} to be used in \T{plrefline}
+  are again defined;
 \item
   a group \T{smooth}, containing items needed for generating and drawing
   smooth lines;
@@ -1393,7 +1483,7 @@ generated by \T{pl.control} when calling such a function.
 \hlkwd{attr}\hlstd{(dd}\hlopt{$}\hlstd{Sepal.Length,} \hlstr{"ticksat"}\hlstd{)} \hlkwb{<-} \hlkwd{structure}\hlstd{(}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,} \hlnum{8}\hlstd{,} \hlnum{1}\hlstd{),} \hlkwc{small}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.2}\hlstd{))}
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=dd,}
-     \hlkwc{gridlines}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{Sepal.Length}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.5}\hlstd{)))}
+     \hlkwc{grid}\hlstd{=}\hlkwd{list}\hlstd{(}\hlkwc{Sepal.Length}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{0.5}\hlstd{)))}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/varattributes-1} 
@@ -1875,7 +1965,7 @@ control over the precise content of the different plots.
   time point, a project title and a step name (by writing\\
   \T{ploptions(project=projecttitle, step=stepname)}).\\
   This stamp can of course be suppressed, e.g., for producing publication
-  graphics: set \T{ploptions(stamp=FALSE)}.
+  graphics: set \Hneed{40mm} \T{ploptions(stamp=FALSE)}.
 \item
   Data sets may be documented by attaching two attributes, \T{tit} and 
   \T{doc} -- title and description --, which will be printed with
@@ -1904,94 +1994,9 @@ control over the precise content of the different plots.
 \end{kframe}
 \end{knitrout}
 
-\section{Appendix}
-Additional functions and features.
+%%- \section{Appendix}
+%%- Additional functions and features.
 
-\subsection{Residual differences and Distance in $x$-space}
-If there are groups of observations with identical input variables
-(or identical $x_i$ vectors), then there is the possibility to perform a kind
-of overall goodness-of-fit test by comparing the variability of the
-residuals within these groups to the estimated variance of the error.
-This is performed by a simple Analysis of Variance of the standardized 
-residuals with the grouping just mentioned. 
-(Note that this method can be applied even if some or many $x_i$ vectors 
-are unique.)
-
-If such groups are not available, an old idea, described by
-Daniel and Wood (1971/80) is to use ``near replicates'' for this purpose. 
-They introduced a distance in $x$-space that they called WSSD and suggested
-to calculate all distances between observations along with the
-corresponding differences of residuals. If the differences of residuals
-are smaller for short distances than for long ones, then this points to a
-lack of fit of the model, which might be avoided by introducing 
-additional terms or modelling nonlinear dependencies through
-transformations of variables. The procedure however does not suggest
-which modifications may help.
-
-As to the distance measure $d_{hi}$, %\Cite{DanCW71} 
-Daniel \& Wood (1971) introduced their 
-WSSD (weighted Squared Standard Distance (?))
-with the intention to weigh variables according to their ``importance'' for
-the model. Since this feature seems too much dependent on the
-parametrization of the model, I prefer to use the Mahalanobis distance in
-the design space, 
-$$
-  d\sups X_{hi} = n(\vc x_i-\vc x_h)^T (\mx X^T\mx X)^{-1} (\vc x_i-\vc x_h)
-$$
-(which can be calculated efficiently from the QR decomposition of $\mx X$).
-
-The distance pairs and the respective differences of residuals are
-calculated by the function \Hneed{40mm}
-\code{xdistResdiff}. They are grouped and the
-corresponding group means of absolute residual differences are then
-produced by \code{xdistResscale}. 
-The distances are then classified, and the residual differences
-are averaged over these classes. This yields a pair of mean distance 
-$\wb d\sups X_k$ and mean residual differences $\wb d\sups R_k$ 
-for each class $k$. 
-(Trimmed means ($\alpha=1/6$) are used by default to obtain some
-robustness against outliers.)
-These pairs are then plotted.
-
-The class limits are chosen by fixing the percentages of distance values
-that they should contain. By default, the first class is quite small -- 
-because plausible deviations from the null hypothesis will lead to lower
-mean residual differences for short distances --, followed by a somewhat
-larger class, then a really big class for an intermediate range and finally
-a class (again somewhat smaller) for the upper end. 
-The current default limits are therefore at 3\%,10\%, and 90\%. 
-
-In order to assess the variability of the mean residual differences,
-we resort to simulation. The residuals are permuted among the observations,
-and then the calculation of differences is repeated.
-(In fact, the assignment of residual differences to the observation pairs 
-is re-determined.) This leads to simulated mean differences for each class,
-and their standard deviations can be used as standard errors of the 
-observed mean differences. Corresponding error bars are shown in the
-plot. 
-
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{data}\hlstd{(d.blast)}
-\hlstd{rr} \hlkwb{<-} \hlkwd{lm}\hlstd{(tremor}\hlopt{~}\hlstd{distance}\hlopt{+}\hlstd{charge,} \hlkwc{data}\hlstd{=d.blast)}
-\hlcom{## an inadequate model!}
-\hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
-\hlkwd{plot}\hlstd{(xdrd)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/xdist-1} 
-
-\end{knitrout}
-
-This idea can also be used for a test of goodness of fit: The test
-statistic 
-$$
-  T = \sum\nolimits_{k=1}^K \left((\wb d\sups R_k-\wb d)\big/\mbox{se}_k\right)^2
-$$
-should have a Chisquared distribution with $K-1$ degrees of freedom.
-The test is calculated by the function \texttt{xdistResscale} along with
-the mean distances and mean residual differences.
 
 %% =================================================================
 \vspace{10mm}\noindent

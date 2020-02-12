@@ -236,21 +236,21 @@ dropdata <- function (data, rowid=NULL, incol="row.names", colid=NULL)
       if (is.na(incol)) stop("misspecified argument 'incol'")
       li <- match(rowid,data[,incol],nomatch=0)
     }
-    if (any(li==0)) warning(":dropdata: observations",
-              paste(rowid[li==0],collapse=", "),"not found")
+    if (any(li==0)) notice(":dropdata: observations  ",
+              paste(rowid[li==0],collapse=", "),"  not found")
     li <- li[li>0]
-    if (!is.null(li)) {
+    if (length(li)) {
       data <- cbind(data)[-li,]
       names(li) <- lrn[li]
     }
   }
   ## drop variables
-  if (!is.null(colid)) {
+  if (length(colid)) {
     lj <- match(as.character(colid),names(data),nomatch=0)
-    if (any(lj==0)) warning(":dropdata: variables  ",
+    if (any(lj==0)) notice(":dropdata: variables  ",
               paste(colid[lj==0],collapse=", "),"  not found")
     lj <- lj[lj>0]
-    if (!is.null(lj)) data <- data[,-lj,drop=FALSE]
+    if (length(lj)) data <- data[,-lj,drop=FALSE]
   }
   if (length(li)==0&length(lj)==0) {
       warning(":dropdata: no data to be dropped")
@@ -259,7 +259,7 @@ dropdata <- function (data, rowid=NULL, incol="row.names", colid=NULL)
   if (length(li)) {
     if (length(li)==NROW(data)) warning(":dropobs: no observations left")
     if (length(lattr$na.action))  {
-      lin <- which(naresid(lattr$na.action, 1:ln%in%li))
+      lin <- which(naresid(lattr$na.action, (1:ln)%in%li))
       names(lin) <- lrn[li]
       li <- c(lattr$na.action, lin)
     }
@@ -706,6 +706,7 @@ RNAMES <- function (x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function (object)
   length(class(object))>0 && inherits(object, "formula")
+u.isnull <- function(x)  length(x)==0
 u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
 
 nafalse <- function (x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
@@ -721,7 +722,7 @@ u.asformula <- function (x) {
 }
 ## ----------------------------------------------------------------
 notice <- function(..., printnotices = NULL) 
-  if (i.getplopt(printnotices)) message(":Notice from ",...)
+  if (i.getplopt(printnotices)) message("..", ...) ## "Notice from ",
 
 warn <- function ()
   table(paste(names(lw <- warnings()),"@",substr(unlist(lw),1,10)))
