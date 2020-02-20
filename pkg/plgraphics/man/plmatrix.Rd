@@ -10,7 +10,7 @@
 }
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs, 
-         nrow = 0, ncol = nrow, reduce = TRUE, keeppar = FALSE,
+         nrow = 0, ncol = nrow, reduce = TRUE, 
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
          oma=NULL, cex = NULL, diaglabel.cex = NULL,
@@ -33,9 +33,9 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   \item{ncol}{number of columns of panels on a page}
   \item{reduce}{if y is not provided and \code{reduce==TRUE},
     the first row and the last column are suppressed.}
-  \item{keeppar}{logical. If TRUE, the graphical settings
-    "mfrow", "mar", "cex", and "mgp" will be maintained, otherwise,
-    the old values will be restored (default).}
+%%   \item{keeppar}{logical. If TRUE, the graphical settings
+%%     "mfrow", "mar", "cex", and "mgp" will be maintained, otherwise,
+%%     the old values will be restored (default).}
   \item{xaxmar, yaxmar}{margin in which the axis (tick marks and
     corresponding labels) should be shown: either 1 or 3 for
     \code{xaxmar} and 2 or 4 for \code{yaxmar}.

@@ -1002,9 +1002,12 @@ plpoints <-
   if (length(plargs)==0) plargs <- get(".plargs", globalenv())
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   if (setpar) { ## get  cex, mar,  from ploptions
-##-    lusr <- par("usr")
+    ##-    lusr <- par("usr")
+    lusr <- par("usr")
     loldp <- c(par(cex=par("cex") * i.getploption("cex")),
-               par(mar=i.getploption("mar"), usr=par("usr")))
+               par(mar=i.getploption("mar")), par(usr=lusr))
+    ## workaround a problem with changing margin pars
+    points(1.1*lusr[1]-0.1*lusr[2],1.1*lusr[3]-0.1*lusr[4],pch=" ",xpd=TRUE)
     on.exit(par(loldp))
   }
   pldata <- plargs$pldata
@@ -1151,11 +1154,13 @@ plpoints <-
       if (type=="l") return()
       type <- "p"
     }
+##    points(lx[lipch], ly[lipch], pch=" ", xpd=TRUE) ## needed under special circ.
     points(lx[lipch], ly[lipch], type=type, pch=pch[lipch], cex=lspch[lipch],
            col=pcol[lipch])
   }
   NULL
 } ## end plpoints
+## -----
 pllines <- function(x=NULL, y=NULL, type="l", ...) {
   plpoints(x=x, y=y, type=type, ...)
 }
@@ -2082,7 +2087,8 @@ plyx <-
                        setpar=lIfirst)
         if (lIfirst) {
           loldp <- c(lop, loldp)
-          on.exit(par(loldp[!duplicated(names(loldp))]))
+          if (!i.getploption("keeppar"))
+            on.exit(par(loldp[!duplicated(names(loldp))]))
         }
         lIfirst <- FALSE
         pltitle(plargs=plargs, outer.margin=FALSE)
@@ -2142,6 +2148,7 @@ plyx <-
     }
   }
   }
+      print(par("mfg"))
   invisible(plargs)
 } ## end plyx
 ## ==========================================================================
@@ -3466,7 +3473,7 @@ smoothLm <- function(x, y, weights = NULL, ...) {
 ## =======================================================================
 plmatrix <-
   function(x, y=NULL, data=NULL, panel=NULL, panelargs = plargs, 
-           nrow=0, ncol=nrow, reduce=TRUE, keeppar=FALSE,
+           nrow=0, ncol=nrow, reduce=TRUE, 
            xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
            xlab=NULL, ylab=NULL, ## partial match!?!
            oma=NULL, ## mar=NULL,
@@ -3510,8 +3517,9 @@ plmatrix <-
   }
   ## ---
   oldpar <- par(c("mfrow","mar","cex","mgp")) ##, "ask"
-##  lmfg <- par("mfg")
-  if (!keeppar) on.exit(par(oldpar))
+  ##  lmfg <- par("mfg")
+  lkeeppar <- i.getploption("keeppar")
+  if (!lkeeppar) on.exit(par(oldpar))
 ##---------------------- preparations --------------------------
 ##-   lcl <- match.call()
 ##-   lcall <- sys.call() ## match.call modifies argument names
@@ -3592,7 +3600,7 @@ plmatrix <-
   ## set par
   ## if (!keeppar)
   loldp <- plmframes(nrow, ncol, nrow=nv2, ncol=nv1, oma=oma) # , mgp=c(1,0.5,0)
-  on.exit(par(loldp), add=TRUE, after=FALSE)
+  if (!lkeeppar) on.exit(par(loldp), add=TRUE, after=FALSE)
   ## else par(mfrow=par("mfrow")) ## new page! if mfcol was set, it will not work
   ## on.exit(par(attr(loldp, "oldp"))) ## !!!
   lcex <- i.getploption("cex")*par("cex")
@@ -3618,6 +3626,7 @@ plmatrix <-
   loldp <- c(par(cex=lcex), par(mar=lmar, mgp=i.getploption("mgp")))
   ## on.exit(loldp) ## already requested
   ##----------------- plots ----------------------------
+  llastmfg <- par("mfg")
   for (ipgr in 1:lnpgr) {
     lr <- (ipgr-1)*lnr ## start at row index  lr
   for (ipgc in 1:lnpgc) {
@@ -3640,7 +3649,8 @@ plmatrix <-
           do.call(panel,
                   c(list(x=v1, y=v2), ## panel must have arguments x and y
                     list(indx=jd1, indy=jd2, panelargs=panelargs)[lipanelargs]) )
-##          panel(v1,v2, indx=jd1, indy=jd2, plargs=plargs)
+          ##          panel(v1,v2, indx=jd1, indy=jd2, plargs=plargs)
+          llastmfg <- par("mfg")
         }
         else {
           lv0 <- as.numeric(v1)
@@ -3660,6 +3670,7 @@ plmatrix <-
   }}
     ## stamp(sure=FALSE, outer.margin=TRUE) 
   }
+  if (lkeeppar) par(mfg=llastmfg)
   invisible(plargs)
 } ## end plmatrix
 
@@ -4382,7 +4393,7 @@ colorpale <- function(col=NA, pale=0.3, ...)
 ## ======================================================================
 ploptions <-
   function (x=NULL, list=NULL, default=NULL, ploptions = NULL,
-            assign=TRUE, ...)
+            assign=TRUE, setpar = FALSE, ...)
 { ##
   lpldef <- get("ploptionsDefault", pos=1)
   lnewo <- loldo <-
@@ -4390,6 +4401,7 @@ ploptions <-
     if (exists(".ploptions", where=1)) get(".ploptions", pos=1)
     else  lpldef
     } else ploptions
+  ##
   largs <- c(list, list(...))
   lop <- c(names(largs))
   ##
@@ -4400,30 +4412,58 @@ ploptions <-
     }
     return(if(length(x)==1) loldo[[x]] else loldo[x])
   }
-  ## ---
-  if (length(default) && u.notfalse(default)) { ## get default values
+  ## --- get default values
+  if (length(default) && u.notfalse(default)) {
     if (u.true(default)) default <- "all"
     if (!is.character(default))
       stop("!ploptions! Argument 'default' must be of mode character or logical")
-    if (default[1]=="all") return(ploptions(list=lpldef, assign=assign))
+    if (default[1]=="all") largs = c(lpldef, largs)
+      ##return(ploptions(list=lpldef, assign=assign, setpar=setpar))
     ## resets all available components
-    if (default[1]=="unset")
-      return(ploptions(list=lpldef[names(lpldef)%nin%names(loldo)],
-                       assign=assign) )
-    if (any(default!="")) {
-      llopt <- lpldef[default[default%in%names(lpldef)]]
-      return( ploptions(list=llopt) )
+    else {
+      if (default[1]=="unset") {
+        largs <- c(lpldef[names(lpldef)%nin%names(loldo)], largs)
+        default <- default[-1]
+      }
+        ##      return(ploptions(list=lpldef[names(lpldef)%nin%names(loldo)],)
+        if (any(default!=""))
+          largs <- c(largs, lpldef[default[default%in%names(lpldef)]])
+##      return( ploptions(list=llopt) )
     }
   }
-  ## set options
+  ## --- set options
   ## check
-  largs <- check.ploption(list=largs)
-  if (length(largs))  lnewo[names(largs)] <- largs
+  if (length(largs)) largs <- check.ploption(list=largs)
+  if (length(largs)) lnewo[names(largs)] <- largs
   lo <- intersect(names(largs),names(loldo))
   if (length(lo)) attr(lnewo, "old") <- loldo[lo]
+  ## set margin pars, whether changed or not
+  if (setpar) {
+    attr(lnewo, "oldpar") <-
+                par(c(lnewo[c("mar","oma","mgp","cex")], list(mfg=par("mfg"))))
+    par(usr=par("usr"))
+  }
   if (assign) assign(".ploptions", lnewo, pos=1)
   ## assignInMyNamespace does not work
   invisible(lnewo)
+}
+## ====================================================================
+plpar <-
+  function(x=NULL, list=NULL, default=NULL, ploptions = NULL,
+           assign = FALSE, setpar = TRUE, ...)
+{
+  if (u.isnull(ploptions)) ploptions <- .plargs$ploptions
+  largs <- c(list, list(...))
+  lip <- setdiff(intersect(names(largs), names(par())), c("mar","oma","mgp","cex"))
+  lop <- if (length(lip)) par(largs[lip])  ## set graphical parameters
+  li <- match(names(largs),names(ploptions), nomatch=0)
+  lplo <- ploptions(x=x, list=largs[li], default=default, ploptions=ploptions,
+                    assign=assign, setpar=setpar)
+##-   lopn <- 
+##-     if (length(lop)) 
+##-     !is.list(lop) 
+  attr(lplo, "oldpar") <- c(lop, attr(lplo, "oldpar"))
+  invisible(lplo)
 }
 ## ====================================================================
 i.getploption <- function(opt, plo=NULL) {
@@ -4627,6 +4667,7 @@ c.dateticks <- data.frame(
 ## ----------------------------------------------------------------------
 .ploptions <- ploptionsDefault <-
   list(
+    keeppar = FALSE,
     colors = c.colors,
     linewidth = c(1,1.3,1.7,1.3,1.2,1.15), cex = 1,
     ticklength = c(-0.5, 0, 0.2, -0.2),
@@ -4694,6 +4735,7 @@ c.dateticks <- data.frame(
 ## -----------------------------------------------------------------------
 ploptionsCheck <-
   list(
+    keeppar = clg(),
     colors=ccl(),
     linewidth = cnr(c(0.1,5)), cex = cnr(c(0.1,5)), 
     ticklength = cnr(c(-2,2)),

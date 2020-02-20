@@ -1,15 +1,18 @@
 \name{ploptions}
 \alias{ploptions}
+\alias{plpar}
 \alias{.ploptions}
 \alias{ploptionsDefault}
 \title{Set and Get User "Session" Options that influence "regr0"s behavior}
 \description{
-  The user can set (and get) "Session" options which influence the
-  behavior \pkg{plgraphics} functions, notably \code{\link{stamp}()}.
+  The user can set (and get) options -- mostly graphical "parameters" --
+  which influence the behavior \pkg{plgraphics} functions. %%, notably \code{\link{stamp}()}.
 }
 \usage{
 ploptions(x = NULL, list = NULL, default = NULL, ploptions = NULL,
-          assign = TRUE,...)
+          assign = TRUE, setpar = FALSE, ...)
+plpar(x=NULL, list=NULL, default=NULL, ploptions = NULL,
+      assign = FALSE, setpar = TRUE, ...)
 .ploptions
 ploptionsDefault
 }
@@ -30,7 +33,12 @@ ploptionsDefault
   }
   \item{ploptions}{the list of options that should be modified}
   \item{assign}{logical: should the list be assigned to
-    \code{.ploptions}?}    
+    \code{.ploptions}?}
+  \item{setpar}{logical: should the 'margin parameters'
+    \code{("mar","oma","mgp","cex")} be set permanently by calling
+    \code{\link{par}}? If \code{FALSE}, these options will only be
+    active while using pl functions.
+  }
   \item{...}{any ploptions can be defined or modified,
     using \code{name = value}, as in \code{\link{options}} of basic R.}
 }
@@ -68,6 +76,10 @@ ploptionsDefault
   \cr incomplete for the time being!!!
   %% ===========================================================
   \itemize{
+    \item{keeppar}{logical. If TRUE, the graphical parameter settings 
+      "mar", "oma", "cex", "mgp", and "mfg" will be maintained when
+      leaving high level pl functions, 
+      otherwise, the old values will be restored (default).}
     \item{linewidth}{vector of \code{lwd} values to be used for
       the different line types (\code{lty}). The package
       sets \code{lwd} to a value
@@ -144,6 +156,18 @@ ploptionsDefault
     }
   }
 }
+\note{\code{plpar} is a version of \code{ploptions} with different
+  defaults. Its purpose is to make it easy to restore the
+  'margin parameters' according to the last call to a high level
+  pl function in order to complement a plot with low level ordinary
+  R functions like \code{mtext} or \code{segments}, see Examples.
+
+  The same effect can be achieved by setting the pl option
+  \code{keeppar} to \code{TRUE}, either by calling \code{ploptions}
+  or by setting \code{keeppar=TRUE} in the call to the high level
+  pl function.
+}
+  
 \author{Werner A. Stahel}
 \note{In contrast to the \code{\link{options}} of R base,
   the \code{.plptions} list is stored in the \code{.GlobalEnv}
@@ -165,5 +189,27 @@ ploptions(default=TRUE)
 t.plopt <- ploptions(smooth.col="green", assign=FALSE)
 t.plopt$smooth.col
 ploptions("smooth.col") ## unchanged
+
+## setting 'margin parameters' mar, oma, mgp, cex : 
+ploptions(mar=c(2,2,1,1))  ## only active in pl funcions
+  ## (unless  ploptions("keeppar")  is  FALSE )
+ploptions(mar=c(2,2,1,1), setpar=TRUE)  ## changes the margins permanently
+ploptions(setpar=TRUE) ## does the same. All the margin pars are
+  ## set permanently to the values in  .ploptions
+
+## switching 'margin parameters' between those used
+## outside and inside high level pl functions
+par(mar=c(2,2,5,2))
+plyx(Sepal.Width~Sepal.Length, data=iris)
+par("mar")
+mtext("wrong place for text",3,1, col="red")
+t.plo <- plpar()
+par("mar")
+mtext("here is the right place",3,1)
+
+par(attr(t.plo, "oldpar"))  ## resets the 'margin parameters'
+par("mar")
+plyx(Sepal.Width~Sepal.Length, data=iris, keeppar=TRUE)
+par("mar")
 }
 \keyword{utilities}
