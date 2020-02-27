@@ -14,36 +14,38 @@
 }
 \usage{
 plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL, col=NULL, lcol=col,
-  lty=NULL, lwd=NULL, psize=NULL,
+  lty=NULL, lwd=NULL, psize=NULL, cex = NULL,
   plargs = NULL, ploptions = NULL, setpar = TRUE, ...)
 
 pllines(x, y, type="l", ...)
 
 plbars(x = NULL, y = NULL, midpointwidth = NULL, 
-  plargs = NULL, ploptions = NULL, setpar = TRUE)
+  plargs = NULL, ploptions = NULL, setpar = TRUE, ...)
 
 plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
   cutrange = c(x = TRUE, y = FALSE), plargs=NULL, ploptions=NULL, ...)
 
-plsmooth(x, y, ysec = NULL, band=NULL, power = NULL,
-  plargs = NULL, ploptions = NULL)
-plsmoothline(smoothline, x, y, ysec = NULL,
+plsmooth(x = NULL, y = NULL, ysec = NULL, band=NULL, power = NULL, group = NULL, 
+  plargs = NULL, ploptions = NULL, ...)
+plsmoothline(smoothline, x = NULL, y = NULL, ysec = NULL,
+  smooth.col = NULL, smooth.lty = NULL, smooth.lwd, 
   plargs=NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x, y}{coordinates for the horizontal and veritical axis,
     respectively. If \code{NULL}, they will be retrieved from
-    the first and second column of \code{plargs$pldata}.
+    \code{plargs$pldata}.
   }
+  \item{type}{type of displaying points. See \code{?\link{points}}.}
   \item{plab}{labels for displaying points. Overrides labels provided by
     \code{plargs$pdata[["plab"]]}.
   }
-  \item{col}{color points}
+  \item{col}{color for points}
   \item{lcol}{color for lines}
-  \item{type}{type of displaying points. See \code{?\link{points}}.}
-  \item{pch, psize, lty, lwd}{... and \code{col} in \code{plpoints}:
-    plotting character(s), size and color of plotting points,
+  \item{pch, psize, cex, lty, lwd}{... and \code{col} in \code{plpoints}:
+    plotting character(s), relative size, median character expansion,
+    and color for plotting points,
     and line type. %% to be used for \code{plpoints}.
     Overrides other settings, defined in \code{plargs}.
   }
@@ -63,6 +65,10 @@ plsmoothline(smoothline, x, y, ysec = NULL,
     transformation.
   }
   \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
+  \item{smooth.col, smooth.lty, smooth.lwd}{for \code{plsmoothline}:
+    color, line type and line width for the smooth line(s).
+    By default, they will be taken from ploptions.
+  }
   \item{ysec}{for \code{plsmooth, plsmoothline}:
     matrix of secondary y values. The smooths generated or given by its
     columns will be drawn thinner and with paled color.
@@ -72,6 +78,11 @@ plsmoothline(smoothline, x, y, ysec = NULL,
   }
   \item{power}{for \code{plsmooth}: smooth will be calcutated for
     \code{y^power} and the back-transformed. Usually, \code{power=0}.
+  }
+  \item{group}{for \code{plsmooth}: grouping variable.
+    If \code{NULL}, the variable \code{.smooth.group.} column in
+    \code{plargs$pldata} will be used if available.
+    If \code{group} is of length 1, there will be no grouping
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }
@@ -123,6 +134,9 @@ plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
 t.plab <- plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03,
                  plargs=.plargs)
 plpoints(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs, plab=t.plab) 
+## plpoints
+plpoints(col="blue", cex=2) ## gets the coordinates from .plargs
+plpoints(Sepal.Width ~ Sepal.Length, data=iris, pch="+", cex=2, col="green") ## this works, too
 
 ## plbars
 

@@ -10,9 +10,10 @@
   based on the 'pl' paradigm
 }
 \usage{
-plframe(x, y, xlab = NULL, ylab = NULL, ticklabels = TRUE, plextext = NULL,
+plframe(x = NULL, y = NULL, xlab = NULL, ylab = NULL,
+  ticklabels = TRUE, plextext = NULL,
   axcol = rep(1, 4), mar = NULL, 
-  plargs = NULL, ploptions = NULL, setpar = TRUE)
+  plargs = NULL, ploptions = NULL, setpar = TRUE, ...)
 
 pltitle(main=NULL, sub=NULL, cex=NULL, cexmin=NULL, 
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",

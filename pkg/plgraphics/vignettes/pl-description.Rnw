@@ -1318,6 +1318,10 @@ mtext("this goes to the right place, too",3,1)
 @
 
 The low level pl functions to be presented next avoid this problem.
+However, if you want to use these for adding to a figure started with
+a standard plotting function (and you have different margin parameters
+from those in \T{.ploptions}), then you need to set \T{setpar=FALSE}
+in their call.
 
 %% -----------------------------------------------------------
 \section{Low level graphics}
