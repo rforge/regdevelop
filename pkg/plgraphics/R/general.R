@@ -8,7 +8,9 @@
 ##   dropdata
 ##   last
 ##   dropNA
-##   shorten
+##   clipat
+##   shortenstring
+##   colorpale
 ##   
 ##   robrange
 ##   quinterpol
@@ -41,9 +43,9 @@ showd <-
     cat("Null object: ", str(data), "\n")
     return()
   }
-  ldoc <- getOption("doc")
-  if (length(ldoc)>0 && ldoc && length(tit(data))>0) {
-    cat("tit: ",tit(data),"\n")
+  if (u.notfalse(i.getploption("doc"))) {
+    if(length(ltit <- tit(data))>0) cat(ltit,"\n")
+    if(length(ldc <- doc(data))>0) cat("  ",paste(ldc, collapse=" | "),"\n")
   }
   lldim <- length(dim(data))
   if (lldim>2) stop("!showd not yet programmed for arrays")
@@ -97,8 +99,6 @@ showd <-
     l.dc <- t(l.dc)
   }
   print(l.dc,quote=FALSE, digits=digits)
-  if (length(ldoc)&&ldoc&&length(doc(data)))
-    cat("\ndoc:  ",paste(doc(data),collapse="\n  "),"\n")
   invisible(l.dc)
 }
 ## ===================================================
@@ -293,10 +293,50 @@ dropNA <- function (x, inf=TRUE) {
     else x[!apply(as.matrix(is.na(x)), 1, any),] ## as.matrix needed for Surv obj
   } else if (is.numeric(x)&inf) x[is.finite(x)] else x[!is.na(x)]
 }
-shorten <- function (x, n=50, endstring="...")
-  if (nchar(x)>n)
-    paste(substring(x, 1, n-nchar(endstring)),endstring, sep="") else x
-## =================================================================
+## ---------------------------------------------------------------------------
+clipat <- function(x, range=NULL, clipped=NULL) {
+  ## truncate
+  if (length(range)==0) return(x)
+  lrg <- i.extendrange(range(range), 0.000001) ## make sure limits are not excluded
+  li <- which(x>=lrg[1]&x<=lrg[2])
+  if (length(clipped)==0) return (x[li])
+  if (length(clipped)==1) x[-li] <- clipped
+  else {
+    x[which(x<lrg[1])] <- clipped[1]
+    x[which(x>lrg[2])] <- clipped[2]
+  }
+  x
+}
+## ---------------------------------------------------------------------------
+shortenstring <- function (x, n=50, endstring="..", endchars=NULL)
+{
+  if (length(endchars)==0) endchars <- pmin(3,ceiling(n/10))
+  if (any(li <- 1 >= (ncut <- n-nchar(endstring)-endchars))) {
+    warning(":shortenstring: argument 'n' too small for given 'endstring' and 'endchar'")
+    endstring <- ifelse(li, ".", endstring)
+    endchars <- ifelse(li, 0, endchars)
+    ncut <- n-nchar(endstring)-endchars
+  }
+  if (length(x) && any(n < (lnc <- nchar(x))))
+    ifelse(n<lnc & ncut>1, paste(substring(x, 1, ncut), endstring,
+          substring(x, lnc-endchars+1, lnc), sep=""), x)
+}
+## ======================================================================
+colorpale <- function(col=NA, pale=0.3, rgb = FALSE, ...)
+{
+  pale <- i.def(pale, 0.3)
+  if (NCOL(col)!=3||length(lcn <- colnames(col))%nin%c(0,3)||
+      any(lcn!=c("red","green","blue"))) {
+    lcolna <- is.na(col)
+    if (any(lcolna)) {
+      col[lcolna] <- palette()[2]
+      warning(":colorpale: Argument 'col' is NA. I assume  ", col)
+    }
+    col <- t(col2rgb(col)/255)
+  }
+  rr <- 1-(1-pale)*(1-col)
+  if (rgb) rr else rgb(rr, ...)
+}
 ## ===========================================================================
 robrange <-
   function (data, trim=0.2, fac=5.0, na.rm=TRUE)
@@ -465,14 +505,16 @@ getvariables <-
   ## similar to get_all_vars , different error handling; generate is.fac
   if (is.list(formula)) {
     lvnm <- getvarnames(formula[[1]], data=data, transformed=transformed)
-    lvnmy <- if (length(lfoy <- formula[[2]]))
-               getvarnames(lfoy, data=data, transformed=transformed)  else NULL
-    lvarnames <- unique(c(lvnm$varnames, lvnmy$varnames))
+    lvnmy <- if (length(lfo <- formula[[2]]))
+               getvarnames(lfo, data=data, transformed=transformed)
+    lvnmcv <- if (length(lfo <- formula[[3]]))
+               getvarnames(lfo, data=data, transformed=transformed)
+    lvarnames <- unique(c(lvnm$varnames, lvnmy$varnames, lvnmcv$varnames))
 ##    lenv <- environment(formula[[1]])
   } else {
     lvnm <- if (length(formula))
               getvarnames(formula, data=data, transformed=transformed)
-    lvnmy <- NULL
+    lvnmy <- lvnmcv <- NULL
     lvarnames <- lvnm$varnames
 ##    lenv <- environment(formula)
   }
@@ -591,6 +633,7 @@ getvariables <-
     attr(rr, "xvar") <- lvnm$varnames
     attr(rr, "yvar") <- lvnmy$varnames
   }
+  if (length(lvnmcv)) attr(rr, "condvar") <- lvnmcv$varnames
   if (!is.null(messg)) { ## warning
     attr(rr, "message") <- messg
     class(rr) <- c("pl-warning", class(rr))
@@ -838,6 +881,37 @@ i.naresid.exclude <- function (omit, x, ...)
   }
   x
 }
+## ==========================================================================
+i.form2char <- function(formula) {
+  if (length(formula)==2) paste("~",formula[2])
+  else paste(formula[2],"~",formula[3])
+}
+## ==========================================================================
+i.col2hex <- function(col) {
+  ## convert colors given in any form to rgb
+  rgb <- if (is.character(col)) col2rgb(col)
+  else
+    if (is.matrix(col)&&nrow(col)==3) col
+  else
+    if (is.numeric(col)&&all(col>=0)) col2rgb(c.colors[col])
+  else
+    matrix(0,3,length(col))
+  lrgb <- rgb/255
+  structure(rgb(lrgb[1,],lrgb[2,],lrgb[3,]), names=names(col), rgb=rgb)
+}
+## =================================================================
+u.allvars <- function(x)
+  setNames( lapply(as.list(x),
+                   function(lterm) all.vars(as.formula(paste("~",lterm))) ),
+           x)
+u.varsin2terms <- function(formula) {
+  ## which raw variables appear in more than 1 term?
+  ltrm <- rownames(attr(terms(formula[c(1,length(formula))]), "factors"))
+  lraw <- unlist(u.allvars(ltrm))
+  unique(lraw[duplicated(lraw)])
+}
+
+i.extendrange <- function(range, ext=0.05)  range + c(-1,1)*ext*diff(range)
 ## ==========================================================================
 c.weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "Saturday", "Sunday")

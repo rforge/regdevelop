@@ -10,7 +10,7 @@
 }
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs, 
-         nrow = 0, ncol = nrow, reduce = TRUE, 
+         nrow = NULL, ncol = nrow, reduce = TRUE, 
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
          oma=NULL, cex = NULL, diaglabel.cex = NULL,
@@ -29,8 +29,7 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   }
   \item{panelargs}{a list of arguments to be passed to the \code{panel}
     function, in addition to \code{x, y, indx, indy}}
-  \item{nrow}{number of rows of panels on a page}
-  \item{ncol}{number of columns of panels on a page}
+  \item{nrow, ncol}{maximum number of rows and columns of panels on a page}
   \item{reduce}{if y is not provided and \code{reduce==TRUE},
     the first row and the last column are suppressed.}
 %%   \item{keeppar}{logical. If TRUE, the graphical settings
@@ -44,7 +43,7 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
     labelled?}
   \item{xlab, ylab}{not used (introduced to avoid confusion with
     \code{xlabmar, ylabmar})}
-  \item{oma}{width of outer margins, ee \code{\link{par}}}
+  \item{oma}{width of outer margins, see \code{\link{par}}}
   \item{cex}{general character expansion, will be multiplied by
     \code{par("cex")}}
   \item{diaglabel.cex}{Character expansion for labels appearing in the

@@ -1,27 +1,33 @@
 \name{colorpale}
 \alias{colorpale}
-%- Also NEED an '\alias' for EACH other topic documented here.
+
 \title{determine more pale colors for given colors
-%%  ~~function to do ... ~~
 }
 \description{
 Finds colors that are `equivalent' to the colors given as the first
 argument, but more pale.
 }
 \usage{
-colorpale(col = NA, pale = 0.3, ...)
+colorpale(col = NA, pale = 0.3, rgb = FALSE, ...)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{col}{
-  a color or a vector of colors for which the pale version should be found
-}
+    a color or a vector of colors for which the pale version should be found
+  }
   \item{pale}{
-  number between 0 and 1 determining how much paler the result should be.
-}
+    number between 0 and 1 determining how much paler the result should
+    be. If \code{=0}, the original color, \code{col} will be returned
+    unchanged (but in the 'rgb' or 'hexadecimal' form). If \code{=1},
+    the result is white (\code{#FFFFFF}). 
+  }
+  \item{rgb}{should result be expressed in 'rgb' form? If \code{FALSE},
+    it will be in hexadecimal form.
+  }
   \item{...}{
-  further arguments passed on to \code{\link{rgb}}
-}
+    further arguments passed on to \code{\link{rgb}}
+    if \code{rgb} is \code{FALSE}
+  }
 }
 \details{
   The function increases rgb coordinates of colors `proportionally':

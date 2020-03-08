@@ -1,9 +1,13 @@
 
 require(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+require(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 
 plyx(Sepal.Width~Sepal.Length, data=iris)
 plyx(iris[,c("Sepal.Width","Sepal.Length")]) ##!!! farben
 plyx(iris$Sepal.Width~iris$Sepal.Length)
+plyx(~Sepal.Length, ~Sepal.Width, data=iris)
+ff <- function() plyx(~Sepal.Length, ~Sepal.Width, data=iris)
+ff()
 
 ## ploptions
 ploptions("linewidth")

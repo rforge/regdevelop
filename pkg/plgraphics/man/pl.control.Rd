@@ -5,8 +5,8 @@
   other 'pl' functions are checked and data is prepared for plotting.  
 }
 \usage{
-pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
-  gensequence = NULL, cex = NULL, 
+pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
+  transformed = TRUE, gensequence = NULL, cex = NULL, 
   psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, cex.pch = NULL, 
   smooth.weights = NULL, smooth.weight = NULL,
   markextremes = NULL, smooth = NULL,
@@ -18,6 +18,8 @@ pl.control(x=NULL, y=NULL, data = NULL, subset = NULL, transformed = TRUE,
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{x, y, data}{as in \code{\link{plyx}}
+  }
+  \item{condvar}{conditioning variables for \code{\link{plcond}}
   }
   \item{subset}{subset of data.frame 'data' to be used for plotting.
     See details.}
