@@ -11,13 +11,13 @@
 }
 \usage{
 plframe(x = NULL, y = NULL, xlab = NULL, ylab = NULL,
-  ticklabels = TRUE, plextext = NULL,
-  axcol = rep(1, 4), mar = NULL, 
-  plargs = NULL, ploptions = NULL, setpar = TRUE, ...)
+  xlim = NULL, ylim = NULL,
+  ticklabels = TRUE, plextext = NULL, axcol = rep(1, 4), mar = NULL, 
+  plargs = NULL, ploptions = NULL, setpar = TRUE, getxy = TRUE, ...)
 
 pltitle(main=NULL, sub=NULL, cex=NULL, cexmin=NULL, 
   side=3, line=NULL, adj=NULL, outer.margin=NULL, col="black",
-  doc=NULL, show=TRUE, plargs=NULL, ploptions = NULL, ...)
+  doc=NULL, show=NA, plargs=NULL, ploptions = NULL, ...)
 
 plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   tickintervals=NULL,
@@ -34,6 +34,7 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   }
   \item{mar}{plot margins}
   \item{xlab, ylab}{axis labels}
+  \item{xlim, ylim}{plot ranges}
   \item{main, sub}{main title and subtitle}
   \item{varlabel}{variable name}
   \item{plextext}{extension of the plotting area beyond the possibly
@@ -72,6 +73,11 @@ plaxis(side, x, lab=TRUE, range=NULL, varlabel=NULL, col=1,
   \item{setpar}{logical: should graphical parameters
     \code{cex, mar, mgp} be set according to \code{ploptions}?
   }    
+  \item{getxy}{logical: should the coordinates be obtained as in
+    high level graphics? This is set to \code{FALSE} to save time and
+    avoid complications, in case the user is sure that \code{x} and
+    \code{y} are vectors rather than formulas or variable names.
+  }
   \item{\dots}{absorbs extra arguments}
 }
 \value{\code{plframe} and \code{plaxis} invisibly return the former

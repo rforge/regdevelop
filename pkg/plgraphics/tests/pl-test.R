@@ -53,7 +53,7 @@ plaxis(4)
 par(usr=t.usr)
 points(8,4.5, pch="Z", col="red") ## (only) now, it appears in the wrong place!
 plpoints(8,4.5, pch="O", col="blue", pch.cex=5, xpd=T)
-plpoints(pch=5, cex=2, col="red")
+plpoints(pch=5, cex=1.5, col="red")
 plaxis(4, col=2) ## is still correct!
 mtext("still wrong",3,0.2, col="green")  ## margins not appropriate for active plot
 

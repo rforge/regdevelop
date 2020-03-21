@@ -361,12 +361,13 @@ robrange <-
   lnt <- ceiling((1-trim)*ln)
   if (lnt<3 | lnt==ln) {
     warning(":robrange: not enough valid data. returning ordinary range")
-    lsd <- Inf } else {
+    lsd <- Inf
+  } else {
     lsd <- fac*sum(lds[1:lnt]/(lnt-1)) / lsdexpected
     if (lsd==0) {
       warning(":robrange: robust range has width 0. returning ordinary range")
       lsd <- Inf }
-               }
+  }
   structure(c(max(lmn-lsd,min(data)), min(lmn+lsd,max(data))),
             location=lmn, scale=lsd)
 }

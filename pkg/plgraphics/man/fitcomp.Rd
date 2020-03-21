@@ -6,7 +6,8 @@
   Determines effects of varying each of the given variables while all
   others are held constant. This function is mainly used to produce
   plots of residuals versus explanatory variables, also showing
-  component effects.
+  component effects. It can handle a multivariate response fitted by
+  \code{lm}. 
 }
 \usage{
 fitcomp(object, data = NULL, vars=NULL, transformed=FALSE, se = FALSE, 
@@ -50,13 +51,15 @@ variables (terms) at their "central value" \code{xm} (the mean of continuous var
 and the mode of factors).
 }
 \value{A list consisting of
-  \item{comp}{component effects}
+  \item{comp}{component effects. A matrix, unless the response is
+    multivariate, in which case it will be a 3-dimensional array.
+  }
   \item{x}{the values of the x variables for which the effects have been
     calculated}
-  \item{xm}{the values of the x variables that are held fixed while one
-    of the variables is varied}
+  \item{xm}{the values at which the x variables are held fixed while one
+    of them is varied}
   \item{se}{standard errors of the component effects, if required by the
-    argument \code{se}}
+    argument \code{se}. Same structure as \code{comp}}
 }
 %\references{ ~put references to the literature/web site here ~ }
 \author{Werner A. Stahel, ETH Zurich}

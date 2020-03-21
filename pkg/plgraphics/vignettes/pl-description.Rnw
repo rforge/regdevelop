@@ -364,9 +364,10 @@ plyx(Surv(time,status) ~ age+wt.loss, data=lung, pcol=sex)
 @ 
 
 
-\section{Scatterplot matrix}
-Scatterplot matrices are produced by the \T{pairs} function.
-The function \T{plmatrix} does a similar job.
+\section{Scatterplot matrices}
+\subsection{plmatrix}
+The common type of catterplot matrices are produced by the \T{pairs} function 
+in basic R. The function \T{plmatrix} does a similar job.
 
 <<plmatrix,  fig.width=10, fig.height=10>>=
 plmatrix(iris, smooth.group=Species, pcol=Species)
@@ -386,7 +387,43 @@ Otherwise, the function will determine suitable numbers
 if the total number of panels exceeds the threshold set in 
 \T{ploptions("mfgtotal")}. The default is 30.
 
+\subsection{Conditional plots}
+A second handsome funtion in basic graphics that produces a ``matrix''
+of scatterplots is the \T{coplot}. 
+Each panel is the scatterplot of a pair \T{x} and \T{y} of variables,
+where only a subset of points is shown, and the subset is defined
+by the intersection of subsets of two variables, the ``conditioning''
+variables. The panels are arranged in the natural way to form
+a matrix of scatterplots.
+The plgrahics version of \T{coplot} is called \T{plcond}.
 
+<<plcond, fig.width=8, fig.height=9>>=
+plcond(Sepal.Width~Sepal.Length, data=iris, condvar=~Species+Petal.Length)
+@ 
+The conditioning variables may be factors or numerical variables.
+In the latter case, the (robust) range of the variable is partitioned
+in a number of equally long intervals. 
+%% (The number is given by \T{ploptions("plcond.nintervals")}.)
+Each panel then shows the points in the interval in their ordinary appearance,
+and, in addition, some points of the neighoring intervals, with reduced size
+%% (\T{ploptions("plcond.cex")}) 
+and paled color. The color is changed to standard colors indicating whether 
+the point's conditioning variable(s) is (are) below or above the interval.
+All these features are controled by pl options.
+
+In the expamle, the panel for species setosa and \T{Petal.Length} between
+\T{2.18} and \T{3.36} only contains points from the neighoring interval
+below, and they are all colored in varying shades of blue, the paling
+depending on their distance from the lower limit \T{2.18}.
+Similarly, for species virginica, the middle interval contains only one 
+point, and the panel noly shows several points that properly contain to the
+interval above, in shades of purple.
+
+If only one variable is used for conditioning, the function can also 
+be used. It is then an alternative to using \T{plyx} with 
+a \T{group} variable.
+
+%% ===========================================================================
 \section{Regression diagnostic plots}
 Graphical regression diagnostics are the essential tools for developing
 adequate models in many statistical problems.
@@ -1123,6 +1160,8 @@ The components of these lists include
 \item
   \T{leveragelimit} determines the range used for leverage values
   when plotting residuals against leverages.
+\item
+  A group \T{plcond} controlling features within the function \T{plcond}.
 \end{itemize}
 
 If these options modify any setting of R's \T{par} list and they are 
@@ -1284,11 +1323,11 @@ If a variable inherits from class \T{Date} or \T{times}, it will be shown
 automatically in this way.
 
 \subsection{Graphical parameters inside and outside high level pl functions}
-The high level pl functions set graphical parameters (as specified by calling
-\T{par}) according to their needs and the pl options (specified by calling
-\T{ploptions}). When they end, they reset the parameters to the previous values
+The high level pl functions set graphical parameters (by calling \T{par}) 
+according to their needs and often set pl options. 
+When they end, they reset the \T{par} parameters to the previous values
 unless the argument \T{keeppar} is \T{TRUE}.
-Since most often, the parameters determining the width of the plot margins are
+Since quite often, the parameters determining the width of the plot margins are
 changed, subsequent calls to low level R functions would not work properly,
 that is, points within the plotting area as well as elements put to the 
 margin by \T{mtext(...)} would be wrongly positioned.
@@ -1328,7 +1367,12 @@ However, if you want to use these for adding to a figure started with
 a standard plotting function (and you have different margin parameters
 from those in \T{.ploptions}), then you need to set \T{setpar=FALSE}
 in their call.
-
+<<parproblem, fig.width=7, fig.height=4>>=
+par(mar=c(2,2,5,2))
+plot(1:10)
+plpoints(8,9, col="red") ## wrong
+plpoints(8,9, col="blue", setpar=FALSE) ## correct
+@ 
 %% -----------------------------------------------------------
 \section{Low level graphics}
 

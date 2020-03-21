@@ -15,8 +15,9 @@ plpanel(x, y, indx = NULL, indy = NULL, type = "p", frame = FALSE,
 
 panelSmooth(x, y, indx, indy, plargs = NULL, ploptions = NULL, ...)
 
-plpanelCond(x, y, ckeyx, ckeyy, pcol, pale = c(0.2, 0.6), cex = 0.8,
-  smooth = NULL, smooth.minobs, ploptions, ...)
+plpanelCond(x, y, ckeyx, ckeyy, pch = 1, pcol = 1, psize = 1,
+  pale = c(0.2, 0.6), cex = 0.8,
+  smooth = NULL, smooth.minobs = NULL, ploptions = NULL, ...)
 }
 
 \arguments{
@@ -37,7 +38,8 @@ plpanelCond(x, y, ckeyx, ckeyy, pcol, pale = c(0.2, 0.6), cex = 0.8,
     Other values are between -1 and 1,
     \code{cpl=(1-abs(ckeyx))*(1-abs(ckeyy))} is used for paling and weights.
   }
-  \item{pcol}{vector of colors for plotting points
+  \item{pch, pcol, psize}{vector of plotting symbols, colors and sizes
+    for plotting points
   }
   \item{pale}{vector of length 2 indicating the range of paling values
     obtained from \code{cpl} values from 1 to 0.

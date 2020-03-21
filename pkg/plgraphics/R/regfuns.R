@@ -253,6 +253,13 @@ fitcomp <-
   ## Author: Werner Stahel, Date:  6 Jan 2004, 22:24
   ltransf <- i.def(transformed, FALSE, TRUE, FALSE)
   lform <- formula(object)[-2]
+  ## residual typw
+  ltype <- if (inherits(object,c("survreg","coxph"))) "lp"  else "response"
+  ## lp = linear predictor
+  if (inherits(object, c("glm", "polr"))) ltype <- "link"
+  if (inherits(object, "polr")) class(object) <- "regrpolr"
+  lny <- NCOL(object$coefficients)
+  ## --- x data
   if (ltransf) {
     data <- model.frame(object)[,-1,drop=FALSE]
     lvars <- names(data)
@@ -296,13 +303,13 @@ fitcomp <-
   }
   ##
   ## if (inherits(object, "polr")) class(object) <- "lm"
-  ## generate means  xm  if needed
+  ## --- generate means  xm  if needed
   if (length(xm)>0) {
     if ((!is.data.frame(xm))||any(names(xm)!=names(data))) {
       warning(":fitcomp: arg. xm  not suitable -> not used")
       xm <- NULL } else xm <- xm[1,]
   }
-  ## median point and prediction for it
+  ## --- median point and prediction for it
   if (length(xm)==0) {
     xm <- data[1,,drop=FALSE]
     for (lj in 1:length(data)) {
@@ -326,10 +333,7 @@ fitcomp <-
     lterms <- attr(lmf,"terms")
     attr(object$terms,"predvars") <- attr(lterms,"predvars")
   }
-  ltype <- if (inherits(object,c("survreg","coxph"))) "lp"  else "response"
-  ## lp = linear predictor
-  if (inherits(object, c("glm", "polr"))) ltype <- "link"
-  if (inherits(object, "polr")) class(object) <- "regrpolr"
+  ## 
   if (ltransf) {
     lobj <- structure(object, class="list")
     lfo <- as.character(structure(terms(object), class="formula")[3])
@@ -351,7 +355,6 @@ fitcomp <-
     }
   } else 
     lprm <- c(predict(object, newdata=xm, type=ltype)) # lf.
-  lny <- length(lprm)
 ##  expand to matrix
   if (xfromdata) {
     lx <- data
@@ -379,15 +382,15 @@ fitcomp <-
     warning(":fitcomp: no variables found. Result is NULL")
     return(NULL)
   }
-  ##  components
+  ## --- components
   lcomp <- array(dim=c(nrow(lx), length(lvcomp), lny)) 
-  dimnames(lcomp) <- list(dimnames(lx)[[1]], lvcomp, names(lprm))
+  dimnames(lcomp) <- list(dimnames(lx)[[1]], lvcomp, colnames(object$coefficients))
   lcse <- if (se) lcomp  else NULL
   if (ltransf)   {
     lobj[["residuals"]] <- rep(NA,nrow(lx))
     ## needed since predict reads tne number of obs from $residuals
     lobj[["weights"]] <- rep(1,nrow(lx))
-    ## forces  predict.lm  to invert X from scratch
+    ## forces  predict.lm  to invert X^t X unweighted, from scratch
     lsigma <- 
       if (is.null(scale <- object$scale)) {
         w <- object$weights
@@ -405,9 +408,9 @@ fitcomp <-
       ld[,ljd] <- data[,ljd]
       lfc <- sapply(ld,is.factor) # eliminate extra levels of factors
       if (any(lfc)) ld[lfc] <- lapply(ld[lfc], factor)
-    } else { # +++
+    } else { # +++ generate  x  values
       ldv <- data[,ljd]
-      if (lnxj[ljd]) { # factor levels
+      if (lnxj[ljd]) { # --- factor levels
         ldx <- if (lvconv[ljd]) sort(unique(ldv)) else factor(levels(ldv))
         lnl <- length(ldx)
         ld <- lxm[1:lnl,,drop=FALSE]
@@ -439,12 +442,12 @@ fitcomp <-
         } else lc <- lpr
         lcomp[1:lnl,lj,] <- lc
         next # end for loop
-      } else { # continuous var
+      } else { # --- continuous var
         ld <- lxm
         lx[,ljd] <- ld[,ljd] <-
           seq(min(ldv,na.rm=TRUE),max(ldv,na.rm=TRUE),length=lnxc)
-      } # ---
-    } # +++
+      } # --- 
+    } # +++ prediction
     ## continuous variable or xfromdata
     if (ltransf) {
       lxx <- stats::model.matrix(lobj, structure(ld, terms=lterms))
@@ -1079,7 +1082,7 @@ plot.xdistResscale <- function (x, lwd=2, cex=2, xlab="distance in x space",
   lymax <- if (lIse <- length(lse <- attr(x,"se"))) max(lrd+2*lse) else max(lrd)
   ##
   plyx(lxdist, lrd, xlab=xlab, ylab=ylab, type="b", plscale=c("sqrt",""),
-       smooth=FALSE,
+       smooth=FALSE, 
        xlim=c(0,sqrt(max(llim))), xaxs="i", yaxs="i", ylim=c(0,1.05*lymax),
         ...)
   if (lIse) {

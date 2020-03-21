@@ -13,7 +13,9 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
   xlab = NULL, ylab = NULL, varlabels = NULL,
   vcol = NULL, vlty = NULL, vpch = NULL, plscale = NULL, log = NULL,
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
-  ploptions = NULL, .environment. = parent.frame(), assign = TRUE, ... )
+  gencoord = TRUE,
+  ploptions = NULL, .environment. = parent.frame(),
+  assign = TRUE, ... )
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -75,6 +77,9 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
   }
   \item{.subdefault}{for internal use: default of subtitle}
   \item{mar}{plot margins}
+  \item{gencoord}{logical: should plotting coordinates be generated?
+    This is avoided for low level pl graphics.
+    }
   \item{ploptions}{Plotting attributes, e.g., plotting character,
     line types, colors and the like, for different aspects of plots.
     Result of \code{\link{ploptions}}. Defaults to \code{.ploptions}.

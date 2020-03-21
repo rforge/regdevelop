@@ -76,18 +76,18 @@ ploptionsDefault
   \cr incomplete for the time being!!!
   %% ===========================================================
   \itemize{
-    \item{keeppar}{logical. If TRUE, the graphical parameter settings 
+    \item{keeppar:}{ logical. If TRUE, the graphical parameter settings 
       "mar", "oma", "cex", "mgp", and "mfg" will be maintained when
       leaving high level pl functions, 
       otherwise, the old values will be restored (default).}
-    \item{linewidth}{vector of \code{lwd} values to be used for
+    \item{linewidth:}{ vector of \code{lwd} values to be used for
       the different line types (\code{lty}). The package
       sets \code{lwd} to a value
       \code{ploptions("linewidth")[lty]*lwd} intending to balance
       the visual impact of the different line types, e.g.,
       to allow a dotted line to make a similar impression as a solid
       line.}
-    \item{ticklength}{vector of 4 scalars: tickmark length,
+    \item{ticklength:}{ vector of 4 scalars: tickmark length,
       corresponding to \code{par("tcl")}. The first 2 elements
       define the length of the regular tickmarks, the other two,
       of the ``small'' tichmarks given by
@@ -96,13 +96,13 @@ ploptionsDefault
       There are two elements each in order to define tickmarks that
       cross the axis.
     }
-    \item{tickintervals}{vector of length 2. The first element is the
+    \item{tickintervals:}{ vector of length 2. The first element is the
       desired number of tick intervals for axes, to be used as argument
       \code{n} in \code{\link{pretty}}.
       The second determines how many tick labels are shown in the same
       way, and should therefore be smaller than (or equal to) the first.
     }
-    \item{gridlines}{can be \cr
+    \item{gridlines:}{  can be \cr
       -- a logical indicating if gridlines should be drawn. If
       \code{TRUE}, gridlines will be drawn at the values given in
       \code{attr(.,"ticksat")};
@@ -112,16 +112,16 @@ ploptionsDefault
       of either the x or y variable, the respective component will be
       used.
     }
-    \item{\code{smooth.lty, smooth.col}}{line type and color.
+    \item{\code{smooth.lty, smooth.col}:}{ line type and color.
       Note that if there is a \code{smooth.group} factor,
       \code{group.lty} and \code{group.col} are used.
     }
-    \item{\code{smooth.lwd}}{line width. If of length 2 (or more),
+    \item{\code{smooth.lwd}:}{ line width. If of length 2 (or more),
       the second element is the factor by which the line width is
       reduced for simulated smooths (that is, for the second to the last
       column of \code{smoothline$y}). It defaults to 0.7.
     }
-    \item{smooth.xtrim}{proportion of fitted values to be trimmed off on
+    \item{smooth.xtrim:}{ proportion of fitted values to be trimmed off on
       both sides when drawing a smooth line, either a number or a function
       that takes the number of points as its argument.
       The default is the simple function \code{2^log10(n)/n}.
@@ -131,27 +131,48 @@ ploptionsDefault
       fitted instead of a smooth by requiring \code{smoothLm} as the
       smoothing function.
     }
-    \item{smooth.minobs}{minimal number of observations needed for
+    \item{smooth.minobs:}{ minimal number of observations needed for
       calculating a smooth.}
-    \item{smooth.band}{Indicator (logical) determining
+    \item{smooth.band:}{ Indicator (logical) determining
       whether "low" and "high" smooth lines should be drawn.
       See above for their definition.}
-    \item{condquant...}{Conditional quantiles for censored residuals.
+    \item{condquant...:}{ Conditional quantiles for censored residuals.
       \itemize{
-	\item{condquant}{logical: should bars be drawn for censored residuals?
+	\item{condquant:}{ logical: should bars be drawn for censored residuals?
 	  If \code{FALSE}, censored observations will be set to the median of
 	  the conditional distribution and shown by a different plotting
 	  character, see argument \code{censored} of
 	  \code{\link{ploptions}}.
 	  If \code{NULL}, the standard plotting character will be used.
 	}
-	\item{condquant.probrange}{range for probabilities.
+	\item{condquant.probrange:}{ range for probabilities.
 	  If the probability corresponding to the censored part of the
 	  distribution is outside the range, bars will not be drawn.}
-	\item{condquant.pale}{factor by which the \code{pcol} color
+	\item{condquant.pale:}{ factor by which the \code{pcol} color
 	  will be paled to show the points (\code{condquant.pale[1]})
 	  and the bars (\code{...[2]}).
 	}
+      }
+    }
+    \item{plcond...:}{ features of \code{\link{plcond}}.
+      \itemize{
+	\item{plcond/panel:}{ panel function to be used}
+	\item{plcond.nintervals:}{ number of intervals into which
+	  numerical variables will be cut}
+	\item{plcond.extend:}{ proportion of neighboring intervals for
+	  which points are shown. 0 means no overlap.}
+	\item{plcond.col:}{ 4 colors to be used to mark the points of
+	  the neighboing intervals:
+	  The first and second ones color the points lower or higher
+	  than the interval of the horizontal conditioning variable,
+	  and the other two regulating the same features for the
+	  vertical variable.
+	  The points which are outside the intervals of both
+	  conditioning variables will get a mixed color.}
+	\item{plond.pale:}{ minimum and maximum paling, to be applied
+	  for distance 0 and maximal distance from the interval.}
+	\item{plcond.cex:}{ proportion of \code{cex} used to show
+	  the points outside the interval}
       }
     }
   }

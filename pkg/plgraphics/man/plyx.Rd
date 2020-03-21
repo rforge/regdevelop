@@ -8,7 +8,8 @@
 }
 \usage{
 plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
-  panel = NULL, xlab = NULL, ylab = NULL, markextremes = 0, rescale = TRUE,
+  panel = NULL, xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
+  markextremes = 0, rescale = TRUE,
   mar = NULL, plargs = NULL, ploptions = NULL, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -26,6 +27,7 @@ plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   \item{data}{data.frame containing the variables if 'x' is a formula
   }
   \item{xlab, ylab}{axis labels}
+  \item{xlim, ylim}{plot ranges}
   \item{type}{type of plot, see \code{?\link{plot.default}}}
   \item{panel}{panel function to do the actual drawing. See Details.
   }

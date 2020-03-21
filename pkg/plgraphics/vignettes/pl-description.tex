@@ -508,9 +508,10 @@ the x and y variables.
 \end{knitrout}
 
 
-\section{Scatterplot matrix}
-Scatterplot matrices are produced by the \T{pairs} function.
-The function \T{plmatrix} does a similar job.
+\section{Scatterplot matrices}
+\subsection{plmatrix}
+The common type of catterplot matrices are produced by the \T{pairs} function 
+in basic R. The function \T{plmatrix} does a similar job.
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -540,7 +541,49 @@ Otherwise, the function will determine suitable numbers
 if the total number of panels exceeds the threshold set in 
 \T{ploptions("mfgtotal")}. The default is 30.
 
+\subsection{Conditional plots}
+A second handsome funtion in basic graphics that produces a ``matrix''
+of scatterplots is the \T{coplot}. 
+Each panel is the scatterplot of a pair \T{x} and \T{y} of variables,
+where only a subset of points is shown, and the subset is defined
+by the intersection of subsets of two variables, the ``conditioning''
+variables. The panels are arranged in the natural way to form
+a matrix of scatterplots.
+The plgrahics version of \T{coplot} is called \T{plcond}.
 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plcond}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{condvar}\hlstd{=}\hlopt{~}\hlstd{Species}\hlopt{+}\hlstd{Petal.Length)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plcond-1} 
+
+\end{knitrout}
+The conditioning variables may be factors or numerical variables.
+In the latter case, the (robust) range of the variable is partitioned
+in a number of equally long intervals. 
+%% (The number is given by \T{ploptions("plcond.nintervals")}.)
+Each panel then shows the points in the interval in their ordinary appearance,
+and, in addition, some points of the neighoring intervals, with reduced size
+%% (\T{ploptions("plcond.cex")}) 
+and paled color. The color is changed to standard colors indicating whether 
+the point's conditioning variable(s) is (are) below or above the interval.
+All these features are controled by pl options.
+
+In the expamle, the panel for species setosa and \T{Petal.Length} between
+\T{2.18} and \T{3.36} only contains points from the neighoring interval
+below, and they are all colored in varying shades of blue, the paling
+depending on their distance from the lower limit \T{2.18}.
+Similarly, for species virginica, the middle interval contains only one 
+point, and the panel noly shows several points that properly contain to the
+interval above, in shades of purple.
+
+If only one variable is used for conditioning, the function can also 
+be used. It is then an alternative to using \T{plyx} with 
+a \T{group} variable.
+
+%% ===========================================================================
 \section{Regression diagnostic plots}
 Graphical regression diagnostics are the essential tools for developing
 adequate models in many statistical problems.
@@ -1135,11 +1178,7 @@ plot.
 \hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
 \hlkwd{plot}\hlstd{(xdrd,} \hlkwc{zeroline.col}\hlstd{=}\hlstr{"darkgreen"}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/xdist-1} 
 
 \end{knitrout}
@@ -1349,6 +1388,8 @@ The components of these lists include
 \item
   \T{leveragelimit} determines the range used for leverage values
   when plotting residuals against leverages.
+\item
+  A group \T{plcond} controlling features within the function \T{plcond}.
 \end{itemize}
 
 If these options modify any setting of R's \T{par} list and they are 
@@ -1557,11 +1598,11 @@ If a variable inherits from class \T{Date} or \T{times}, it will be shown
 automatically in this way.
 
 \subsection{Graphical parameters inside and outside high level pl functions}
-The high level pl functions set graphical parameters (as specified by calling
-\T{par}) according to their needs and the pl options (specified by calling
-\T{ploptions}). When they end, they reset the parameters to the previous values
+The high level pl functions set graphical parameters (by calling \T{par}) 
+according to their needs and often set pl options. 
+When they end, they reset the \T{par} parameters to the previous values
 unless the argument \T{keeppar} is \T{TRUE}.
-Since most often, the parameters determining the width of the plot margins are
+Since quite often, the parameters determining the width of the plot margins are
 changed, subsequent calls to low level R functions would not work properly,
 that is, points within the plotting area as well as elements put to the 
 margin by \T{mtext(...)} would be wrongly positioned.
@@ -1615,7 +1656,7 @@ These are available from \T{.plargs\$ploptions}
 \hlkwd{par}\hlstd{(}\hlstr{"mar"}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
-## [1] 3 3 3 1
+## [1] 3.1 3.1 3.1 1.1
 \end{verbatim}
 \begin{alltt}
 \hlkwd{mtext}\hlstd{(}\hlstr{"this goes to the right place, too"}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{)}
@@ -1630,7 +1671,26 @@ However, if you want to use these for adding to a figure started with
 a standard plotting function (and you have different margin parameters
 from those in \T{.ploptions}), then you need to set \T{setpar=FALSE}
 in their call.
-
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{par}\hlstd{(}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{2}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{5}\hlstd{,}\hlnum{2}\hlstd{))}
+\hlkwd{plot}\hlstd{(}\hlnum{1}\hlopt{:}\hlnum{10}\hlstd{)}
+\hlkwd{plpoints}\hlstd{(}\hlnum{8}\hlstd{,}\hlnum{9}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlcom{## wrong}
+\end{alltt}
+\begin{verbatim}
+## NULL
+\end{verbatim}
+\begin{alltt}
+\hlkwd{plpoints}\hlstd{(}\hlnum{8}\hlstd{,}\hlnum{9}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{,} \hlkwc{setpar}\hlstd{=}\hlnum{FALSE}\hlstd{)} \hlcom{## correct}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/parproblem-1} 
+\begin{kframe}\begin{verbatim}
+## NULL
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
 %% -----------------------------------------------------------
 \section{Low level graphics}
 
@@ -1701,7 +1761,7 @@ or change the ploption, \T{ploptions(panel=my.panel)}.
 
 \Tit{Coordinates from last high level pl function.}
 The low level functions that act on \T{x} and \T{y} coordinates can be used
-with empt \T{x} and \T{y} arguments. They will then obtain these values
+with empty \T{x} and \T{y} arguments. They will then obtain these values
 from \T{.plargs\$pldata}, which is generated and stored by high level 
 pl functions and will thus reflect the coordinates that are likely the
 bases of the current plot. 
@@ -1855,7 +1915,7 @@ affected, the pl functions use an implicit palette given by
 \begin{verbatim}
 ##  [1] "black"        "red"          "blue"         "darkgreen"   
 ##  [5] "orange"       "purple"       "deepskyblue2" "green3"      
-##  [9] "brown"        "pink3"        "aquamarine3"  "brown2"
+##  [9] "coral4"       "pink3"        "aquamarine3"  "brown2"
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -1910,7 +1970,8 @@ following rules.
 
 Pl functions may use a grouping of observations, defined by an argument
 \T{group=...} in different ways.
-\T{plyx} splits the observations accordingly and produces a panel for each group
+\T{plyx} splits the observations accordingly and produces a panel for each
+group.
 
 Other types of groupings are:
 \begin{itemize}
@@ -1937,7 +1998,7 @@ Alternatively, a range can be specified for any variable in a dataset
 by setting the attribute \T{attr(dd, "plrange")} or
 \T{attr(dd, "innerrange")} or both.
 
-Set the \T{innerrange} attribute by calling genvarattributes. 
+Set the \T{innerrange} attribute by calling \T{genvarattributes}. 
 Otherwise, you need to call also \T{plcoord} in order to have a conforming
 \T{plcoord} attribute of the variable(s).
 
@@ -2042,7 +2103,7 @@ combining that data.frame with the original dataset.
 For a data analysis, it is often useful to save graphical displays in 
 documents or on paper. In an extended data analysis, one can easily lose
 control over the precise content of the different plots.
-\T{regr} provides some help for keeping track.
+\T{plgraphics} provides some help for keeping track.
 \begin{itemize}
 \item 
   Every graphical display generated by a graphical function from the
@@ -2057,6 +2118,7 @@ control over the precise content of the different plots.
   \T{doc} -- title and description --, which will be printed with
   numerical output if desired.
   Currently, this only works with the function \T{showd}.
+  This feature is disabled by setting \T{ploptions(doc=FALSE)}.
 \end{itemize}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -2066,16 +2128,18 @@ control over the precise content of the different plots.
   \hlkwd{showd}\hlstd{(iris)}
 \end{alltt}
 \begin{verbatim}
-## dim:  150 6 
-##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species (pcol)
-## 1            5.1         3.5          1.4         0.2     setosa      1
-## 2            4.9         3.0          1.4         0.2     setosa      1
-## 3            4.7         3.2          1.3         0.2     setosa      1
-## ...                                                                    
-## 40           5.1         3.4          1.5         0.2     setosa      1
-## 76           6.6         3.0          4.4         1.4 versicolor      2
-## 113          6.8         3.0          5.5         2.1  virginica      3
-## 150          5.9         3.0          5.1         1.8  virginica      3
+## Fisher's iris data 
+##    The most famous statistical dataset ever | The most famous statistical dataset ever | The most famous statistical dataset ever 
+## dim:  150 5 
+##     Sepal.Length Sepal.Width Petal.Length Petal.Width    Species
+## 1            5.1         3.5          1.4         0.2     setosa
+## 2            4.9         3.0          1.4         0.2     setosa
+## 3            4.7         3.2          1.3         0.2     setosa
+## ...                                                             
+## 40           5.1         3.4          1.5         0.2     setosa
+## 76           6.6         3.0          4.4         1.4 versicolor
+## 113          6.8         3.0          5.5         2.1  virginica
+## 150          5.9         3.0          5.1         1.8  virginica
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
