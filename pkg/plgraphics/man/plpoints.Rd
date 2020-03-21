@@ -51,9 +51,15 @@ plsmoothline(smoothline = NULL, x = NULL, y = NULL, ysec = NULL,
   }
   \item{refline}{for \code{plrefline}:
     A vector giving intercept and slope of a straight line, 
-    or a function that returns this list, such as \code{lm}}
+    or a function that returns this list, such as \code{lm}.\cr
+    Alternatively, a list with components \code{x} and \code{y}
+    and possibly a component \code{band} that contains the coordinates
+    of the line (or lines, if \code{y} is a matrix) and the width of
+    a band around it (that is, additional lines, to be drawn with
+    \code{ploptions("refline.col")[2]}). 
+  }
   \item{innerrange}{for \code{plrefline}: inner range in x direction -
-    only needed of the refline should be clipped at a range different
+    only needed if the refline should be clipped at a range different
     from the \code{innerrange} attribute of the horizontal variable}
   \item{cutrange}{for \code{plrefline}: logical vector of length 2:
     should the reference line(s) be cut at the inner plotting ranges in

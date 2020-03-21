@@ -707,7 +707,9 @@ plframe <-
 {
   ## -------------------
   lf.getcoord <- function(x, lext) {
-    lx <- if (is.data.frame(x)) setNames(x[,1], row.names(x)) else x 
+    if (!is.data.frame(x)) x <- as.data.frame(x)
+    if (ncol(x)>1) x <- x[,1,drop=FALSE]
+    lx <- x[,1] ##,drop=FALSE] else x ## setNames(x[,1], row.names(x))
     if (length(lx)==0)
       stop("!plframe! unsuitable argument 'x' or 'y'")
     lxx <- i.def(i.def(attr(lx,"numvalues"), attr(lx,"plcoord")), lx)
@@ -725,7 +727,7 @@ plframe <-
       if (length(lrg)==0)
         lrg <- i.extendrange(range(lxx, na.rm=TRUE), lext[1:2])
     }
-    list(x = lx, xx = lxx, range = lrg)
+    list(x = x, xx = lxx, range = lrg)
   }
   ## ---
   if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
@@ -740,6 +742,7 @@ plframe <-
     plargs <- lxy$plargs
 ##    pldata <- lxy$plargs$pldata
   }
+  if (is.data.frame(y)) y <- y[,1]
   ploptions <- plargs$ploptions
   ##---
   lIlab <- as.logical(rep(ticklabels, length=4))
@@ -1494,25 +1497,36 @@ plrefline <-
     x[x<rg[1]|x>rg[2]] <- NA
     x
   }
+  ## ---
   if (length(plargs)==0) plargs <- get(".plargs", globalenv())
   if (length(ploptions)==0) ploptions <- plargs$ploptions
-  if (is.character(x)) x <- plargs$pldata[,x]
-  if (is.character(y)) y <- plargs$pldata[,y]
+  lusr <- par("usr")
+  ## ---
   lrfyb <- NULL
+  if (missing(refline)|u.isnull(refline)) {
+##-     lrfx <- x
+##-     lrfy <- y
+##-     if (u.isnull(x)|u.isnull(y)||length(x)!=NROW(y)) {
+    warning(":plrefline: argument refline is NULL. No refline")
+    return()
+  }
   if (is.function(refline)) {
     refline <-
       if (names(formals(refline))[1]=="formula") try(refline(y~x))
       else try(refline(x,y))
-    if (class(refline)=="try-error") {
-      warning(":plrefline: argument refline contains an unsuitable function")
-      return()
-    }
+      if (class(refline)=="try-error") {
+        warning(":plrefline: argument refline contains an unsuitable function")
+        return()
+      }
   }
   if (is.list(refline)&&length(refline$coef)) refline <- refline$coef
-  lusr <- par("usr")
+  if (is.character(x)) x <- plargs$pldata[,x]
+  if (is.character(y)) y <- plargs$pldata[,y]
+  if (u.isnull(innerrange)) innerrange <- attr(x, "innerrange")
+  ##---
   if (is.atomic(refline)) {
     if (length(refline)!=2) {
-      warning(":plrefline: 'refline' not suitable. No reflines")
+      warning(":plrefline: 'refline' not suitable. No refline")
       return()
     }
     lrfx <- seq(lusr[1],lusr[2],
@@ -1533,7 +1547,6 @@ plrefline <-
   }
   lIrfyb <- length(lrfyb)
   ## ---
-  if (u.isnull(innerrange)) innerrange <- attr(x, "innerrange")
   ## haul refline to inner plotrange
   if (length(innerrange)>0) {
     if (u.isnull(x)) x <- plargs$pldata[, i.def(attr(plargs$pldata,"xvar"),1)[1]]
@@ -2365,6 +2378,9 @@ plregr.control <-
   ## if (length(lres)==0) lres <- residuals(x)
   lres <- as.data.frame(lres)
   lmres <- ncol(lres)
+  lzl <- i.def(i.getploption("zeroline"), 0)
+  if (u.notfalse(lzl))
+    for (lj in seq_len(lmres)) attr(lres[,lj], "zeroline") <- lzl
   lnobs <- sum(is.finite(lres[,1]))
   lres0 <- all( apply(lres[,1:lmres, drop=FALSE],2,
                       function(x) all(x==dropNA(x)[1], na.rm=TRUE ) ) )
@@ -3286,7 +3302,7 @@ plresx <-
                     xfromdata=FALSE, se=lshrefl>1)
     lcompx <- lcomp$x
     lcompy <- if (addcomp) lcomp$comp else -lcomp$comp
-    lcompse <- lcomp$se
+    lIcompse <- length(lcompse <- lcomp$se)>0
     if (addcomp) {
       lcompdt <-
         fitcomp(x, pldata, vars=lvcomp, transformed=transformed,
@@ -3308,10 +3324,10 @@ plresx <-
   } else lsmlegend <-
            if("(xvar)"%in%names(smooth.legend))
              setNames(smooth.legend, lvars[1]) else smooth.legend
+  lpanel <- eval(i.getploption("panel"))
+  if (is.character(lpanel)) lpanel <- get(lpanel, envir=globalenv())
   ## --- multivariate ## !!! factors!
   if (inherits(x,"mlm")) {
-    lpanel <- eval(i.getploption("panel"))
-    if (is.character(lpanel)) lpanel <- get(lpanel, envir=globalenv())
     lpmult <- function(x, y, indx, indy, pch, col, panelargs=NULL, ...) {
       ## lcompx <- lcompy <- NULL
       ltin <- terminouterel[indx]
@@ -3355,7 +3371,7 @@ plresx <-
   lcex <- par("cex") ## *i.getploption("cex")
   ## par(cex=lcex)
   ##
-  lmbox <- ploptions$factor.show=="mbox"
+  lmbox <- i.getploption("factor.show")=="mbox"
   lIjitter <- !lmbox ## ploptions$factor.show=="jitter"
   ljitfac <- i.getploption("jitter.factor")
   lrpl <- plargs$resplab
@@ -3372,7 +3388,10 @@ plresx <-
     lvr <- lvars[lj] ## if (transformed) lvars[lj] else lrawv[lj]
     lv <- unname(lvr)
     lIcompj <- terminouterel[lj] && lshrefl && lInnls
-    lci <- if (lIcompj&lshrefl) lcompy[, lvr] else 0 ## !!!
+    if (lIcompj) {
+      lcj <- lcompy[, lvr]
+      if (lIcompse) lcsej <- lcompse[,lvr]
+    }
     if (plargs$partial.resid) 
       if (lshrefl && addcomp && lIcompj)  lrs <- lr+lcompdt[, lvr]
     lvv <- pldata[, lv]
@@ -3382,58 +3401,34 @@ plresx <-
     if (u.isnull(attr(lvv, "varlabel")))  attr(lvv, "varlabel") <- lv
     lrs1 <- lrs[,1,drop=FALSE]
     if (is.factor(lvv)) {
-      ## factors
-      ## lmar <- par("mar") ## might be adapted to nchar(levels)
-##      lvv <- structure(lvv, varlabel=attr(lvv, "varlabel"))
+      ## --- factors
       ll <- levels(lvv)
       lnl <- length(ll)
+      if (lIcompj) {
+        lrfx <- c(outer(0.45*c(-1,1,NA),seq_along(ll),"+"))
+        lcj1 <- lcj[1:lnl]
+        lrfy <- c(rbind(lcj1,lcj1,NA))
+        lrfb <-
+          if(lIcompse) {
+            lcsej1 <- lcsej[1:lnl]
+            lrfb <- c(rbind(lcsej1,lcsej1,NA))
+            lrfy + cbind(-lrfb,lrfb)
+          }
+        lrefline <- list(x=lrfx, y=lrfy, band=lrfb)
+      }
+      lpla <- plargs
       if (lmbox) {
-        lpla <- plargs
-        lpla$ploptions$mar[c(1,3)] <- NA ##ifelse(c(TRUE,FALSE,TRUE,FALSE), NA, par("mar"))
+        lpla$ploptions$mar[c(1,3)] <- NA 
         ## allow for changing  mar[c(1,3)]
         lpla$pldata=structure(pldata, xvar=lv)
-##        lpla$sub <- lpla$main <- ""
-        ##       if (lIcq) lrs <- lres[,"random"]
-##        attr(lpla$pldata,"xvar") <- lv
         plmboxes.default(lvv, lrs1, data=pldata, mar=mar, plargs=lpla)
-        ## title
-##        pltitle(plargs=plargs, show=NA)
+        plrefline(lrefline, plargs=plargs)
       } else {
-##        attr(lvv, "plcoord") <- jitter(as.numeric(lvv), factor=ljitfac)
-        plframe(lvv,lrs1, ploptions=ploptions, getxy=FALSE)
+        lpla$reflinecoord <- lrefline
+        plframe(lvv,lrs1, plargs=lpla, getxy=FALSE)
+        lpanel(lvv,lrs1, plargs=lpla, getxy=FALSE)
       }
-      ## reference values !!! simplify, defer to plpanel ?
-      if (lIcompj) {
-        lx <- seq_along(ll)
-        lcil <- lci[1:lnl]
-        ## inner range
-        lrsrg <- attr(lrs1,"innerrange")
-        if ((!u.isnull(lrsrg))&&diff(lrsrg)) {
-          lcilp <- plcoord(lcil, lrsrg, innerrange.ext=plargs$innerrange.ext)
-          if (any(attr(lcilp,"nouter"))) {
-            liout <- lcilp!=lcil
-            lrsout <- pmax(pmin(lcilp[liout], lrsrg[2]), lrsrg[1])
-            segments(lx[liout]-0.45, lrsout, lx[liout]+0.45, lrsout,
-                     lty=ploptions$refline.lty, lwd = ploptions$refline.lwd,
-                     col=ploptions$refline.col[1])
-            lcil[liout] <- NA
-          }
-        }
-        segments(lx-0.45, lcil, lx+0.45, lcil,
-                 lty=ploptions$refline.lty[1], lwd = ploptions$refline.lwd[1],
-                 col=ploptions$refline.col[1])
-        if (lshrefl>1) {
-          wid <- lqnt * lcompse[1:lnl, lv]
-          lcill <- pmax(lcil-wid,lrsrg[1])
-          lcilu <- pmin(lcil+wid,lrsrg[2])
-          lines(c(rbind(lx-0.1,lx+0.1,lx+0.1,lx-0.1,lx-0.1,NA)),
-                c(rbind(lcill,lcill,lcilu,lcilu,lcill,NA)),
-                lty=ploptions$refline.lty[2],
-                lwd = ploptions$refline.lwd[2],
-                col=last(ploptions$refline.col))
-        }
-      }
-      if (!lmbox) plpoints(lvv,lrs1, plargs=plargs, setpar=FALSE, getxy=FALSE)
+      ## reference values 
     } else { # ---
       ## --- continuous explanatory variable
       ##lrs <- lres[,lj]
@@ -3441,9 +3436,9 @@ plresx <-
       if (lshrefl && lIcompj) {
         lrefx <- lcompx[,lvr]
         lrefyb <- if (lshrefl>1) outer(lqnt*lcompse[,lvr], c(-1,1))
-        plargs$reflinecoord <- list(x=lrefx, y=lci, band=lrefyb)
+        plargs$reflinecoord <- list(x=lrefx, y=lcj, band=lrefyb)
       }
-      plpanel(lvv, lrs1, plargs=plargs, title=NA, frame=TRUE)
+      lpanel(lvv, lrs1, plargs=plargs, title=NA, frame=TRUE)
     } ## ends  if factor else
     par(cex=lcex)
   }
@@ -3656,7 +3651,7 @@ plmatrix <-
     else all(dropNA(v1==v2))
   }
   ## ---
-  oldpar <- par(c("mfrow","mar","cex","mgp")) ##, "ask"
+  oldpar <- par(c("mfrow","mar","cex","mgp","oma")) ##, "ask"
   ##  lmfg <- par("mfg")
   lkeeppar <- i.getploption("keeppar")
   if (!lkeeppar) on.exit(par(oldpar))
