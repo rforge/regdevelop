@@ -45,7 +45,11 @@ showd <-
   }
   if (u.notfalse(i.getploption("doc"))) {
     if(length(ltit <- tit(data))>0) cat(ltit,"\n")
-    if(length(ldc <- doc(data))>0) cat("  ",paste(ldc, collapse=" | "),"\n")
+    if(length(ldc <- doc(data))>0) {
+      if (length(ldc)>3) ldc <- c(ldc[1:2],paste(ldc[3], "..."))
+      ldc[1] <- paste(" ",ldc[1], sep="")
+      cat(paste("  ",ldc, "\n", sep=""))
+    }
   }
   lldim <- length(dim(data))
   if (lldim>2) stop("!showd not yet programmed for arrays")
@@ -453,8 +457,13 @@ doc <- function (x) attr(x,"doc")
 {
   ##-- Create doc attribute or  PREpend  new doc to existing one.
   value <- as.character(value)
-  attr(x, "doc") <- if (length(value)==0) NULL else
-  if(value[1]=="^") value[-1] else c(value, attr(x, "doc"))
+  ldc <- doc(x)
+  browser()
+  attr(x, "doc") <-
+    if (length(value)==0) NULL
+    else
+      if(value[1]=="^") c(value[-1], ldc[-1])
+    else c(if (!(length(ldc)&&ldc[1]==value[1])) value, ldc)
   x
 }
 ## ---

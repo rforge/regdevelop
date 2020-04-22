@@ -101,11 +101,15 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
   }
   \item{labelsperp}{logical: Should the labels for the levels of the
     "x factor" be shown in perpendicular to the axis?
+    If it is numeric, it determines the maximum label length, with a
+    maximum of 20.
   }
   \item{xmar}{plot margin for the "x factor" axis.
     Default tries to be suitable, i.e. expand the margin if
     \code{labelsperp} is \code{TRUE} according to the length of the
-    levels' labels.
+    levels' labels. If \code{xmar} has two more elements,
+    they determine the margin lines where the variable label and the levels'
+    labels are shown.
   }
   \item{widthfac}{named vector used to modify the following settings:
     \cr  

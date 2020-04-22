@@ -16,7 +16,7 @@ plpanel(x, y, indx = NULL, indy = NULL, type = "p", frame = FALSE,
 panelSmooth(x, y, indx, indy, plargs = NULL, ploptions = NULL, ...)
 
 plpanelCond(x, y, ckeyx, ckeyy, pch = 1, pcol = 1, psize = 1,
-  pale = c(0.2, 0.6), cex = 0.8,
+  pale = c(0.2, 0.6), csize = 0.8,
   smooth = NULL, smooth.minobs = NULL, ploptions = NULL, ...)
 }
 
@@ -44,7 +44,7 @@ plpanelCond(x, y, ckeyx, ckeyy, pch = 1, pcol = 1, psize = 1,
   \item{pale}{vector of length 2 indicating the range of paling values
     obtained from \code{cpl} values from 1 to 0.
   }
-  \item{cex}{factor applied to the character expansion of the points
+  \item{csize}{factor applied to the character expansion of the points
     with \code{cpl<1}
   }
   \item{smooth}{should a smooth line be drawn?

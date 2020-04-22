@@ -10,7 +10,7 @@
 plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   panel = NULL, xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
   markextremes = 0, rescale = TRUE,
-  mar = NULL, plargs = NULL, ploptions = NULL, ...)
+  mar = NULL, plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -44,6 +44,9 @@ plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
     If not null, arguments given in \code{...} will be ignored.
   }
   \item{ploptions}{list of pl options.
+  }
+  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
+    in the \code{.GlobelEnv}?
   }
   \item{\dots}{ more arguments, to be passed to \code{\link{pl.control}}
   }

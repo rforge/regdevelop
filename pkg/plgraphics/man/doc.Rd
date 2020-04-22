@@ -33,8 +33,13 @@ tit(x) <- value
   \code{c.env$docout}.
 
   \code{doc(x) <- text} will append the existing \code{doc(x)} text to
-  the new one unless the first element of text equals \code{"^"},
-  whereas \code{tit(x) <- string} replaces \code{tit(x)}. 
+  the new \code{text} unless its first element equals (the first element
+  of) \code{text}.
+  (This avoids piling up the same line by unintended multiple call to
+  \code{doc(x) <- value} with the same \code{value}.)
+  If the first element of \code{text} equals \code{"^"},
+  the first element of \code{doc(x)} is dropped.
+  \code{tit(x) <- string} replaces \code{tit(x)} with \code{string}. 
 }
 \value{
   \code{doc} and \code{tit} return the respective attributes of object

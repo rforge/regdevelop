@@ -6,8 +6,8 @@
 }
 \usage{
 pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
-  transformed = TRUE, gensequence = NULL, cex = NULL, 
-  psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, cex.pch = NULL, 
+  transformed = TRUE, gensequence = NULL, csize = NULL, 
+  psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, csize.pch = NULL, 
   smooth.weights = NULL, smooth.weight = NULL,
   markextremes = NULL, smooth = NULL,
   xlab = NULL, ylab = NULL, varlabels = NULL,
@@ -31,7 +31,7 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
     should the other of these be specified as the sequence
     \code{1:nobs} (where \code{nobs} is the number of observations)?
   }
-  \item{cex}{character expansion, applied to both labels and plotting
+  \item{csize}{character expansion, applied to both labels and plotting
     characters.
   }
   \item{psize, plab, pch, pcol}{Plotting characteristics of points,
@@ -41,7 +41,7 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
     strings), plotting character, and color, respectively.\cr
     \code{plabs = TRUE} asks for using the row names of \code{data}.
   }
-  \item{cex.pch}{expansion of plotting symbol relative to
+  \item{csize.pch}{expansion of plotting symbol relative to
     \code{par("pch")}.
     By default, it adjusts to the number of observations.
   }
@@ -133,11 +133,11 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
   \code{\link{plyx}}, \code{\link{plmatrix}}, \code{\link{ploptions}}
 }
 \examples{
-plyx(Sepal.Width~Sepal.Length, data=iris, axp=7, plab=TRUE, cex.plab=0.6)
+plyx(Sepal.Width~Sepal.Length, data=iris, axp=7, plab=TRUE, csize.plab=0.6)
 ## same as
 plargs <- pl.control(Sepal.Width~Sepal.Length, data=iris)
 plargs$pdata$plab <- row.names(iris)
-plargs$cex.lab <- 0.6
+plargs$csize.lab <- 0.6
 plargs$axp <- 7
 plyx(Sepal.Width~Sepal.Length, plargs=plargs)
 

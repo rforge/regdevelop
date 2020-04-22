@@ -14,7 +14,7 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
          xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
          xlab=NULL, ylab=NULL,
          oma=NULL, cex = NULL, diaglabel.cex = NULL,
-         plargs = NULL, ploptions = NULL, ...) 
+         plargs = NULL, ploptions = NULL, assign = TRUE, ...) 
 }
 
 \arguments{
@@ -53,6 +53,9 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
     If not null, arguments given in \code{...} will be ignored.
   }
   \item{ploptions}{list of pl options.
+  }
+  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
+    in the \code{.GlobelEnv}?
   }
   \item{\dots}{further arguments passed to the \code{panel} function
     and possibly further to functions called by the panel function\cr}

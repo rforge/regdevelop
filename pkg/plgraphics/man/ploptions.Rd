@@ -1,6 +1,6 @@
 \name{ploptions}
 \alias{ploptions}
-\alias{plpar}
+%% \alias{plpar}
 \alias{.ploptions}
 \alias{ploptionsDefault}
 \title{Set and Get User "Session" Options that influence "regr0"s behavior}
@@ -11,8 +11,8 @@
 \usage{
 ploptions(x = NULL, list = NULL, default = NULL, ploptions = NULL,
           assign = TRUE, setpar = FALSE, ...)
-plpar(x=NULL, list=NULL, default=NULL, ploptions = NULL,
-      assign = FALSE, setpar = TRUE, ...)
+%%- plpar(x=NULL, list=NULL, default=NULL, ploptions = NULL,
+%%-       assign = FALSE, setpar = TRUE, ...)
 .ploptions
 ploptionsDefault
 }
@@ -177,17 +177,6 @@ ploptionsDefault
     }
   }
 }
-\note{\code{plpar} is a version of \code{ploptions} with different
-  defaults. Its purpose is to make it easy to restore the
-  'margin parameters' according to the last call to a high level
-  pl function in order to complement a plot with low level ordinary
-  R functions like \code{mtext} or \code{segments}, see Examples.
-
-  The same effect can be achieved by setting the pl option
-  \code{keeppar} to \code{TRUE}, either by calling \code{ploptions}
-  or by setting \code{keeppar=TRUE} in the call to the high level
-  pl function.
-}
   
 \author{Werner A. Stahel}
 \note{In contrast to the \code{\link{options}} of R base,
@@ -224,7 +213,7 @@ par(mar=c(2,2,5,2))
 plyx(Sepal.Width~Sepal.Length, data=iris)
 par("mar")
 mtext("wrong place for text",3,1, col="red")
-t.plo <- plpar()
+t.plo <- plmarginpar()
 par("mar")
 mtext("here is the right place",3,1)
 
