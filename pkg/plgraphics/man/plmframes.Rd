@@ -7,7 +7,7 @@
 }
 \usage{
 plmframes(mfrow = NULL, mfcol = NULL, mft = NULL, byrow = TRUE, reduce = FALSE, 
-  oma = NULL, mar = NULL, mgp = NULL, ploptions. = NULL, \dots)
+  oma = NULL, mar = NULL, mgp = NULL, plargs = NULL, \dots)
 }
 \arguments{
   \item{mfrow, mfcol}{number of rows and columns of panels. The default
@@ -24,15 +24,19 @@ plmframes(mfrow = NULL, mfcol = NULL, mft = NULL, byrow = TRUE, reduce = FALSE,
     suggested numbers are applied.
   }
   \item{mar}{plot margins.
-    Any \code{NA}s in \code{mar} will be replaced by the respective
-    current values.
+    Any \code{NA}s in \code{mar} will be replaced by appropriate values.
   }
-  \item{oma}{outer plot margins. They will be widened if necessary to
-    accomodate axis annotations.
+  \item{oma}{outer plot margins.
+    Any \code{NA}s will be replaced by appropriate values.
   }
-  \item{ploptions.}{list of pl options.
+  \item{mgp}{margin-pars passed to \code{\link{par}(...)}.
+    If \code{NULL}, it will be generated.
   }
-  \item{mgp, \dots}{further graphical parameters passed to
+  \item{plargs}{result of calling \code{pl.control}, used
+    for generating appropriate values for the margin parameters.
+    If \code{NULL}, \code{.plargs} will be used.
+  }
+  \item{\dots}{further graphical parameters passed to
     \code{\link{par}(...)}.
   }
 }

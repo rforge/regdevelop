@@ -458,7 +458,6 @@ doc <- function (x) attr(x,"doc")
   ##-- Create doc attribute or  PREpend  new doc to existing one.
   value <- as.character(value)
   ldc <- doc(x)
-  browser()
   attr(x, "doc") <-
     if (length(value)==0) NULL
     else

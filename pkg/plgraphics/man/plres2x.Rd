@@ -9,7 +9,7 @@
 \usage{
 plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
   size = 1, xlab = NULL, ylab = NULL, plextext = NULL, pale = 0.2,
-  plargs = NULL, ploptions = NULL, ...)
+  plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -45,6 +45,9 @@ plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
     If not null, arguments given in \code{...} will be ignored.
   }
   \item{ploptions}{list of pl options.
+  }
+  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
+    in the \code{.GlobelEnv}?
   }
   \item{\dots}{further arguments, passed to \code{plotregr.control}}
 }

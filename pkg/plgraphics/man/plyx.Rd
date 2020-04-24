@@ -9,8 +9,8 @@
 \usage{
 plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   panel = NULL, xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
-  markextremes = 0, rescale = TRUE,
-  mar = NULL, plargs = NULL, ploptions = NULL, assign = TRUE, ...)
+  markextremes = 0, rescale = TRUE, mar = NULL, mf = TRUE,
+  plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,6 +38,18 @@ plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
     for each of these variables.
   }
   \item{mar}{plot margins, see \code{\link{par}}
+  }
+  \item{mf}{number of multiple frames. If more than one plot will be
+    generated because of a grouping or multiple x variables,
+    multiple frames will be produced by calling \code{\link{plmframes}}
+    unless \code{mf} is \code{FALSE}.
+    If \code{mf} is \code{TRUE}, the function will determine the number
+    of rows and columns suitably. If \code{mf} is a vector of length 2,
+    these numbers will be used for the number of panels in rows and
+    columns (unless they are too large for the restriction in
+    \code{ploptions("mframesmax")}).
+    If it has lenngth 1, this is used as the total number of
+    panels on a page.
   }
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.

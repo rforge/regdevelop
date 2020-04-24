@@ -1,6 +1,6 @@
 
 require(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
-require(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+## require(plgraphics, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 
 plyx(Sepal.Width~Sepal.Length, data=iris)
 plyx(iris[,c("Sepal.Width","Sepal.Length")]) ##!!! farben
@@ -200,7 +200,9 @@ showd(dd)
 sumNA(dd)
 tit(dd) <- "blasting"
 plmatrix(dd, main="test plmatrix")
-
+## --------------------------------------
+plcond(Sepal.Width~Sepal.Length, data=iris, condvar=~Petal.Length+Petal.Width)
+## --------------------------------------
 ## functions generating elements
 t.fc <- fitcomp(rr,se=TRUE)
 t.fc$comp[1:10,]

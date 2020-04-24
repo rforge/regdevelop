@@ -17,12 +17,13 @@
 plregr(x, data = NULL, plotselect = NULL, xvar = TRUE,
   transformed = NULL, sequence = FALSE, weights = NULL,
   addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
-  mar = NULL, byrow = NULL, plargs = NULL, ploptions = NULL, ...)
+  mar = NULL, byrow = NULL,
+  plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 
 plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
   sequence = FALSE, weights = NULL,
   addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
-  plargs = NULL, ploptions = NULL, ...)
+  plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -70,6 +71,9 @@ plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
     If not null, arguments given in \code{...} will be ignored.
   }
   \item{ploptions}{list of pl options.
+  }
+  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
+    in the \code{.GlobelEnv}?
   }
   \item{\dots}{Many further arguments are available to customize the plots,
     see below for some of the most useful ones, and

@@ -21,7 +21,7 @@ plmboxes(x, ...)
 \method{plmboxes}{default}(x, y, data, width=1, at=NULL, horizontal=FALSE,
     probs=NULL, outliers=TRUE, na=FALSE, backback=NULL, refline=NULL,
     add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
-    labelsperp=FALSE, xmar=NULL,
+    labelsperp=FALSE, xmar=NULL, mar=NULL,
     widthfac=NULL, minheight=NULL, colors=NULL, lwd=NULL, 
     .subdefault=NULL, plargs = NULL, ploptions = NULL, ...)
 
@@ -111,6 +111,7 @@ plmbox(x, at=0, probs=NULL, outliers=TRUE, na.pos=NULL, horizontal=FALSE,
     they determine the margin lines where the variable label and the levels'
     labels are shown.
   }
+  \item{mar}{margin widths}
   \item{widthfac}{named vector used to modify the following settings:
     \cr  
     max=2: determes the maximal width of the boxes.

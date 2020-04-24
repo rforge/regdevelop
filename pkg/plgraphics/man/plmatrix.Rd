@@ -10,11 +10,10 @@
 }
 \usage{
 plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs, 
-         nrow = NULL, ncol = nrow, reduce = TRUE, 
-         xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
-         xlab=NULL, ylab=NULL,
-         oma=NULL, cex = NULL, diaglabel.cex = NULL,
-         plargs = NULL, ploptions = NULL, assign = TRUE, ...) 
+  nrow = NULL, ncol = nrow, reduce = TRUE, 
+  xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
+  xlab=NULL, ylab=NULL, oma=NULL, diaglabel.csize = NULL,
+  plargs = NULL, ploptions = NULL, assign = TRUE, ...) 
 }
 
 \arguments{
@@ -44,9 +43,7 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   \item{xlab, ylab}{not used (introduced to avoid confusion with
     \code{xlabmar, ylabmar})}
   \item{oma}{width of outer margins, see \code{\link{par}}}
-  \item{cex}{general character expansion, will be multiplied by
-    \code{par("cex")}}
-  \item{diaglabel.cex}{Character expansion for labels appearing in the
+  \item{diaglabel.csize}{Character expansion for labels appearing in the
     "diagonal" of the scatterplot matrix (if present)}
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.
