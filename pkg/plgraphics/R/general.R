@@ -921,9 +921,48 @@ u.varsin2terms <- function(formula) {
 }
 
 i.extendrange <- function(range, ext=0.05)  range + c(-1,1)*ext*diff(range)
+i.factor <- function(x) if(is.ordered(x)) ordered(x) else factor(x)
+## -------------------------------------------------------------------------
+ymd <- #f
+  function(date)
+{
+  if (is.character(date)) date <- as.Date(date)
+  if (inherits(date, "Date")) date <- as.numeric(date)
+  chron::month.day.year(date)[c(3,1,2)]
+}
+weekday <- #f
+  function(date, month=NULL, day=NULL, out=NULL, factor=FALSE)
+{
+  if (u.isnull(out)) out <- if(factor) "full" else "numeric"
+  rr <-
+    if (u.isnull(month)&u.isnull(day)) {
+      if (is.atomic(date)) {
+        if (is.character(date)) date <- as.Date(date)
+        if (inherits(date, "Date")) date <- julian(date)
+        date <- chron::month.day.year(date)
+      }
+      if (is.list(date)) {
+        if (length(date)==3) {
+          if (length(lnm <- names(date)))
+            chron::day.of.week(date$month, date$day, date$year)
+          else chron::day.of.week(date[[2]], date[[1]], date[[3]])
+        } else stop("!weekday! unsuitable first argument")
+      }
+    } else  chron::day.of.week(month=month, day=day, year=date)
+  if (factor) {
+    lf <- switch(out[1], numeric=ordered(0:6),
+                 full=ordered(c.weekdays, labels=c.weekdays),
+                 long=ordered(c.weekdays, labels=c.weekdays),
+                 short=ordered(c.wkd, labels=c.wkd),
+                 ordered(rr, labels=c.weekdays))
+    lf[rr]
+  }  else 
+    switch(out[1], numeric=rr, full=c.weekdays[rr+1], long=c.weekdays[rr+1],
+           short=c.wkd[rr+1], rr)
+}    
 ## ==========================================================================
-c.weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
-            "Saturday", "Sunday")
+c.weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
+            "Saturday")
 c.wkd <- substring(c.weekdays,1,3)
 c.months <- c("January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November",

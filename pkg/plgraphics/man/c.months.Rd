@@ -2,7 +2,7 @@
 \alias{c.months}
 \alias{c.mon}
 \alias{c.weekdays}
-\alias{c.wdy}
+\alias{c.wkd}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{strings for month and weekday names}
 \description{

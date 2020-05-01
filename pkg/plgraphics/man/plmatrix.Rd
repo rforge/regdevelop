@@ -9,7 +9,7 @@
   1 plot page.
 }
 \usage{
-plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs, 
+plmatrix(x, y = NULL, data = NULL, panel = NULL, 
   nrow = NULL, ncol = nrow, reduce = TRUE, 
   xaxmar=NULL, yaxmar=NULL, xlabmar=NULL, ylabmar=NULL,
   xlab=NULL, ylab=NULL, oma=NULL, diaglabel.csize = NULL,
@@ -26,8 +26,6 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   \item{panel}{a function that generates the marks of the individual
     panels, see Details.
   }
-  \item{panelargs}{a list of arguments to be passed to the \code{panel}
-    function, in addition to \code{x, y, indx, indy}}
   \item{nrow, ncol}{maximum number of rows and columns of panels on a page}
   \item{reduce}{if y is not provided and \code{reduce==TRUE},
     the first row and the last column are suppressed.}
@@ -71,7 +69,7 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   \code{nrow=5} and \code{ncol=6} for landscape pages, and to
   \code{nrow=8} and \code{ncol=5} for portrait pages.
 
-  The \code{panel} argument efaults to \code{plpanel}, which results
+  The \code{panel} argument defaults to \code{plpanel}, which results
   essentially in \code{\link{points}} or \code{\link{text}}
   depending on the argument \code{pch}, including a smooth line,
   to \code{\link{plmboxes}} if  'x'  is a factor and  'y'  is not or
@@ -79,8 +77,10 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL, panelargs = plargs,
   or to a modification of \code{sunflowers} if both are factors.\cr
   The function must have the arguments \code{x} and \code{y}
   to take the coordinates of the points and may have the arguments
-  \code{indx} and \code{indy} to transfer the variables\' index and
-  \code{panelargs} for any additional objects to be passed on.
+  \code{indx} and \code{indy} to transfer the variables\' index.
+  If there is an argument \code{plargs}, the current value of
+  \code{plargs} will be passed on. It is a list and can be extended
+  to pass any additional items to the function.
 }
 \value{
   none

@@ -1214,7 +1214,16 @@ These specifications are
 \item
   \T{psize}: plotting size, scaled by the pl option \T{cex};
 \item
-  \T{pcol}: color of the symbol.
+  \T{pcol}: color of the symbol. 
+  This can be a factor. Then, the colors in \T{ploptions("group.color")}
+  are used according to the \T{levels} of the factor.\\
+  It can be numeric and should then contain low integer values.
+  Values $>0$ are used again to select from \T{ploptions("group.color")};
+  A value $0$ selects \T{ploptions("color")[1]} which is black unless changed.
+  Negative values lead to a color of \T{NA} and will suppress plotting of
+  the point.\\
+  If \T{pcol} is logical, it is converted to \T{pcol+1} and selects the
+  first two group colors. 
 \end{itemize}
 These elements are stored in \T{pldata} as columns with names
 \T{(pch)}, \T{(plab)}, \T{(psize)}, \T{(pcol)}.

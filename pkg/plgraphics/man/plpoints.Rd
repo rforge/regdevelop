@@ -1,14 +1,11 @@
 \name{plpoints}
 \alias{plpoints}
 \alias{pllines}
-\alias{plsmooth}
-\alias{plsmoothline}
-\alias{plrefline}
 
-\title{Low level plotting functions for the 'pl' system
+\title{Plot Points and Lines in the 'pl' system
 }
 \description{
-  These functions do the plotting of points and enhancing lines
+  Low level functions for plotting point and lines
   based on the 'pl' paradigm.
 }
 \usage{
@@ -18,15 +15,6 @@ plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL,
   getpar = TRUE, getxy = TRUE, ...)
 
 pllines(x, y, type="l", ...)
-
-plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
-  cutrange = c(x = TRUE, y = FALSE), plargs=NULL, ploptions=NULL, ...)
-
-plsmooth(x = NULL, y = NULL, ysec = NULL, band=NULL, power = NULL, group = NULL, 
-  plargs = NULL, ploptions = NULL, getxy = TRUE, ...)
-plsmoothline(smoothline = NULL, x = NULL, y = NULL, ysec = NULL,
-  smooth.col = NULL, smooth.lty = NULL, smooth.lwd = NULL, 
-  plargs = NULL, ploptions = NULL, getpar = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -48,44 +36,6 @@ plsmoothline(smoothline = NULL, x = NULL, y = NULL, ysec = NULL,
     and color for plotting points,
     and line type. %% to be used for \code{plpoints}.
     Overrides other settings, defined in \code{plargs}.
-  }
-  \item{refline}{for \code{plrefline}:
-    A vector giving intercept and slope of a straight line, 
-    or a function that returns this list, such as \code{lm}.\cr
-    Alternatively, a list with components \code{x} and \code{y}
-    and possibly a component \code{band} that contains the coordinates
-    of the line (or lines, if \code{y} is a matrix) and the width of
-    a band around it (that is, additional lines, to be drawn with
-    \code{ploptions("refline.col")[2]}). 
-  }
-  \item{innerrange}{for \code{plrefline}: inner range in x direction -
-    only needed if the refline should be clipped at a range different
-    from the \code{innerrange} attribute of the horizontal variable}
-  \item{cutrange}{for \code{plrefline}: logical vector of length 2:
-    should the reference line(s) be cut at the inner plotting ranges in
-    x- and y-direction?
-    Otherwise, it will be continued outside it with the appropriate
-    transformation.
-  }
-  \item{smoothline}{for \code{plsmoothline}: result of a smooth fitting}
-  \item{smooth.col, smooth.lty, smooth.lwd}{for \code{plsmoothline}:
-    color, line type and line width for the smooth line(s).
-    By default, they will be taken from ploptions.
-  }
-  \item{ysec}{for \code{plsmooth, plsmoothline}:
-    matrix of secondary y values. The smooths generated or given by its
-    columns will be drawn thinner and with paled color.
-  }
-  \item{band}{logical: should a band (e.g., a confidence band)
-    be drawn together with the smooth?
-  }
-  \item{power}{for \code{plsmooth}: smooth will be calcutated for
-    \code{y^power} and the back-transformed. Usually, \code{power=0}.
-  }
-  \item{group}{for \code{plsmooth}: grouping variable.
-    If \code{NULL}, the variable \code{.smooth.group.} column in
-    \code{plargs$pldata} will be used if available.
-    If \code{group} is of length 1, there will be no grouping
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }
@@ -118,7 +68,6 @@ plsmoothline(smoothline = NULL, x = NULL, y = NULL, ysec = NULL,
   since this change has been reversed when the function was left.
   By default, these graphical parameters will be retieved from
   \code{.plargs$ploptions}.
-
 }
   
 \author{Werner A. Stahel
@@ -127,21 +76,12 @@ plsmoothline(smoothline = NULL, x = NULL, y = NULL, ysec = NULL,
 \seealso{\link{pl.control}
 }
 \examples{
-plyx(Sepal.Width ~ Sepal.Length, data=iris)
+plyx(Sepal.Width ~ Sepal.Length, data=iris, pcol=Species)
 
-## again, each step separately
-t.dt <- .plargs$pldata
-.plargs$grid <- TRUE
-plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
-plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
-t.plab <- plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03,
-                 plargs=.plargs)
-plpoints(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs, plab=t.plab) 
-## plpoints
-plpoints(col="blue", cex=2) ## gets the coordinates from .plargs
-plpoints(Sepal.Width ~ Sepal.Length, data=iris, pch="+", cex=2, col="green") ## this works, too
+da <- aggregate(iris[,1:4], list(Species=iris$Species), mean)
+plpoints(Sepal.Width ~ Sepal.Length, plargs=list(pldata=da),
+  plab=da$Species, csize.pch=1, pcol=da$Species)
 }
-
 
 \keyword{aplot}
 

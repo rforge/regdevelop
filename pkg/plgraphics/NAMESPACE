@@ -38,7 +38,7 @@ importFrom("lme4", lmer) ## , family.merMod
 ## importFrom("quantreg", rq)
 
 export(asinp, 
-       c.mon, c.months, c.weekdays, c.colors, 
+       c.mon, c.months, c.weekdays, c.wkd, c.colors, 
        charSize, colorpale, condquant,
        clipat,
        doc, "doc<-",
@@ -73,8 +73,8 @@ export(asinp,
        stdresiduals, sumNA, shortenstring, ## Surv, 
        Tobit,
        tit, "tit<-", transferAttributes, 
-       warn,
-       xdistResdiff, xdistResscale,
+       warn, weekday, 
+       xdistResdiff, xdistResscale, ymd, 
        i.def, is.formula,
        u.true, u.notfalse, u.debug, DB
        )
