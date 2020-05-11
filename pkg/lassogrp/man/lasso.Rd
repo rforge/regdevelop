@@ -198,8 +198,8 @@ fm.spl.3 <- update(fit.splice, ~ .^3)# <<-- now works also when p > n
 c3 <- coef(fm.spl.3)
 stopifnot(all.equal(c1, c3[rownames(c1), ,drop=FALSE]),
 	  c3[ !(rownames(c3) \%in\% rownames(c1)) ,] == 0,
-	  all.equal(coef(f..spl.2), coef(fit.spl.2), tol= 1e-13),
-	  all.equal(f..spl.2$nloglik, fit.spl.2$nloglik, tol=1e-13))
+	  all.equal(coef(f..spl.2), coef(fit.spl.2), tolerance= 1e-13),
+	  all.equal(f..spl.2$nloglik, fit.spl.2$nloglik, tolerance=1e-13))
 %% and BTW: note that 'x' is quite sparse and we could use Matrix (!):
 table(fm.spl.3$x == 0)
 }
@@ -247,7 +247,7 @@ cf. <- c(0.4054648, 0, 0, 0, 0, 0.3575546402, 0.6880608904, -0.605162944,
          0.01995161045)
 stopifnot(fit$converged,
 	  identical(which(coef(fit) == 0), c(2:5, 9:10, 14:15, 19:20, 24:25)),
-	  all.equal(c(coef(fit)), cf., tol=1e-6),
+	  all.equal(c(coef(fit)), cf., tolerance=1e-6),
 	  all.equal(fit$nloglik,
                     c(33.65058335, 25.13498717, 21.87913274,
                       20.56391179, 20.08389348, 19.91999198), tol=1e-5))
