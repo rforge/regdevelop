@@ -11,6 +11,8 @@
 ##   clipat
 ##   shortenstring
 ##   colorpale
+##   weekday
+##   ymd
 ##   
 ##   robrange
 ##   quinterpol
@@ -27,9 +29,22 @@
 ##   
 ##   notice
 ##   warn
-##   
+##   getmeth
+##   DB
+##   transferAttributes
+##
+##   u.merge
+##   i.naresid.exclude
+##
+##   i.form2char
+##   i.col2hex
+##   u.allvars
+##   u.varsin2terms
+##   i.extendrange
+##   i.factor
+##
 ##   --- Other objects in  general.R
-##   c.weekdays
+##   c.weekday
 ##   c.wkd
 ##   c.months
 ##   c.mon
@@ -159,10 +174,7 @@ logst <- function (data, calib=data, threshold=NULL, mult=1)
     if (ljdt[lj]) {
       ldt <- data[,lj]
       lc <- lthr[lj]
-      li <- which(ldt<lc)
-      if (length(li))
-        ldt[li] <- lc * 10^((ldt[li]-lc)/(lc*log(10)))
-      data[,lj] <- log10(ldt)
+      data[,lj] <- ifelse(ldt<lc, log10(lc)+(ldt-lc)/(lc*log(10)), log10(ldt))
   } }
   if (length(colnames(data)))
     lnmpd <- names(ljdt) <- names(lthr) <- colnames(data)  else
@@ -340,6 +352,45 @@ colorpale <- function(col=NA, pale=0.3, rgb = FALSE, ...)
   }
   rr <- 1-(1-pale)*(1-col)
   if (rgb) rr else rgb(rr, ...)
+}
+## ===========================================================================
+weekday <- #f
+  function(date, month=NULL, day=NULL, out=NULL, factor=FALSE)
+{
+  if (u.isnull(out)) out <- if(factor) "full" else "numeric"
+  rr <-
+    if (u.isnull(month)&u.isnull(day)) {
+      if (is.atomic(date)) {
+        if (is.character(date)) date <- as.Date(date)
+        if (inherits(date, "Date")) date <- julian(date)
+        date <- chron::month.day.year(date)
+      }
+      if (is.list(date)) {
+        if (length(date)==3) {
+          if (length(lnm <- names(date)))
+            chron::day.of.week(date$month, date$day, date$year)
+          else chron::day.of.week(date[[2]], date[[1]], date[[3]])
+        } else stop("!weekday! unsuitable first argument")
+      }
+    } else  chron::day.of.week(month=month, day=day, year=date)
+  if (factor) {
+    lf <- switch(out[1], numeric=ordered(0:6),
+                 full=ordered(c.weekdays, levels=c.weekdays),
+                 long=ordered(c.weekdays, levels=c.weekdays),
+                 short=ordered(c.wkd, levels=c.wkd),
+                 ordered(rr, levels=c.weekdays))
+    lf[rr+1]
+  }  else 
+    switch(out[1], numeric=rr, full=c.weekdays[rr+1], long=c.weekdays[rr+1],
+           short=c.wkd[rr+1], rr)
+}    
+## -------------------------------------------------------------------------
+ymd <- #f
+  function(date)
+{
+  if (is.character(date)) date <- as.Date(date)
+  if (inherits(date, "Date")) date <- as.numeric(date)
+  chron::month.day.year(date)[c(3,1,2)]
 }
 ## ===========================================================================
 robrange <-
@@ -922,44 +973,6 @@ u.varsin2terms <- function(formula) {
 
 i.extendrange <- function(range, ext=0.05)  range + c(-1,1)*ext*diff(range)
 i.factor <- function(x) if(is.ordered(x)) ordered(x) else factor(x)
-## -------------------------------------------------------------------------
-ymd <- #f
-  function(date)
-{
-  if (is.character(date)) date <- as.Date(date)
-  if (inherits(date, "Date")) date <- as.numeric(date)
-  chron::month.day.year(date)[c(3,1,2)]
-}
-weekday <- #f
-  function(date, month=NULL, day=NULL, out=NULL, factor=FALSE)
-{
-  if (u.isnull(out)) out <- if(factor) "full" else "numeric"
-  rr <-
-    if (u.isnull(month)&u.isnull(day)) {
-      if (is.atomic(date)) {
-        if (is.character(date)) date <- as.Date(date)
-        if (inherits(date, "Date")) date <- julian(date)
-        date <- chron::month.day.year(date)
-      }
-      if (is.list(date)) {
-        if (length(date)==3) {
-          if (length(lnm <- names(date)))
-            chron::day.of.week(date$month, date$day, date$year)
-          else chron::day.of.week(date[[2]], date[[1]], date[[3]])
-        } else stop("!weekday! unsuitable first argument")
-      }
-    } else  chron::day.of.week(month=month, day=day, year=date)
-  if (factor) {
-    lf <- switch(out[1], numeric=ordered(0:6),
-                 full=ordered(c.weekdays, labels=c.weekdays),
-                 long=ordered(c.weekdays, labels=c.weekdays),
-                 short=ordered(c.wkd, labels=c.wkd),
-                 ordered(rr, labels=c.weekdays))
-    lf[rr]
-  }  else 
-    switch(out[1], numeric=rr, full=c.weekdays[rr+1], long=c.weekdays[rr+1],
-           short=c.wkd[rr+1], rr)
-}    
 ## ==========================================================================
 c.weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "Saturday")
