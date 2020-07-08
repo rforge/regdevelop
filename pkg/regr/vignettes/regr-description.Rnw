@@ -25,6 +25,7 @@
 %% ================================================================
 
 \begin{document}
+%% \bibliography{regrbib}
 %% \SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
 \setkeys{Gin}{width=1\textwidth}
 \baselineskip 15pt
@@ -148,18 +149,27 @@ output that is safe to be interpreted.
 Here is a result of printing a \T{regr} object.
 <<regrout>>=
 data(d.blast, package="plgraphics")
-d.blast$location <- factor(d.blast$location)
-regroptions("termcolumns")
+regroptions(termcolumns="conventional")
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
 r.blast
 
 @ 
+The package also implements a new alternative set of characteristics for the
+terms in the model, including ``relevance'' measures, see
+%%\citeasnoun{StaW20} 
+Stahel (2020) and Section \ref{sec:relevance} below.
+<<regroutrel>>=
+regroptions(termcolumns="relevance")
+r.blast
+
+@ 
+
 
 \subsection{Standard output for continuous explanatory variables}
 The ``Terms:'' table characterizes the effects of the individual terms in
 the model. For continuous explanatory variables (the last 2 lines in the
-example) it shows:
+example) it shows, when the ``conventional'' columns are selected,
 \begin{description}
 \item[\T{coef},] the estimated value of the coefficient;
 \item[\T{df},] degrees of freedom, $=1$ for continuous variables;
@@ -167,12 +177,20 @@ example) it shows:
 \item[\T{R2.x},] the coefficient of determination for regressing 
   the explanatory variable in question on the other terms in the model.
   This is one of the wellknown collinearity diagnostics.
-\item[\T{signif},] a significance measure that is $>1$ for estimated
+\item[\T{signif0},] a significance measure that is $>1$ for estimated
   coefficients differing significantly from 0, see below for its
   definition;
 \item[\T{p.value},] the p value for testing if the coefficient could be
-  zero;
-\item[\T{p.symb},] the usual significance symbols.
+  zero; the usual significance symbols are attached.
+\end{description}
+With the ``relevance'' selection, the output shows
+\begin{description}
+\item[\T{coef, df, R2.x},] as above;
+\item[\T{coefRle},] the estimated Relevance of the coefficient;
+\item[\T{coefRls},] the secured Relevance of the coefficient;
+\item[\T{coefRlp},] the potential Relevance of the coefficient;
+  \T{Rls} and \T{Rlp} form a confidence interval for relevance;
+\item[\T{dropRls},] the secured Relevance of the term;
 \end{description}
 In fact, three more columns are contained in \T{rr\$termtable}, but they are
 not printed by default:
@@ -184,6 +202,15 @@ not printed by default:
   defined as \T{coef} times the standard deviation of the explanatory
   variable, divided by the standard deviation of the response (if
   the response is continuous as assumed here), see below for its use;
+\item[\T{estcoef},] the ``error standardized'' coefficient, for which
+  the error standard deviation $\sigma$ is used instead of the 
+  standard deviation of the response;
+\item[\T{stciLow, stciUp, estciLow, estciUp},] the respective confidence
+  intervals;
+\item[\T{dropRle, dropRlp},] estimated and potential Relevance for the term;
+\item[\T{p.symbol, coefRls.symbol, dropRls.symbol},]
+  the symbols for significance and secured relevance that are attached to
+  their numerical values when printed. 
 \end{description}
 
 \Tit{Regr options.}
@@ -205,11 +232,12 @@ The significance of t values depends on the number of degrees of freedom, but
 informed users will know that critical values are around $\pm2$, and they will
 therefore informally compare t values to $\pm2$. 
 Based on these considerations, we introduce a new measure of significance
-here. 
+here (see %\cite{StaW20}
+Stahel, 2020).
 
 The new significance measure is defined as
 \[
-  \T{signif} = \T{t value}\;/\; \T{critical value}
+  \T{signif0} = \T{t value}\;/\; \T{critical value}
 \]
 where \T{critical value} is the critical value $q_{df}$ of the 
 t distribution and depends on the degrees of freedom of the residuals. 
@@ -248,7 +276,7 @@ These coefficients are also stored in \T{rr\$termtable} as the column
 \T{stcoef} and can therefore be seen as follows.
 <<termtable>>=
 names(r.blast$termtable)
-regroptions(termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
+regroptions(termcolumns=c("coef", "stcoef", "df", "signif0", "p.symbol"))
 
 r.blast
 regroptions(default="all")  ## reset the options
@@ -282,7 +310,7 @@ is the F test for the whole factor (hypothesis: all coefficients are 0).
 It is obtained by calling \T{drop1}.
 The significance measure is defined as 
 \[
-  \T{signif} = \sqrt{\T{F value}\;/\;q_{df1,df2}}
+  \T{signif0} = \sqrt{\T{F value}\;/\;q_{df1,df2}}
 \]
 where $q_{df1,df2}$ is the critical value of the F distribution.
 It reduces to the former one for binary factors.
@@ -463,16 +491,27 @@ Regr options shape the output of the \T{regr} function or even influence
 the way fitting functions are called.
 
 Here is a list of the options.
-\begin{itemize}
-\item[digits]          number of digits used when printing \T{regr} objects
-\item[regr.contrasts]  contrasts used as a default in generating designs
+\begin{description}
+\item[digits]          number of digits used when printing \T{regr} objects;
+\item[regr.contrasts]  contrasts used as a default in generating designs;
+\item[factorNA]        logical: for explanatory factors, should the 
+  missing values form a level of the factor?
+\item[testlevel]       level of tests = 1 - confidence level (two sided);
+\item[RlvThres]        vector of length 2: thresholds for relevance of 
+  coefficients and terms (component \T{drop});
+\item[termtable]       logical: should a term table be calculated?;
+\item[vif]
 \item[show.termeffects] logical: should term effects be shown?
 \item[termcolumns]     names of columns of the \T{termtable} component 
-  of the fitting result object which will be printed
-\item[termeffcolumns] same for the term effects tables
-\item[coefcolumns]    same for the coefficients' table for each term
-\item[na.print]       symbol by which NA's are printed
-\end{itemize}
+  of the fitting result object which will be printed;
+  alternatively, a single string, either \T{"relevance"} or \T{"conventional"}
+  these then select the first or second of the following components;
+\item[termcolumns.r, termcolumns.c] columns selected in the case just mentioned;
+\item[termeffcolumns] same for the term effects tables;
+\item[coefcolumns]    same for the coefficients' table for each term;
+\item[na.print]       symbol by which NA's are printed;
+\item[notices]        logical: should notices be shown?
+\end{description}
 
 {\small
 \Tit{\noindent This is the end} 

@@ -12,6 +12,7 @@
 \alias{notice}
 %
 \alias{print.mregr}
+\alias{print.termtable}
 %% \alias{subset}
 \description{
   Internal functions of package \pkg{regr} that are exported, but
@@ -26,7 +27,7 @@
 ## i.smooth(...)
 
 \method{print}{mregr}(x, na.print=i.getoption("na.print"), ...)
-notice(..., printnotices = NULL)
+notice(..., notices = NULL)
 }
 \arguments{
   \item{x,y, object}{\R objects}

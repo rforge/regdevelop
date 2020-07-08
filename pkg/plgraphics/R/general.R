@@ -191,11 +191,20 @@ logst <- function (data, calib=data, threshold=NULL, mult=1)
 }
 ## ===========================================================================
 asinp <-
-  structure( function (x) asin(sqrt(x/100))/asin(1),
-            inverse = function(x) { 100* sin(x*asin(1))^2 },
-            range = c(0,100), range.transformed = c(0,1)
-            )
+  structure(
+    function (x) asin(sqrt(x/100))/asin(1),
+    inverse = function(x) { 100* sin(x*asin(1))^2 },
+    range = c(0,100), range.transformed = c(0,1)
+  )
 ## asinperc <- asinp  ## compatibility
+## ===========================================================================
+logit <-
+  structure(
+    function (x, n=NULL, add=1)
+      if (u.isnull(n)) log(x/(1-x)) else log((x+add)/(n-x+add)),
+    inverse = function(x) 1/(1+exp(-x)),
+    range = c(0,1), range.transformed = c(-Inf,Inf)
+    )
 ## ==============================================================
 nainf.exclude <- function (object, ...)
   ## na.omit, modified to omit also Inf and NaN values

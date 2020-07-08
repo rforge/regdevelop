@@ -26,10 +26,11 @@
     to factors are shown. If $>1$, all termeffects are shown}
   \item{termcolumns}{columns of the term table to be printed.
     If \code{NULL}, all columns will be printed.}
-  \item{termeffcolumns}{columns of the term effects table to be
+  \item{termeffcolumns}{columns of the term effects tables to be
     printed.} % See \code{\link{print.termeffects}}.
-  \item{coefcolumns}{columns of the (dummy) coefficent tables to be
-    printed.} % See \code{\link{print.coeftable}}.
+  \item{coefcolumns}{columns of the (dummy) coefficent table to be
+    printed. This table is printed only if there is no termtable}
+  % See \code{\link{print.coeftable}}.
   \item{digits}{number of significant digits to be shown}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}
   \item{signif.stars}{logical: should significance asterisks be shown?

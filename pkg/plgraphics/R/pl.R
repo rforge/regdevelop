@@ -1429,6 +1429,7 @@ plsmooth <- #f
   if (lIsm) {
     power <- i.def(power, 1,1,1)
     band <- i.def(i.def(band, lIsm>=2), FALSE, TRUE, FALSE)
+    if (length(lxn <- attr(x, "numvalues"))) x <- lxn
     if (length(lyn <- attr(y, "numvalues"))) y <- lyn
     ly <- if(length(ysec)==0) y else {if (length(y)==0) ysec else cbind(y,ysec)}
     ##
@@ -1630,6 +1631,8 @@ plrefline <- #f
     if (is.character(x)) x <- plargs$pldata[,x]
     if (is.character(y)) y <- plargs$pldata[,y]
     if (u.isnull(innerrange)) innerrange <- attr(x, "innerrange")
+    if (length(lxn <- attr(x, "numvalues"))) x <- lxn
+    if (length(lyn <- attr(y, "numvalues"))) y <- lyn
     ##---
     if (is.atomic(lrfl)) {
       if (length(lrfl)!=2) {
@@ -5132,14 +5135,14 @@ plmarginpar <- #f
 ##- }
 ## ====================================================================
 i.getploption <- #f
-  function(opt, plo=NULL) {
-  ## opt is character, plo list or NULL
+  function(opt, opts=NULL) {
+  ## opt is character, opts list or NULL
   lpldef <- get("ploptionsDefault", pos=1)
-  if (u.isnull(plo))
-    plo <- get("ploptions", envir=parent.frame()) ## list in calling fn
-  if (is.function(plo)) plo <- NULL
-  lopt <- plo[[opt]]
-  if (u.isnull(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
+  if (u.isnull(opts))
+    opts <- get("ploptions", envir=parent.frame()) ## list in calling fn
+  if (is.function(opts)) opts <- NULL
+  lopt <- opts[[opt]]
+  if (u.isnull(lopt)||(!is.function(lopt))&&all(is.na(lopt))) ## NULL or NA
       lopt <- ploptions(opt)
   else {lopt <- check.ploption(opt, lopt)
     if (length(lopt)) lopt <- lopt[[1]]
@@ -5150,15 +5153,15 @@ i.getploption <- #f
 }
 ## ---------------------------------------------------
 i.getplopt <- #f
-  function(opt, plo = NULL) {
+  function(opt, opts = NULL) {
   lpldef <- get("ploptionsDefault", pos=1)
-  if (u.isnull(plo))
-    plo <- get("ploptions", envir=parent.frame()) ## list in calling fn
+  if (u.isnull(opts))
+    opts <- get("ploptions", envir=parent.frame()) ## list in calling fn
   lnam <- as.character(substitute(opt))
   lopt <- opt 
-  if (is.function(plo)) plo <- NULL
+  if (is.function(opts)) opts <- NULL
   if (u.isnull(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- plo[[lnam]]
+    lopt <- opts[[lnam]]
   if (u.isnull(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
     lopt <- ploptions(lnam)
   else unlist(check.ploption(lnam, lopt))   ## check

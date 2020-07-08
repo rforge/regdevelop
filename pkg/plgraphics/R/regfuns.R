@@ -914,6 +914,8 @@ simresiduals.default <-
 ##  if (lfam%in%c("gaussian","Gaussian")) 
   if (!inherits(object, "nls"))
     lcall$formula <- update(lform, paste(lynm,"~.")) ## needed for transformed y
+  if (inherits(object, "regr"))
+    lcall$termtable <- FALSE
   lenv <- environment()
   for (lr in 1:nrep) {
     ldata[,lynm] <-

@@ -14,7 +14,7 @@ importFrom("stats",
            pnorm, ppoints, pt, pweibull, qchisq, qf,
            qlogis, qnorm, qqnorm, qt, quantile, rbinom,
            resid, rnorm, rpois, runif, sd, setNames,
-           symnum, terms, update, update.formula, 
+           symnum, terms, uniroot, update, update.formula, 
            var, vcov)
 importFrom("utils", getS3method, recover, str)
 importFrom("graphics", plot, abline, axis, box, frame, legend,
@@ -50,7 +50,7 @@ importFrom("leaps", regsubsets)
 
 ## Ok, now we are better and do not export all
 export(add1.regr, ## add1.default, add1.mlm, ## see below
-       ciSignif,
+       ciSignif, confintF, 
        compareTerms,
        contr.wsumpoly ,contr.wsum, contr.wpoly, ## condquant,
        createNAvars, 
@@ -70,8 +70,8 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        plot.regrAllEqns, 
        ## predict.mlm, predict.polr,
        predict.regr,
-       print.termeffects, print.modelTable, print.mregr, print.regr,
-       print.regrAllEqns, 
+       print.termtable, print.termeffects, print.modelTable,
+       print.mregr, print.regr, print.regrAllEqns, 
        ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        ## quantilew, quinterpol,
        regr, regr.control,
@@ -101,10 +101,18 @@ S3method(drop1, mlm)
 S3method(drop1, multinom)
 S3method(drop1, regr)
 
+S3method(fitted, regr)
+S3method(predict, regr)
+S3method(residuals, regr)
+
 S3method(summary, regr)# trivial: returns it unchanged
 S3method(plot, regr) ## plgraphics::plregr
 S3method(print, regr)
+S3method(print, mregr)
+S3method(print, termtable)
 S3method(print, termeffects)
+S3method(print, modelTable)
+S3method(format, modelTable)
 
 S3method("[", modelTable)
 S3method(print, regrAllEqns)

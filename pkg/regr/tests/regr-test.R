@@ -1,5 +1,5 @@
 ## install.packages("regr", repos="http://R-forge.R-project.org")
-## install.packages("~/R/regdevelop/pkg/regr_1.0.tar.gz", repos=NULL)
+install.packages("~/R/regdevelop/pkg/regr_1.1.tar.gz", repos=NULL)
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)
@@ -32,7 +32,7 @@ r.blast <-
 
 with(r.blast,
      stopifnot(all.equal(
-     termtable[-1,"signif"],
+     termtable[-1,"signif0"],
                           c(3.40649491, -12.0192639, 8.1947910) )
 ##                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
@@ -47,7 +47,7 @@ rsimple <- regr(log10(tremor)~log10(distance), data=d.blast, subset=location=="l
 
 dd <- cbind( d.blast, indicator= factor(1==1:nrow(d.blast)) )
 t.rr <- regr(tremor ~ distance + charge + location + indicator, data=dd)
-plot(t.rr, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=2))
+## plot(t.rr, smresid=TRUE, xvars=F, plotselect=c(resfit=0, leverage=2))
 
 r.ad <- add1(r.blast)
 r.bl2 <- update(r.blast, ~.+location:log10(distance)+I(log10(charge)^2) )
