@@ -1536,10 +1536,10 @@ print.regr <-
   ## preparation
   lItermeff <- i.def(termeffects, TRUE)
   if (length(termcolumns)==1) {
-    if (termcolumns=="relevance")
+    if (substring(termcolumns,1,3)=="rel")
       termcolumns <- i.getoption("termcolumns.r")
     else
-      if (termcolumns=="conventional") {
+      if (substring(termcolumns,1,3)=="con") {
         termcolumns <- i.getoption("termcolumns.c")
         if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
       }
@@ -2233,55 +2233,56 @@ print.termtable <-
 {
   if (is.null(columns)) columns <- "all"
   columns[columns=="estimate"] <- "coef"
+  names(x)[names(x)=="estimate"] <- "coef"
+  if (length(ll <- setdiff(columns, names(x)))) {
+    warning(":print.termtable: columns not found:", paste(ll, collapse=", "))
+    if (length(lcol <- setdiff(columns, ll))) columns <- lcol else return()
+  }
+  if (length(columns)>1||columns!="all") x <- x[,columns]
   ljrp <- colnames(x)[dropNA(pmatch(c("R2","signif0","p.v"), colnames(x)))]
   if (length(ljrp))
     x[,ljrp] <- round(as.matrix(x[,ljrp]),max(3,digits))
   if ("signif0"%in%ljrp) x$signif0 <- round(x$signif0,last(digits)-1)
   lcnames <- colnames(x)
   ljsy <- grep(".symbol", lcnames)
+  if (any(ll <- lcnames[ljsy]=="p.symbol")) 
+    lcnames[ljsy[ll]] <-
+      if ("p.value"%in%lcnames) "p.value.symbol"
+      else {
+        if ("signif0"%in%lcnames) "signif0.symbol" else "coef.symbol"
+      }
   if (length(ljsy)) {
-    ljc <- dropNA(match(sub(".symbol", "", lcnames[ljsy]),lcnames))
+    ljc <- match(sub(".symbol", "", lcnames[ljsy]),lcnames)
+    if (any(ll <- is.na(ljc))) {
+      ljc <- ljc[!ll]
+      ljsy <- ljsy[!ll]
+    }
     if (lnc <- length(ljc)) {
       x[,ljc] <-
         matrix(paste(sub("NA",na.print, format(as.matrix(x[,ljc]))),
                      sub("NA","  ",format(as.matrix(x[,ljsy], justify="left")))),ncol=lnc)
-      x <- x[,-ljsy]
+      x <- x[,-ljsy, drop=FALSE]
     }
   }
   xf <- format(x, na.encode=FALSE)
   xp <- data.frame(lapply(xf, function(x) sub("NA",na.print,x)),
                    row.names=row.names(x))
-  print(xp, quote=FALSE, na.print=na.print)
+  print(if(ncol(xp)==1) t(xp) else xp, quote=FALSE, na.print=na.print)
 }
-print.termeffects <- function (x, columns=NULL, transpose=FALSE, ...)
+## ---------------------------------------
+print.termeffects <- function (x, columns=NULL, transpose=FALSE, single=FALSE, ...)
 {
-  if (is.null(columns)) columns <- "all"
-  columns[columns=="estimate"] <- "coef"
-  csymb <- "coefsymb"%in%columns
-  if ("all"%in%columns)  columns <-
-      if(csymb)
-        c("coefsymb", "se", "ciLow", "ciUp", "testst",
-          "signif0", "p.value") else
-        c("coef", "se", "ciLow", "ciUp", "testst",
-          "signif0", "p.value")
+  lnam <- names(x)
   for (li in seq_along(x)) {
     xi <- x[[li]]
     if (is.null(dim(xi))) next
-    if (csymb)
-      xi$coefsymb <-
-        if ("p.symbol"%in%names(xi)) {
-          lps <- as.character(xi[,"p.symbol"])
-          lps[is.na(lps)] <- "   "  ##  misleading?
-          paste(format(xi[,1],...), lps)
-        } else  xi[,1]
-    xif <- format(xi[,intersect(columns,names(xi)), drop=FALSE],...)
-    xif <- if (ncol(xif)==1 || (nrow(xif)>1 & transpose)) t(xif) else xif
-    if (nrow(xif)==1) row.names(xif) <- " "  ## drop row name
-    if (ncol(xif)==1) colnames(xif) <- " "  ## drop col name
-    if (prod(dim(xif))==1) xif <- as.character(xif[1,1])
-    x[li] <- list(xif)
+    if (nrow(xi)==1) {
+      if (!single) next
+      cat("\n")
+      }
+    else cat("\n",lnam[li],":\n")
+    print.termtable(xi, columns)
   }
-  print(unclass(x), quote=FALSE, ...)
 }
 ## ====================================================================
 drop1.regr <-
@@ -3888,7 +3889,7 @@ regroptions <-
                     "dropRls", "dropRls.symbol"),
   termcolumns.c = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
                   "p.symbol"),
-  termeffcolumns = "coefsymb",
+  termeffcolumns = c("coef","p.symbol"),
   coefcolumns = c("coef", "ciLow","ciUp", "signif0", "p.value", "p.symbol"),
   na.print = ".",
   notices = TRUE, 

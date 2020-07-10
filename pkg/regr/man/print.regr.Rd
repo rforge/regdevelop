@@ -57,8 +57,8 @@
        regr(log10(tremor)~location+log10(distance)+log10(charge),
             data=d.blast)
   print(r.blast,
-    termcolumns = c("coef","ciLow","ciHigh","df","signif"),
-    termeffbcolumns = c("coef","ciLow","ciHigh"),
+    termcolumns = c("coef","ciLow","ciUp","df","signif0"),
+    termeffbcolumns = c("coef","ciLow","ciUp"),
     correlation=TRUE, symbolic.cor=TRUE)
 }
 \keyword{print}

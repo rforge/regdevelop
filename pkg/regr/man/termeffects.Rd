@@ -10,7 +10,8 @@ A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
 termeffects(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
-\method{print}{termeffects}(x, columns=NULL, transpose=FALSE, ...)
+\method{print}{termeffects}(x, columns=NULL, transpose=FALSE,
+  single = FALSE...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,6 +31,7 @@ termeffects(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE,
   selects all the columns.}
   \item{transpose}{logical. should the tables be
     transposed for printing?}
+  \item{single}{logical. should components with a single coefficient be printed?}
   \item{\dots}{absorbs further arguments of call to generic function
 }
 }

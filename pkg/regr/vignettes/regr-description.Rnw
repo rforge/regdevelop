@@ -158,16 +158,18 @@ r.blast
 The package also implements a new alternative set of characteristics for the
 terms in the model, including ``relevance'' measures, see
 %%\citeasnoun{StaW20} 
-Stahel (2020) and Section \ref{sec:relevance} below.
+Stahel (2020) and below.
+As shown in the previous and the following R statements, the selection of the
+desired output is done by setting an option, using the function 
+\T{regroptions} to be introduced below.
 <<regroutrel>>=
 regroptions(termcolumns="relevance")
 r.blast
 
 @ 
 
-
 \subsection{Standard output for continuous explanatory variables}
-The ``Terms:'' table characterizes the effects of the individual terms in
+The \T{Terms:} table characterizes the effects of the individual terms in
 the model. For continuous explanatory variables (the last 2 lines in the
 example) it shows, when the ``conventional'' columns are selected,
 \begin{description}
@@ -190,34 +192,9 @@ With the ``relevance'' selection, the output shows
 \item[\T{coefRls},] the secured Relevance of the coefficient;
 \item[\T{coefRlp},] the potential Relevance of the coefficient;
   \T{Rls} and \T{Rlp} form a confidence interval for relevance;
-\item[\T{dropRls},] the secured Relevance of the term;
+\item[\T{dropRls},] the secured Relevance of the term, 
+  see Section \ref{sec:factors}.
 \end{description}
-In fact, three more columns are contained in \T{rr\$termtable}, but they are
-not printed by default:
-\begin{description}
-\item[\T{se},] the standard errors of the estimated coefficients; 
-\item[\T{testst},] the test statistic used for testing if the coefficient 
-  could be zero; 
-\item[\T{stcoef},] the estimated standardized coefficient,
-  defined as \T{coef} times the standard deviation of the explanatory
-  variable, divided by the standard deviation of the response (if
-  the response is continuous as assumed here), see below for its use;
-\item[\T{estcoef},] the ``error standardized'' coefficient, for which
-  the error standard deviation $\sigma$ is used instead of the 
-  standard deviation of the response;
-\item[\T{stciLow, stciUp, estciLow, estciUp},] the respective confidence
-  intervals;
-\item[\T{dropRle, dropRlp},] estimated and potential Relevance for the term;
-\item[\T{p.symbol, coefRls.symbol, dropRls.symbol},]
-  the symbols for significance and secured relevance that are attached to
-  their numerical values when printed. 
-\end{description}
-
-\Tit{Regr options.}
-The default for the columns to be printed is set by an option stored 
-in the \T{.regroptions} list and controled by the function 
-\T{regroptions} in the same way that the usual options are
-controled by the function \T{options}.
 
 \Tit{Significance.}
 The usual \T{summary} output of fitting functions includes the 
@@ -245,17 +222,52 @@ t distribution and depends on the degrees of freedom of the residuals.
 %%- variables as well as for binary factors.
 %%- For other factors, we will extend this definition below.
 
+%%- \Tit{A note on coefficients.}
+%%- Note, however, that increasing one $X^{(j)}$ without also changing
+%%- others is usually a natural step in experimental applications but
+%%- may not be possible in applications with observational explanatory variables,
+%%- Therefore, an interpretation of coefficients can be tricky.
+
+%% --------------------------------------------
+\Tit{Standardized Coefficients.}
+Standardized coefficients are meant to allow for a comparison of the 
+importance of explanatory variables that have different variances.
+Each of them shows the effect on the response of increasing ``its'' 
+carrier $X^{(j)}$ by one standard deviation, as a multiple 
+of either the response's standard deviation or the error standard
+deviation \T{sigma}, called \T{stcoef} and \T{estcoef}, respectively.
+Whereas the first version is popular, the second has a more satisfactory
+interpretation (see Stahel, 2020).
+
+Note that for binary input variables, increasing the variable by one
+standard deviation is impossible, since an increase can only occur from 0
+to 1, and therefore, the standardized coeffients are somewhat 
+counter-intuitive in this case.
+
+\Tit{Relevance.}
+In the standard situation of comparing two groups, a popular 
+standarized effect size is Cohen's $d$, defined as the ratio of the 
+difference between the groups to the standard deviation within groups.
+The value of 0.5 has is judged as a ``medium effect size''. 
+It is used as a threshold for declaring a ``relevant effect'' by
+Stahel (2020).
+If the two groups model is expressed as the simple regression model
+with just a binary explanatory variable, the error standardized 
+coefficient is $d/2$ in case of equal group sizes, and therefore,
+the relevance threshold is $0.25$. 
+Its use is advocated for the error standardized coefficient in general.
+The relevance measure is defined as the ratio of the estimated
+error standardized coefficient to this threshold, 
+\T{Rle = estcoef/0.25}.
+
 \Tit{Confidence Intervals.}
 The standard errors provided by the usual \T{summary} tables allow for
 calculating confidence intervals for continuous explanatory variables,
 by the formula $\T{coef} \;\pm\; q_{df}\cdot\T{std.error}$.
-In \T{regr} output, they are shown in the Terms table by default. 
-If the table gets too wide, the confidence limits may be suppressed by
-modifying the \T{termcolumns} option in \T{regroptions}.
-They can then be calculated as
-%%- The formula based on \T{signif} is
+
+They can be calculated alternatively as
 \[
-  \T{coef}\cdot\;(1\pm\;1/\T{signif}\;)
+  \T{coef}\cdot\;(1\pm\;1/\T{signif0}\;)
 \;.\]
 This is slightly more complicated for a calculation in the mind than
 \T{coef}$\,\pm\, 2\,$\T{se}, 
@@ -264,31 +276,48 @@ in terms of the confidence interval:
 If the input variable were scaled such that the confidence interval had 
 half width 1, then the estimate would be \T{signif} units away from zero.
 
-\Tit{Standardized Coefficients.}
-Standardized coefficients are meant to allow for a comparison of the 
-importance of explanatory variables that have different variances.
-Each of them shows the effect on the response of increasing ``its'' 
-carrier $X^{(j)}$ by one standard deviation, as a multiple 
-of the response's standard deviation. 
-This is often a more meaningful comparison of the relevance of the input
-variables. 
-These coefficients are also stored in \T{rr\$termtable} as the column 
-\T{stcoef} and can therefore be seen as follows.
+Since the standardized coefficients are proportional to the unstandardized
+one, confidence intervals are easily transfered to them.
+The two default \T{regr} outputs show either the interval for \T{coef}
+in columns \T{ciLow} and \T{ciUp} 
+or for the relevance, as \T{Rls}, ``secured relevance,'' and 
+\T{Rlp}, ``potential relevance''.
+
+\Tit{Customized output.}
+The result of the \T{regr} function stores all of these informations 
+in the \T{termtable} component.
+The user can select the columns to be shown by setting the 
+\T{termcolumns} option.
+Asking for \T{regroptions(termcolumns="relevance")} (the default)
+or \Hneed{100mm}
+\T{regroptions(termcolumns="conventional")} selects one of two
+default sets of columns.
 <<termtable>>=
 names(r.blast$termtable)
 regroptions(termcolumns=c("coef", "stcoef", "df", "signif0", "p.symbol"))
 
-r.blast
+print(r.blast, call=FALSE, termeffects=FALSE) ## avoid repetition of these parts
 regroptions(default="all")  ## reset the options
 @ 
-
-Note, however, that increasing one $X^{(j)}$ without also changing
-others may not be possible in a given application, and therefore, 
-an interpretation of coefficients can always be tricky.
-Furthermore, for binary input variables, increasing the variable by one
-standard deviation is impossible, since an increase can only occur from 0
-to 1, and therefore, the standardized coeffient is somewhat 
-counter-intuitive in this case.
+The columns of the \T{termtable} not yet mentioned are:
+\begin{description}
+\item[\T{se},] the standard errors of the estimated coefficients; 
+\item[\T{testst},] the test statistic used for testing if the coefficient 
+  could be zero; 
+\item[\T{stcoef},] the estimated standardized coefficient,
+  defined as \T{coef} times the standard deviation of the explanatory
+  variable, divided by the standard deviation of the response (if
+  the response is continuous as assumed here), see below for its use;
+\item[\T{estcoef},] the ``error standardized'' coefficient, for which
+  the error standard deviation $\sigma$ is used instead of the 
+  standard deviation of the response;
+\item[\T{stciLow, stciUp, estciLow, estciUp},] the respective confidence
+  intervals;
+\item[\T{dropRle, dropRlp},] estimated and potential Relevance for the term;
+\item[\T{p.symbol, coefRls.symbol, dropRls.symbol},]
+  the symbols for significance and secured relevance that are attached to
+  their numerical values when printed. 
+\end{description}
 
 \subsection{Factors}
 For factors with more than two levels, (\T{location} in the example), there
@@ -304,16 +333,33 @@ coefficient can be interpreted in the straightforward manner as
 for continuous explanatory variables. \T{regr} therefore treats binary
 factors in the same way as continuous explanatory variables.
 
-The test performed for factors with more than two levels, which is shown 
-in the \T{Terms} table by the \T{p.value} entry, 
+The test performed for factors with more than two levels
+(or more generally for any term in the regression model), 
+which is shown in the \T{Terms:} table by the \T{p.value} entry, 
 is the F test for the whole factor (hypothesis: all coefficients are 0). 
 It is obtained by calling \T{drop1}.
 The significance measure is defined as 
 \[
-  \T{signif0} = \sqrt{\T{F value}\;/\;q_{df1,df2}}
+  \T{signif0} = \sqrt{\T{F value}\;/\;\T{critical value}}
 \]
-where $q_{df1,df2}$ is the critical value of the F distribution.
-It reduces to the former one for binary factors.
+where \T{critical value} is the critical value of the F distribution.
+It reduces to the former one for binary factors, up to the missing sign.
+
+Similarly, the \textbf{relevance} is defined by comparing the full model
+with the one resulting from dropping the term in question.
+If $\sigma_f$ and $\sigma_r$ are the error standard deviations in the 
+two models, then 
+\[
+  \T{Effect size} = \log(\sigma_r/\sigma_f) = 
+  {\textstyle\frac12}\;
+  \log\fn{(1-\T{r.squared}_f)\left/(1-\T{r.squared}_r)\right.}
+\;,
+\]
+and \T{Relevance} = \T{Effect size} / \T{Relevance threshold} with
+\T{Relevance threshold = 0.03} by default.
+Its estimated value and confidence interval is contained in the columns
+\T{dropRle} and \T{dropRls, dropRlp}, respectively. 
+For details, see Stahel (2020).
 
 The collinearity measure \T{R2.x} for factors is a formal generalization of 
 \T{R2.x} for terms with one degree of freedom, determined by applying
@@ -477,13 +523,12 @@ See the package vignette and help files for details.
 
 Here are the residual plots shown by default.
 <<resanal, fig.height=8, fig.width=10>>=
-data(d.blast, package="plgraphics")
-rr <- regr(log10(tremor)~location+log10(distance)+log10(charge),
-           data=d.blast)
-plot(rr)
+plot(r.blast)
 @ 
 %\pagebreak
 \Vneed{50mm}
+
+%% \section{Other regression models}
 
 \section{Details}
 \subsection{regr options}
@@ -499,7 +544,7 @@ Here is a list of the options.
 \item[testlevel]       level of tests = 1 - confidence level (two sided);
 \item[RlvThres]        vector of length 2: thresholds for relevance of 
   coefficients and terms (component \T{drop});
-\item[termtable]       logical: should a term table be calculated?;
+\item[termtable]       logical: should a term table be calculated?
 \item[vif]
 \item[show.termeffects] logical: should term effects be shown?
 \item[termcolumns]     names of columns of the \T{termtable} component 
@@ -513,13 +558,23 @@ Here is a list of the options.
 \item[notices]        logical: should notices be shown?
 \end{description}
 
+\subsection*{References}
+
+Stahel, Werner A. (2020). 
+\textit{Measuring Significance and Relevance instead of p-values.}
+In preparation.
+
+\vspace{20mm}
 {\small
 \Tit{\noindent This is the end} 
 of the story for the time being, \the\day.\the\month.\the\year. 
+More material will be added for details about the many more 
+regression models that are supported.\\
 I hope that you will get into using \T{regr} and have 
 good success with your data analyses.
 Feedback is highly appreciated.
 
+\noindent
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
 }
 \end{document}
