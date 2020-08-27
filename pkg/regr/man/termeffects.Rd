@@ -9,9 +9,9 @@ all coefficients of a model fit
 A list of all coefficients of a model fit, possibly with respective statistics
 }
 \usage{
-termeffects(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE, 
-\method{print}{termeffects}(x, columns=NULL, transpose=FALSE,
-  single = FALSE...)
+termeffects(object, se = 2, df = df.residual(object), rlv = TRUE, ...) 
+\method{print}{termeffects}(x, columns=NULL, printstyle=NULL, transpose=FALSE,
+  single = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -24,28 +24,30 @@ termeffects(object, se = 2, df = df.residual(object), ...) %% use.na = TRUE,
 }
   \item{df}{degrees of freedom for t-test
   }
+  \item{rlv}{logical: Should relevances be calculated?
+  }
   
   Arguments for \code{print}:
   \item{x}{object of class \code{termeffects}, produced by \code{termeffects(...)}}
   \item{columns}{the columns of the tables to be printed. \code{NULL}
-  selects all the columns.}
+    selects all the columns.}
+  \item{printstyle}{determines which columns are selected if
+    \code{columns} is \code{NULL}.}
   \item{transpose}{logical. should the tables be
     transposed for printing?}
   \item{single}{logical. should components with a single coefficient be printed?}
   \item{\dots}{absorbs further arguments of call to generic function
-}
+  }
 }
 \value{list with a component for each term in the model formula.
-  The components are either vectors of coefficients
-  (if \code{se} is false, else data.frames with columns
-  \item{coef}{}
-  
+  Each component is a \code{\link{termtable}}s for the coefficients
+  corresponding to the term.
 }
 \author{
 Werner A. Stahel
 }
 \seealso{
-  \code{\link{dummy.coef}}
+  \code{\link{dummy.coef}, \link{termtable}}
 }
 \examples{
   data(d.blast, package="plgraphics")
@@ -55,5 +57,5 @@ Werner A. Stahel
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
-\keyword{ ~kwd1 }
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{regression}
+

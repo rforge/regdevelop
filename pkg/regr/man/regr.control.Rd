@@ -9,7 +9,7 @@ Further Arguments to \code{regr}
   \code{\link{regr} and set some regroptions}
 }
 \usage{
-regr.control(contrasts = i.getoption("regr.contrasts"),
+regr.control(contrasts = getRegrOption("regr.contrasts"),
   factorNA = NULL, na.action = as.name("nainf.exclude"),
   calcdisp = NULL, suffmean = 3, dist = NULL,
   model = FALSE, x = TRUE, termtable = NULL, vif = NULL,

@@ -50,7 +50,7 @@ importFrom("leaps", regsubsets)
 
 ## Ok, now we are better and do not export all
 export(add1.regr, ## add1.default, add1.mlm, ## see below
-       ciSignif, confintF, 
+       ciSgRl, confintF, 
        compareTerms,
        contr.wsumpoly ,contr.wsum, contr.wpoly, ## condquant,
        createNAvars, 
@@ -59,6 +59,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        factorNA, ## fitcomp,
        fitted.regr, ## fitted.polr,
        format.modelTable,
+       getRegrOption,
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
        ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.survreg,
@@ -74,10 +75,12 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        print.mregr, print.regr, print.regrAllEqns, 
        ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        ## quantilew, quinterpol,
+       p.symbols, 
        regr, regr.control,
-       regroptions, regroptionsDefault,
+       regroptions, .regroptions, regroptionsDefault,
        regrAllEqns, regrAllEqnsXtr, 
        residuals.regr,
+       rlv.symbols,
        ## residuals.regrpolr, residuals.regrcoxph, residuals.regrsurvreg,
        ## simresiduals, simresiduals.default, simresiduals.glm, 
        ## step, step.default,
@@ -86,7 +89,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        Surv, strata, cluster, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without
        ## require-ing the package survreg
-       terms2order, termeffects, ## Tobit,
+       terms2order, termeffects, termtable, ## Tobit,
        ## vif.regr,
        ## xdistResdiff, xdistResscale,
        xNA

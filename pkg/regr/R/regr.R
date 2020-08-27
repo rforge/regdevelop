@@ -113,7 +113,8 @@ regr <-
 ##  lysimple <- lytype!="nmatr" ## not a matrix
     lyy <- lyf[[1]]
     lysimple <- length(dim(lyy))==0
-##    ly <- na.omit(lyy)
+    ##    ly <- na.omit(lyy)
+    
     if (lysimple&&length(unique(dropNA(lyy)))==2 &&
         all(as.numeric(lyy)%in%0:1)) ## FALSE for numeric !={0,1}
       lytype <- "binary" 
@@ -261,8 +262,7 @@ regr <-
 ##-         lres <- if (is.matrix(lres)) lres[-lnaaction,] else lres[-lnaaction]
 ##-       lreg$residuals <- lres
     }
-    lsigma <- c(lreg$sigma, lreg$scale)[1]
-    if (length(lsigma)==0) lsigma <- sqrt(c(lreg$dispersion,1)[1])
+    lsigma <- scalepar(lreg)
     if (!inherits(lreg, "nls")) {
 ##-       lrg <- lreg
 ##-       if(length(lnaaction)) lrg$na.action <- structure(lnaaction, class="omit")
@@ -289,7 +289,7 @@ regr <-
 }
 ## -----------------------------------------------------------------------
 regr.control <-
-  function (contrasts=i.getoption("regr.contrasts"), factorNA = NULL, 
+  function (contrasts=getRegrOption("regr.contrasts"), factorNA = NULL, 
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
            model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
@@ -310,7 +310,6 @@ regr.control <-
        )
   ## flicken !!! model=T needed in i.lm_ for getting ly
 }
-## ===================================================================
 ## =========================================================================
 i.lm <-
   function (formula, data, family, fname="gaussian", nonlinear=FALSE,
@@ -344,13 +343,11 @@ i.lm <-
       lcall$x <- TRUE
   }
     if (lfn=="rlm") {
-##      require(MASS)    ##  !?!
       lcall$method <- c(method,"MM")
       lcall$x.ret <- TRUE
     }
   } else  lcall$x <- TRUE
   if (lmeth=="rq"|lmeth=="quantreg") { # quantile regression
-##    require(quantreg) ## !?!
     lfn <- "rq"
     lcall$method <- if(length(lcall$method)>1) lcall$method[-1] else NULL
     lcall$x <- NULL
@@ -387,16 +384,6 @@ i.lm <-
                    rlm="Chisq",
                    "F"
                    )
-##-   ## leverage
-##-   if (!nonlinear) {
-##-     lhat <- pmax(0,hat(lreg$x))
-##-     if (length(lhat)==0) warning(":regr/i.lm: no leverages")  ## else {
-##- ##-       if (length(lhat)!=NROW(lreg$stdres))
-##- ##-         if (length(lreg[["w"]])==NROW(lreg$stdres))
-##- ##-           lhat <- u.merge(lreg$leverage, 0, lreg[["w"]]>0)
-##- ##-     }
-##-     lreg$leverage <- lhat
-##-   }
   ## multivariate
   if (class(lreg)[1]=="mlm")
     return(i.mlmsum(lreg, termtable))
@@ -406,10 +393,6 @@ i.lm <-
   if (is.null(lsig)) lsig <- lreg$scale ## lmrob
   if (is.null(lsig)) lsig <- sd(lreg$resid) # !!! used for rq
   lreg$sigma <- lsig
-##-   ## standardized residuals
-##-   if (is.finite(lsig)&&lsig>0) {
-##-     lreg$stdres <- lreg$residuals/lsig
-##-     if (length(lreg$weights)) lreg$stdres <- lreg$stdres*sqrt(lreg$weights)
   if (class(lreg)=="lmrob") lreg1$cov.unscaled <- lreg$cov/lsig^2 ## !!!
   ## from summary
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
@@ -417,7 +400,7 @@ i.lm <-
   lreg[lcomp] <- lreg1[lcomp]
   if (lfn=="lm") lreg$AIC <- extractAIC(lreg)[2]
   ## degrees of freedom
-  if (is.null(lreg$df)) # needed for rq
+  if (is.null(lreg["df"])) # needed for rq ## was $df
     lreg$df <- c(length(coef(lreg))-attr(terms(lreg),"intercept"),
                  length(lreg$residuals)-length(coef(lreg)))
   lreg$df.residual <- ldfr <- df.residual(lreg)
@@ -427,15 +410,13 @@ i.lm <-
     lcf <- lcftab[,1]
     attr(lcf, "se") <- lcftab[,2]
     lreg$coefficients <- lcf
-    lreg$coeftable <- ciSignif(lcftab, df=lreg$df.residual, testlevel=testlevel)
-##-     if (nonlinear) {
-##-       lreg$termtable <- 
-##-     }
-#   lreg$r.squared <- 1-(lsig/lsdy)^2
+    lreg$coeftable <-
+      ciSgRl(lcftab, df=lreg$df.residual, testlevel=testlevel, object=lreg)
   }
-  ##
+  ## -------
+#   lreg$r.squared <- 1-(lsig/lsdy)^2
   lreg$adj.r.squared <- 1-(1-lreg$r.squared)*(length(lreg$residuals)-1)/ldfr
-  ## cov of estimates
+  ## --- cov of estimates
   lcov <- lreg$cov.unscaled*lsig^2
   lreg$covariance <- lcov
   lse <- sqrt(diag(lcov))
@@ -443,12 +424,14 @@ i.lm <-
   ## --- table of terms
   if (!nonlinear) {
     if(termtable) {
-      ly <- lreg$model[[1]]
-      lsdy <- sqrt(var(ly))
-      ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype, lsdy=lsdy,
-                         vif=vif, leverage=TRUE)
-      lreg[names(ltt)] <- ltt
-    }  else  class(lreg) <- c("orig",class(lreg))
+      ltr <- i.termresults(lreg, lreg1, lttype, vif)
+##-       ly <- lreg$model[[1]]
+##-       lsdy <- sqrt(var(ly))
+##-       lreg$termtable <- termtable(lreg, lreg1, lttype, r2x=vif)
+##-       lreg$termeffects <- termeffects(lreg)
+##-       if (leverage) lreg$leverage <- hat(lmmt)
+      lreg[names(ltr)] <- ltr
+    } else  class(lreg) <- c("orig",class(lreg))
   }
   ## result of i.lm
   lreg
@@ -508,9 +491,9 @@ i.glm <-
   ## Purpose:  internal: fit glm
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
-  lfamily <- get(fname)
 ##-   environment(formula) <- environment()
   lcall <- match.call() 
+  if (length(fname)) lcall$family <- get(fname)
   lcall$x <- TRUE
   lcall <- lcall[setdiff(names(lcall),
                          c("fname","vif","nonlinear","robust",
@@ -522,7 +505,7 @@ i.glm <-
   ## ----------------
   lreg$leverage <- pmax(0,hat(lreg$x))
   lreg1 <- summary(lreg)
-  lcoeftab <- lreg1$coef
+  lcoeftable <- lreg1$coef
   ly <- as.numeric(lreg$model[,1])
   ldisp <- lreg1$dispersion
   ## ---
@@ -537,9 +520,9 @@ i.glm <-
       ldisp <- lreg1$deviance/lreg1$df.residual
       if (ldisp>1||length(lcalcdisp)>0) {
         lreg$distrname <- paste("quasi",fname,sep="")
-        lcoeftab[,2] <- lcoeftab[,2]*sqrt(ldisp)
-        lcoeftab[,3] <- lcoeftab[,3]/sqrt(ldisp)
-##-         lcoeftab[,4] <- 2*pnorm(lcoeftab[,3],lower.tail=FALSE)
+        lcoeftable[,2] <- lcoeftable[,2]*sqrt(ldisp)
+        lcoeftable[,3] <- lcoeftable[,3]/sqrt(ldisp)
+##-         lcoeftable[,4] <- 2*pnorm(lcoeftable[,3],lower.tail=FALSE)
       }
       else ldisp <- 1
     }
@@ -559,7 +542,7 @@ i.glm <-
     "df.null","iter","deviance.resid","aliased","df","cov.unscaled")
   lreg[lcomp] <- lreg1[lcomp]
   ## --- deviances
-  ltesttype <- ifelse(ldisp==1,"Chisq","F")
+  lttype <- ifelse(ldisp==1,"Chisq","F")
   ldev <- unlist(lreg1[c("deviance", "null.deviance")])
   ldf <- lreg1$df[1:2]-c(attr(terms(lreg),"intercept"),0)
   ltbd <- cbind(deviance=c(diff(ldev),ldev), df=c(ldf,sum(ldf)),
@@ -578,10 +561,11 @@ i.glm <-
   ## ---
   lreg$fitfun <- "glm"
   if (termtable) {
-    ltt <- i.termtable(lreg, lcoeftab, data, lcov, ltesttype, lsdy=1, vif=vif)
+    ltr <- i.termresults(lreg, lreg1, lttype, vif)
+  ##  ltt <- i.termtable(lreg, lcoeftable, data, lcov, lttype, lsdy=1, vif=vif)
 ##-     lcmpn <- c("termtable","termeffects","leverage")
     ##-     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
-    lreg[names(ltt)] <- ltt
+    lreg[names(ltr)] <- ltr
   }
   ## result of i.glm
   lreg
@@ -686,9 +670,10 @@ i.polr <-
   ## --- deviances
   lreg$fitfun <- "polr"
   if (termtable) {
-    ltt <- i.termtable(lreg, lreg1$coef, data, lcov, ltesttype="Chisq",
-                       lsdy=1, vif=vif, leverage=TRUE)
-    lreg[names(ltt)] <- ltt
+    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=vif)
+##    ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype="Chisq",
+##                       lsdy=1, vif=vif, leverage=TRUE)
+    lreg[names(ltr)] <- ltr
 ##-     lcmpn <- c("termtable","termeffects","leverage")
 ##-     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
   }
@@ -746,7 +731,7 @@ i.survreg <-
   }   ## ---
   lreg$resid.orig <- lreg$residuals
   lreg$stdres <- NULL
-  lcf <- lreg1$coefficients
+  ## lreg$coeftable <- lreg1$coefficients <- lreg1$table
   ## --- deviances
   ## lreg$scale
   if (lfitfun=="survreg") {
@@ -800,9 +785,10 @@ i.survreg <-
     } 
   }
   if (termtable) {
-    ltt <- i.termtable(lreg, lreg1$table, data, lcov, ltesttype="Chisq",
-                       lsdy=1, vif=vif)
-    lreg[names(ltt)] <- ltt
+    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=vif)
+    ## ltt <- i.termtable(lreg, lreg1$table, data, lcov, lttype="Chisq",
+       ##                lsdy=1, vif=vif)
+    lreg[names(ltr)] <- ltr
     ## log(scale): signif<-NA. no! log(scale)==0 means
     ##    exp.distr for weibull/gumbel
 ##-     lcmpn <- c("termtable","termeffects","leverage")
@@ -1167,250 +1153,17 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     fit
 }
 ## ================================================================
-i.termtable <-
-  function (lreg, lcoeftab, ldata, lcov, ltesttype="F", RlvThres=NULL,
-            lsdy, vif=TRUE, leverage=vif, testlevel=0.05)
+i.termresults <-
+  function(object, summary, testtype="F", r2x=TRUE, leverage=TRUE)
 {
-  ## Purpose:  generate term table for various models
-  ## ----------------------------------------------------------------------
-  ## Author: Werner Stahel, Date:  4 Aug 2004, 15:37
-##-   if (length(lnaaction <- lreg$naaction) && class(lnaaction)=="exclude")
-##-     lreg$na.action <- structure(lnaaction, class="omit")
-  ##-  lreg$na.action <- NULL
-  lrlth <- i.getopt(RlvThres)
-  lrlthcf <- lrlth["coef"]
-  lrlthdr <- lrlth["drop"]
-  lterms <- terms(lreg)
-  if(length(attr(lterms,"term.labels"))==0)
-    return(list(termtable = data.frame(
-      coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciUp=NA, 
-      df=1, testst=NA, signif0=NA, p.value=NA, p.symbol="", stcoef=NA, R2.x=NA,
-      stringsAsFactors=FALSE)
-                ))
-## degrees of freedom
-  ldfr <- df.residual(lreg)
-  if (ldfr<1) {
-    warning(":regr/i.termtable: no degrees of freedom left.")
-    return(list(termtable = data.frame(
-      coef=c(lreg$coef,NA)[1], se=NA, ciLow=NA, ciUp=NA, 
-      df=1, testst=NA, signif0=NA, p.value=NA, p.symbol="", stcoef=NA, R2.x=NA,
-      stringsAsFactors=FALSE)
-                ))
-  }    
-  ## drop1
-  ldr1 <-
-    if (class(lreg)[1]%in%c("lm","lmrob")) {
-      if (u.debug()) 
-        drop1Wald(lreg, test=ltesttype, scope=lterms)
-      else try(drop1Wald(lreg, test=ltesttype, scope=lterms),
-                  silent=TRUE)
-    } else {
-      if (u.debug()) 
-        drop1(lreg, test=ltesttype, scope=lterms)
-      else try(drop1(lreg, test=ltesttype, scope=lterms),
-               silent=TRUE)
-    }
-  if (class(ldr1)[1]=="try-error") {
-    warning(paste(":regr: drop1 did not work. I return the table produced by ",
-                  lreg$fitfun))
-##-     lsum <- summary(lreg)
-##-     lcft <- lsum$coef
-##-     if (length(lcft)==0) lcft <- lsum$parameters ## nls
-##-     return(list(test=lcft)) # !!! noch reparieren
-    return(list(termtable=lcoeftab))
-  }
-  ldr1 <- ldr1[-1,]
-  ldr1$RSS <- NULL # same ncol for lm and glm
-  if (inherits(lreg,"rlm"))  ldr1[,4] <- ldr1[,2]/ldr1[,1] ## !!!
-  if (inherits(lreg,"mlm")||inherits(lreg,"manova"))
-    return(list(termtable=ldr1))  ## !!! needs much more
-  ltstq <- if (ltesttype=="F") qf(0.95,c(1,ldr1[,1]),ldfr) else {
-    if (ltesttype=="Chisq") qchisq(0.95,c(1,ldr1[,1])) else NA }
-  ltstq1 <- sqrt(ltstq[1]) ## 1 degree of freedom
-  ltstq <- ltstq[-1]
-  
-  ## ---------------------
-## coefficients
-  lcoef <- lreg$coefficients
-  lsigma <- c(lreg$sigma,1)[1]
-## model.matrix
-  lmmt <- lreg[["x"]]
-  if (length(lmmt)==0)
-      lmmt <- model.matrix(lreg)
-  lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
-##  if (class(lreg)[1]%in%c("polr")) lasg <- lasg[-1] ## ,"coxph"
-  ## terms without factor involvement
-  lfactors <- attr(lterms,"factors")
-  lvcont <- !attr(lterms,"dataClasses")[row.names(lfactors)] %in%
-    c("numeric","logical") ## [...] excludes .weights. and possibly others
-  ## terms only containing continuous variables
-  lcont <- which( lvcont %*% lfactors ==0 ) 
-  ## licasg <- which(lasg%in%lcont)
-  ## vif --> R2.x
-  lr2 <- NA
-  if (vif) {
-    lvift <-     ## lterms: n of levels for each term
-        if (u.debug()) vif.regr(lreg, lcov, lmmt) else
-        try(vif.regr(lreg, lcov, lmmt), silent=TRUE)
-    if (class(lvift)[1]=="try-error" || length(lvift)==0) {
-      warning(":regr/i.termtable: error in the calculation of R2.xs")
-      lvif <- NA
-    } else lvif <- lvift[,3]^2
-    lr2 <- 1-1/lvif
-  }
-## prepare table
-  lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
-  lpv <- ldr1[,lpvcol]
-  ldf <- ldr1[,1]
-  ## drop effect relevance
-  ltst <- ldr1[, ifelse(inherits(lreg, "polr"), 3, 4)]
-  ldrncci <- rbind(confintF(ltst, ldf, ldfr, testlevel))
-  ldreff <- 0.5*log(1+ldf/ldfr*cbind(ltst,ldrncci))
-  ldrrl <- ldreff/lrlthdr
-##-   la <- ldfr+ldf*cbind(ltst,ldrncci)
-  ##-   ldreff <- 0.5*log(la/(ldfr+ldf))
-##  ldrese <- qnorm(0.975)*sqrt(ldf*(1+2*ltst)/2)/la
-  ltb <- data.frame(coef=NA, se=NA, ciLow=NA, ciUp=NA, 
-                    df=ldr1[,1], testst=ldr1[,lpvcol-1], signif0=NA,
-                    dropRle=ldrrl[,1], dropRls=ldrrl[,2], dropRlp=ldrrl[,3],
-##                    dropRls=(ldreff-ldrese)/lrlthdr, dropRlp=(ldreff+ldrese)/lrlthdr,
-                    estcoef=NA, estciLow=NA, estciUp=NA,
-                    stcoef=NA, stciLow=NA, stciUp=NA,
-                    coefRle=NA, coefRls=NA, coefRlp=NA, 
-                    p.value=lpv, p.symbol="", R2.x=lr2,
-                    stringsAsFactors=FALSE)
-  row.names(ltb) <- row.names(ldr1)
-  ## intercept
-  ljint <- "(Intercept)"==names(lcoef)[1]
-  if (ljint) {
-##    ltstint <- # if(class(lreg)[1]%in%c("lm","nls","rlm"))
-##      lcoeftab[1,3]^2 # else lcoeftab[1,3]
-    ltb <- rbind("(Intercept)"=ltb[1,],ltb)
-    ltb[1,] <- NA
-    ltb[1,"df"] <- 1
-    ltb[1,"p.symbol"] <- ""
-    ltstq <- c(ltstq1, ltstq)
-    lcont <- c(0, lcont)
-  }
-  lcont1 <- lcont+ljint  # row number in dr1
-## p.symbol and signif
-  ltb$signif0 <- sqrt(pmax(0,ltb$testst)/ltstq)
-## coefficients and statistics for terms with 1 df
-  if (length(lcont)) { ## lcont refers to assign
-    ltlb <- dimnames(ltb)[[1]]
-    lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of lreg1
-    ljc <- match(lcont,lasg) # index of coefs for cont variables
-    lcf <- lcoef[ljc]
-    ## fill in
-    ltb$se[lcont1] <- lse <- lcoeftab[ljc,2]
-    lcfci <- lcf+outer(ltstq1*lse, c(0,-1,1))
-    ## confint(lreg,row.names(ltb)[lcont1]) does not always work...
-    ltb[lcont1,c("coef","ciLow","ciUp")] <- lcfci
-    ltb[lcont1,"signif0"] <- sign(lcf)*ltb[lcont1,"signif0"]
-    ## standardized coefficients - exclude intercept term
-    ## effect size and its confidence int.
-    lestfac <- sqrt(apply(lmmt[,names(lcf[lcont>0]),drop=FALSE],2,var)) / lsigma
-    lestcfci <- lcfci[lcont>0,, drop=FALSE] * lestfac
-    ltb[lcont1[lcont>0],c("estcoef","estciLow","estciUp")] <- lestcfci
-    ltb[lcont1[lcont>0],c("stcoef","stciLow","stciUp")] <- lestcfci*lsigma/lsdy
-    ## coef relevance
-    lrlv <- t(apply(lestcfci, 1, function(x) if(x[1]<0) -x[c(1,3,2)] else x)/lrlthcf )
-    ltb[lcont1[lcont>0],c("coefRle","coefRls","coefRlp")] <- lrlv
-  }
-  if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
-    ltsc <- lcoeftab[nrow(lcoeftab),]
-    lcont1 <- c(lcont1, nrow(lcoeftab))
-    if (!u.true(lreg$dist=="weibull")) ltsc[2:4] <- NA
-    lls <- ltb[1,]
-    lls[1,] <- NA
-    lq <- qnorm(1-testlevel/2)
-    lls[1,1:7] <-
-      c(ltsc[1],ltsc[2],ltsc[1]+c(-1,1)*lq*ltsc[2], 1, ltsc[3], ltsc[3]/lq)
-    lls[,"p.value"] <- ltsc[4]
-    ltb <- rbind(ltb,"log(scale)"= lls)
-  }
-## p-symbol
-  ltb[,"p.symbol"] <- 
-    if (any(!is.na(ll <- ltb$p.value)))
-      pvSymbols[as.numeric(cut(ll, pvCutpoints))] else NA
-  attr(ltb, "pvLegend") <- pvLegend
-  ## Rls-symbol
-  ltb[,"dropRls.symbol"] <- 
-    if (any(!is.na(ll <- ltb$dropRls)))
-      RlSymbols[as.numeric(cut(ll, RlCutpoints))] else NA
-  ltb[,"coefRls.symbol"] <-
-    if (any(!is.na(ll <- ltb$coefRls)))
-      RlSymbols[as.numeric(cut(ll, RlCutpoints))] else NA
-  attr(ltb, "RlLegend") <- RlLegend
-  ## ---
-  class(ltb) <- c("termtable", "data.frame")
-  ## --- termeffects (dummy coef)
-  lallcf <- termeffects(lreg) 
-  if (inherits(lreg,"polr")) lreg$coefficients <- c("(Intercept)" = NA, lcoef)
-  rr <- list(termtable = ltb, termeffects = lallcf)
-  if (leverage) rr <- c(rr, leverage=list(hat(lmmt)))
-  attr(rr, "RlvThres") <- lrlth
-  rr
+  lmmt <- object[["x"]]
+  if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
+  list(termtable=termtable(object, summary, testtype, r2x),
+       termeffects=termeffects(object),
+       leverage=if(leverage) hat(lmmt)
+       )
 }
-## ========================================================================
-confintF <- function(f, df1, df2=Inf, testlevel=0.05) {
-  ## confidence interval for non-centrality of F distribution
-  p <- testlevel/2
-  lf.fq <- function(x, fvalue, df1, df2, p) qf(p,df1,df2,x)-fvalue
-  lf.ciup <- function(fvalue, df, p) { ## upper bound for upper limit
-    lq <- 1.5*qnorm(p)
-    lu <- lq^2*2/df
-    df*(fvalue-1+lu+sqrt(lu*(lu+2*fvalue-1)))
-  }
-  ln <- max(length(f), length(df1), length(df2), length(p))
-  f <- rep(f, length=ln)
-  df1 <- rep(df1, length=ln)
-  df2 <- rep(df2, length=ln)
-  p <- rep(p, length=ln)
-  p <- pmin(p,1-p)
-  ## ---------------------------
-  rr <- matrix(NA, ln, 2)
-  for (li in 1:ln) {
-    lx <- f[li]
-    if (lx>100)
-      rr[li,] <- df1[li]*(sqrt(lx)+c(-1,1)*abs(qt(p[li],df2[li]))/sqrt(df1[li]))^2
-    else {
-      rr[li,1] <-  ## lower limit
-        if (lf.fq(0, f[li], df1[li], df2[li], 1-p[li])>=0) 0
-        else 
-          uniroot(lf.fq, c(0,df1[li]*f[li]),
-                  fvalue=f[li], df1=df1[li], df2=df2[li], p=1-p[li])$root
-      rr[li,2] <- ## upper limit
-        if (pf(f[li], df1[li], df2[li])<=p[li]) 0  ## tiny F value
-        else 
-        uniroot(lf.fq, interval=c(df1[li]*f[li], lf.ciup(f[li], df1[li], 1-p[li])),
-                fvalue=f[li], df1=df1[li], df2=df2[li], p=p[li], extendInt="upX")$root
-    }
-  }
-  if (ln==1) c(rr) else rr
-}
-## --------------------------------------------------------------------------
-ciSignif <- function (estimate, se=NULL, df=Inf, testlevel=0.05) {
-  if (inherits(estimate, regrModelClasses))
-    estimate <- summary(estimate)$coefficients
-  if (is.null(se))
-    if (NCOL(estimate)>1) {
-      se <- estimate[,2]
-      estimate <- estimate[,1]
-    }
-  if (is.null(se)) se <- attr(estimate, "se")
-  if (is.null(se))
-    stop("!ciSignif! no standard errors found")
-  ltq <- qt(1-testlevel/2, df)
-  lci <- estimate+outer(ltq*se, c(ciLow=-1,ciUp=1))
-  ltst <- estimate/se
-  lsgf <- ltst/ltq
-  lpv <- 2*pt(-abs(ltst), df)
-  lipv <- as.numeric(cut(lpv, c(0, 0.001, 0.01, 0.05, 0.1, 1)))
-  lsst <- c("***", "**", "*", ".", " ")[lipv]
-  data.frame(estimate=estimate, se=se, lci, testst=ltst,
-             signif0=lsgf, p.value=lpv, p.symbol=lsst)
-}
+## -----------------------------------------------------------
 ## ==========================================================================
 contr.wsumpoly <- 
   function (n, scores = NULL, y = NULL, w = NULL,
@@ -1511,21 +1264,16 @@ plot.regr <- plgraphics::plregr
 ## envirnment(plot.regr) <- environment(plgraphics::plregr)
 ##  ===================================================================
 print.regr <-
-  function (x, call=TRUE, correlation = FALSE,
-    termeffects = i.getoption("show.termeffects"),
-    termcolumns = i.getoption("termcolumns"),
-    termeffcolumns = i.getoption("termeffcolumns"),
-    coefcolumns = i.getoption("coefcolumns"),
-    digits = i.getoption("digits"), 
-    symbolic.cor = p > 4, signif.stars = getOption("show.signif.stars"),
-    na.print = i.getoption("na.print"),
-    residuals=FALSE, niterations=FALSE, ...)
+  function (x, call=TRUE, residuals = FALSE,
+            termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
+            printstyle = NULL, digits = getRegrOption("digits"), 
+            na.print = NULL, symbolic.cor = p > 4, ...)
 {
   ##
-  if (is.null(na.print)) na.print <- "."
+  na.print <- i.getopt(na.print)
+  lcoefcorr <- i.def(coefcorr, getRegrOption("show.coefcorr"))
   ## doc
-  ldoc <- i.getoption("doc")
-  if (length(ldoc)==0) ldoc <- 1
+  ldoc <- getRegrOption("doc")
   if (ldoc>=1) if (length(tit(x)))
     cat("\n ",tit(x),"\n")
   if (ldoc>=2) if (length(doc(x)))
@@ -1534,31 +1282,35 @@ print.regr <-
   if (inherits(x,"mlm"))
     return(invisible(print.mregr(x, na.print=na.print, ...)))
   ## preparation
-  lItermeff <- i.def(termeffects, TRUE)
-  if (length(termcolumns)==1) {
-    if (substring(termcolumns,1,3)=="rel")
-      termcolumns <- i.getoption("termcolumns.r")
-    else
-      if (substring(termcolumns,1,3)=="con") {
-        termcolumns <- i.getoption("termcolumns.c")
-        if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
-      }
-  }
+##-   lItermeff <- i.def(termeffects, TRUE)
+  lprstyle <- i.getopt(printstyle)
+##-   if (length(termcolumns)==1) {
+##-     if (substring(termcolumns,1,3)=="rel")
+##-       termcolumns <- getRegrOption("termcolumns.r")
+##-     else
+##-       if (substring(termcolumns,1,3)=="con") {
+##-         termcolumns <- getRegrOption("termcolumns.c")
+##-         if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
+##-       }
+##-   }
   ## call, fitting fn, residuals
   if (call) {
     if(!is.null(x$call)) {
       cat("\nCall:\n")
       cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
     }
-    cat("Fitting function: ",x$fitfun,
-        if (length(lfam <- x$family))
-          paste("  Family:",
-                if(inherits(lfam, "family"))
+    lout <- paste(
+      if (length(lfitf <- x$fitfun)) paste("Fitting function: ",lfitf),
+      if (length(lfam <- x$family))
+        paste("  family:",
+              if(inherits(lfam, "family"))
                   paste(lfam$family,
                         if (length(llink <- lfam$link))
-                          paste("  Link:",llink)
+                          paste("  link:",llink)
                         ) else lfam
-                ), "\n")
+              ),
+      if (length(ldist <- x$dist)) paste("  distribution:", ldist),
+      "\n")
   }
   df <- x$df
     rdf <- c(x$df.resid,df[2])[1]
@@ -1591,40 +1343,30 @@ print.regr <-
   ## termtable
   lttab <- x$termtable
   if (length(lttab)>0) {
-    if (inherits(lttab, "termtable")) {
-      lIttab <- TRUE
-      if(!is.null(termcolumns)) {
-        if (all(termcolumns=="")) lIttab <- FALSE else {
-          ljp <- match(termcolumns,colnames(lttab), nomatch=0)
-          if (sum(ljp)!=0) 
-            ##        warning(":print.regr: no valid columns of  termtable  selected") else
-            lttab <- lttab[,ljp,drop=FALSE]
-        }
-      }
-      if (lIttab) {
-        cat("\nTerms:\n")
-        ## round R2.x, signif, p.value
-##-         ljrp <- colnames(lttab)[dropNA(pmatch(c("R2","signif","p.v"),
-##-                                              colnames(lttab)))]
-##-         if (length(ljrp))
-##-           lttab[,ljrp] <- round(as.matrix(lttab[,ljrp]),max(3,digits))
-##-         if ("signif0"%in%ljrp) lttab$signif0 <- round(lttab$signif0,last(digits)-1)
-##-         lttabf <- format(lttab, na.encode=FALSE)
-##-         lttabp <- data.frame(lapply(lttabf, function(x) sub("NA",na.print,x)),
-##-                              row.names=row.names(lttab))
-        print.termtable(lttab, termcolumns, digits=digits, na.print=na.print)
-        if (signif.stars>=1) 
-          cat("---\nSignif. codes:  ", attr(x$termtable, "legend"),"\n", sep = "")
-      } ## end if(lIttab)
-    } else print(lttab, digits=digits, na.print=na.print) ## !inherits(.,"termtable")
+##-    if (inherits(lttab, "termtable")) {
+##-       lIttab <- TRUE
+##-       if(!is.null(termcolumns)) {
+##-         if (all(termcolumns=="")) lIttab <- FALSE else {
+##-           ljp <- match(termcolumns,colnames(lttab), nomatch=0)
+##-           if (sum(ljp)!=0) 
+##-             ##        warning(":print.regr: no valid columns of  termtable  selected") else
+##-             lttab <- lttab[,ljp,drop=FALSE]
+##-         }
+##-       }
+##-       if (lIttab) {
+    cat("\nTerms:\n")
+    print(lttab, printstyle=lprstyle, digits=digits, na.print=na.print)
+##   else print(lttab, digits=digits, na.print=na.print) ## !inherits(.,"termtable")
   ## --- error block
   } else {
-    if (length(x$coeftable)) {
+    if (length(lcftb <- x$coeftable)) {
       cat("\nCoefficients:\n")
-      lcftb <- x$coeftable
-      if("coef"%in%coefcolumns & "estimate"%in%names(lcftb))
-        names(lcftb)[match("estimate", names(lcftb))] <- "coef"
-      print(lcftb[,coefcolumns], na.print=na.print, digits=digits)
+      lcol <-
+        if (i.getopt(printstyle)=="relevance")
+          getRegrOption("coefcolumns.r") else getRegrOption("coefcolumns.p")
+##-       if("coef"%in%coeflcol & "coef"%in%names(lcftb))
+##-         names(lcftb)[match("coef", names(lcftb))] <- "coef"
+      print(lcftb[,lcol], na.print=na.print, digits=digits)
     }
   }
 ##-   if (length(x$binlevels)>0) {
@@ -1659,7 +1401,7 @@ print.regr <-
   if (length(x$deviance)>0) {
     cat ("\n")
     if (length(x$devtable)) print(x$devtable, na.print=na.print, digits=digits)
-    cat("\nDistribution: ",x$distrname)
+    cat("\nDistribution: ", x$distrname)
     if (length(x$dispersion))
       cat(".  Dispersion parameter: ",
           if ((!is.null(attr(x$dispersion,"fixed")))&&
@@ -1678,9 +1420,10 @@ print.regr <-
   if (x$distrname=="multinomial") {
     cat("\nCoefficients:\n")
     print(t(x$coefficients), na.print=na.print)
-  } else {
-    if (length(lttab)&lItermeff) {
-      if (lItermeff==1) {
+  } else { ## termeffects
+    lshte <- i.def(termeffects, getRegrOption("show.termeffects"))
+    if (length(lttab)&lshte) {
+      if (lshte==1) {
 ##-         lidf <- match("df",colnames(x$termtable))
 ##-         if (is.na(lidf)) {
 ##-           if (getOption("verbose"))
@@ -1693,11 +1436,13 @@ print.regr <-
               } else NULL
       } else mt <- x$termeffects
       if (length(mt)>0) {
-        cat("\nEffects of factor levels:\n")
-        print.termeffects(mt, digits=digits, na.print=na.print,
-                          columns=i.getoption("termeffcolumns")) }
+        cat("\nEffects of ", if (lshte==1) "factor levels" else "terms", ":\n")
+        print.termeffects(mt, printstyle=lprstyle, digits=digits,
+                          na.print=na.print, ...)
+      }
     } ## else  cat("\n")
   }
+  ## --- extras
   if (length(x$n.censored)) {
     lnc <- 100*x$n.censored/x$n.obs
     cat(paste("\ncensored         ",
@@ -1713,7 +1458,7 @@ print.regr <-
     cat("Number of iterations:", x$iter, "\n")
   ## ---- correlation
   correl <- x$correlation
-  if (length(correl)>0 && correlation) {
+  if (length(correl)>0 && lcoefcorr) {
     p <- NCOL(correl)
     if (p > 1) {
       cat("\nCorrelation of Coefficients:\n")
@@ -1735,7 +1480,7 @@ print.regr <-
 }
 ## ==========================================================================
 ## currently only called from print.regr():
-print.mregr <- function (x, na.print=i.getoption("na.print"), ...)
+print.mregr <- function (x, na.print=getRegrOption("na.print"), ...)
 {
   ## Purpose:   collect results for mregr object
   ## ----------------------------------------------------------------------
@@ -1937,51 +1682,59 @@ df.residual.regr <- function (object, ...) {
   df
 }
 ## ------------------------------------------------------------------------
-vif.regr <- function (mod, cov, mmat)
+vif.regr <- function (object, cov=NULL, mmat=NULL)
 {
   ## Purpose:   vif.lm  of library  car
   ## ----------------------------------------------------------------------
-  ## Author: modified by Werner Stahel, Date: 11 Mar 2005, 09:18
-##-     v <- mod$sigma^2* mod$cov.unscaled
-##-     cls <- dimnames(model.matrix(mod))[[2]]%in%dimnames(v)[[2]]
-##-                                         # needed for singular cases
-##-     assign <- attributes(model.matrix(mod))$assign[cls]
-    cls <- dimnames(mmat)[[2]]%in%dimnames(cov)[[2]]
-##-                                         # needed for singular cases
-    assign <- attr(mmat,"assign")[cls]
-    terms <- labels(terms(mod))
-    n.terms <- length(terms)
-    if (n.terms < 2) {
-##-         stop("model contains fewer than 2 terms")
-      return(matrix(1,1,3))
-    }
-    if (length(cov)==0) { # ||n.terms!=nrow(cov)|nrow(cov)!=ncol(cov)
-      warning(":vif.regr: mod$cov.unscaled  is inappropriate. no vifs")
-      return(matrix(NA,n.terms,3))
-    }
-    if (names(coefficients(mod)[1]) == "(Intercept)") {
-        cov <- cov[-1, -1]
-        assign <- assign[-1]
-    }
-    else if (mod$fitfun%nin%c("polr","coxph","survreg"))
-      warning("No intercept: vifs may not be sensible.")
-    sd <- 1/sqrt(diag(cov))
-    if (any(!is.finite(sd))) {
-      warning(":vif.regr: zero variances of estimates. no R2x")
+  ## Author: objectified by Werner Stahel, Date: 11 Mar 2005, 09:18
+  terms <- labels(terms(object))
+  n.terms <- length(terms)
+  if (n.terms < 2) {
+    ##-         stop("model contains fewer than 2 terms")
+    return(matrix(1,1,3))
+  }
+  if (length(cov)==0) {
+    cov <- object$cov.unscaled
+    if (is.null(cov)) cov <- summary(object)$cov.unscaled
+    if (is.null(cov)) cov <- object$covariance ## /lsig^2 # no: a factor does not matter...
+    if (is.null(cov)) cov <- object$var ## survreg
+    if (length(cov)==0) {
+      warning("!vif.regr! no covariance matrix found")
       return(NULL)
     }
-    R <- cov/outer(sd,sd)
-    result <- matrix(0, n.terms, 3)
-    rownames(result) <- terms
-    colnames(result) <- c("GVIF", "Df", "GVIF^(1/2Df)")
-    for (term in 1:n.terms) {
-      subs <- which(assign == term)
-      result[term, 1] <- det(as.matrix(R[subs, subs])) *
-        det(as.matrix(R[-subs,-subs]))/det(R)
-      result[term, 2] <- length(subs)
-    }
-    result[, 3] <- result[, 1]^(1/(2 * result[, 2]))
-    result
+  }
+  if (length(mmat)==0) mmat <- model.matrix(object)
+  if (length(mmat)==0) {
+    warning("!vif.regr! no model matrix found")
+    return(NULL)
+  }
+  cls <- dimnames(mmat)[[2]]%in%dimnames(cov)[[2]]
+  ##-                                         # needed for singular cases
+  assign <- attr(mmat,"assign")[cls]
+  if (names(coefficients(object)[1]) == "(Intercept)") {
+    cov <- cov[-1, -1]
+    assign <- assign[-1]
+  }
+  else if (object$fitfun%nin%c("polr","coxph","survreg"))
+    warning("No intercept: vifs may not be sensible.")
+  sd <- 1/sqrt(diag(cov))
+  if (any(!is.finite(sd))) {
+    warning(":vif.regr: zero variances of predictors. no R2x")
+    return(NULL)
+  }
+  R <- cov/outer(sd,sd)
+  detR <- det(R)
+  result <- matrix(0, n.terms, 3)
+  rownames(result) <- terms
+  colnames(result) <- c("GVIF", "Df", "GVIF^(1/2Df)")
+  for (term in 1:n.terms) {
+    subs <- which(assign == term)
+    result[term, 1] <- det(as.matrix(R[subs, subs])) *
+      det(as.matrix(R[-subs,-subs]))/detR
+    result[term, 2] <- length(subs)
+  }
+  result[, 3] <- result[, 1]^(1/(2 * result[, 2]))
+  result
 }
 ## ==========================================================================
 nobs.survreg <- function (object, use.fallback = TRUE) {
@@ -2078,211 +1831,6 @@ xNA <-
   }
   ##structure(ldt[,-1, drop=FALSE], xNA.values = na.values)
   ldt[, -1, drop=FALSE]
-}
-## ===========================================================================
-termeffects <-
-  function (object, se = 2, df = df.residual(object), ...)
-    ## --------------------------------------------------------------
-{
-  if (is.atomic(object)||is.null(terms(object)))
-      stop("!termeffects! inadequate first argument")
- ##  xl <- object$xlevels
-  Terms <- delete.response(terms(object))
-  tl <- attr(Terms, "term.labels")
-  dcl <- attr(Terms,"dataClasses")[-1]
-  if (all(dcl=="numeric")) 
-    return(as.list(coef(object)))
-  ## result already available?
-  allc <- object$termeffects
-  if ((!is.null(allc))&&length(allc)==length(tl)&&
-      (is.matrix(allc[[length(allc)]])|!se)) return(allc) ## !!! check!
-  int <- attr(Terms, "intercept")
-  facs <- attr(Terms, "factors")
-  mf <- object$model  ##! d.c used all.vars
-  if (is.null(mf)) mf <- model.frame(object)
-  xtnm <- dimnames(facs)[[1]]  ## names  ##! replaces vars
-  xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
-  lcontr <- object$contrasts
-  imat <- which(substr(dcl,1,7)=="nmatrix") ## resulting from bs()
-  if (length(imat)) {
-    xtlv[imat] <-
-        lapply(as.list(dcl[imat]),
-               function(x) as.character(1:as.numeric(substr(x,9,12))))
-    ##    lcontr <- c(lcontr, structure(rep(contr.id,length(tl)), names=tl)[imat])
-    lctr <- list()
-    for (li in seq_along(imat))
-      lctr <- c(lctr, list(diag(length(xtlv[[li]]))))
-    names(lctr) <- names(dcl)[imat]
-    lcontr <- c(lcontr, lctr)
-  }
-  xtnl <- pmax(sapply(xtlv,length),1) ## number of levels
-  termnl <- apply(facs, 2L, function(x) prod(xtnl[x > 0])) ##! lterms
-  nl <- sum(termnl)
-## --- df.dummy: data frame of simple terms
-  args <- setNames(vector("list", length(xtnm)), xtnm)
-  for (i in xtnm)
-    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else 
-      factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
-  df.dummy <- as.data.frame(args) # do.call("data.frame", args)
-  names(df.dummy) <- xtnm
-  ## rnn: names of rows
-  pos <- 0
-  rn <- rep.int(tl, termnl)
-  rnn <- rep.int("", nl)
-  ## fill df.dummy
-  for (j in tl) {
-    i <- unlist(xtnm[facs[, j] > 0])
-    ifac <- i[xtnl[i] > 1]
-    if (length(ifac) == 0L) {
-      rnn[pos + 1] <- j
-    }
-    else if (length(ifac) == 1L) {
-      df.dummy[pos + 1L:termnl[j], ifac] <- xtlv[[ifac]]
-      rnn[pos + 1L:termnl[j]] <- as.character(xtlv[[ifac]])
-    }
-    else {
-      tmp <- expand.grid(xtlv[ifac])
-      df.dummy[pos + 1L:termnl[j], ifac] <- tmp
-      rnn[pos + 1L:termnl[j]] <-
-        apply(as.matrix(tmp), 1L, function(x) paste(x, collapse = ":"))
-    }
-    pos <- pos + termnl[j]
-  }
-  ## attributes
-  attr(df.dummy,"terms") <- attr(mf,"terms")
-  lci <- sapply(df.dummy,is.factor)
-  lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?)
-  if (lIpolr <- inherits(object, "polr")) {
-    attr(Terms, "intercept") <- 1
-    mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xtlv)
-    asgn <- attr(mm, "assign")[-1]
-    mm <- mm[,-1]
-  } else {
-    mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xtlv)
-    asgn <- attr(mm, "assign")
-  } 
-  if (anyNA(mm)) {
-    warning("some terms will have NAs due to the limits of the method")
-    mm[is.na(mm)] <- NA
-  }
-  ## calculate dummy coefs
-  coef <- object$coefficients ##!!! cf <-
-##-   if (!use.na) 
-  ##-     coef[is.na(coef)] <- 0
-  lnna <- is.finite(coef)
-  names(asgn) <- colnames(mm)
-  if (any(!lnna)){
-    coef <- coef[lnna]
-    mm <- mm[,lnna]
-    asgn <- asgn[lnna]
-  }
-  if (se) {
-    cov <- vcov(object)
-    if (is.null(cov)) {
-      warning(":termeffects: no covariance matrix of coefficients found.",
-              " Returning coefficients only")
-      se <- FALSE
-    } else
-      if (inherits(object, "polr"))
-        cov <- cov[1:length(coef),1:length(coef)]
-  }
-##-   licf <- pmatch(colnames(mm), names(coef))
-  licf <- pmatch(names(coef), colnames(mm))
-  lasgn <- asgn[licf]
-  mm <- mm[,licf]
-##  asgn <- asgn[names(coef)] ## !!!
-  res <- setNames(vector("list", length(tl)), tl)
-  ljfail <- NULL
-  for (j in seq_along(tl)) {
-    mmr <- rn == tl[j]  ## rows corresponding to the term
-    mmc <- lasgn==j ## & !is.na(coef)
-##-     lcf <- coef[licf[mmc]]
-    lcf <- coef[mmc]
-##    mmc <- names(asgn)[asgn == j & !is.na(coef)]  ## columns (logical fails for polr, vcov() too large) !!! was  which
-##-     mmpart <- mm[mmr, mmc, drop=FALSE]
-    mmpart <- mm[mmr,mmc, drop=FALSE]
-    rrj <- setNames(drop(mmpart %*% lcf), rnn[mmr]) ## coef[mmc]
-    if (se) {
-      if (any(is.na(rrj))) {
-        warning(":termeffects: missing coef for term '", tl[j],
-                "'. no standard errors etc")
-        ljfail <- c(ljfail, tl[j])
-      } else {
-        sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
-        rrj <- ciSignif(rrj, sej, df) ## already calculated in  coeftable
-      }
-    }
-    res[[j]] <- rrj
-  }
-  if (length(ljfail))
-    warning(":termeffects: error calculating se for terms ",
-            paste(ljfail, collapse=", "))
-  if (int > 0) {
-    res <- c(list(`(Intercept)` = coef[int]), res)
-  }
-  if (lIpolr) 
-    res <- c(res,list("(Intercepts)"=ciSignif(object$intercepts[,1],
-                                         object$intercepts[,2], df) ))
-  ##  class(res) <- "termeffects" ## don't do that:
-  ##                                 want to be able to print the whole table
-  res
-}
-## --------------------------------------------------------------------
-print.termtable <-
-  function(x, columns=NULL, digits=i.getoption("digits"), na.print = "  ", ...)
-{
-  if (is.null(columns)) columns <- "all"
-  columns[columns=="estimate"] <- "coef"
-  names(x)[names(x)=="estimate"] <- "coef"
-  if (length(ll <- setdiff(columns, names(x)))) {
-    warning(":print.termtable: columns not found:", paste(ll, collapse=", "))
-    if (length(lcol <- setdiff(columns, ll))) columns <- lcol else return()
-  }
-  if (length(columns)>1||columns!="all") x <- x[,columns]
-  ljrp <- colnames(x)[dropNA(pmatch(c("R2","signif0","p.v"), colnames(x)))]
-  if (length(ljrp))
-    x[,ljrp] <- round(as.matrix(x[,ljrp]),max(3,digits))
-  if ("signif0"%in%ljrp) x$signif0 <- round(x$signif0,last(digits)-1)
-  lcnames <- colnames(x)
-  ljsy <- grep(".symbol", lcnames)
-  if (any(ll <- lcnames[ljsy]=="p.symbol")) 
-    lcnames[ljsy[ll]] <-
-      if ("p.value"%in%lcnames) "p.value.symbol"
-      else {
-        if ("signif0"%in%lcnames) "signif0.symbol" else "coef.symbol"
-      }
-  if (length(ljsy)) {
-    ljc <- match(sub(".symbol", "", lcnames[ljsy]),lcnames)
-    if (any(ll <- is.na(ljc))) {
-      ljc <- ljc[!ll]
-      ljsy <- ljsy[!ll]
-    }
-    if (lnc <- length(ljc)) {
-      x[,ljc] <-
-        matrix(paste(sub("NA",na.print, format(as.matrix(x[,ljc]))),
-                     sub("NA","  ",format(as.matrix(x[,ljsy], justify="left")))),ncol=lnc)
-      x <- x[,-ljsy, drop=FALSE]
-    }
-  }
-  xf <- format(x, na.encode=FALSE)
-  xp <- data.frame(lapply(xf, function(x) sub("NA",na.print,x)),
-                   row.names=row.names(x))
-  print(if(ncol(xp)==1) t(xp) else xp, quote=FALSE, na.print=na.print)
-}
-## ---------------------------------------
-print.termeffects <- function (x, columns=NULL, transpose=FALSE, single=FALSE, ...)
-{
-  lnam <- names(x)
-  for (li in seq_along(x)) {
-    xi <- x[[li]]
-    if (is.null(dim(xi))) next
-    if (nrow(xi)==1) {
-      if (!single) next
-      cat("\n")
-      }
-    else cat("\n",lnam[li],":\n")
-    print.termtable(xi, columns)
-  }
 }
 ## ====================================================================
 drop1.regr <-
@@ -2422,16 +1970,18 @@ drop1Wald <-
         if (!all(match(scope, tl, 0L) > 0L)) 
             stop("scope is not a subset of term labels")
     }
+    lsry <- summary(object)
     ndrop <- match(scope, tl)
     ns <- length(scope)
     rdf <- object$df.residual
-    lsig <- c(object$sigma, object$scale)[1]
+    lsig <- c(lsry$sigma, lsry$scale, 1)[1]
     chisq <- lsig^2 * rdf
     ## sum(weighted.residuals(object)^2, na.rm = TRUE)
     ## deviance.lm(object)
     dfs <- numeric(ns)
     RSS <- numeric(ns)
     cov <- object$cov.unscaled
+    if (is.null(cov)) cov <- summary(object)$cov.unscaled
     if (is.null(cov)) cov <- object$covariance/lsig^2
     if (length(cov)==0) stop("!drop1Wald! no covariance matrix found")
     cf <- object$coefficients
@@ -3059,8 +2609,7 @@ modelTable <-function (models, seq=NULL)
 }
 ## ==========================================================================
 format.modelTable <-
-  function (x, digits=i.getoption("digits"),
-           stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
+  function (x, digits=getRegrOption("digits"), sep="", ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -3070,11 +2619,15 @@ format.modelTable <-
   ##            (la)tex source
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 23 Dec 2008, 10:09
+  lpvs <- get("p.symbols", pos=1)
+  ## ---
   t.sd <- x$sd.terms
   lsd <- length(t.sd)>0
   t.ntrm <- nrow(x$coef)
-  t.stars <- c(stars, rep(" ",5))[1:5]
-  t.st <- stars[cut(x$p,c(-1,0.001,0.01,0.05,0.1,1))]
+##-   t.st <- stars[cut(x$p,c(-1,0.001,0.01,0.05,0.1,1))]
+##-   t.st[is.na(t.st)] <- "   "
+##-   dim(t.st) <- dim(x$p)
+  t.st <- lpvs$symbol[as.numeric(cut(x$p, lpvs$cutpoint))]
   t.st[is.na(t.st)] <- "   "
   dim(t.st) <- dim(x$p)
 ##-   t.stdd <- attr(x$coef,"standardized")
@@ -3115,7 +2668,8 @@ format.modelTable <-
   t.nm <- row.names(t.cfo)
   if (lsd) t.nm <- paste(t.nm,ifelse(!is.na(t.sd),"@",""))
   dimnames(t.out) <- list(t.nm,c(if (lsd) "sd",dimnames(x$p)[[2]]))
-  structure( t.out, class=c("modelTable", "modelTF"), nterms=t.ntrm)
+  structure( t.out, class=c("modelTable", "modelTF"), nterms=t.ntrm,
+            pvLegend=lpvs$legend)
 }
 ## ==========================================================================
 print.modelTable <- function (x, tex = FALSE, transpose=FALSE, ...)
@@ -3260,9 +2814,6 @@ factor2character <- function (x) {
     if (is.factor(x[,lj])) x[,lj] <- as.character(x[,lj])
   x
 }
-## ============================================================
-regrModelClasses <- c("regr","lm","glm","survreg","coxph","rq","polr")
-## ===========================================================================
 ## ===========================================================================
 regrAllEqns <-
   function (formula, data, weights = NULL, nbest = 50, nvmax = 20,
@@ -3826,9 +3377,9 @@ fitted.polr <- function (object, type="link", na.action=object, ...) {
 ##-     x <- x[1]
 ##-   }
 ##-   if (is.null(default))
-##-     return(i.getoption(x))
-##-   if (x %in% names(.i.getopt)&&!is.null(i.getoption(x)))
-##-         i.getoption(x)
+##-     return(getRegrOption(x))
+##-   if (x %in% names(.i.getopt)&&!is.null(getRegrOption(x)))
+##-         getRegrOption(x)
 ##-     else default
 ##- }
 ## -----------------------------------------------------------------------
@@ -3877,21 +3428,44 @@ regroptions <-
   ## assignInMyNamespace does not work
   invisible(lnewo)
 }
-##- ## -----------------------------------------------------
+## regroption <- regroptions
+## -----------------------------------------------------
+getRegrOption <- function(x, regroptions=NULL) {
+  ## x is character, regroptions list or NULL
+  lpldef <- get("regroptionsDefault", pos=1)
+  if (is.null(regroptions))
+    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
+  if (is.function(regroptions)) regroptions <- NULL
+  lopt <- regroptions[[x]]  
+  if (is.null(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
+      lopt <- regroptions(x)
+  else {lopt <- check.option(x, lopt)
+    if (length(lopt)) lopt <- lopt[[1]]
+  }
+  if (length(lopt)==0) lopt <- lpldef[[x]]
+##  names(lopt) <- x
+  lopt
+}
+## -----------------------------------------------------------
 .regroptions <- regroptionsDefault <- list(
   digits = 4, 
   regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
-  factorNA = TRUE, testlevel = 0.05, RlvThres = c(coef=0.25, drop=0.03),
+  factorNA = TRUE, testlevel = 0.05,
+  rlvThres = c(rel=0.1, coef=0.1, drop=0.1, pred=0.05),
   termtable = TRUE, vif = TRUE,
-  show.termeffects = TRUE,
-  termcolumns = "relevance",
-  termcolumns.r = c("coef",  "df", "R2.x", "coefRle", "coefRls", "coefRlp",
-                    "dropRls", "dropRls.symbol"),
-  termcolumns.c = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
+  show.termeffects = TRUE, show.coefcorr = FALSE,
+  printstyle = "relevance",
+  termcolumns.r = c("coef",  "df", "Rle", "Rls", # "Rlp",
+                    "dropRle", "dropRls", "dropRls.symbol", "predRle"),
+  termeffcolumns.r = c("coef","Rls.symbol"),
+  coefcolumns.r = c("coef", "Rle", "Rls", "Rlp", "Rls.symbol"),
+  termcolumns.p = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
                   "p.symbol"),
-  termeffcolumns = c("coef","p.symbol"),
-  coefcolumns = c("coef", "ciLow","ciUp", "signif0", "p.value", "p.symbol"),
+  termeffcolumns.p = c("coef","p.symbol"),
+  coefcolumns.p = c("coef", "ciLow","ciUp", "signif0", "p.value", "p.symbol"),
+  show.symbolLegend = TRUE,
   na.print = ".",
+  doc = 2,
   notices = TRUE, 
   debug = 0
   )
@@ -3933,46 +3507,22 @@ check.option <- function(optname, value, list = NULL) {
 ## -----------------------------------------------------------------------
 regroptionsCheck <- list()
 ## ---------------------------------------------------------------------------------
-i.getoption <- function(opt, opts=NULL) {
-  ## opt is character, opts list or NULL
-  lpldef <- get("regroptionsDefault", pos=1)
-  if (is.null(opts))
-    opts <- get("regroptions", envir=parent.frame()) ## list in calling fn
-  if (is.function(opts)) opts <- NULL
-  lopt <- opts[[opt]]  
-  if (is.null(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
-      lopt <- regroptions(opt)
-  else {lopt <- check.option(opt, lopt)
-    if (length(lopt)) lopt <- lopt[[1]]
-  }
-  if (length(lopt)==0) lopt <- lpldef[[opt]]
-##  names(lopt) <- opt
-  lopt
-}
-## -----------------------------------------------------------
-i.getopt <- function(opt, opts = NULL) {
-  ldef <- get("regroptionsDefault", pos=1)
-  if (is.null(opts))
-    opts <- get("regroptions", envir=parent.frame()) ## list in calling fn
-  lnam <- as.character(substitute(opt))
-  lopt <- opt 
-  if (is.function(opts)) opts <- NULL
+i.getopt <- function(x, regroptions = NULL) {
+  ldef <- regroptionsDefault
+  if (is.null(regroptions))
+    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
+  lnam <- as.character(substitute(x))
+  lopt <- x 
+  if (is.function(regroptions)) regroptions <- NULL
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- opts[[lnam]]
+    lopt <- regroptions[[lnam]]
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
-    lopt <- regroptions(lnam)
+    lopt <- getRegrOption(lnam)
   else unlist(check.option(lnam, lopt))   ## check
   if (is.null(lopt)) lopt <- ldef[[lnam]]
 ##  names(lopt) <- opt
   lopt
 }
-## -----------------------------------------------------------------
-pvCutpoints <- c(0, 0.001, 0.01, 0.05, 0.1, 1)
-pvSymbols <- c("***", "**", "*", ".", " ", "")
-pvLegend <- paste(rbind(pvCutpoints,pvSymbols), collapse="  ")
-RlCutpoints <- c(-Inf,-1,1,2,5,Inf)
-RlSymbols <- c("-", " ", "+", "++", "+++", "")
-RlLegend <- paste(rbind(RlCutpoints,RlSymbols), collapse="  ")
 ## ==========================================================================
 shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else

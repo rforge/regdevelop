@@ -33,7 +33,7 @@ r.blast <-
 with(r.blast,
      stopifnot(all.equal(
      termtable[-1,"signif0"],
-                          c(3.40649491, -12.0192639, 8.1947910) )
+     c(3.40649491, -12.01926386, 8.19479097) )
 ##                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
      )
@@ -224,6 +224,7 @@ data("ovarian", package="survival")
 r.surv <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
                data = ovarian, family="weibull")
 ## plot(r.surv)  # !!!
+t.rc <- survival::coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 r.coxph <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
 length(residuals(r.coxph, type="martingale"))
 

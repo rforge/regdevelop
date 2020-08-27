@@ -22,8 +22,7 @@
 \usage{
 modelTable(models, seq = NULL) % data = NULL, 
 
-\method{format}{modelTable}(x, digits=i.getoption("digits"),
-       stars = c("***","** ","*  ",":  ",".  "), sep="", ...)
+\method{format}{modelTable}(x, digits=getRegrOption("digits"), sep="", ...)
 \method{print}{modelTable}(x, tex = FALSE, transpose = FALSE, ...)
 
 compareTerms(... , list=NULL, seq = NULL)
@@ -38,10 +37,6 @@ compareTerms(... , list=NULL, seq = NULL)
     rows in the result. }
   \item{x}{object of class \code{modelTable}}
   \item{digits}{to be used in formatting}
-  \item{stars}{symbols used to indicate level of significance. They will
-    be used for the intervals delimited by
-    \code{c(-1, 0.001, 0.01, 0.05, 0.1, 1)}
-  }
   \item{sep}{separator. "\&" is used to prepare LaTeX format.}
   \item{tex}{if TRUE, the output can be used in (La-)TeX.}
   \item{transpose}{logical. If TRUE, the table is printed in transposed form}

@@ -12,7 +12,6 @@
 \alias{notice}
 %
 \alias{print.mregr}
-\alias{print.termtable}
 %% \alias{subset}
 \description{
   Internal functions of package \pkg{regr} that are exported, but
@@ -26,7 +25,7 @@
 ## i.polr(...)
 ## i.smooth(...)
 
-\method{print}{mregr}(x, na.print=i.getoption("na.print"), ...)
+\method{print}{mregr}(x, na.print=getRegrOption("na.print"), ...)
 notice(..., notices = NULL)
 }
 \arguments{
