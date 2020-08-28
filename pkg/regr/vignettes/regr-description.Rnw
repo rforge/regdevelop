@@ -6,7 +6,7 @@
 \usepackage[utf8]{inputenc}
 %% \usepackage{germanU}
 %%- \usepackage[noae]{Sweave}
-\usepackage[a4paper, text={14.5cm,22cm}]{geometry}
+\usepackage[a4paper]{geometry}  %% , text={14.5cm,22cm}
 \usepackage{color} %uncomment BF
 \usepackage{booktabs} % nice tables with \toprule \middlerule \bottomrule
 \usepackage{amsmath} % for align
@@ -27,7 +27,7 @@
 \begin{document}
 %% \bibliography{regrbib}
 %% \SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
-\setkeys{Gin}{width=1\textwidth}
+\setkeys{Gin}{width=0.95\textwidth}
 \baselineskip 15pt
 
 \title{\vspace*{-10mm}
@@ -53,7 +53,6 @@ It is available from \T{R-forge} and is still in development.
 library(regr) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
 plmframes()
 options(project="regr documentation")
-
 options(warn=1)
 @ 
 \section{Introduction}
@@ -149,6 +148,8 @@ output that is safe to be interpreted.
 Here is a result of printing a \T{regr} object.
 <<regrout>>=
 data(d.blast, package="plgraphics")
+attr(d.blast,"doc")[1] <- 
+  "Blasting: measurements of tremor in nearby house basements"
 regroptions(termcolumns="conventional")
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
@@ -288,10 +289,12 @@ The result of the \T{regr} function stores all of these informations
 in the \T{termtable} component.
 The user can select the columns to be shown by setting the 
 \T{termcolumns} option.
-Asking for \T{regroptions(termcolumns="relevance")} (the default)
-or \Hneed{100mm}
+Asking for 
+\T{regroptions(termcolumns="relevance")} (the default)
+or \\ %% \Hneed{100mm}
 \T{regroptions(termcolumns="conventional")} selects one of two
 default sets of columns.
+
 <<termtable>>=
 names(r.blast$termtable)
 regroptions(termcolumns=c("coef", "stcoef", "df", "signif0", "p.symbol"))
@@ -299,6 +302,7 @@ regroptions(termcolumns=c("coef", "stcoef", "df", "signif0", "p.symbol"))
 print(r.blast, call=FALSE, termeffects=FALSE) ## avoid repetition of these parts
 regroptions(default="all")  ## reset the options
 @ 
+
 The columns of the \T{termtable} not yet mentioned are:
 \begin{description}
 \item[\T{se},] the standard errors of the estimated coefficients; 
@@ -320,6 +324,7 @@ The columns of the \T{termtable} not yet mentioned are:
 \end{description}
 
 \subsection{Factors}
+\label{sec:factors}
 For factors with more than two levels, (\T{location} in the example), there
 are several coefficients to be estimated. 
 Their values depend on the scheme for generating the 
@@ -522,11 +527,14 @@ ordinal regression, plotting residuals against two variables, and more.
 See the package vignette and help files for details.
 
 Here are the residual plots shown by default.
-<<resanal, fig.height=8, fig.width=10>>=
-plot(r.blast)
-@ 
-%\pagebreak
-\Vneed{50mm}
+
+!!! No, this currently produces an error. Please see the vignette of 
+\T{plgraphics}
+%%- <<resanal, fig.height=8, fig.width=9>>=
+%%- plot(r.blast)
+%%- @ 
+%%- %\pagebreak
+%%- \Vneed{50mm}
 
 %% \section{Other regression models}
 
