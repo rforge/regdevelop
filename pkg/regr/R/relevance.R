@@ -42,7 +42,7 @@ ciSgRl <-
       warning(":ciSgRl: cannot calculate standardized coefficients for 'nls' objects.")
       return(rr)
     }
-    lfac <- getCoefFactor(object)
+    lfac <- getcoeffactor(object)
     ##   lcls <- attr(lfac, "fitclass")
     stcoef <- coef*lfac
   }
@@ -575,7 +575,7 @@ scalepar <-
   sigma
 }
 ## -----------------------------------------------------------
-getCoefFactor <-
+getcoeffactor <-
   function(object)
 {
   ## get factor for converting coef to coef effect

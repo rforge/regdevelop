@@ -3531,12 +3531,3 @@ shift <- function(x, k = 1)
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)
 
-
-##- plotregr <- function(x) {}
-##- .onLoad <- function() {
-##-   plotregr <- plgraphics::plregr
-##- }
-##-   require("knitr")
-##-   tools::vignetteEngine("knitr")
-##- ## , weave = vweave, tangle = vtangle, pattern = "[.]Rmd$", package = "knitr")
-
