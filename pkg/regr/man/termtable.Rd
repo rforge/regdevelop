@@ -100,5 +100,5 @@ print.termtable(x, columns = NULL, printstyle = NULL, legend = NULL,
   names(rt)
   data.frame(rt)
 }
-\keyword{ ~kwd1 }% use one of  RShowDoc("KEYWORDS")
-\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line
+\keyword{regression}
+

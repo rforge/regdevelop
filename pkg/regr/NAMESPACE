@@ -59,7 +59,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        factorNA, ## fitcomp,
        fitted.regr, ## fitted.polr,
        format.modelTable,
-       getRegrOption,
+       getRegrOption, getcoeffactor, getscalepar, getcoeftable, 
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
        ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.survreg,

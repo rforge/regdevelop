@@ -262,7 +262,7 @@ regr <-
 ##-         lres <- if (is.matrix(lres)) lres[-lnaaction,] else lres[-lnaaction]
 ##-       lreg$residuals <- lres
     }
-    lsigma <- scalepar(lreg)
+    lsigma <- getscalepar(lreg)
     if (!inherits(lreg, "nls")) {
 ##-       lrg <- lreg
 ##-       if(length(lnaaction)) lrg$na.action <- structure(lnaaction, class="omit")
@@ -3531,3 +3531,4 @@ shift <- function(x, k = 1)
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)
 
+options(.regroptions)

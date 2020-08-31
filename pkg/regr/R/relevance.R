@@ -10,7 +10,8 @@ ciSgRl <-
     object <- coef
     coef <- getcoeftable(object)
   }
-  browser()
+  if (!(is.atomic(coef)||length(dim(coef))==2))
+    stop("!ciSgRl! first argument not suitable")
   lpvs <- get("p.symbols", pos=1)
   lrls <- get("rlv.symbols", pos=1)
   if (is.null(se))
@@ -413,7 +414,7 @@ termeffects <-
   if ((!is.null(allc))&&length(allc)==length(tl)&&
       (is.matrix(allc[[length(allc)]])|!se)) return(allc) ## !!! check!
   ## ---
-  if (rlv) lsigma <- scalepar(object)
+  if (rlv) lsigma <- getscalepar(object)
   int <- attr(Terms, "intercept")
   facs <- attr(Terms, "factors")
   mf <- object$model  ##! d.c used all.vars
@@ -566,7 +567,7 @@ print.termeffects <- function (x, columns=NULL, printstyle=NULL, transpose=FALSE
   }
 }
 ## ----------------------------------------------------------
-scalepar <-
+getscalepar <-
   function(object)
 { ## get scale parameter of a fit
   lsry <- summary(object)
@@ -583,7 +584,7 @@ getcoeffactor <-
   lcls <- class(object)
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
-  lsigma <- scalepar(object)
+  lsigma <- getscalepar(object)
   lsigma <-
     if (any(lcls=="glm")&&object$family%in%c("binomial", "quasibinomial"))
       1.6683*lsigma   ## qlogis(pnorm(1))
@@ -598,7 +599,7 @@ getcoeffactor <-
       ## model.matrix=lmmt, 
 }
 ## ===========================================================================
-regrModelClasses <- c("regr","lm","glm","survreg","coxph","rq","polr")
+regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
 p.symbols <- list(symbol=c("***", "**", "*", ".", " ", ""),
                   cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )   
 p.symbols$Legend <- paste(rbind(p.symbols$cutpoint,p.symbols$symbol), collapse="  ")
