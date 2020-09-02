@@ -1,5 +1,5 @@
 ## install.packages("regr", repos="http://R-forge.R-project.org")
-install.packages("~/R/regdevelop/pkg/regr_1.1.tar.gz", repos=NULL)
+## install.packages("~/R/regdevelop/pkg/regr_1.1.tar.gz", repos=NULL)
 ## attach("../misc/regr0.rda")
 ## attach("../misc/data-regr0.rda")
 options(digits=3)

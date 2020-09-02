@@ -1274,10 +1274,10 @@ print.regr <-
   lcoefcorr <- i.def(coefcorr, getRegrOption("show.coefcorr"))
   ## doc
   ldoc <- getRegrOption("doc")
-  if (ldoc>=1) if (length(tit(x)))
-    cat("\n ",tit(x),"\n")
-  if (ldoc>=2) if (length(doc(x)))
-    cat(" ",paste(doc(x),"\n "))
+  if (ldoc>=1) {
+    if (length(tit(x))) cat("\nData: ",tit(x),"\n")
+    if (ldoc>=2) if (length(doc(x))) cat("  ",paste(doc(x),"\n "))
+  }
   ## mlm
   if (inherits(x,"mlm"))
     return(invisible(print.mregr(x, na.print=na.print, ...)))
@@ -1293,7 +1293,7 @@ print.regr <-
 ##-         if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
 ##-       }
 ##-   }
-  ## call, fitting fn, residuals
+  ## call, fitting fn
   if (call) {
     if(!is.null(x$call)) {
       cat("\nCall:\n")
@@ -1311,7 +1311,9 @@ print.regr <-
               ),
       if (length(ldist <- x$dist)) paste("  distribution:", ldist),
       "\n")
+    cat(lout,"\n")
   }
+  ## residuals
   df <- x$df
     rdf <- c(x$df.resid,df[2])[1]
   if (residuals) {
@@ -1354,7 +1356,7 @@ print.regr <-
 ##-         }
 ##-       }
 ##-       if (lIttab) {
-    cat("\nTerms:\n")
+    cat("Terms:\n")
     print(lttab, printstyle=lprstyle, digits=digits, na.print=na.print)
 ##   else print(lttab, digits=digits, na.print=na.print) ## !inherits(.,"termtable")
   ## --- error block

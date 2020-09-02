@@ -33,7 +33,7 @@ ciSgRl <-
   attr(rr, "pvLegend") <- lpvs$legend
   ## --- standardized coefficients
   if (!u.notfalse(stcoef)) return (rr)
-##    warning(":ciSigRlv: no standardized coefficients given. No relevances")
+  ##    warning(":ciSigRlv: no standardized coefficients given. No relevances")
   if (length(stcoef)==0||u.true(stcoef)) {
     if (length(object)==0) {
       warning(":ciSgRl: argument 'object' needed. No relevances")
@@ -89,6 +89,7 @@ getcoeftable <-
           list(names(lcoef), c("coef", "se", "z", "p")) ## "exp(coef)", 
       } else  ltb <- summary(object)$coefficients
     }
+    if (inherits(object, "polr")) ltb <- ltb[names(object$coefficients),]
   }
   ltb
 }
@@ -186,7 +187,7 @@ termtable <-
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  lmmt <- model.matrix(object)
   lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
-  if (class(object)[1]%in%c("polr")) lasg <- lasg[-1] ## ,"coxph"
+##  if (class(object)[1]%in%c("polr")) lasg <- lasg[-1] ## ,"coxph"
   ## terms without factor involvement
   lfactors <- attr(lterms,"factors")
   lvcont <- !attr(lterms,"dataClasses")[row.names(lfactors)] %in%
@@ -238,7 +239,7 @@ termtable <-
     ltb[1,"p.symbol"] <- ""
     ltstq <- c(ltstq1, ltstq)
     lcont <- c(0, lcont)
-  } else if (!inherits(object, "coxph"))
+  } else if (!inherits(object, c("coxph", "polr")))
     warning(":termtable: No intercept. Statistics are difficult to interpret.")
   lcont1 <- lcont+ljint  # row number in dr1
   ## --- coefficients and statistics for terms with 1 df
@@ -539,9 +540,11 @@ termeffects <-
   if (int > 0) {
     res <- c(list(`(Intercept)` = coef[int]), res)
   }
-  if (lIpolr) 
-    res <- c(res,list("(Intercepts)"=ciSgRl(object$intercepts[,1],
-                                         object$intercepts[,2], df) ))
+##-   if (lIpolr) {
+##-     lcfi <- object$intercepts[,1]
+##-     res <- c(res,
+##-              list("(Intercepts)"=ciSgRl(lcfi, object$intercepts[,2], df=df, stcoef=lcfi) ))
+##-   }
   ##  class(res) <- "termeffects" ## don't do that:
   ##                                 want to be able to print the whole table
   res
@@ -589,8 +592,10 @@ getcoeffactor <-
     if (any(lcls=="glm")&&object$family%in%c("binomial", "quasibinomial"))
       1.6683*lsigma   ## qlogis(pnorm(1))
     else {
-      if (any(lcls%in%c("lm","lmrob","rlm"))||
-          (any(lcls=="survreg")&&object$dist=="gaussian")) lsigma
+      lif <- any(lcls%in%c("lm","lmrob","rlm"))||
+        (any(lcls=="survreg")&&object$dist=="gaussian")
+      if (length(lif)!=1) stop(traceback())
+      if (lif) lsigma
       else 1
     }
   lfac <- apply(lmmt, 2, sd)/lsigma
