@@ -654,7 +654,7 @@ prettyscale <- #f
     lfnn <- plscale
     if (length(lfnn)>1) stop("!plscale! unsuitable argument 'plscale'")
     plscale <- if (lfnn=="userfunction") attr(plscale, "function") else  try(get(lfnn))
-    if (class(plscale)=="try-error") stop("!plscale! could not find function", lfnn)
+    if (inherits(plscale, "try-error")) stop("!plscale! could not find function", lfnn)
   } else {
     if (!is.function(plscale)) stop("!plscale! unsuitable argument 'plscale'")
     lfnn <- as.character(substitute(plscale))[1]
@@ -1622,7 +1622,7 @@ plrefline <- #f
       lrfl <-
         if (names(formals(lrfl))[1]=="formula") try(lrfl(y~x))
         else try(lrfl(x,y))
-        if (class(lrfl)=="try-error") {
+        if (inherits(lrfl, "try-error")) {
           warning(":plrefline: argument refline contains an unsuitable function")
           next
         }
@@ -1758,7 +1758,7 @@ gendate <-
     parse(text = paste("list(", paste(as.list(lcall[largs]), collapse = ","),")"),
                  keep.source = FALSE)
   vars <- try(eval(inp, data, enclos=parent.frame()), silent=TRUE)
-  if (class(vars)=="try-error") {
+  if (inherits(vars, "try-error")) {
     lvnmiss <- setdiff(largs, names(data))
     stop(sub("object", "!gendate! variable (or object)",
                attr(vars, "condition")$message),
@@ -2754,7 +2754,7 @@ plregr.control <- #f
     lsimres <- if(ploptions("debug"))
                simresiduals(x, lnsims, glm.restype=glm.restype)  else
       try(simresiduals(x, lnsims, glm.restype=glm.restype), silent=TRUE)
-    if (class(lsimres)=="try-error") {
+    if (inherits(lsimres, "try-error")) {
       warning(":plregr/simresiduals: simresiduals did not work. ",
               "No simulated smooths")
       lsimres <- NULL
@@ -3643,7 +3643,7 @@ smoothRegr <- #f
   if (u.isnull(weights)) lcall$weights <- NULL
   lsm <- if (ploptions("debug")) eval(lcall, parent.frame())
          else try(eval(lcall), parent.frame(), silent=TRUE)
-  if (class(lsm)=="try-error") {
+  if (inherits(lsm, "try-error")) {
     warning(":smoothRegr: span was too small. Using 0.99")
     lcall$span <- 0.99
     lsm <- eval(lcall, parent.frame())
@@ -5295,7 +5295,7 @@ check.color <- #f
     lx <- try(palette(c(x,"black")), silent=TRUE)
     ## palette asks for at least 2 colors
     palette(lpal) ## restore palette
-    if (class(lx)=="try-error")
+    if (inherits(lx, "try-error"))
       return("consist of known color names")
     else return("")
   }
@@ -5388,7 +5388,7 @@ check.function <- #f
   if (na.ok && (u.isnull(x) || all(is.na(x))) ) return("")
   if (is.character(x))  {
     lfn <- try(get(x), silent=TRUE)
-    if (class(lfn)=="try-error")
+    if (inherits(lfn, "try-error"))
       return(paste("be a function or the name of an existing function.\n   '",
                    lfn, "' is not available.") )
     else return("")

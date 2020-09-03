@@ -431,7 +431,7 @@ fitcomp <-
         } else 
           lpr <- try( predict(object, newdata=ld, type=ltype, se.fit = se),
                      silent=TRUE)
-        if (class(lpr)=="try-error") {
+        if (inherits(lpr, "try-error")) {
           warning(":fitcomp: no fitcomp for variable  ", lvcomp[lj])
           ## predict finds new levels of formfac variables
           next
@@ -633,7 +633,7 @@ leverage <- function (object)
       lcl[1] <- list(quote(model.matrix))
       lx <- try(eval(lcl))
     }
-    if (class(lx)!="try.error") 
+    if (!inherits(lx, "try.error") )
       lh <- setNames(hat(lx, intercept=FALSE), lnm)
   }
   if (length(lh)==0) message("*leverage* no model.matrix found -> no leverages",
@@ -735,7 +735,7 @@ simresiduals.glm <- function (object, nrep=19, simfunction=NULL,
   if (is.null(ldata)) {
       ldata <- if (u.debug())  eval(lcall$data)  else
       try(eval(lcall$data))
-      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+      if (inherits(ldata, "try-error")||is.null(dim(ldata))) {
         warning(":simresiduals: data not found -> No simulated residuals")
         return(NULL)
       }
@@ -839,7 +839,7 @@ simresiduals.default <-
       ##      if (u.debug())
       getvariables(all.vars(lcall$formula), eval(lcall$data), transformed=FALSE)
     ## else  try(eval(lcall$data))
-      if (class(ldata)=="try-error"||is.null(dim(ldata))) {
+      if (inherits(ldata, "try-error")||is.null(dim(ldata))) {
         warning(":simresiduals: data not found -> No simulated residuals")
         return(NULL)
       }
@@ -985,7 +985,7 @@ xdistResdiff <-
   lstdres <- object$stdres 
   if (is.null(lstdres)) {
     lsr <- try(stdresiduals(object), silent=TRUE)
-    if (class(lsr)=="try-error") {
+    if (inherits(lsr, "try-error")) {
       warning(":xdistResdiff: no standardized residuals. I use raw residuals")
       lstdres <- residuals(object)
     } else  lstdres <- lsr

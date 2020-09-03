@@ -614,7 +614,7 @@ getvariables <-
     inp <- parse(text = paste("list(", paste(lvn, collapse = ","),")"),
                  keep.source = FALSE)
     variables <- try(eval(inp, data, lenv), silent=TRUE)
-    if (class(variables)=="try-error") {
+    if (inherits(variables, "try-error")) {
       lvnmiss <- setdiff(lvn, names(data))
       stop(sub("object", "!getvariables! variable (or object)",
                attr(variables, "condition")$message),
