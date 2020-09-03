@@ -1,7 +1,7 @@
 ## relevance.R
 
 ciSgRl <-
-  function (coef=NULL, se=NULL, df=Inf, testlevel=0.05, stcoef=TRUE, rlv=TRUE, 
+  function (coef=NULL, se=NULL, df=Inf, testlevel=0.05, stcoef=TRUE, rlv=TRUE,
             rlvThres=0.1, object=NULL)
 { ## for a coefficients table,
   ## calculate confidence interval, significance and relevance
@@ -65,7 +65,7 @@ ciSgRl <-
   li <- which(lstci[,1]<0)
   if (length(li)) lrlv[li,] <- - lrlv[li,c(1,3,2)]
   colnames(lrlv) <- c("Rle","Rls","Rlp")
-  lrlvsy <- 
+  lrlvsy <-
     if (any(!is.na(ll <- lrlv[,"Rls"])))
       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
   cbind(rr, lrlv, Rls.symbol=lrlvsy)
@@ -83,17 +83,17 @@ getcoeftable <-
       if (inherits(object, "coxph")) {
         lcoef <- object$coefficients
         se <- sqrt(diag(object$var))
-        ltb <- cbind(lcoef, se, lcoef/se,  ## exp(lcoef), 
+        ltb <- cbind(lcoef, se, lcoef/se,  ## exp(lcoef),
                      pchisq((lcoef/se)^2, 1, lower.tail = FALSE))
         dimnames(ltb) <-
-          list(names(lcoef), c("coef", "se", "z", "p")) ## "exp(coef)", 
+          list(names(lcoef), c("coef", "se", "z", "p")) ## "exp(coef)",
       } else  ltb <- summary(object)$coefficients
     }
     if (inherits(object, "polr")) ltb <- ltb[names(object$coefficients),]
   }
   ltb
 }
-## --------------------------------------------------------------------------       
+## --------------------------------------------------------------------------
 termtable <-
   function (object, summary=NULL, testtype=NULL, r2x = TRUE, rlv = TRUE,
             rlvThres=c(rel=0.1, coef=0.1, drop=0.1, pred=0.05), testlevel=0.05)
@@ -112,10 +112,10 @@ termtable <-
   lsigma <- c(object$sigma, summary$sigma, 1)[1]
   lfamily <- object$family$family
   ldist <- object$dist
-  if ((inherits(object, "glm") && 
-       lfamily%in%c("poisson","quasipoisson")) ||
+  if ((inherits(object, "glm") &&
+       lfamily %in% c("poisson","quasipoisson")) ||
       (inherits(object, "survreg")&&
-       ldist%in%c("weibull", "exponential", "lognormal"))
+       ldist %in% c("weibull", "exponential", "lognormal"))
       )  lrlthcf <- lrlthrl
   ## --- testtype
   if (length(testtype)==0) {
@@ -123,7 +123,7 @@ termtable <-
     if (inherits(object, c("lm","lmrob"))) testtype <- "F"
     if (inherits(object, "glm")) {
       testtype <- "LRT"
-      if (object$family%in%c("quasibinomial","quasipoisson")) testtype <- "F"
+      if (object$family %in% c("quasibinomial","quasipoisson")) testtype <- "F"
     }
     if (inherits(object, c("survreg"))) testtype <- "Chisq"
   }
@@ -157,17 +157,17 @@ termtable <-
   ldr1 <-
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
       lcov <- summary$cov.unscaled
-      if (u.debug()) 
+      if (u.debug())
         drop1Wald(object, test=testtype, scope=lterms) ## scale for AIC!!!
       else try(drop1Wald(object, test=testtype, scope=lterms),
                   silent=TRUE)
     } else {
-      if (u.debug()) 
+      if (u.debug())
         drop1(object, test=testtype, scope=lterms)
       else try(drop1(object, test=testtype, scope=lterms),
                silent=TRUE)
     }
-  if (class(ldr1)[1]=="try-error") {
+  if (inherits(ldr1, "try-error")) {
     warning(":regr/termtable: drop1 did not work. I return the codfficient table")
 ##                  produced by ", object$fitfun
     return(list(termtable=lcoeftab))
@@ -187,7 +187,7 @@ termtable <-
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  lmmt <- model.matrix(object)
   lasg <- attr(lmmt,"assign")[!is.na(lcoef)]
-##  if (class(object)[1]%in%c("polr")) lasg <- lasg[-1] ## ,"coxph"
+##  if (class(object)[1] %in% c("polr")) lasg <- lasg[-1] ## ,"coxph"
   ## terms without factor involvement
   lfactors <- attr(lterms,"factors")
   lvcont <- !attr(lterms,"dataClasses")[row.names(lfactors)] %in%
@@ -201,7 +201,7 @@ termtable <-
     lvift <-     ## lterms: n of levels for each term
         if (u.debug()) vif.regr(object, mmat=lmmt) else
         try(vif.regr(object, mmat=lmmt), silent=TRUE)
-    if (class(lvift)[1]=="try-error" || length(lvift)==0) {
+    if (inherits(lvift, "try-error") || length(lvift)==0) {
       warning(":termtable: error in the calculation of R2.x")
       lvif <- NA
     } else lvif <- lvift[,3]^2
@@ -224,14 +224,14 @@ termtable <-
   ltst <- ldr1[,lpvcol-1]
   ## table, filled partially
     ltb <- data.frame(coef=NA, df=ldr1[,1], se=NA, ciLow=NA, ciUp=NA,
-                      signif0=sqrt(pmax(0,ltst)/ltstq), 
+                      signif0=sqrt(pmax(0,ltst)/ltstq),
                       stcoef=NA, st.Low=NA, st.Up=NA,
-                      testst=ltst, p.value=lpv, p.symbol="", R2.x=lr2, ldrrl, 
+                      testst=ltst, p.value=lpv, p.symbol="", R2.x=lr2, ldrrl,
                       stringsAsFactors=FALSE)
   ## intercept
   ljint <- "(Intercept)"==names(lcoef)[1]
   if (ljint) {
-    ##    ltstint <- # if(class(object)[1]%in%c("lm","nls","rlm"))
+    ##    ltstint <- # if(class(object)[1] %in% c("lm","nls","rlm"))
     ##      lcoeftab[1,3]^2 # else lcoeftab[1,3]
     ltb <- rbind("(Intercept)"=ltb[1,],ltb)
     ltb[1,] <- NA
@@ -266,7 +266,7 @@ termtable <-
   }
   ## p-symbol
   lpvs <- get("p.symbols", pos=1)
-  ltb[,"p.symbol"] <- 
+  ltb[,"p.symbol"] <-
     if (any(!is.na(ll <- ltb$p.value)))
       lpvs$symbol[as.numeric(cut(ll, lpvs$cutpoint))] else NA
   ## Rls-symbol
@@ -274,15 +274,15 @@ termtable <-
 ##-   ltb[,"Rls.symbol"] <-
 ##-     if (any(!is.na(ll <- ltb$Rls)))
 ##-       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
-  ltb[,"dropRls.symbol"] <- 
+  ltb[,"dropRls.symbol"] <-
     if (any(!is.na(ll <- ltb$dropRls)))
       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
-  ltb[,"predRls.symbol"] <- 
+  ltb[,"predRls.symbol"] <-
     if (any(!is.na(ll <- ltb$predRls)))
       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
   ## ---
   structure(ltb, class=c("termtable", "data.frame"),
-            testtype=testtype, 
+            testtype=testtype,
             fitclass=class(object), family=lfamily, dist=ldist,
             rlvThres=rlvThres,
             pvLegend=lpvs$legend, RlLegend=lrls$legend)
@@ -313,12 +313,12 @@ confintF <- function(f, df1, df2=Inf, testlevel=0.05) {
     else {
       rr[li,1] <-  ## lower limit
         if (lf.fq(0, f[li], df1[li], df2[li], 1-p[li])>=0) 0
-        else 
+        else
           uniroot(lf.fq, c(0,df1[li]*f[li]),
                   fvalue=f[li], df1=df1[li], df2=df2[li], p=1-p[li])$root
       rr[li,2] <- ## upper limit
         if (pf(f[li], df1[li], df2[li])<=p[li]) 0  ## tiny F value
-        else 
+        else
         uniroot(lf.fq, interval=c(df1[li]*f[li], lf.ciup(f[li], df1[li], 1-p[li])),
                 fvalue=f[li], df1=df1[li], df2=df2[li], p=p[li], extendInt="upX")$root
     }
@@ -353,14 +353,14 @@ print.termtable <-
   ljrp <- lcnames[dropNA(pmatch(c("R2","signif0","p.v"), colnames(x)))]
   if (length(ljrp))
     x[,ljrp] <- round(as.matrix(x[,ljrp]),max(3,digits))
-  if ("signif0"%in%ljrp) x$signif0 <- round(x$signif0,last(digits)-1)
+  if ("signif0" %in% ljrp) x$signif0 <- round(x$signif0,last(digits)-1)
   ## --- paste symbols to numbers
   ljsy <- grep(".symbol", lcnames)
-  if (any(ll <- lcnames[ljsy]=="p.symbol")) 
+  if (any(ll <- lcnames[ljsy]=="p.symbol"))
     lcnames[ljsy[ll]] <-
-      if ("p.value"%in%lcnames) "p.value.symbol"
+      if ("p.value" %in% lcnames) "p.value.symbol"
       else {
-        if ("signif0"%in%lcnames) "signif0.symbol" else "coef.symbol"
+        if ("signif0" %in% lcnames) "signif0.symbol" else "coef.symbol"
       }
   if (length(ljsy)) {
     ljc <- match(sub(".symbol", "", lcnames[ljsy]),lcnames)
@@ -388,9 +388,9 @@ print.termtable <-
   if (lprleg) {
     if (length(grep(".symbol", columns))) {
       ## cat("---")
-      if ("p.symbol"%in%columns)
+      if ("p.symbol" %in% columns)
         cat("\nSignificance codes:  ", lattr[["pvLegend"]],"\n", sep = "")
-      if (any(c("Rls.symbol", "dropRls.symbol", "predRls.symbol")%in%columns))
+      if (any(c("Rls.symbol", "dropRls.symbol", "predRls.symbol") %in% columns))
         cat("\nRelevance codes:    ", lattr[["RlLegend"]],"\n", sep = "")
       cat("\n")
     }
@@ -441,7 +441,7 @@ termeffects <-
 ## --- df.dummy: data frame of simple terms
   args <- setNames(vector("list", length(xtnm)), xtnm)
   for (i in xtnm)
-    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else 
+    args[[i]] <- if (xtnl[[i]] == 1)  rep.int(1, nl)    else
       factor(rep.int(xtlv[[i]][1L], nl), levels = xtlv[[i]])
   df.dummy <- as.data.frame(args) # do.call("data.frame", args)
   names(df.dummy) <- xtnm
@@ -480,14 +480,14 @@ termeffects <-
   } else {
     mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xtlv)
     asgn <- attr(mm, "assign")
-  } 
+  }
   if (anyNA(mm)) {
     warning("some terms will have NAs due to the limits of the method")
     mm[is.na(mm)] <- NA
   }
   ## calculate dummy coefs
   coef <- object$coefficients ##!!! cf <-
-##-   if (!use.na) 
+##-   if (!use.na)
   ##-     coef[is.na(coef)] <- 0
   lnna <- is.finite(coef)
   names(asgn) <- colnames(mm)
@@ -525,7 +525,7 @@ termeffects <-
     if (se) {
       sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
       if (any(is.na(rrj))|any(!is.finite(sej))) {
-##-         warning(":termeffects: missing coef or non-finite standard error for term '", 
+##-         warning(":termeffects: missing coef or non-finite standard error for term '",
 ##-                 tl[j], "'. no standard errors etc")
         ljfail <- c(ljfail, tl[j])
       } else {
@@ -584,29 +584,31 @@ getcoeffactor <-
 {
   ## get factor for converting coef to coef effect
   ## model matrix
-  lcls <- class(object)
+  fitclass <- class(object)
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
+  family <- object$family # may be emptry
+  dist   <- object$dist
   lsigma <- getscalepar(object)
   lsigma <-
-    if (any(lcls=="glm")&&object$family%in%c("binomial", "quasibinomial"))
-      1.6683*lsigma   ## qlogis(pnorm(1))
-    else {
-      lif <- any(lcls%in%c("lm","lmrob","rlm"))||
-        (any(lcls=="survreg")&&object$dist=="gaussian")
-      if (length(lif)!=1) stop(traceback())
-      if (lif) lsigma
-      else 1
-    }
+      if (any(fitclass=="glm") &&
+          family$family %in% c("binomial", "quasibinomial"))
+          1.6683*lsigma   ## qlogis(pnorm(1))
+      else {
+          lif <- any(fitclass %in% c("lm","lmrob","rlm")) ||
+              (any(fitclass=="survreg") && dist=="gaussian")
+          if (length(lif)!=1) stop(traceback())
+          if (lif) lsigma
+          else 1
+      }
   lfac <- apply(lmmt, 2, sd)/lsigma
-  structure(lfac, sigma=lsigma, fitclass=class(object), family=object$family,
-            dist=object$dist)
-      ## model.matrix=lmmt, 
+  structure(lfac, sigma=lsigma, fitclass=fitclass, family=family, dist=dist)
+      ## model.matrix=lmmt,
 }
 ## ===========================================================================
 regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
 p.symbols <- list(symbol=c("***", "**", "*", ".", " ", ""),
-                  cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )   
+                  cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )
 p.symbols$Legend <- paste(rbind(p.symbols$cutpoint,p.symbols$symbol), collapse="  ")
 rlv.symbols <- list(symbol=c("-", " ", ".", "+", "++", "+++", ""),
                   cutpoint=c(-Inf,-1,0,1,2,5,Inf) )

@@ -1,8 +1,8 @@
 ##  regr.R  Functions that are useful for regression, W. Stahel,
 ## ==========================================================================
 regr <-
-  function (formula, data=NULL, family=NULL, 
-            robust = FALSE, method=NULL, 
+  function (formula, data=NULL, family=NULL,
+            robust = FALSE, method=NULL,
             nonlinear = FALSE, start=NULL,
             subset=NULL, weights=NULL, offset=NULL, ...)
 {
@@ -32,21 +32,21 @@ regr <-
     warning(":regr: argument(s)  ",paste(lextra, collapse=", "),
             "  not used")
   lac <- lac[names(lac)%nin%lextra]
-  lcl <- c(list(quote(regr.control)), 
+  lcl <- c(list(quote(regr.control)),
             lac[match(laControl,names(lac), nomatch=0)])
   mode(lcl) <- "call"
   largs <-eval(lcl)
-  ## ------------------------------------------------------------------  
+  ## ------------------------------------------------------------------
   ## b. ===   preparation:
   ## convert character formula to formula
   lform <- lformula <- as.formula(formula)
   lcall$formula <- lformula
   ## nonlinear: drop constants
   nonlinear <- i.def(nonlinear, FALSE, TRUE, FALSE)
-  if (as.character(nonlinear)!="FALSE") 
+  if (as.character(nonlinear)!="FALSE")
     lform <- setdiff(all.vars(lform), names(start))
   ## nonlinear <- i.nonlincheck(nonlinear, lformula, ldata)
-  ## ------------------------------------------------------------------  
+  ## ------------------------------------------------------------------
   ## d. === data
   lextrav <- as.list(lcall)[names(lcall)%in%c("weights", "offset", "subset")]
   lcgetv <- c(list(quote(plgraphics::getvariables)),
@@ -62,7 +62,7 @@ regr <-
   lcl <- lcall
   ## !!! extras: check, replace names
   if (length(lextrav)) {
-    lextras <- 
+    lextras <-
       c(weights=".weights.", offset=".offset.", subset=".subset.")[names(lextrav)]
     lcl[names(lextras)] <- lallvars[lextras] ## was intersect(names(lallvars),c(".weights.",".offset.",".subset."))]
   }
@@ -73,7 +73,7 @@ regr <-
     linna <- apply(cbind(ly0), 1, is.finite)
   } else linna <- TRUE
   if (length(linna)>1 && sum(linna)<2)
-    stop("!regr! Less than 2 non-missing response values") 
+    stop("!regr! Less than 2 non-missing response values")
   ## --- convert character to factor, drop unused levels, generate .NA. level
   lfacna <- i.def(largs$factorNA, TRUE)
   lfnalabel <- if(is.character(lfacna)) lfacna else ".NA."
@@ -114,10 +114,10 @@ regr <-
     lyy <- lyf[[1]]
     lysimple <- length(dim(lyy))==0
     ##    ly <- na.omit(lyy)
-    
+
     if (lysimple&&length(unique(dropNA(lyy)))==2 &&
         all(as.numeric(lyy)%in%0:1)) ## FALSE for numeric !={0,1}
-      lytype <- "binary" 
+      lytype <- "binary"
     if (inherits(lyy,"Surv"))  {
         lytype <- "survival"
     }
@@ -163,7 +163,7 @@ regr <-
   else  if (lfitfun=="glm")
     lcl$control <- list(calcdisp=largs$calcdisp, suffmean=largs$suffmean,
                         lcl$control)
-  ## 
+  ##
   lfitname <- paste("i",lfitfun,sep=".")
   if (!exists(lfitname)||!is.function(get(lfitname)))
     stop (paste("!regr! Fitting function",lfitname, "not found"))
@@ -178,7 +178,7 @@ regr <-
 	     "i.lm" = quote(regr::i.lm),
 	     "i.glm" = quote(regr::i.glm),
 	     "i.multinomial" = quote(regr::i.multinomial),
-	     "i.polr" = quote(regr::i.polr), 
+	     "i.polr" = quote(regr::i.polr),
 ##	     "i.smooth" = quote(regr::i.smooth), ## ??
 	     "i.survreg" = quote(regr::i.survreg),
 	     ## default:
@@ -202,9 +202,9 @@ regr <-
     if (ncol(lallvars)>1) {
       if (any(lcw))
         lyna <- if (length(dim(lyy)))
-                  c(0,NA)[1+apply(is.na(as.matrix(lyy)),1,any)] else lyy 
+                  c(0,NA)[1+apply(is.na(as.matrix(lyy)),1,any)] else lyy
       for (lj in 2:ncol(lallvars)) { ## no contrasts for y {
-        if(lcw[1]&&class(lallvars[,lj])[1]=="factor")
+        if(lcw[1] &&class(lallvars[,lj])[1]=="factor")
           attr(lallvars[,lj],"contrasts") <-
             contr.wsum(lallvars[,lj], y=lyna)
         if(lcw[2]&&class(lallvars[,lj])[1]=="ordered")
@@ -224,7 +224,7 @@ regr <-
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
   if (length(lreg$AIC)==0) {
     laic <- try(extractAIC(lreg), silent=TRUE)
-    if (class(laic)!="try-error") lreg$AIC <- laic
+    if (!inherits(laic, "try-error")) lreg$AIC <- laic
   }
   lreg$response <- lyy
 ##-     if (length(lnaaction)) {
@@ -258,7 +258,7 @@ regr <-
     if (lj>0) names(lreg)[lj] <- "residuals"
     if ("residuals" %nin% names(lreg)) {
       lreg$residuals <- residuals(lreg)
-##-       if (length(lnaaction) && class(lnaaction)=="exclude")
+##-       if (length(lnaaction) && inherits(lnaaction, "exclude"))
 ##-         lres <- if (is.matrix(lres)) lres[-lnaaction,] else lres[-lnaaction]
 ##-       lreg$residuals <- lres
     }
@@ -281,7 +281,7 @@ regr <-
     class(lnaaction) <-
       sub("na.","", sub("nainf.","", as.character(largs$na.action)))
   lreg$na.action <- lnaaction
-  class(lreg) <- if (class(lreg)[1]=="orig")  ##  nls shall not be regr
+  class(lreg) <- if (inherits(lreg, "orig"))  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
   ## ------------------------------------------------------------------
   ## result of regr
@@ -289,7 +289,7 @@ regr <-
 }
 ## -----------------------------------------------------------------------
 regr.control <-
-  function (contrasts=getRegrOption("regr.contrasts"), factorNA = NULL, 
+  function (contrasts=getRegrOption("regr.contrasts"), factorNA = NULL,
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
            model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
@@ -313,7 +313,7 @@ regr.control <-
 ## =========================================================================
 i.lm <-
   function (formula, data, family, fname="gaussian", nonlinear=FALSE,
-            robust=FALSE, method=NULL, control=NULL, 
+            robust=FALSE, method=NULL, control=NULL,
             vif=TRUE, termtable=TRUE, testlevel=0.05, call = NULL, ...)
 {
   ## Purpose:  internal: fit lm
@@ -385,15 +385,15 @@ i.lm <-
                    "F"
                    )
   ## multivariate
-  if (class(lreg)[1]=="mlm")
+  if (inherits(lreg, "mlm"))
     return(i.mlmsum(lreg, termtable))
-  ## 
+  ##
   lreg1 <- summary(lreg)
   lsig <- lreg1$sigma
   if (is.null(lsig)) lsig <- lreg$scale ## lmrob
   if (is.null(lsig)) lsig <- sd(lreg$resid) # !!! used for rq
   lreg$sigma <- lsig
-  if (class(lreg)=="lmrob") lreg1$cov.unscaled <- lreg$cov/lsig^2 ## !!!
+  if (inherits(lreg, "lmrob")) lreg1$cov.unscaled <- lreg$cov/lsig^2 ## !!!
   ## from summary
   lcomp <- c("r.squared","fstatistic","colregelation","aliased",
              "df","cov.unscaled")
@@ -492,7 +492,7 @@ i.glm <-
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##-   environment(formula) <- environment()
-  lcall <- match.call() 
+  lcall <- match.call()
   if (length(fname)) lcall$family <- get(fname)
   lcall$x <- TRUE
   lcall <- lcall[setdiff(names(lcall),
@@ -534,7 +534,7 @@ i.glm <-
   if (ldisp>1) {
       lstr <- residuals(lreg, type="pearson")/sqrt(ldisp)
       lnaa <- lreg$na.action
-      if (class(lnaa)=="exclude") lstr <- lstr[-lnaa]
+      if (inherits(lnaa, "exclude")) lstr <- lstr[-lnaa]
       lreg$stdres <- lstr
   }
   ## bug? leverage not taken into account
@@ -583,7 +583,7 @@ i.multinomial <-
 ##  ltr <- control$trace
 ##  if (length(ltr)==0) ltr <- trace
 ##  require(nnet)   ## !?!
-  lcall <- match.call() 
+  lcall <- match.call()
   lcall[[1]] <- quote(regr::i.multinomfit)
   lcall$fname <- lcall$family <- lcall$control <- lcall$vif <- NULL
   lcall$trace <- FALSE
@@ -605,9 +605,9 @@ i.multinomial <-
   lreg$df <- c(ldfm,prod(dim(lres)-1)-ldfm,ldfm)
 ##-   environment(lreg$call$formula) <- environment()
   lreg$fitfun <- "multinom"
-  ldr1 <- if (u.debug()) drop1(lreg, test="Chisq", trace=FALSE) else 
+  ldr1 <- if (u.debug()) drop1(lreg, test="Chisq", trace=FALSE) else
               try(drop1(lreg, test="Chisq", trace=FALSE), silent=TRUE)
-  if (class(ldr1)[1]=="try-error") {
+  if (inherits(ldr1, "try-error")) {
     warning(paste(":regr/i.multinom: drop1 did not work.",
                   "I return the multinom object"))
     class(lreg) <- c("orig",class(lreg))
@@ -616,7 +616,7 @@ i.multinomial <-
     ldr1 <- ldr1[-1,]}
   ## signif :
   ldr1 <- cbind( ldr1[,1:3], sqrt(ldr1[,3]/qchisq(0.95,ldr1[,1])), ldr1[,4] )
-  names(ldr1) <- c("df", "AIC", "Chisq", "signif0", "p.value") 
+  names(ldr1) <- c("df", "AIC", "Chisq", "signif0", "p.value")
   lreg$termtable <- lreg$drop1 <- ldr1
   if (length(lnaact)) attr(lreg$na.action,"class") <- lnaact
 ## result of i.multinomial
@@ -624,7 +624,7 @@ i.multinomial <-
 }
 ## -----------------------------------------------------------------------
 i.polr <-
-  function (formula, data, family, fname, weights = NULL, 
+  function (formula, data, family, fname, weights = NULL,
             model=TRUE, vif=TRUE, termtable=TRUE, call=NULL, ...)
 {
   ## Purpose:  internal: fit ordered y
@@ -650,7 +650,7 @@ i.polr <-
   lreg$leverage <- hat(lreg[["x"]])
   lreg1 <- if (u.debug()) summary(lreg) else
            try(summary(lreg))
-  if (class(lreg1)[1]=="try-error") {
+  if (inherits(lreg1, "try-error")) {
     warning(paste(":regr/i.polr: summary did not work.",
                   "I return the polr object"))
 ##    lreg$call$data <- call$data
@@ -722,7 +722,7 @@ i.survreg <-
 ##  lreg$call$formula <- formula
   lreg1 <- if (u.debug()) summary(lreg) else
            try(summary(lreg), silent=TRUE)
-  if (class(lreg1)[1]=="try-error") {
+  if (inherits(lreg1, "try-error")) {
     warning(paste(":regr/i.survreg: summary did not work. ",
                   "I return the survreg object"))
 ##    lreg$call$data <- call$data
@@ -762,7 +762,7 @@ i.survreg <-
   lres <- if (inherits(lreg, "survreg")) {
             residuals.regrsurvreg(lreg)  ## includes NAs
             } else residuals.regrcoxph(lreg)
-  if (length(lnaaction) && class(lnaaction)=="exclude")
+  if (length(lnaaction) && inherits(lnaaction, "exclude"))
     lres <- lres[-lnaaction]
   ly <- lreg$y
 ##-   lreg$n.censored <-
@@ -782,7 +782,7 @@ i.survreg <-
       lreg$n.censored <- structure(ltb[1], names="right")
     if (length(llimit))
     lreg$n.fitout <- structure(sum(lfit>llimit, na.rm=TRUE), names="right")
-    } 
+    }
   }
   if (termtable) {
     ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=vif)
@@ -980,7 +980,7 @@ function (formula, data, weights, start, ..., subset, na.action,
     if (model)  fit$model <- m
     if (x.ret)
       fit$x <- structure(x, assign=asgn) ## !WSt  return model.matrix
-##        structure(cbind("(Intercept)"=1, x), assign=c("(Intercept)"=0, asgn) ) 
+##        structure(cbind("(Intercept)"=1, x), assign=c("(Intercept)"=0, asgn) )
     ## , contrasts=cons  probably not needed
     fit$na.action <- attr(m, "na.action")
     fit$contrasts <- cons
@@ -989,8 +989,8 @@ function (formula, data, weights, start, ..., subset, na.action,
     fit
 }
 ## -------------------------------------------------------
-i.multinomfit <- 
-function (formula, data, weights, subset, na.action, contrasts = NULL, 
+i.multinomfit <-
+function (formula, data, weights, subset, na.action, contrasts = NULL,
     Hess = FALSE, summ = 0, censored = FALSE, model = FALSE, x = TRUE,
     ...)
     ## copy of multinom from MASS. Argument x added by WSt
@@ -1011,7 +1011,7 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
         q <- ncol(Y)
         Z <- t(cbind(X, Y))
         storage.mode(Z) <- "double"
-        z <- .C(nnet:::VR_summ2, as.integer(n), as.integer(p), as.integer(q), 
+        z <- .C(nnet:::VR_summ2, as.integer(n), as.integer(p), as.integer(q),
             Z = Z, na = integer(1L))
         Za <- t(z$Z[, 1L:z$na, drop = FALSE])
         list(X = Za[, 1L:p, drop = FALSE], Y = Za[, p + 1L:q])
@@ -1026,11 +1026,11 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     cons <- attr(X, "contrasts")
     Xr <- qr(X)$rank
     Y <- model.response(m)
-    if (!is.matrix(Y)) 
+    if (!is.matrix(Y))
         Y <- as.factor(Y)
     w <- model.weights(m)
-    if (length(w) == 0L) 
-        if (is.matrix(Y)) 
+    if (length(w) == 0L)
+        if (is.matrix(Y))
             w <- rep(1, dim(Y)[1L])
         else w <- rep(1, length(Y))
     lev <- levels(Y)
@@ -1038,15 +1038,15 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
         counts <- table(Y)
         if (any(counts == 0L)) {
             empty <- lev[counts == 0L]
-            warning(sprintf(ngettext(length(empty), "group %s is empty", 
-                "groups %s are empty"), paste(sQuote(empty), 
+            warning(sprintf(ngettext(length(empty), "group %s is empty",
+                "groups %s are empty"), paste(sQuote(empty),
                 collapse = " ")), domain = NA)
             Y <- factor(Y, levels = lev[counts > 0L])
             lev <- lev[counts > 0L]
         }
-        if (length(lev) < 2L) 
+        if (length(lev) < 2L)
             stop("need two or more classes to fit a multinom model")
-        if (length(lev) == 2L) 
+        if (length(lev) == 2L)
             Y <- as.integer(Y) - 1
         else Y <- class.ind(Y)
     }
@@ -1058,7 +1058,7 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
         Z2 <- !duplicated(Z1[oZ])
         oX <- (seq_along(Z1)[oZ])[Z2]
         X <- X[oX, , drop = FALSE]
-        Y <- if (is.matrix(Y)) 
+        Y <- if (is.matrix(Y))
             Y[oX, , drop = FALSE]
         else Y[oX]
         w <- diff(c(0, cumsum(w))[c(Z2, TRUE)])
@@ -1083,43 +1083,43 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     if (is.matrix(Y)) {
         p <- ncol(Y)
         sY <- Y %*% rep(1, p)
-        if (any(sY == 0)) 
+        if (any(sY == 0))
             stop("some case has no observations")
         if (!censored) {
             Y <- Y/matrix(sY, nrow(Y), p)
             w <- w * sY
         }
         if (length(offset) > 1L) {
-            if (ncol(offset) != p) 
+            if (ncol(offset) != p)
                 stop("ncol(offset) is wrong")
-            mask <- c(rep(FALSE, r + 1L + p), rep(c(FALSE, rep(TRUE, 
+            mask <- c(rep(FALSE, r + 1L + p), rep(c(FALSE, rep(TRUE,
                 r), rep(FALSE, p)), p - 1L))
             X <- cbind(X, offset)
             Wts <- as.vector(rbind(matrix(0, r + 1L, p), diag(p)))
-            fit <- nnet.default(X, Y, w, Wts = Wts, mask = mask, 
-                size = 0, skip = TRUE, softmax = TRUE, censored = censored, 
+            fit <- nnet.default(X, Y, w, Wts = Wts, mask = mask,
+                size = 0, skip = TRUE, softmax = TRUE, censored = censored,
                 rang = 0, ...)
         }
         else {
-            mask <- c(rep(FALSE, r + 1L), rep(c(FALSE, rep(TRUE, 
+            mask <- c(rep(FALSE, r + 1L), rep(c(FALSE, rep(TRUE,
                 r)), p - 1L))
-            fit <- nnet.default(X, Y, w, mask = mask, size = 0, 
-                skip = TRUE, softmax = TRUE, censored = censored, 
+            fit <- nnet.default(X, Y, w, mask = mask, size = 0,
+                skip = TRUE, softmax = TRUE, censored = censored,
                 rang = 0, ...)
         }
     }
     else {
         if (length(offset) <= 1L) {
             mask <- c(FALSE, rep(TRUE, r))
-            fit <- nnet.default(X, Y, w, mask = mask, size = 0, 
+            fit <- nnet.default(X, Y, w, mask = mask, size = 0,
                 skip = TRUE, entropy = TRUE, rang = 0, ...)
         }
         else {
             mask <- c(FALSE, rep(TRUE, r), FALSE)
             Wts <- c(rep(0, r + 1L), 1)
             X <- cbind(X, offset)
-            fit <- nnet.default(X, Y, w, Wts = Wts, mask = mask, 
-                size = 0, skip = TRUE, entropy = TRUE, rang = 0, 
+            fit <- nnet.default(X, Y, w, Wts = Wts, mask = mask,
+                size = 0, skip = TRUE, entropy = TRUE, rang = 0,
                 ...)
         }
     }
@@ -1133,7 +1133,7 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     edf <- ifelse(length(lev) == 2L, 1, length(lev) - 1) * Xr
     if (is.matrix(Y)) {
         edf <- (ncol(Y) - 1) * Xr
-        if (length(dn <- colnames(Y)) > 0) 
+        if (length(dn <- colnames(Y)) > 0)
             fit$lab <- dn
         else fit$lab <- 1L:ncol(Y)
     }
@@ -1144,10 +1144,10 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     fit$xlevels <- .getXlevels(Terms, m)
     fit$edf <- edf
     fit$AIC <- fit$deviance + 2 * edf
-    if (model) 
+    if (model)
         fit$model <- m
     class(fit) <- c("multinom", "nnet")
-    if (Hess) 
+    if (Hess)
         fit$Hessian <- nnet:::multinomHess(fit, X)
     if (x) fit$x <- XX ## !Wst return design matrix
     fit
@@ -1165,13 +1165,13 @@ i.termresults <-
 }
 ## -----------------------------------------------------------
 ## ==========================================================================
-contr.wsumpoly <- 
+contr.wsumpoly <-
   function (n, scores = NULL, y = NULL, w = NULL,
-           contrasts = TRUE, sparse = FALSE, poly = NA) 
+           contrasts = TRUE, sparse = FALSE, poly = NA)
 {  ## provide weighted sum contrasts
   if (is.data.frame(n)) {
     for (lj in 1:ncol(n))
-      if (is.factor(n[,lj])) 
+      if (is.factor(n[,lj]))
         attr(n[,lj],"contrasts") <-
           contr.wsumpoly(n[,lj], scores=scores, y=y,
                          contrasts=contrasts, sparse=sparse)
@@ -1222,7 +1222,7 @@ contr.wsumpoly <-
       contr
     }
   } else  contr[nn,] <- - w[-nn]/w[nn]
-##-   if (sparse) 
+##-   if (sparse)
 ##-     contr <- .asSparse(contr)
   structure(contr, w=w)
 }
@@ -1250,8 +1250,8 @@ make.poly <- function (n, scores, w) {
         QR <- qr(X)
         z <- QR$qr
         z <- z * (row(z) == col(z))
-        Z <- qr.qy(QR, z)  ## raw <- 
-##-         Z <- sweep(raw, 2L, apply(raw, 2L, function(x) sqrt(sum(x^2))), 
+        Z <- qr.qy(QR, z)  ## raw <-
+##-         Z <- sweep(raw, 2L, apply(raw, 2L, function(x) sqrt(sum(x^2))),
 ##-             "/", check.margin = FALSE)
       ##      do not standardize. WSt
       Z <- Z / sqrt(w)
@@ -1266,7 +1266,7 @@ plot.regr <- plgraphics::plregr
 print.regr <-
   function (x, call=TRUE, residuals = FALSE,
             termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
-            printstyle = NULL, digits = getRegrOption("digits"), 
+            printstyle = NULL, digits = getRegrOption("digits"),
             na.print = NULL, symbolic.cor = p > 4, ...)
 {
   ##
@@ -1350,7 +1350,7 @@ print.regr <-
 ##-       if(!is.null(termcolumns)) {
 ##-         if (all(termcolumns=="")) lIttab <- FALSE else {
 ##-           ljp <- match(termcolumns,colnames(lttab), nomatch=0)
-##-           if (sum(ljp)!=0) 
+##-           if (sum(ljp)!=0)
 ##-             ##        warning(":print.regr: no valid columns of  termtable  selected") else
 ##-             lttab <- lttab[,ljp,drop=FALSE]
 ##-         }
@@ -1601,7 +1601,7 @@ predict.regr <-
   for (lvn in names(ldt)) {
     lv <- ldt[[lvn]]
     ## factors
-    if (is.factor(lv))  ldt[[lvn]] <- 
+    if (is.factor(lv))  ldt[[lvn]] <-
       if (match(lvn,names(object$binlevels),nomatch=0)>0) ## binary
         match(lv,object$binlevels[[lvn]])-1
       else  factor(lv)
@@ -1623,7 +1623,7 @@ predict.regr <-
   }
   if (length(lvlogst))
     object$terms <- terms(as.formula(lform), data=object$data)
-  predict(object, newdata=ldt, type=type, scale=object$sigma, 
+  predict(object, newdata=ldt, type=type, scale=object$sigma,
           df=df, dispersion=object$dispersion^2, ... )
 }
 ## ==========================================================================
@@ -1636,7 +1636,7 @@ if (!inherits(fitted, c("glm","nls"))) {
 if (inherits(fitted, "glm")) {
       ## confint needs $coefficients from object (a vector) as well as
       ## from its sumary (a matrix containing 'Std. Error"
-  summary <- function(fitted) 
+  summary <- function(fitted)
     list(coefficients = cbind(fitted$coefficients,
                                  "Std. Error"=sqrt(diag(fitted$covariance))) )
   class(fitted) <- class(fitted)[-1]
@@ -1662,7 +1662,7 @@ if (inherits(fitted, "glm")) {
 ##- }
 ## -------------------------------------------------------------------------
 vcov.regr <- function (object, ...) {
-  cov <- object$covariance 
+  cov <- object$covariance
   if (is.null(cov)) {
     class(object) <- setdiff(class(object),"regr")
     vcov(object)
@@ -1766,7 +1766,7 @@ createNAvars <-
   ldclass <- sapply(data, is.numeric) + 2*sapply(data, is.factor)
   if (any(lwr <- ldclass==0))
     stop("!createNAvars! Funny variables  ", paste(lwr, collapse=", "))
-  if (any(lnum <- lvna & ldclass==1)) 
+  if (any(lnum <- lvna & ldclass==1))
     rrx <- xNA(ldt[,lnum, drop=FALSE], na.values=na.values,
               name.suffix=name.suffix)
   if (any(lfac <- lvna & ldclass==2)) {
@@ -1782,7 +1782,7 @@ createNAvars <-
   }
   else data.frame(rrf,rrx)
 }
-## --------------------------------------------------------------------  
+## --------------------------------------------------------------------
 factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
 {
   if (missing(data)||length(data)==0)
@@ -1790,7 +1790,7 @@ factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
   data <- data.frame(data)
 ##  if (!is.data.frame(data)) stop("!xNA! Argument 'data' ...")
   lnalabel <- as.character(na.label)
-  lvn <- names(data)[sapply(data,is.factor)] 
+  lvn <- names(data)[sapply(data,is.factor)]
   ldt <- data[,lvn, drop=FALSE]
   lnanum <- na.prop*nrow(data)
   for (lv in seq_along(lvn)) {
@@ -1875,7 +1875,7 @@ drop1.regr <-
 ##-     object$df <- object$df["original"]
 ##
   dr1 <- if (add) { ## ------------ add
-    if (class(object)[1]=="lmrob")
+    if (inherits(object, "lmrob"))
         stop("!add1.regr! 'add1' not (yet) available for 'lmrob' objects")
     ldata <- eval(object$call$data, envir=environment(formula(object)) )
     lres <- object$residuals
@@ -1919,7 +1919,7 @@ drop1.regr <-
     ldata <- object$allvars # eval(object$call$data)
     if (is.null(ldata)) stop("!drop1.regr! no data found ")
     ## all predictors must get the same missing observations
-    lina <- apply(is.na(ldata),1,any)  
+    lina <- apply(is.na(ldata),1,any)
     if (any(lina)) ldata[lina,] <- NA
     object$call$data <- ldata
     drop1(object, scope=scope, scale=scale, test=test, k=k, ...)
@@ -1954,7 +1954,7 @@ add1.regr <-
 ## ==========================================================================
 drop1Wald <-
   function (object, scope=NULL, scale = 0, test = c("none", "Chisq", "F"),
-           k = 2, ...) 
+           k = 2, ...)
 {
     x <- model.matrix(object)
     offset <- model.offset(model.frame(object))
@@ -1963,13 +1963,13 @@ drop1Wald <-
     lterms <- terms(object)
     tl <- attr(lterms, "term.labels")
     attr(lterms, "order") <-  rep(1,length(tl))
-    if (is.null(scope)) 
+    if (is.null(scope))
       scope <- tl # drop.scope(lterms)
     else {
-        if (!is.character(scope)) 
-            scope <- attr(terms(update.formula(object, scope)), 
+        if (!is.character(scope))
+            scope <- attr(terms(update.formula(object, scope)),
                 "term.labels")
-        if (!all(match(scope, tl, 0L) > 0L)) 
+        if (!all(match(scope, tl, 0L) > 0L))
             stop("scope is not a subset of term labels")
     }
     lsry <- summary(object)
@@ -2002,10 +2002,10 @@ drop1Wald <-
         RSS[i] <- if (length(ii)==1) coef[ii]^2/cov[ii,ii] else
           coef[ii]%*%solve(cov[ii,ii])%*%coef[ii]  ## !!! REPLACE THIS
         dfs[i] <- length(ii)
-##-         if (all.cols) 
+##-         if (all.cols)
 ##-             jj <- setdiff(seq(ncol(x)), ii)
 ##-         else jj <- setdiff(na.coef, ii)
-##-         z <- if (iswt) 
+##-         z <- if (iswt)
 ##-             lm.wfit(x[, jj, drop = FALSE], y, wt, offset = offset)
 ##-         else lm.fit(x[, jj, drop = FALSE], y, offset = offset)
 ##-         dfs[i] <- z$rank
@@ -2015,14 +2015,14 @@ drop1Wald <-
     scope <- c("<none>", scope)
     dfs <- c(c(object$rank,object$df)[1], dfs)
     RSS <- chisq + c(0, RSS)
-    if (scale > 0) 
+    if (scale > 0)
         AIC <- RSS/scale - n + k * dfs
     else AIC <- n * log(RSS/n) + k * dfs
 ##-     dfs <- dfs[1] - dfs
 ##-     dfs[1] <- NA
-    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - 
+    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] -
         RSS[1]), RSS = RSS, AIC = AIC, row.names = scope, check.names = FALSE)
-    if (scale > 0) 
+    if (scale > 0)
         names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
     test <- match.arg(test)
     if (test == "Chisq") {
@@ -2051,7 +2051,7 @@ drop1Wald <-
         aod[, c("F value", "Pr(F)")] <- list(Fs, P)
     }
     head <- c("Single term deletions (Wald test)", "\nModel:",
-              deparse(as.vector(formula(object))), 
+              deparse(as.vector(formula(object))),
         if (scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
@@ -2061,7 +2061,7 @@ drop1Wald <-
 ## ==========================================================================
 ##- step <- function (object, ...)
 ##-   UseMethod("step")
-##- 
+##-
 ##- step.default <- stats::step
 ## step.default <- get("step", pos="package:stats")
 #### !!! sollte das anders heissen? step.default <- stats::step  ???
@@ -2138,10 +2138,10 @@ step.regr <- function (object, scope=NULL, expand=FALSE, scale = 0,
   if (length(fadd <- scope$upper)) {
     lform <- update.formula(lform, fadd)
     fadd <- attr(terms(lform), "factors")
-  } 
+  }
   ## data
   lcalldata <- object$call$data
-  ldata <- object$allvars 
+  ldata <- object$allvars
   lvars <- all.vars(lform)
   if (any(lvars%nin%names(ldata)))
     ldata <- eval(object$call$data, envir=environment(formula(object)) )
@@ -2510,7 +2510,7 @@ compareTerms <-
   rr
 }
 ## ==========================================================================
-modelTable <-function (models, seq=NULL) 
+modelTable <-function (models, seq=NULL)
 {
   ## Purpose:   collect several models into a table
   ## -------------------------------------------------------------------------
@@ -2779,7 +2779,7 @@ quantilew <- function (x, probs=c(0.25,0.5,0.75), weights=1, na.rm=FALSE)
 factor.na <- function (x, ordered=FALSE, naname="NA") {
   if (ordered) x <- ordered(x)
   if (is.ordered(x)) {
-    levels(x) <- c(levels(x), naname)  
+    levels(x) <- c(levels(x), naname)
     x[is.na(x)] <- naname
     return(x)
   }
@@ -2792,7 +2792,7 @@ factor.na <- function (x, ordered=FALSE, naname="NA") {
 ##-   if (missing(data)) stop("!quantNA! Argument 'data' missing, woth no default")
 ##-   dname <- as.character(substitute(data))
 ##-   if (is.character(vn)) {
-##-     if (any(lvna <- vn%nin%names(data))) 
+##-     if (any(lvna <- vn%nin%names(data)))
 ##-       stop("!quantNA! Variable(s) ",lv[lvna]," not in 'data")
 ##-     } else   vn <- names(data)[vn]
 ##-   na.value <- if (is.null(na.value))
@@ -2820,7 +2820,7 @@ factor2character <- function (x) {
 regrAllEqns <-
   function (formula, data, weights = NULL, nbest = 50, nvmax = 20,
            force.in = NULL, force.out = NULL, codes=NULL, really.big=FALSE,
-           ...) 
+           ...)
 {
   ## Purpose:   all subsets
   ## ----------------------------------------------------------------------
@@ -2895,8 +2895,8 @@ regrAllEqns <-
     }
     codes <- codes[lnm]
   }
-  if (is.null(names(codes))) 
-    codes <- 
+  if (is.null(names(codes)))
+    codes <-
       structure(c(if(ljint) "1", rep(codes, length=ncol(lwhs)-ljint)),
                 names=lnm)
   llb <- apply(lwhs,1, function(x) paste(codes[x], collapse="") )
@@ -2941,7 +2941,7 @@ print.regrAllEqns <-
   row.names(lout) <- 1:nrow(lout)
   print(lout, quote=FALSE, ...)
   if (printcriteria) {
-    lcr <- x$criteria[li,] 
+    lcr <- x$criteria[li,]
     lcr <- cbind(code=row.names(lcr), lcr)
     row.names(lcr) <- 1:nrow(lcr)
     print(lcr, ...)
@@ -3022,7 +3022,7 @@ i.findformfac <- function (formula) {
   lfo <- format(formula)
   lmf <- c(gregexpr("(factor *\\([^)]*\\))", lfo),
            gregexpr("(ordered *\\([^)]*\\))", lfo) )
-  lf <- function(x) 
+  lf <- function(x)
     if(x[1]!=-1) substring(lfo, x, x+attr(x,"match.length"))
   all.vars(as.formula(
         paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
@@ -3320,7 +3320,7 @@ drop1.default <-
       if (nobs(nfit) != n0)
         stop("number of rows in use has changed: remove missing values?")
     }
-    
+
     dfs <- ans[1,1] - ans[,1]
     dfs[1] <- NA
     aod <- data.frame(Df = dfs, AIC = ans[,2])
@@ -3359,7 +3359,7 @@ fitted.polr <- function (object, type="link", na.action=object, ...) {
       if (xint > 0)  X <- X[, -xint, drop = FALSE]
       lfit <- drop(X %*% object$coefficients)
     }
-  } else 
+  } else
     lfit <- object$fitted
   if (type=="class")
     lfit <- factor(max.col(lfit), levels = seq_along(object$lev),
@@ -3438,7 +3438,7 @@ getRegrOption <- function(x, regroptions=NULL) {
   if (is.null(regroptions))
     regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
   if (is.function(regroptions)) regroptions <- NULL
-  lopt <- regroptions[[x]]  
+  lopt <- regroptions[[x]]
   if (is.null(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
       lopt <- regroptions(x)
   else {lopt <- check.option(x, lopt)
@@ -3450,7 +3450,7 @@ getRegrOption <- function(x, regroptions=NULL) {
 }
 ## -----------------------------------------------------------
 .regroptions <- regroptionsDefault <- list(
-  digits = 4, 
+  digits = 4,
   regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
   factorNA = TRUE, testlevel = 0.05,
   rlvThres = c(rel=0.1, coef=0.1, drop=0.1, pred=0.05),
@@ -3468,7 +3468,7 @@ getRegrOption <- function(x, regroptions=NULL) {
   show.symbolLegend = TRUE,
   na.print = ".",
   doc = 2,
-  notices = TRUE, 
+  notices = TRUE,
   debug = 0
   )
 ## -----------------------------------------------------------------------
@@ -3514,11 +3514,11 @@ i.getopt <- function(x, regroptions = NULL) {
   if (is.null(regroptions))
     regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
   lnam <- as.character(substitute(x))
-  lopt <- x 
+  lopt <- x
   if (is.function(regroptions)) regroptions <- NULL
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
     lopt <- regroptions[[lnam]]
-  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
+  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
     lopt <- getRegrOption(lnam)
   else unlist(check.option(lnam, lopt))   ## check
   if (is.null(lopt)) lopt <- ldef[[lnam]]
