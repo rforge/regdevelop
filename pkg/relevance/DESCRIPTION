@@ -1,0 +1,13 @@
+Package: relevance
+Type: Package
+Title: Calculate Relevance
+Version: 1.0
+Date: 2020-08-26
+Author: Werner A. Stahel
+Maintainer: Werner A. Stahel <stahel@stat.math.ethz.ch>
+Depends: stats
+Suggests: knitr, plgraphics, survival
+VignetteBuilder: knitr
+Description: Calculates Relevance and Significance values for
+  simple models and for many types of regression models
+License: GPL-2

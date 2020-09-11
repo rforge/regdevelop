@@ -1,0 +1,28 @@
+
+importFrom("stats",
+           setNames, 
+           sd, pt, pf, pchisq, qnorm, qt, qf, qchisq, 
+           uniroot,
+           df.residual, terms, formula, update.formula, delete.response,
+           coefficients, 
+           model.matrix, model.frame, model.offset, drop1, vcov 
+           )
+importFrom("utils",
+           str, recover
+           )
+##- importFrom("MASS", rlm, polr)
+##- importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
+##- importFrom("survival", coxph, survreg, Surv, strata, cluster)
+##- 
+##- importFrom("robustbase", lmrob)
+##- 
+##- importFrom("quantreg", rq)
+
+export(confintF, dropNA, getcoeftable, getcoeffactor, getscalepar, getopt, 
+       print.termtable, print.termeffects, 
+       rlstats, sumNA, termeffects, termtable,
+       DB
+       )
+
+S3method(print, termtable)
+S3method(print, termeffects)
