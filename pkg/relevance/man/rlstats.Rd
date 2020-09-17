@@ -34,7 +34,7 @@ rlstats(x = NULL, se = NULL, df = Inf, testlevel = NULL,
   }
 }
 \details{
-  
+to be described  
 }
 \value{List with components ...
 }
