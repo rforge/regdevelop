@@ -22,6 +22,10 @@ ciSgRl <-
   if (is.null(se)) se <- attr(coef, "se")
   if (is.null(se))
     stop("!ciSgRl! no standard errors found")
+  if (df==0||!any(is.finite(se))) {
+    warning("!ciSgRl! no finite standard errors")
+    return(cbind(coef))
+  }
   ltq <- qt(1-testlevel/2, df)
   lci <- coef+outer(ltq*se, c(ciLow=-1,ciUp=1))
   ltst <- coef/se
@@ -584,26 +588,25 @@ getcoeffactor <-
 {
   ## get factor for converting coef to coef effect
   ## model matrix
-  fitclass <- class(object)
+  lcls <- class(object)
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
-  family <- object$family # may be emptry
-  dist   <- object$dist
+  lfamily <- object$family$family 
+  ldist   <- object$dist
   lsigma <- getscalepar(object)
   lsigma <-
-      if (any(fitclass=="glm") &&
-          family$family %in% c("binomial", "quasibinomial"))
-          1.6683*lsigma   ## qlogis(pnorm(1))
-      else {
-          lif <- any(fitclass %in% c("lm","lmrob","rlm")) ||
-              (any(fitclass=="survreg") && dist=="gaussian")
-          if (length(lif)!=1) stop(traceback())
-          if (lif) lsigma
-          else 1
-      }
+    if (any(lcls=="glm")&&lfamily%in%c("binomial", "quasibinomial"))
+      1.6683*lsigma   ## qlogis(pnorm(1))
+    else {
+      lif <- any(lcls%in%c("lm","lmrob","rlm"))||
+        (any(lcls=="survreg")&&ldist=="gaussian")
+      if (length(lif)!=1) stop(traceback())
+      if (lif) lsigma
+      else 1
+    }
   lfac <- apply(lmmt, 2, sd)/lsigma
-  structure(lfac, sigma=lsigma, fitclass=fitclass, family=family, dist=dist)
-      ## model.matrix=lmmt,
+  structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
+      ## model.matrix=lmmt, 
 }
 ## ===========================================================================
 regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")

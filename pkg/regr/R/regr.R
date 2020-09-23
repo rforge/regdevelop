@@ -281,7 +281,7 @@ regr <-
     class(lnaaction) <-
       sub("na.","", sub("nainf.","", as.character(largs$na.action)))
   lreg$na.action <- lnaaction
-  class(lreg) <- if (inherits(lreg, "orig"))  ##  nls shall not be regr
+  class(lreg) <- if (inherits(lreg, "orig")) ## (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
   ## ------------------------------------------------------------------
   ## result of regr

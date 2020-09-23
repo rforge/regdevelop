@@ -820,12 +820,12 @@ is.formula <- function (object)
   length(class(object))>0 && inherits(object, "formula")
 u.isnull <- function(x)  length(x)==0
 u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
+u.notfalse <-
+  function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
 
 nafalse <- function (x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 u.nuna <- function (x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
 "%nin%" <- function (x,y) !x%in%y
-u.notfalse <-
-  function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
 u.debug <- function () u.true(ploptions("debug"))
 u.asformula <- function (x) {
   if (is.formula(x)) return(x)
