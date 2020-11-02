@@ -30,7 +30,6 @@ ymd(date)
     Defaults to \code{"full"} if \code{factor} is \code{TRUE},
     to \code{"numeric"} otherwise.
   }
-  \item{jul}{a date given as julian}
 }
 \value{For \code{weekdays},
   the output is as described above, depending on

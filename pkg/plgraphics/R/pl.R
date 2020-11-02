@@ -1,4 +1,4 @@
-## ==================================================================
+## =========================================================================
 ## Plotting functions, low and high-level
 ## -------------------------------------------------------------------------
 pl.control <- #f
@@ -321,7 +321,7 @@ pl.control <- #f
     ploptions$smooth.col[2] <-
       colorpale(ploptions$smooth.col, i.getploption("smooth.pale"))
   ## ---
-  lmardf <- i.getplopt(mar)
+  lmardf <- i.getploption("mar")
   if (length(lynames)>1) lmardf[4] <- lmardf[2] ## need space at the right
   ploptions$mar <- i.def(mar, lmardf)
   ## --- condprobRange
@@ -796,8 +796,8 @@ plframe <- #f
   ## --- start plot
   lplrgx <- lrgx
   lplrgy <- lrgy
-  plot(lplrgx, lplrgy, xlab = "", ylab = "", type="n",
-       axes=FALSE, xaxs="i", yaxs="i")
+  plot(lplrgx, lplrgy, xaxs="i", yaxs="i", xlab = "", ylab = "",
+       type="n", axes=FALSE)
   lmfg <- par("mfg")
   ## inner range
   lnouterx <- c(attr(lx, "nouter"),0,0)[1:2]
@@ -1122,7 +1122,9 @@ plpoints <- #f
   lx[is.na(x)] <- NA
   if (is.data.frame(y))  y <- y[,1]
   lattry <- attributes(y)
-  ly <- i.def(lattry$plcoord, i.def(lattry$numvalues, as.numeric(y)))
+  ly <- i.def(lattry$plcoord, i.def(lattry$numvalues, y))
+  if (inherits(ly, "Surv")) ly <- ly[,1]
+  ly <- as.numeric(ly)
   ly[is.na(y)] <- NA
   ## condquant
   lIcq <- condquant>0  ## condquant representation by bars
@@ -1410,12 +1412,12 @@ plsmooth <- #f
     if (u.isnull(lxy)) return()
     x <- lxy$x
     y <- lxy$y
+    ploptions <- lxy$plargs$ploptions
   }
   if (length(x)<i.getploption("smooth.minobs")) {
     warning(":plsmooth: too few observations. no smooth")
     return() ## lxy[c("x","y")])
   }
-  ploptions <- lxy$plargs$ploptions
 ##  pldata <- lxy$plargs$pldata
   if (length(group)) {
     if (length(group)%nin%c(1,nrow(plargs$pldata)))
@@ -1444,7 +1446,7 @@ plsmooth <- #f
         lsm$y <- ysecsm[,1:lny]
         ysecsm <- ysecsm[,-(1:lny)]
       }
-    }
+      }
     plsmoothline(lsm, x, y=y, ysec = ysecsm, plargs=plargs, ...) ## ploptions=ploptions, 
   }
   invisible(lsm)
@@ -1476,13 +1478,13 @@ plsmoothline <- #f
       return()
     }
   }
-  if (u.isnull(x)||u.isnull(y)) {
-    lxy <- i.getxy(x, y, plargs, call=match.call(), envir=parent.frame())
-    plargs <- lxy$plargs
-    ploptions <- lxy$ploptions
-    x <- lxy$x
-    y <- lxy$y
-  }
+##-   if (u.isnull(x)&&u.isnull(y)) { ## does not make sense since pldata will not contain smooths
+##-     lxy <- i.getxy(x, y, plargs, call=match.call(), envir=parent.frame())
+##-     plargs <- lxy$plargs
+##-     ploptions <- lxy$ploptions
+##-     x <- lxy$x
+##-     y <- lxy$y
+##-   }
   lx <- i.def(smoothline[["x"]], x)
   if (length(lx)==0) {
     warning(":plsmoothline: no x values. No smooth line")
@@ -1551,7 +1553,8 @@ plsmoothline <- #f
     lig <- which(lgrp==lgr)
     lxg <- lx[lig]
     lyg <- ly[lig,, drop=FALSE]
-    if (all(is.na(lyg))) next
+    lysecg <- ysec[lig,]
+    if (all(is.na(lyg)&&all(is.na(lysecg)))) next
     if (1< (lng <- length(lig))) {
       lndr <- i.def(smoothline$xtrim, 1) * 
         round(lng * if(is.function(lxtrim)) lxtrim(lng)
@@ -1561,7 +1564,7 @@ plsmoothline <- #f
       llt <- llty[lgr]
       llw <- llwd[1]*llwid[llt]
       if (lIysec) 
-        matlines(lxg, ysec[lig,], lty=llt, lwd=llwd[2]*llw, 
+        matlines(lxg, lysecg, lty=llt, lwd=llwd[2]*llw, 
                  col = colorpale(lcl, lpale), ...)
       if (lIy) matlines(lxg, lyg, lty=llt, lwd=llw, col=lcl, ...)  ## xxx
       if (lIband) {
@@ -4019,9 +4022,9 @@ plpanel <- #f
   if (length(plargs)==0) plargs <- get(".plargs", globalenv())
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   pldata <- plargs$pldata
+  ##
   plargs$ploptions$stamp <- FALSE
   lshrefl <- u.notfalse(i.getploption("refline"))
-  ##
   mbox <- i.getploption("factor.show")=="mbox"
   lIsm <- i.getploption("smooth")
   ## intro, needed if formulas are used or data is given or ...
@@ -4101,8 +4104,8 @@ plpanel <- #f
   if (frame) plframe(x,lyp, plargs=plargs) ## !!! , getpar=FALSE
   ## secondary smooths
   if (lIsm & length(lys))
-    plsmooth(x, ysec=lys, band=FALSE, power=plargs$smooth.power, plargs=plargs,
-             getpar = FALSE)
+    plsmooth(x, y=NULL, ysec=lys, band=FALSE, power=plargs$smooth.power, plargs=plargs,
+             getpar = FALSE, getxy=FALSE)
   ## refline
   if (lshrefl && length(lrfl <- plargs$reflinecoord))
     plrefline(lrfl, x=x, y=y, plargs=plargs)
@@ -5106,6 +5109,7 @@ ploptions <- #f
   ## assignInMyNamespace does not work
   invisible(lnewo)
 }
+## end or ploptions
 ## ====================================================================
 plmarginpar <- #f
   function(plargs=NULL)
@@ -5235,7 +5239,8 @@ i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=T
 ##  ltitl <- any(lIt)*ltl[2] - c(all(lIt),FALSE)*diff(ltl)
   ##-   ltmar <- ltitl[1] + max(lIt*ltc)
   ltmar <- c(ltl+0.8*ltc,0)[3-sum(lIt)] 
-  lmtotal <- lmarmar+(title.outer)*c(0,0, ltmar, 0.8*lIstamp)
+  if(!lIt[2]) ltl <- ltl[2]
+  lmtotal <- lmarmar+c(0,0, ltmar, 0.8*lIstamp) ## (title.outer)* ???
   lmar <- ifelse(is.na(mar), lmtotal, mar) 
   loma <- pmax(lmtotal-lmar,0) + title.outer*c(0,0, ltmar, 0.8*lIstamp)+lme[2]  
   loma <- ifelse(is.na(oma), loma, oma)

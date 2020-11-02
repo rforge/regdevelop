@@ -715,6 +715,12 @@ simresiduals <- function (object, ...)  UseMethod("simresiduals")
   ## ----------------------------------------------------------------------
   ## Arguments:  simfunction: how are residuals generated?
 ## ---------------------------------------------------------------------
+simresiduals.gam <- function (object, ...)
+{
+  lfam <- object$family$family
+  if (lfam=="gaussian") simresiduals.default(object, ...)
+  else simresiduals.glm(object, ...)
+}
 simresiduals.glm <- function (object, nrep=19, simfunction=NULL,
                              glm.restype="working", ...)
 {

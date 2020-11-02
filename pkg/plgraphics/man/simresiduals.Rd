@@ -2,11 +2,12 @@
 \name{simresiduals}
 \alias{simresiduals}
 \alias{simresiduals.default}
+\alias{simresiduals.gam}
 \alias{simresiduals.glm}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Simulate Residuals}
 \description{
-  Simulates residuals for a given normal regression model
+  Simulates residuals for a given regression model
 }
 \usage{
 simresiduals(object, ...)

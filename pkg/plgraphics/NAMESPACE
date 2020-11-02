@@ -68,7 +68,7 @@ export(asinp,
        residuals.regrcoxph, residuals.regrsurvreg,
        robrange,
        setvarattributes, showd,
-       simresiduals, simresiduals.default, simresiduals.glm, 
+       simresiduals, simresiduals.default, simresiduals.gam, simresiduals.glm, 
        smoothRegr, smoothLm, smoothpar, smoothxtrim, stamp,
        stdresiduals, sumNA, shortenstring, ## Surv, 
        Tobit,
@@ -84,6 +84,7 @@ S3method(plot, xdistResscale)
 S3method(plmboxes, default)
 S3method(plmboxes, formula)
 S3method(simresiduals, default)
+S3method(simresiduals, gam)
 S3method(simresiduals, glm)
 
 ##S3method(residuals, regr)
