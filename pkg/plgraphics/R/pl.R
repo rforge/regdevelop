@@ -1554,7 +1554,7 @@ plsmoothline <- #f
     lxg <- lx[lig]
     lyg <- ly[lig,, drop=FALSE]
     lysecg <- ysec[lig,]
-    if (all(is.na(lyg)&&all(is.na(lysecg)))) next
+    if (all(is.na(lyg))&&all(is.na(lysecg))) next
     if (1< (lng <- length(lig))) {
       lndr <- i.def(smoothline$xtrim, 1) * 
         round(lng * if(is.function(lxtrim)) lxtrim(lng)
