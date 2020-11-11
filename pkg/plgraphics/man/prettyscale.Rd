@@ -9,18 +9,21 @@
   in \code{x}.
 }
 \usage{
-prettyscale(x, plscale = "log10", inverse = NULL, range = NULL,
-    range.transformed = NULL, n = NULL, logscale = NULL)
+prettyscale(x, transformed = FALSE, plscale = "log10", inverse = NULL, 
+    range = NULL, range.transformed = NULL, n = NULL, logscale = NULL)
 }
 
 \arguments{
   \item{x}{numeric vector of data (original scale)
   }
+  \item{transformed}{logical: Is \code{x} scaled according to
+    \code{plscale} rather than in original scale?
+  }
   \item{plscale}{name of the transformation defining the plotting scale
   }
   \item{inverse}{back (or inverse) back transformation
   }
-  \item{range, range.transformed}{possible range of original and
+  \item{range, range.transformed}{admissible range of original and
     transformed values, respectively. Usually not needed, cf. Details
   }
   \item{n}{approximate number of tickmark locations.

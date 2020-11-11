@@ -312,6 +312,11 @@ last <- function (data,n = NULL, ncol=NULL, drop=is.matrix(data))
        sign(ncol)*((ldim[2]-abs(ncol)+1):ldim[2]), drop=drop]
 }
 ## -----------------------------------------------------------------
+replaceNA <- function (x, na, inf=TRUE) {
+  ff <- if (inf) function(x) !is.finite(x)  else is.na
+  if (length(x)) ifelse(ff(x), na, x) else na
+}
+## -----------------------------------------------------------------
 dropNA <- function (x, inf=TRUE) {
   if (length(dim(x))) {
     if (is.numeric(x)&inf) x[apply(is.finite(x),1,all)]

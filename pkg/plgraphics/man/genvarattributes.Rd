@@ -11,8 +11,7 @@
 }
 \usage{
 genvarattributes(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
-  varlabels = NULL, innerrange = NULL, innerrange.limits = NULL,
-  plscale = NULL, zeroline = NULL, 
+  varlabels = NULL, innerrange = NULL, plscale = NULL, zeroline = NULL, 
   replace=FALSE, ploptions = NULL)
 
 setvarattributes(data, attributes = NULL, list = NULL, ...)
@@ -31,8 +30,8 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
     \code{names} of \code{data} are not appropriate.
   }
   \item{innerrange}{logical indicating whether inner plotting ranges
-    should be determined and/or used} 
-  \item{innerrange.limits}{limits of the inner plotting range, if
+    should be determined and/or used.
+    May also be the limits of the inner plotting range, if
     predetermined, see Details} 
   \item{plscale}{plot scale: name of the function to be used for
     generating a plotting scale, like \code{"log"}.
@@ -64,7 +63,7 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
   If the attribute \code{innerrange} is replaced, then \code{plcoord} is
   also replaced.
 
-  \code{innerrange.limits} may be a named list of ranges with names
+  \code{innerrange} may be a named list of ranges with names
   corresponding to variables (not necessarily all of them),
   or a scalar vector of length 2 to be used as range for all the
   variables. 

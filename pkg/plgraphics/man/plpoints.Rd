@@ -11,7 +11,7 @@
 \usage{
 plpoints(x=NULL, y=NULL, type="p", plab=NULL, pch=NULL,
   pcol=NULL, col=NULL, lcol=NULL, lty=NULL, lwd=NULL, psize=NULL,
-  csize = NULL, plargs = NULL, ploptions = NULL,
+  csize = NULL, group = NULL, plargs = NULL, ploptions = NULL,
   getpar = TRUE, getxy = TRUE, ...)
 
 pllines(x, y, type="l", ...)
@@ -36,6 +36,9 @@ pllines(x, y, type="l", ...)
     and color for plotting points,
     and line type. %% to be used for \code{plpoints}.
     Overrides other settings, defined in \code{plargs}.
+  }
+  \item{group}{grouping of observations, used to determine \code{pch}
+    and \code{col}
   }
   \item{plargs, ploptions}{result of \code{\link{pl.control}}, see Details
   }

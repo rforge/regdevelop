@@ -106,7 +106,7 @@ iris$"(pcol)" <- as.numeric(iris$Species)
 plyx(Sepal.Width~Sepal.Length, data=iris)
 
 t.plargs <- pl.control(~Species+Petal.Length, ~Sepal.Width+Sepal.Length,
-                       data=iris, smooth.group=Species, pcol=Species)
+                       data=iris, smooth.group=Species, group=Species)
 t.plargs$ploptions$group.col <- c("magenta","orange","cyan")
 plpanel(iris$Petal.Length, iris$Petal.Width, plargs=t.plargs, frame=TRUE)
 

@@ -8,7 +8,8 @@
   e.g., on log scale
 }
 \usage{
-plscale(x, plscale = "log10", ticksat = NULL, n = NULL, logscale = NULL)
+plscale(x, plscale = "log10", ticksat = NULL, n = NULL, logscale = NULL,
+  valuesonly = FALSE, ploptions = NULL)
 }
 \arguments{
   \item{x}{data to be used in plotting
@@ -23,6 +24,12 @@ plscale(x, plscale = "log10", ticksat = NULL, n = NULL, logscale = NULL)
   }
   \item{logscale}{if \code{NULL}, R's function \code{axTicks}
     will be called if the plscale is a log function.
+  }
+  \item{valuesonly}{logical: should only the transformed values be
+    returned? Otherwise, axis ranges and tick information is also
+    calculated.
+  }
+  \item{ploptions}{See \code{\link{ploptions}}
   }
 }
 %%\details{
