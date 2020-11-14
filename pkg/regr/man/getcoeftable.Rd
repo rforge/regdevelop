@@ -9,6 +9,7 @@
   or the scale parameter, or the factors needed for standardizing
   coefficients from diverse model fitting results
 }
+
 \usage{
 getcoeftable(object)
 getscalepar(object)
@@ -17,12 +18,14 @@ getcoeffactor(object)
 
 \arguments{
   \item{object}{results of a model fitting function
+  }
 }
-}
+
 \details{Object \code{regrModelClasses} contains the names of the
   classes for which the result should work.
   For other model classes, the function is not tested and may fail.
 }
+
 \value{For \code{getcoeftable}:
   Matrix containing at least the two columns containing the estimated
   coefficients (first column) and the standard errors (second column).\cr 
