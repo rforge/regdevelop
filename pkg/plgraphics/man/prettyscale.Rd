@@ -67,7 +67,7 @@ prettyscale(x, transformed = FALSE, plscale = "log10", inverse = NULL,
 }
 
 \seealso{
-\code{axTicks}
+\code{\link{axTicks}, \link{plticks}}
 }
 \examples{
   prettyscale(10^rnorm(10))

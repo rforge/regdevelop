@@ -487,12 +487,12 @@ genvarattributes <- #f
        ## attr(lvv, "plrange") <- c(0.5, length(levels(lvv))+0.5)
       }
       attr(lvv, "zeroline") <- i.def(attr(lvv, "zeroline"), FALSE)
-      data[[lv]] <- lvv
+    ##  data[[lv]] <- lvv
     } else {
       ## Date
       if (inherits(lvv, c("Date", "times")) &&
           u.isnull(attr(lvv, "numvalues", exact=TRUE)))
-        data[[lv]] <- gendateaxis(setNames(lvv, lrown))
+        lvv <- gendateaxis(setNames(lvv, lrown))
       else { ## ----------------- 
         ## continuous variable
         lvv <-
@@ -501,12 +501,12 @@ genvarattributes <- #f
 ##-           if (replace || u.isnull(attr(lvv, "zeroline"))) 
 ##-             attr(lvv, "zeroline") <- i.getplopt(zeroline)
       } ## end of continuous variable
-      attr(lvv,"varlabel") <-
-        if (lv%in%names(llb)) unname(llb[lv])
-        else i.def(attr(lvv, "varlabel", exact=TRUE), lv)
-      ##    attributes(data[[lv]]) <- attributes(lvv)
-      data[[lv]] <- lvv
     }
+    attr(lvv,"varlabel") <-
+      if (lv%in%names(llb)) unname(llb[lv])
+      else i.def(attr(lvv, "varlabel", exact=TRUE), lv)
+    ##    attributes(data[[lv]]) <- attributes(lvv)
+    data[[lv]] <- lvv
   }
   if (length(varlabels)) data <- setvarattributes(data, varlabels=varlabels)
   if (length(zeroline)) data <- setvarattributes(data, zeroline=zeroline)
@@ -668,7 +668,7 @@ plscale <- #f
                   nouter=attr(lxtv, "nouter", exact=TRUE), ploptions=ploptions)
   structure(x, numvalues = lxt, 
             ticksat=ltks$ticksat, ## ticklabelsat=c(ticksat),
-            ticklabelats=NULL,
+            ticklabelsat=ltks$ticklabelsat, ## was NULL
             ticklabels=ltks$ticklabels,
             plscale = plscale, ##if (lscname=="userfunction") plscale else lfnn,
             vlim=lvlim, vlimscaled=lvlimsc)
@@ -2398,6 +2398,8 @@ plyx <- #f
       else i.getmarpar(mar=lmr, plargs=plargs)
 ##    plargs$marpar$title.line[1] <- ltitl
     }
+  } else {
+    plmframes(if (length(mf)) mf, ploptions=ploptions)
   }
   plargs$marpar <- lmarpar
 ##-   else plargs$marpar <- lmarpar <-
@@ -3024,7 +3026,6 @@ plregr <- #f
     } else lfit <- naresid(lnaaction, lfit)
   }
   lfitname <- rep(lfitname, length=lmres)
-  lir <- 
   lfit <- as.data.frame(lfit)
   lfit <- genvarattributes(as.data.frame(lfit), varlabels = lfitname,
                            innerrange=i.getploption("innerrange.fit")) ## extra element of ploptions!)
@@ -5284,10 +5285,10 @@ i.getxy <- #f
 i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=TRUE,
                         plargs, ploptions=NULL)
 {
+  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
   if (u.isnull(mar)) mar <- c(i.getploption("mar", ploptions), rep(NA,4))[1:4]
   if (u.isnull(oma)) oma <- c(i.getploption("oma", ploptions), rep(NA,4))[1:4]
   if (length(oma)==1) oma <- c(NA,NA,oma,NA)
-  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
   if (u.isnull(axes)) axes <- i.getploption("axes", ploptions)
   ## if the argument 'mar' is available, it must be respe
   lml <- i.getploption("margin.line", ploptions)
@@ -5312,7 +5313,7 @@ i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=T
   ltmar <- c(ltl+0.8*ltc,0)[3-sum(lIt)] 
   if(!lIt[2]) ltl <- ltl[2]
   lmtotal <- lmarmar+c(0,0, ltmar, 0.8*lIstamp) ## (title.outer)* ???
-  lmar <- ifelse(is.na(mar), lmtotal, mar) 
+  lmar <- replaceNA(mar, lmtotal) 
   loma <- pmax(lmtotal-lmar,0) + title.outer*c(0,0, ltmar, 0.8*lIstamp)+lme[2]  
   loma <- ifelse(is.na(oma), loma, oma)
   ltl <- ltl+lmarmar[3]-lme[1] ## shift title if axis 3 carries label and/or tickmarklabs 
@@ -5534,7 +5535,7 @@ c.dateticks <- data.frame(
     ##
     panel = "plpanel", panelsep = 0.5, 
     tickintervals = c(7,3),
-    date.ticks = c.dateticks, date.origin = 2000, date.format=c("y-m-d", "h:m:s"), 
+    date.ticks = c.dateticks, date.origin = 1970, date.format=c("y-m-d", "h:m:s"), 
     xlab = "", ylab = "",
     stamp=1, doc=TRUE, 
     mframesmax = 30, 
