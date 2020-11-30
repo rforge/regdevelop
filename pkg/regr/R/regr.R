@@ -405,14 +405,14 @@ i.lm <-
                  length(lreg$residuals)-length(coef(lreg)))
   lreg$df.residual <- ldfr <- df.residual(lreg)
   ## coef table
-  lcftab <- lreg1$coefficients
-  if (NCOL(lcftab)>1) {
+  lcftab <- getcoeftable(lreg) ## lreg1$coefficients
+  ##  if (NCOL(lcftab)>1) {
     lcf <- lcftab[,1]
     attr(lcf, "se") <- lcftab[,2]
-    lreg$coefficients <- lcf
+  ##  lreg$coefficients <- lcf
     lreg$coeftable <-
       ciSgRl(lcftab, df=lreg$df.residual, testlevel=testlevel, object=lreg)
-  }
+##  }
   ## -------
 #   lreg$r.squared <- 1-(lsig/lsdy)^2
   lreg$adj.r.squared <- 1-(1-lreg$r.squared)*(length(lreg$residuals)-1)/ldfr
@@ -1998,19 +1998,15 @@ drop1Wald <-
       stop("!drop1Wald! coefficient(s) not appearing in covariance matrix")
 ##-     y <- object$residuals + predict(object)
     for (i in 1:ns) {
-        ii <- which(asgn==ndrop[i]) ## seq_along(asgn)[asgn == ndrop[i]]
+      ii <- which(asgn==ndrop[i]) ## seq_along(asgn)[asgn == ndrop[i]]
+      if (length(ii)) {
         RSS[i] <- if (length(ii)==1) coef[ii]^2/cov[ii,ii] else
           coef[ii]%*%solve(cov[ii,ii])%*%coef[ii]  ## !!! REPLACE THIS
         dfs[i] <- length(ii)
-##-         if (all.cols)
-##-             jj <- setdiff(seq(ncol(x)), ii)
-##-         else jj <- setdiff(na.coef, ii)
-##-         z <- if (iswt)
-##-             lm.wfit(x[, jj, drop = FALSE], y, wt, offset = offset)
-##-         else lm.fit(x[, jj, drop = FALSE], y, offset = offset)
-##-         dfs[i] <- z$rank
-##-         oldClass(z) <- "lm"
-##-         RSS[i] <- deviance(z)
+      } else {
+        dfs[i] <- 0
+        RSS[i] <- NA
+      }
     }
     scope <- c("<none>", scope)
     dfs <- c(c(object$rank,object$df)[1], dfs)

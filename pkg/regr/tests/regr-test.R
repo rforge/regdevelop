@@ -33,8 +33,8 @@ r.blast <-
 with(r.blast,
      stopifnot(all.equal(
      termtable[-1,"signif0"],
-     c(3.40649491, -12.01926386, 8.19479097) )
-##                          c( 3.477157958, -12.133975476,   8.169091379) )
+##     c(3.40649491, -12.01926386, 8.19479097) )
+                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
      )
 stopifnot(length(residuals(r.blast))==nrow(d.blast))

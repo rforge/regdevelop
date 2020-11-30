@@ -32,6 +32,7 @@ ciSgRl <-
   lsgf <- ltst/ltq
   lpv <- 2*pt(-abs(ltst), df)
   lpsymb <- lpvs$symbol[as.numeric(cut(lpv, lpvs$cutpoint))]
+  browser()
   rr <- data.frame(coef=coef, se=se, lci, testst=ltst,
                    signif0=lsgf, p.value=lpv, p.symbol=lpsymb)
   attr(rr, "pvLegend") <- lpvs$legend
@@ -95,7 +96,12 @@ getcoeftable <-
     }
     if (inherits(object, "polr")) ltb <- ltb[names(object$coefficients),]
   }
-  ltb
+  lnm <- names(coefficients(object))
+  if (any(is.na(match(lnm,row.names(ltb))))) {
+    rr <- structure(matrix(NA, length(lnm), ncol(ltb)), dimnames=list(lnm,colnames(ltb)))
+    rr[row.names(ltb),] <- ltb
+    rr
+  } else ltb
 }
 ## --------------------------------------------------------------------------
 termtable <-
@@ -155,7 +161,7 @@ termtable <-
   lcoef <- object$coefficients
 ##-   lcoeftab <- object$coeftable
 ##-   if (length(lcoeftab)==0||ncol(lcoeftab)<10)
-  lcoeftab <- ciSgRl(object)
+  lcoeftab <- ciSgRl(object=object)
   names(lcoeftab)[1] <- "coef"
   ## --- drop1
   ldr1 <-
@@ -180,8 +186,9 @@ termtable <-
   ldr1$RSS <- NULL # same ncol for lm and glm
   if (inherits(object,"rlm"))  ldr1[,4] <- ldr1[,2]/ldr1[,1]
   ## -- critical value for test
-  ltstq <- if (testtype=="F") qf(ltlev1,c(1,ldr1[,1]),ldfres) else {
-    if (testtype=="Chisq") qchisq(ltlev1,c(1,ldr1[,1])) else NA }
+  ltstq <- if (testtype=="F") qf(ltlev1,c(1,pmax(1,ldr1[,1])),ldfres) else {
+    if (testtype=="Chisq") qchisq(ltlev1,c(1,pmax(1,ldr1[,1]))) else NA }
+  ltstq[which(ldr1[,1]==0)+1] <- NA
   ltstq1 <- sqrt(ltstq[1]) ## 1 degree of freedom
   ltstq <- ltstq[-1]
 ##-   if (inherits(object,"mlm")||inherits(object,"manova"))
@@ -250,10 +257,10 @@ termtable <-
   if (length(lcont)) { ## lcont refers to assign
     ltlb <- dimnames(ltb)[[1]]
     lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
-    ljc <- match(lcont,lasg) # index of coefs for cont variables
+    ## ljc <- match(lcont,lasg) # index of coefs for cont variables
     lj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "Rle","Rls","Rlp")
-    ltb[lcont1,lj] <- lcoeftab[ljc,lj]
+    ltb[lcont1,lj] <- lcoeftab[lcont1,lj] ## was ljc
     ltb[lcont1,"signif0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"signif0"]
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
@@ -312,6 +319,7 @@ confintF <- function(f, df1, df2=Inf, testlevel=0.05) {
   rr <- matrix(NA, ln, 2)
   for (li in 1:ln) {
     lx <- f[li]
+    if (!is.finite(lx)) next
     if (lx>100)
       rr[li,] <- df1[li]*(sqrt(lx)+c(-1,1)*abs(qt(p[li],df2[li]))/sqrt(df1[li]))^2
     else {
@@ -493,13 +501,13 @@ termeffects <-
   coef <- object$coefficients ##!!! cf <-
 ##-   if (!use.na)
   ##-     coef[is.na(coef)] <- 0
-  lnna <- is.finite(coef)
   names(asgn) <- colnames(mm)
-  if (any(!lnna)){
-    coef <- coef[lnna]
-    mm <- mm[,lnna]
-    asgn <- asgn[lnna]
-  }
+##-   lnna <- is.finite(coef)
+##-   if (any(!lnna)){
+##-     coef <- coef[lnna]
+##-     mm <- mm[,lnna]
+##-     asgn <- asgn[lnna]
+##-   }
   if (se) {
     cov <- vcov(object)
     if (is.null(cov)) {
@@ -523,20 +531,22 @@ termeffects <-
 ##-     lcf <- coef[licf[mmc]]
     lcf <- coef[mmc]
 ##    mmc <- names(asgn)[asgn == j & !is.na(coef)]  ## columns (logical fails for polr, vcov() too large) !!! was  which
-##-     mmpart <- mm[mmr, mmc, drop=FALSE]
-    mmpart <- mm[mmr,mmc, drop=FALSE]
-    rrj <- setNames(drop(mmpart %*% lcf), rnn[mmr]) ## coef[mmc]
-    if (se) {
-      sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
-      if (any(is.na(rrj))|any(!is.finite(sej))) {
-##-         warning(":termeffects: missing coef or non-finite standard error for term '",
+    ##-     mmpart <- mm[mmr, mmc, drop=FALSE]
+    if (all(is.finite(lcf))) {
+      mmpart <- mm[mmr,mmc, drop=FALSE]
+      rrj <- setNames(drop(mmpart %*% lcf), rnn[mmr]) ## coef[mmc]
+      if (se) {
+        sej <- sqrt(diag(mmpart %*% cov[mmc,mmc] %*% t(mmpart)))
+        if (any(is.na(rrj))|any(!is.finite(sej))) {
+          ##-         warning(":termeffects: missing coef or non-finite standard error for term '",
 ##-                 tl[j], "'. no standard errors etc")
-        ljfail <- c(ljfail, tl[j])
-      } else {
-        rrj <- ciSgRl(rrj, sej, df, stcoef=rrj*0.5/lsigma, rlv=rlv)
+          ljfail <- c(ljfail, tl[j])
+        } else {
+          rrj <- ciSgRl(rrj, sej, df, stcoef=rrj*0.5/lsigma, rlv=rlv)
+        }
       }
+      res[[j]] <- rrj
     }
-    res[[j]] <- rrj
   }
   if (length(ljfail))
     warning(":termeffects: error calculating se for terms  ",
@@ -605,6 +615,11 @@ getcoeffactor <-
       else 1
     }
   lfac <- apply(lmmt, 2, sd)/lsigma
+  lnm <- names(object$coefficients)
+##-   if (any(lna <- is.na(match(lnm,names(lfac))))) {
+##-     warning(":getcoeffactor: error, possibly singular case", paste(lnm[lna], collapse=", "))
+##-     lfac <- 1
+##-   } else lfac <- lfac[lnm] ## needed for singular designs
   structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
       ## model.matrix=lmmt, 
 }
