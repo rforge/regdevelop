@@ -224,7 +224,8 @@ regr <-
   if (is.null(lreg$distrname)) lreg$distrname <- lfam
   if (length(lreg$AIC)==0) {
     laic <- try(extractAIC(lreg), silent=TRUE)
-    if (!inherits(laic, "try-error")) lreg$AIC <- laic
+    if (!inherits(laic, "try-error"))
+      lreg$AIC <- last(laic) ## at least for lmrob has 2 elements
   }
   lreg$response <- lyy
 ##-     if (length(lnaaction)) {
@@ -1300,16 +1301,18 @@ print.regr <-
       cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
     }
     lout <- paste(
-      if (length(lfitf <- x$fitfun)) paste("Fitting function: ",lfitf),
+      if (length(lfitf <- x$fitfun)) paste("Fitting function:",lfitf),
       if (length(lfam <- x$family))
-        paste("  family:",
+        paste("| family:",
               if(inherits(lfam, "family"))
                   paste(lfam$family,
                         if (length(llink <- lfam$link))
                           paste("  link:",llink)
                         ) else lfam
               ),
-      if (length(ldist <- x$dist)) paste("  distribution:", ldist),
+      if (length(ldist <- x$dist)) paste("| distribution:", ldist),
+      if (length(lctr <- x$contrasts))
+        paste("| contrasts:", paste(unique(lctr),collapse=", ")),
       "\n")
     cat(lout,"\n")
   }
@@ -1388,13 +1391,13 @@ print.regr <-
   if (length(x$r.squared)&&!is.na(x$r.squared))
     cat("Multiple R^2: ", formatC(x$r.squared, digits = digits),
         if (length(lr2a <- x$adj.r.squared))
-          paste("   Adjusted R^2: ", formatC(lr2a, digits = digits)),
+          paste("|  Adjusted R^2: ", formatC(lr2a, digits = digits)),
         if (length(lAIC <- x$AIC)&&!is.na(lAIC))
-          paste("   AIC: ", formatC(lAIC, digits = log10(abs(lAIC))+3),"\n" ) )
+          paste("|  AIC: ", formatC(lAIC, digits = log10(abs(lAIC))+3),"\n" ) )
   if (length(x$fstatistic)>0) {
     cat("F-statistic:  ", formatC(x$fstatistic[1],
             digits = digits), "  on", x$fstatistic[2], "and", x$fstatistic[3],
-            "d.f.,  p.value:", formatC(pf(x$fstatistic[1],
+            "d.f. |  p.value:", formatC(pf(x$fstatistic[1],
             x$fstatistic[2], x$fstatistic[3], lower.tail=FALSE),
                                        digits = digits),
          "\n")
@@ -1405,13 +1408,13 @@ print.regr <-
     if (length(x$devtable)) print(x$devtable, na.print=na.print, digits=digits)
     cat("\nDistribution: ", x$distrname)
     if (length(x$dispersion))
-      cat(".  Dispersion parameter: ",
+      cat("|  Dispersion parameter: ",
           if ((!is.null(attr(x$dispersion,"fixed")))&&
               attr(x$dispersion,"fixed"))
              "fixed at ", format(x$dispersion))
     else {
       if (length(x$scale))
-        cat(".  Shape parameter ('scale'): ",
+        cat("|  Shape parameter ('scale'): ",
             if ((!is.null(attr(x$scale,"fixed")))&&
                 attr(x$scale,"fixed"))
               "fixed at ", format(x$scale))
@@ -3363,6 +3366,16 @@ fitted.polr <- function (object, type="link", na.action=object, ...) {
   naresid(object$na.action, lfit)
 }
 ## ==========================================================================
+extractAIC.lmrob <- #f
+  function (fit, scale = 0, k = 2, ...) 
+{
+  n <- length(fit$residuals)
+  rdf <- fit$df.residual
+  edf <- n - rdf
+  RSS <- rdf * fit$sigma^2
+  dev <- if (scale > 0) RSS/scale - n  else n * log(RSS/n)
+  c(edf, dev + k * edf)
+}
 ## ==========================================================================
 ##- getRegroption <- function (x, default = NULL)
 ##- {
@@ -3380,147 +3393,6 @@ fitted.polr <- function (object, type="link", na.action=object, ...) {
 ##-         getRegrOption(x)
 ##-     else default
 ##- }
-## -----------------------------------------------------------------------
-regroptions <-
-  function (x=NULL, list=NULL, default=NULL, regroptions = NULL,
-            assign=TRUE, ...)
-{ ##
-  lrgdef <- get("regroptionsDefault", pos=1)
-  lnewo <- loldo <-
-    if (is.null(regroptions)) {
-    if (exists(".regroptions", where=1)) get(".regroptions", pos=1)
-    else  lrgdef
-    } else regroptions
-  largs <- c(list, list(...))
-  lop <- c(names(largs))
-  ##
-  if (!is.null(x)) {  ## asking for options
-    if(!is.character(x)) {
-      warning(":regroptions: First argument 'x' must be of mode character")
-      return(NULL)
-    }
-    return(if(length(x)==1) loldo[[x]] else loldo[x])
-  }
-  ## ---
-  if (length(default) && u.notfalse(default)) { ## get default values
-    if (u.true(default)) default <- "all"
-    if (!is.character(default))
-      stop("!regroptions! Argument 'default' must be of mode character or logical")
-    if (default[1]=="all") return(regroptions(list=regroptionsDefault, assign=assign))
-    ## resets all available components
-    if (default[1]=="unset")
-      return(regroptions(list=lrgdef[names(regroptionsDefault)%nin%names(loldo)],
-                         assign=assign) )
-    if (any(default!="")) {
-      llopt <- regroptionsDefault[default[default%in%names(regroptionsDefault)]]
-      return( regroptions(list=llopt) )
-    }
-  }
-  ## set options
-  ## check
-  largs <- check.option(list=largs) ## fname="regroptions"
-  if (length(largs))  lnewo[names(largs)] <- largs
-  lo <- intersect(names(largs),names(loldo))
-  if (length(lo)) attr(lnewo, "old") <- loldo[lo]
-  if (assign) assign(".regroptions", lnewo, pos=1)
-  ## assignInMyNamespace does not work
-  invisible(lnewo)
-}
-## regroption <- regroptions
-## -----------------------------------------------------
-getRegrOption <- function(x, regroptions=NULL) {
-  ## x is character, regroptions list or NULL
-  lpldef <- get("regroptionsDefault", pos=1)
-  if (is.null(regroptions))
-    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
-  if (is.function(regroptions)) regroptions <- NULL
-  lopt <- regroptions[[x]]
-  if (is.null(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
-      lopt <- regroptions(x)
-  else {lopt <- check.option(x, lopt)
-    if (length(lopt)) lopt <- lopt[[1]]
-  }
-  if (length(lopt)==0) lopt <- lpldef[[x]]
-##  names(lopt) <- x
-  lopt
-}
-## -----------------------------------------------------------
-.regroptions <- regroptionsDefault <- list(
-  digits = 4,
-  regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
-  factorNA = TRUE, testlevel = 0.05,
-  rlvThres = c(rel=0.1, coef=0.1, drop=0.1, pred=0.05),
-  termtable = TRUE, vif = TRUE,
-  show.termeffects = TRUE, show.coefcorr = FALSE,
-  printstyle = "relevance",
-  termcolumns.r = c("coef",  "df", "Rle", "Rls", # "Rlp",
-                    "dropRle", "dropRls", "dropRls.symbol", "predRle"),
-  termeffcolumns.r = c("coef","Rls.symbol"),
-  coefcolumns.r = c("coef", "Rle", "Rls", "Rlp", "Rls.symbol"),
-  termcolumns.p = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
-                  "p.symbol"),
-  termeffcolumns.p = c("coef","p.symbol"),
-  coefcolumns.p = c("coef", "ciLow","ciUp", "signif0", "p.value", "p.symbol"),
-  show.symbolLegend = TRUE,
-  na.print = ".",
-  doc = 2,
-  notices = TRUE,
-  debug = 0
-  )
-## -----------------------------------------------------------------------
-check.option <- function(optname, value, list = NULL) {
-  if (is.null(list)) list <- setNames(list(value), optname)
-  lnl <- length(list)
-  loptnames <- names(list)
-  for (lil in seq_len(lnl)) {
-    lnm <- loptnames[lil]
-    lvalue <- list[[lnm]]
-    lcheck <- regroptionsCheck[[lnm]]
-    if (length(lcheck)) {
-##    if (is.list(lcheck)) {
-      if (!is.list(lcheck[[1]])) lcheck <- list(lcheck)
-      lnopt <- length(lcheck)
-      lmsg <- rep("", lnopt)
-      for (lj in seq_len(lnopt)) {
-        lch <- lcheck[[lj]]
-        lfn <- get(lch[[1]])
-        lmsg[lj] <- lmsgj <-
-          switch(paste("v",length(lch),sep=""), v0="", v1=lfn(lvalue),
-                 v2=lfn(lvalue, lch[[2]]), v3=lfn(lvalue, lch[[2]], lch[[3]]),
-                 "")
-        if (lmsgj=="") break
-      }
-##    }
-      if (all(lmsg!="")) {
-        warning(":check.option: argument '", lnm,
-                "' not suitable. It should\n    ",
-                paste(lmsg, collapse=" -- or \n  "),
-                "\n  instead of (str())\n    ", format(str(lvalue)))
-        list[lnm] <- NULL
-      }
-    }
-  }
-  list
-}
-## -----------------------------------------------------------------------
-regroptionsCheck <- list()
-## ---------------------------------------------------------------------------------
-i.getopt <- function(x, regroptions = NULL) {
-  ldef <- regroptionsDefault
-  if (is.null(regroptions))
-    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
-  lnam <- as.character(substitute(x))
-  lopt <- x
-  if (is.function(regroptions)) regroptions <- NULL
-  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- regroptions[[lnam]]
-  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- getRegrOption(lnam)
-  else unlist(check.option(lnam, lopt))   ## check
-  if (is.null(lopt)) lopt <- ldef[[lnam]]
-##  names(lopt) <- opt
-  lopt
-}
 ## ==========================================================================
 shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else
@@ -3529,4 +3401,3 @@ shift <- function(x, k = 1)
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)
 
-options(.regroptions)

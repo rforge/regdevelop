@@ -12,11 +12,11 @@ t.d <- data.frame(y = c(1,5,4,4,3,8,6,7),
                    f1 = factor(c('a', 'b', 'b', 'c', 'a', 'a', 'c','a')),
                    x1 = c(1,2,3,4,5,6,7,8), x2 = c(4,2,8,7,5,3,4,3))
 r.r1 <- regr(formula = y~f1+x1+x2, data=t.d)
-r.r2 <- regr(formula = y~f1+x1+x2+f1:x1, data=t.d)
-r.r2o <- regr(formula = y~ordered(f1)+x1+x2+f1:x1, data=t.d)
+## r.r2 <- regr(formula = y~f1+x1+x2+f1:x1, data=t.d) ## singular
+## r.r2o <- regr(formula = y~ordered(f1)+x1+x2+f1:x1, data=t.d)
 
 t.d[1,"x2"] <- NaN
-r.r3 <- regr(y~f1+x1+x2+f1:x2, data=t.d)
+## r.r3 <- regr(y~f1+x1+x2+f1:x2, data=t.d)
 r.r4 <- regr(y~1, data=t.d)
 r.r5 <- regr(formula = y~f1+x1+x2, data=t.d, weights=0:7)
 
@@ -30,11 +30,12 @@ data(d.blast, package="plgraphics")
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 
+print(r.blast$termtable[-1,"signif0"], digits=9)
 with(r.blast,
      stopifnot(all.equal(
      termtable[-1,"signif0"],
-##     c(3.40649491, -12.01926386, 8.19479097) )
-                          c( 3.477157958, -12.133975476,   8.169091379) )
+     c(3.40649491, -12.01926386, 8.19479097) )
+##                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
      )
 stopifnot(length(residuals(r.blast))==nrow(d.blast))

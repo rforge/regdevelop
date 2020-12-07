@@ -811,6 +811,7 @@ plframe <- #f
     x <- lxy$x
     y <- lxy$y
     plargs <- lxy$plargs
+    ploptions <- lxy$ploptions
   }
   if (is.data.frame(y)) y <- y[,1]
   ploptions <- plargs$ploptions
@@ -920,7 +921,6 @@ plframe <- #f
   }
   invisible(loldp)
 } ## end plframe
-## =========================================================================
 ## =========================================================================
 plaxis <- #f
   function(side, x=NULL, showlabels=TRUE, range=NULL, varlabel=NULL, col=1,
@@ -1146,7 +1146,7 @@ plpoints <- #f
     if (u.isnull(lxy)) return()
     x <- lxy$x
     y <- lxy$y
-    ploptions <- lxy$plargs$ploptions
+    ploptions <- lxy$ploptions
     plargs <- lxy$plargs
   }
   pldata <- plargs$pldata
@@ -1456,11 +1456,12 @@ plsmooth <- #f
   if (length(plargs)==0) plargs <- get(".plargs", globalenv())
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   if (getxy) {
-    lxy <- i.getxy(x, y, plargs, call=match.call(), envir=parent.frame())
+    lxy <- i.getxy(x, y, plargs, ploptions=ploptions,
+                   call=match.call(), envir=parent.frame())
     if (u.isnull(lxy)) return()
     x <- lxy$x
     y <- lxy$y
-    ploptions <- lxy$plargs$ploptions
+    ploptions <- lxy$ploptions
   }
   if (length(x)<i.getploption("smooth.minobs")) {
     warning(":plsmooth: too few observations. no smooth")
@@ -1495,7 +1496,7 @@ plsmooth <- #f
         ysecsm <- ysecsm[,-(1:lny)]
       }
       }
-    plsmoothline(lsm, x, y=y, ysec = ysecsm, plargs=plargs, ...) ## ploptions=ploptions, 
+    plsmoothline(lsm, x, y=y, ysec = ysecsm, plargs=plargs, ploptions=ploptions, ...)
   }
   invisible(lsm)
 }
@@ -1516,7 +1517,7 @@ plsmoothline <- #f
     lusr <- par("usr")
     points(1.1*lusr[1]-0.1*lusr[2],1.1*lusr[3]-0.1*lusr[4],pch=" ",xpd=TRUE)
     on.exit(par(loldp))
-  }         
+  }
   ## --- data
   if (u.isnull(smoothline)) {
     if (length(x)&&length(y)==length(x))
@@ -1575,9 +1576,14 @@ plsmoothline <- #f
     llty <- i.getploption("smooth.lty")
   } else {
     lngrp <- max(lgrp)
-    lcol <- i.getploption("group.col")
+    lcol <- i.getploption("group.lcol")
     llty <- rep(i.getploption("group.lty"), length=lngrp)
   }
+##-   if (is.numeric(lcol)) {
+##-     lcl <- i.getoption("colors")
+##-     lcol <- c(lcl[1],rep(lcl[-1], length=lngrp))[lcol+1]
+##-     ##[ifelse(lcol==0,1,(lcol-1)%%lngrp+2)]
+##-   }
   ## check if ordered
   lio <- order(lgrp, lx)[1:sum(is.finite(lx))]
   if (length(lio)!=length(lx) || any(lio!=1:length(lio))) {
@@ -2416,9 +2422,10 @@ plyx <- #f
     for (lj in 1:min(lnr, lnx-lr)) {
       lxj <- lx[,lr+lj]
       ## lxjattr <- 
-      lxjg <- lxjv <-
+      lxjg <- lxjv <- if (!is.factor(lxj))
         i.def(attr(lxj, "plcoord", exact=TRUE),
               i.def(attr(lxj, "numvalues", exact=TRUE), c(lxj)))
+      else lxj
       attributes(lxjg)[lattrc] <- attributes(lxj)[lattrc] ## lxjattr
       if (lImark) {
         lplab <- plmark(lxj, y=lymark, markextremes=lmark, plabel=plargs$plabel)
@@ -2476,7 +2483,7 @@ plyx <- #f
         if (lny>1) 
           ploptions$col <-ploptions$lcol <-
             plargs$pldata$".pcol." <- attr(ly1g,"vcol", exact=TRUE)
-        panel(lxjg, ly1g, type=type, plargs=plargs)
+        panel(lxjg, ly1g, type=type, plargs=plargs, ploptions=ploptions)
         ## multiple y
         lusr <- par("usr")
         if (lny>1) {
@@ -2938,7 +2945,7 @@ plregr <- #f
            addcomp = FALSE, smooth = 2, smooth.legend = FALSE, 
            markextremes = NA, mar = NULL, byrow = NULL, 
            plargs = NULL, ploptions = NULL, assign = TRUE, ...)
-{
+{ ## mar needed because it would otherwise be taken for markextremes
 ## -------------------------------------------------------------------------
 ## Author: Werner Stahel, Date:  7 May 93 / 2002
 ##-   argPlregr <- c("x", "data", "plotselect", ## "xvar", "transformed",
@@ -2958,7 +2965,8 @@ plregr <- #f
     plargs <- eval(lcall, parent.frame())
   }
   if (length(ploptions)==0) ploptions <- plargs$ploptions
-  plargs$marpar <- i.getmarpar(plargs=plargs)
+  if (u.isnull(mar)) mar <- c(3,3,1,1)+i.getploption("panelsep")
+  plargs$marpar <- i.getmarpar(mar=mar, plargs=plargs, ...) 
   ## -------------------------------------------------------------------
   ## all these results from  plregr.control  include the  na.action  observations
   lres <-  plargs$residuals
@@ -3295,7 +3303,7 @@ plregr <- #f
             lcookl <- NULL
           }
           if (lIcook <- length(lcookl)>0) {
-            llx <- seq(0, max(llev[is.finite(llev)]), length=50)
+            llx <- seq(0, max(llev[is.finite(llev)]-.Machine$double.eps), length=50)
             ## see formula for curves of constant Cook's distance in terms of
             ##   standardized residuals
             llrcd <- outer(sqrt((1-llx)/((ldfmod-1)*llx)), c(lcookl,-lcookl)) 
@@ -4175,14 +4183,14 @@ plpanel <- #f
   ## secondary smooths
   if (lIsm & length(lys))
     plsmooth(x, y=NULL, ysec=lys, band=FALSE, power=plargs$smooth.power, 
-             getpar = FALSE, getxy=FALSE, plargs=plargs)
+             getpar = FALSE, getxy=FALSE, plargs=plargs, ploptions=ploptions)
   ## refline
   if (lshrefl && length(lrfl <- plargs$reflinecoord))
     plrefline(lrfl, x=x, y=y, plargs=plargs)
   ## points
   plpoints(x, lyp, type=type, plargs=plargs, getpar=FALSE, getxy=FALSE, ...)
   ## primary smooth
-  if (lIsm) plsmooth(x, y=lyp, plargs=plargs, ...)
+  if (lIsm) plsmooth(x, y=lyp, plargs=plargs, ploptions=ploptions, ...)
   ## title
   if (u.notfalse(title)) pltitle(plargs=plargs, show=title)
 } ## end plpanel
@@ -4505,7 +4513,7 @@ plpanelCond <- #f
   x[!li] <- NA
   plpoints(x, y, pcol=pcol, pch=pch, psize=lpsize, plargs=plargs, getxy=FALSE)
   if (u.notfalse(smooth) & sum(li)>=smooth.minobs)
-    plsmooth(x[li],y[li], weight=lcpl[li], plargs=plargs, ...)
+    plsmooth(x[li],y[li], weight=lcpl[li], plargs=plargs, ploptions=ploptions, ...)
 }
 ## ====================================================================
 plmbox <- #f
@@ -5032,7 +5040,7 @@ plfitpairs <- #f
 ## ============================================================================
 plmframes <- #f
   function(mfrow=NULL, mfcol=NULL, mft=NULL, byrow=TRUE, reduce = FALSE,
-           oma=NULL, mar=NULL, mgp=NULL, plargs=NULL, ...)
+           oma=NULL, mar=NULL, mgp=NULL, plargs=NULL, ploptions=NULL, ...)
 {
   ## Purpose:    par(mfrow...)
   ## Author: Werner Stahel, 1994 / 2001
@@ -5043,7 +5051,7 @@ plmframes <- #f
     c(ceiling(mft/lmcol), lmcol)
   }
   if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
-  ploptions <- plargs$ploptions
+  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
   lmarpar <- plargs$marpar
   ## requested numbers
   ldin <- par("din")
@@ -5063,7 +5071,7 @@ plmframes <- #f
 ##-   lmarpar <- plargs$marpar
 ##-   if (u.isnull(lmarpar)) lmarpar <- i.getmarpar(plargs=plargs)
 ##-   mar <- c(i.getplopt(mar),rep(NA,4))[1:4]
-##-   oma <- c(i.getplopt(oma),rep(NA,4))[1:4]
+  ##-   oma <- c(i.getplopt(oma),rep(NA,4))[1:4]
   if (u.isnull(lmarpar))
     lmarpar <- i.getmarpar(mar=mar, oma=oma, plargs=plargs)
   ## if the argument 'mar' is available, it must be respected
@@ -5250,6 +5258,7 @@ i.getxy <- #f
   function(x=NULL, y=NULL, plargs=NULL, ploptions=NULL, call=NULL, envir = NULL)
 {
   if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
+  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
   pldata <- plargs$pldata
   if (is.formula(x)|is.formula(y) |
       any(c("data","pcol","pch","psize","group")%in%names(call))) {
@@ -5261,6 +5270,7 @@ i.getxy <- #f
       if (u.isnull(y)) call$y <- pldata[,attr(pldata, "yvar", exact=TRUE)]
     }
     call$gencoord <- FALSE ## i.getxy is called by low level pl functions
+    call$ploptions <- ploptions
     plargs <- do.call(pl.control, as.list(call[-1]), envir=envir)
     ploptions <- plargs$ploptions
     pldata <- plargs$pldata
@@ -5279,11 +5289,11 @@ i.getxy <- #f
 ##-     if (length(x)==0) x <- pldata[,1]
 ##-     if (length(y)==0) y <- pldata[,2]
   }
-  list(x=x, y=y, plargs=plargs)
+  list(x=x, y=y, plargs=plargs, ploptions=ploptions)
 }
 ## -------------------------------------------------------
 i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=TRUE,
-                        plargs, ploptions=NULL)
+                        plargs, ploptions=NULL, ...)
 {
   if (u.isnull(ploptions)) ploptions <- plargs$ploptions
   if (u.isnull(mar)) mar <- c(i.getploption("mar", ploptions), rep(NA,4))[1:4]
@@ -5513,7 +5523,7 @@ c.dateticks <- data.frame(
     ticklength = c(-0.5, 0, 0.2, -0.2),
     ## basic
     pch = 1, csize.pch=charSize, csize.plab=0.7, ## !?
-    psize.max = 1.5,
+    psize.max = 3,
     lty=1, lwd=1, col=c.colors, lcol=c.colors,
     ## group
     group.pch=2:18, group.col=c.colors[-1], group.lty=2:6,

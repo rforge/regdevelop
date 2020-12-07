@@ -32,7 +32,6 @@ ciSgRl <-
   lsgf <- ltst/ltq
   lpv <- 2*pt(-abs(ltst), df)
   lpsymb <- lpvs$symbol[as.numeric(cut(lpv, lpvs$cutpoint))]
-  browser()
   rr <- data.frame(coef=coef, se=se, lci, testst=ltst,
                    signif0=lsgf, p.value=lpv, p.symbol=lpsymb)
   attr(rr, "pvLegend") <- lpvs$legend
@@ -234,11 +233,12 @@ termtable <-
     list(NULL, c(t(outer(c("","drop","pred"),c("Rle","Rls","Rlp"),paste, sep=""))))
   ltst <- ldr1[,lpvcol-1]
   ## table, filled partially
-    ltb <- data.frame(coef=NA, df=ldr1[,1], se=NA, ciLow=NA, ciUp=NA,
-                      signif0=sqrt(pmax(0,ltst)/ltstq),
-                      stcoef=NA, st.Low=NA, st.Up=NA,
-                      testst=ltst, p.value=lpv, p.symbol="", R2.x=lr2, ldrrl,
-                      stringsAsFactors=FALSE)
+  ltb <- data.frame(coef=NA, df=ldr1[,1,drop=FALSE], ## keep name if only 1 coef
+                    se=NA, ciLow=NA, ciUp=NA,
+                    signif0=sqrt(pmax(0,ltst)/ltstq),
+                    stcoef=NA, st.Low=NA, st.Up=NA,
+                    testst=ltst, p.value=lpv, p.symbol="", R2.x=lr2, ldrrl,
+                    stringsAsFactors=FALSE)
   ## intercept
   ljint <- "(Intercept)"==names(lcoef)[1]
   if (ljint) {
@@ -257,10 +257,10 @@ termtable <-
   if (length(lcont)) { ## lcont refers to assign
     ltlb <- dimnames(ltb)[[1]]
     lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
-    ## ljc <- match(lcont,lasg) # index of coefs for cont variables
+    ljc <- match(lcont,lasg) # index of coefs for cont variables
     lj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "Rle","Rls","Rlp")
-    ltb[lcont1,lj] <- lcoeftab[lcont1,lj] ## was ljc
+    ltb[lcont1,lj] <- lcoeftab[ljc,lj] 
     ltb[lcont1,"signif0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"signif0"]
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
@@ -343,10 +343,13 @@ print.termtable <-
            digits = NULL, na.print = "  ", ...)
 {
   digits <- i.getopt(digits)
-  if (is.null(columns))
-    columns <-
-      if (i.getopt(printstyle)=="relevance")
-        getRegrOption("termcolumns.r") else getRegrOption("termcolumns.p")
+  if (is.null(columns)) {
+    columns <- getRegrOption("termcolumns")
+    if (is.null(columns))
+      columns <-
+        if (i.getopt(printstyle)=="relevance")
+          getRegrOption("termcolumns.r") else getRegrOption("termcolumns.p")
+  }
   columns[columns=="estimate"] <- "coef"
   names(x)[names(x)=="estimate"] <- "coef"
   if (length(columns)==1)
@@ -442,8 +445,7 @@ termeffects <-
                function(x) as.character(1:as.numeric(substr(x,9,12))))
     ##    lcontr <- c(lcontr, structure(rep(contr.id,length(tl)), names=tl)[imat])
     lctr <- list()
-    for (li in seq_along(imat))
-      lctr <- c(lctr, list(diag(length(xtlv[[li]]))))
+    for (li in imat) lctr <- c(lctr, list(diag(length(xtlv[[li]]))))
     names(lctr) <- names(dcl)[imat]
     lcontr <- c(lcontr, lctr)
   }
@@ -622,6 +624,147 @@ getcoeffactor <-
 ##-   } else lfac <- lfac[lnm] ## needed for singular designs
   structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
       ## model.matrix=lmmt, 
+}
+## -----------------------------------------------------------------------
+regroptions <-
+  function (x=NULL, list=NULL, default=NULL, regroptions = NULL,
+            assign=TRUE, ...)
+{ ##
+  lrgdef <- get("regroptionsDefault", pos=1)
+  lnewo <- loldo <-
+    if (is.null(regroptions)) {
+    if (exists(".regroptions", where=1)) get(".regroptions", pos=1)
+    else  lrgdef
+    } else regroptions
+  largs <- c(list, list(...))
+  lop <- c(names(largs))
+  ##
+  if (!is.null(x)) {  ## asking for options
+    if(!is.character(x)) {
+      warning(":regroptions: First argument 'x' must be of mode character")
+      return(NULL)
+    }
+    return(if(length(x)==1) loldo[[x]] else loldo[x])
+  }
+  ## ---
+  if (length(default) && u.notfalse(default)) { ## get default values
+    if (u.true(default)) default <- "all"
+    if (!is.character(default))
+      stop("!regroptions! Argument 'default' must be of mode character or logical")
+    if (default[1]=="all") return(regroptions(list=regroptionsDefault, assign=assign))
+    ## resets all available components
+    if (default[1]=="unset")
+      return(regroptions(list=lrgdef[names(regroptionsDefault)%nin%names(loldo)],
+                         assign=assign) )
+    if (any(default!="")) {
+      llopt <- regroptionsDefault[default[default%in%names(regroptionsDefault)]]
+      return( regroptions(list=llopt) )
+    }
+  }
+  ## set options
+  ## check
+  largs <- check.option(list=largs) ## fname="regroptions"
+  if (length(largs))  lnewo[names(largs)] <- largs
+  lo <- intersect(names(largs),names(loldo))
+  if (length(lo)) attr(lnewo, "old") <- loldo[lo]
+  if (assign) assign(".regroptions", lnewo, pos=1)
+  ## assignInMyNamespace does not work
+  invisible(lnewo)
+}
+## regroption <- regroptions
+## -----------------------------------------------------
+getRegrOption <- function(x, regroptions=NULL) {
+  ## x is character, regroptions list or NULL
+  lpldef <- get("regroptionsDefault", pos=1)
+  if (is.null(regroptions))
+    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
+  if (is.function(regroptions)) regroptions <- NULL
+  lopt <- regroptions[[x]]
+  if (is.null(lopt)||(!is.function(lopt)&&all(is.na(lopt)))) ## NULL or NA
+      lopt <- regroptions(x)
+  else {lopt <- check.option(x, lopt)
+    if (length(lopt)) lopt <- lopt[[1]]
+  }
+  if (length(lopt)==0) lopt <- lpldef[[x]]
+##  names(lopt) <- x
+  lopt
+}
+## -----------------------------------------------------------
+.regroptions <- regroptionsDefault <- list(
+  digits = 4,
+  regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
+  factorNA = TRUE, testlevel = 0.05,
+  rlvThres = c(rel=0.1, coef=0.1, drop=0.1, pred=0.05),
+  termtable = TRUE, vif = TRUE,
+  show.termeffects = TRUE, show.coefcorr = FALSE,
+  printstyle = "relevance",
+  termcolumns.r = c("coef",  "df", "Rle", "Rls", # "Rlp",
+                    "dropRle", "dropRls", "dropRls.symbol", "predRle"),
+  termeffcolumns.r = c("coef","Rls.symbol"),
+  coefcolumns.r = c("coef", "Rle", "Rls", "Rlp", "Rls.symbol"),
+  termcolumns.p = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
+                  "p.symbol"),
+  termeffcolumns.p = c("coef","p.symbol"),
+  coefcolumns.p = c("coef", "ciLow","ciUp", "signif0", "p.value", "p.symbol"),
+  show.symbolLegend = TRUE,
+  na.print = ".",
+  doc = 2,
+  notices = TRUE,
+  debug = 0
+  )
+## -----------------------------------------------------------------------
+check.option <- function(optname, value, list = NULL) {
+  if (is.null(list)) list <- setNames(list(value), optname)
+  lnl <- length(list)
+  loptnames <- names(list)
+  for (lil in seq_len(lnl)) {
+    lnm <- loptnames[lil]
+    lvalue <- list[[lnm]]
+    lcheck <- regroptionsCheck[[lnm]]
+    if (length(lcheck)) {
+##    if (is.list(lcheck)) {
+      if (!is.list(lcheck[[1]])) lcheck <- list(lcheck)
+      lnopt <- length(lcheck)
+      lmsg <- rep("", lnopt)
+      for (lj in seq_len(lnopt)) {
+        lch <- lcheck[[lj]]
+        lfn <- get(lch[[1]])
+        lmsg[lj] <- lmsgj <-
+          switch(paste("v",length(lch),sep=""), v0="", v1=lfn(lvalue),
+                 v2=lfn(lvalue, lch[[2]]), v3=lfn(lvalue, lch[[2]], lch[[3]]),
+                 "")
+        if (lmsgj=="") break
+      }
+##    }
+      if (all(lmsg!="")) {
+        warning(":check.option: argument '", lnm,
+                "' not suitable. It should\n    ",
+                paste(lmsg, collapse=" -- or \n  "),
+                "\n  instead of (str())\n    ", format(str(lvalue)))
+        list[lnm] <- NULL
+      }
+    }
+  }
+  list
+}
+## -----------------------------------------------------------------------
+regroptionsCheck <- list()
+## ---------------------------------------------------------------------------------
+i.getopt <- function(x, regroptions = NULL) {
+  ldef <- regroptionsDefault
+  if (is.null(regroptions))
+    regroptions <- get("regroptions", envir=parent.frame()) ## list in calling fn
+  lnam <- as.character(substitute(x))
+  lopt <- x
+  if (is.function(regroptions)) regroptions <- NULL
+  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
+    lopt <- regroptions[[lnam]]
+  if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
+    lopt <- getRegrOption(lnam)
+  else unlist(check.option(lnam, lopt))   ## check
+  if (is.null(lopt)) lopt <- ldef[[lnam]]
+##  names(lopt) <- opt
+  lopt
 }
 ## ===========================================================================
 regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
