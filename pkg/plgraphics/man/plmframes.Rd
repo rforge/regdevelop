@@ -7,7 +7,7 @@
 }
 \usage{
 plmframes(mfrow = NULL, mfcol = NULL, mft = NULL, byrow = TRUE, reduce = FALSE, 
-  oma = NULL, mar = NULL, mgp = NULL, plargs = NULL, \dots)
+  oma = NULL, mar = NULL, mgp = NULL, plargs = NULL, ploptions = NULL, \dots)
 }
 \arguments{
   \item{mfrow, mfcol}{number of rows and columns of panels. The default
@@ -32,7 +32,7 @@ plmframes(mfrow = NULL, mfcol = NULL, mft = NULL, byrow = TRUE, reduce = FALSE,
   \item{mgp}{margin-pars passed to \code{\link{par}(...)}.
     If \code{NULL}, it will be generated.
   }
-  \item{plargs}{result of calling \code{pl.control}, used
+  \item{plargs, ploptions}{result of calling \code{pl.control}, used
     for generating appropriate values for the margin parameters.
     If \code{NULL}, \code{.plargs} will be used.
   }

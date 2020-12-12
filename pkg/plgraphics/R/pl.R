@@ -1097,8 +1097,9 @@ pltitle <- #f
   ##
   ##  line may be scalar or vector of length 3
   lline <- c(plargs$marpar$title.line, NA, NA)*lcsgen
+  line <- lline[1]
   if (lImain) {
-    line <- lline[1]
+    line <- line + lIsub*lcsgen*is.na(lline[2])
     lcs <- lf.text(main, csize=ltcs[1], csizedef=ltcsdef[1], adj=ltadj[1],
                     outer.margin=outer.margin, ...)
     line <- max(line-lcs*lparcex,0)
@@ -2277,6 +2278,8 @@ plyx <- #f
   lcsize <- i.getploption("csize") 
   ltadj <- i.getploption("title.adj")
   lcsize.pch <- i.getploption("csize.pch")  ## need to do this here such that
+  ltitl <- i.getploption("title.line")
+  lmfkeep <- !u.notfalse(mf)
   ## csize is fixed and does not vary with group size
   if (is.function(lcsize.pch)) lcsize.pch <- lcsize.pch(lnobs)
   plargs$ploptions$csize.pch <- lcsize.pch
@@ -2371,6 +2374,7 @@ plyx <- #f
   on.exit(par(loldp))  ##[1:3]
 ##  on.exit(par(mfg=loldp$mfg), add=TRUE) ## oma resets mfg
   ##  }
+  llmf <- length(mf)
   if (lngrp>1) {
     loma <- c(3,3,2,1+2*(lny>1))
     lomaarg <- i.def(plargs$oma, NULL, valuefalse=NULL)
@@ -2382,11 +2386,14 @@ plyx <- #f
       ## loma <- lmarpar$mar
       ## if (lny>1) loma[4] <- loma[2]
       ## plargs$ploptions$oma <- loma 
-      lmar <- lpsep + c(lmarpar$mar[1],0,0,0.8*(lny>1))
+      lmar <- lpsep + c(lmarpar$mar[1],0,0,0.8*(lny>1)) +
+        c(0,0,ltitl[1]-i.def(ltitl[2],0),0)
       plargs$ploptions$mframesmax <- i.def(mf, i.getploption("mframesmax"))
-      lmfig <- plmframes(lnx, lngrp, reduce=TRUE, mar=lmar, oma=loma,
-                         plargs=plargs$plargs)
-      lmarpar <- lmfig$marpar
+      lmarpar <-
+        if (llmf & u.notfalse(mf))
+          (lmfig <- plmframes(lnx, lngrp, reduce=TRUE, mar=lmar, oma=loma,
+                              plargs=plargs$plargs))$marpar
+      else  i.getmarpar(mar=lmr, plargs=plargs)
       lnr <- lmfig$mfig[1]
       lnc <- lmfig$mfig[2]
       lnpgr <- ceiling(lnx/lnr)
@@ -2395,17 +2402,16 @@ plyx <- #f
       ltitl <- i.def(i.getploption("title.line")[2], 0.8)
       ## mframes
       if (u.true(mf)) mf <- lngrp
-      llmf <- length(mf)
       lmr <- lpsep + c(0,0,ltitl+1,0)
       lmarpar <- 
         if (llmf & u.notfalse(mf))
-          (lmfig <- plmframes(if(llmf>=2) mf[1], if(llmf>=2) mf[2], mft=if(llmf==1) mf,
+          (lmfig <- plmframes(mf[1], if(llmf>=2) mf[2], mft=if(llmf==1) mf,
                               mar=lmr, oma=loma))$marpar
       else i.getmarpar(mar=lmr, plargs=plargs)
 ##    plargs$marpar$title.line[1] <- ltitl
     }
   } else {
-    plmframes(if (length(mf)) mf, ploptions=ploptions)
+    if (length(mf)&u.notfalse(mf)) plmframes(mf, ploptions=ploptions)
   }
   plargs$marpar <- lmarpar
 ##-   else plargs$marpar <- lmarpar <-
@@ -2457,8 +2463,8 @@ plyx <- #f
 ##-             on.exit(par(loldp[!duplicated(names(loldp))]))
 ##-         }
         lmfg <- par("mfg")
-        if (prod(lmfg[1:2])==1) {
-          pltitle(plargs=plargs, outer.margin=prod(lmfg[3:4])>1)
+        if (prod(lmfg[1:2])==1||lmfkeep) {
+          pltitle(plargs=plargs, outer.margin=prod(lmfg[3:4])>1&!lmfkeep)
           stamp(sure=FALSE, ploptions=ploptions)
         }
         ##-         lIfirst <- FALSE

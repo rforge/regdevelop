@@ -150,7 +150,7 @@ Here is a result of printing a \T{regr} object.
 data(d.blast, package="plgraphics")
 attr(d.blast,"doc")[1] <- 
   "Blasting: measurements of tremor in nearby house basements"
-regroptions(termcolumns="conventional")
+regroptions(printstyle="conventional")
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
 r.blast
