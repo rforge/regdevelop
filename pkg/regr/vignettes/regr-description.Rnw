@@ -164,7 +164,7 @@ As shown in the previous and the following R statements, the selection of the
 desired output is done by setting an option, using the function 
 \T{regroptions} to be introduced below.
 <<regroutrel>>=
-regroptions(termcolumns="relevance")
+regroptions(printstyle="relevance")
 r.blast
 
 @ 
@@ -288,11 +288,11 @@ or for the relevance, as \T{Rls}, ``secured relevance,'' and
 The result of the \T{regr} function stores all of these informations 
 in the \T{termtable} component.
 The user can select the columns to be shown by setting the 
-\T{termcolumns} option.
+\T{printstyle} or \T{termcolumns} options.
 Asking for 
-\T{regroptions(termcolumns="relevance")} (the default)
+\T{regroptions(printstyle="relevance")} (the default)
 or \\ %% \Hneed{100mm}
-\T{regroptions(termcolumns="conventional")} selects one of two
+\T{regroptions(printstyle="conventional")} selects one of two
 default sets of columns.
 
 <<termtable>>=
@@ -557,7 +557,8 @@ Here is a list of the options.
 \item[show.termeffects] logical: should term effects be shown?
 \item[termcolumns]     names of columns of the \T{termtable} component 
   of the fitting result object which will be printed;
-  alternatively, a single string, either \T{"relevance"} or \T{"conventional"}
+  alternatively, 
+\item[printstyle]   can be set either to \T{"relevance"} or to \T{"conventional"}:
   these then select the first or second of the following components;
 \item[termcolumns.r, termcolumns.c] columns selected in the case just mentioned;
 \item[termeffcolumns] same for the term effects tables;
