@@ -1,0 +1,144 @@
+% -*- Mode: noweb; noweb-default-code-mode: R-mode; -*-
+%\SweaveUTF8
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+%% \usepackage{Sweave}
+\usepackage[utf8]{inputenc}
+%% \usepackage{germanU}
+%%- \usepackage[noae]{Sweave}
+\usepackage[a4paper]{geometry}  %% , text={14.5cm,22cm}
+\usepackage{color} %uncomment BF
+\usepackage{booktabs} % nice tables with \toprule \middlerule \bottomrule
+\usepackage{amsmath} % for align
+% \usepackage{wasysym} % for promille sign
+% \usepackage{amssymb}
+% \usepackage[textfont=it,font=small,labelfont=it]{caption}
+\interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
+\usepackage{relevance-descr}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{regr}
+%\VignetteIndexEntry{'relevance: Calsulate Relevance and Significance Measures'}
+
+\addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
+\addtolength{\oddsidemargin}{-1.04cm}
+
+%% ================================================================
+
+\begin{document}
+%% \bibliography{regrbib}
+%% \SweaveOpts{concordance=TRUE,width=9,height=6, echo=false}
+\setkeys{Gin}{width=0.95\textwidth}
+\baselineskip 15pt
+
+\title{\vspace*{-10mm}
+Package \T{relevance} for calsulating Relevance and Significance Measures}
+\author{Werner A. Stahel, ETH Zurich}
+\maketitle
+
+\begin{abstract}\noindent
+  Relevance and significance measures are characteristics of statistical
+  results that lead to an informative inference. 
+  They are based on the specification of a threshold of relevance and
+  indicate whether a result is to be called (scientifically) relevant,
+  negligible, or ambiguous.
+  
+  The package \T{relevance} calculates these measures for simple a
+  comparison of groups as well as for many regression models 
+  and allows for prinitng them in a decent manner.
+  It is available from \T{R-forge} and is still in development.
+  
+  This vignette version is very preliminary and incomplete.
+\end{abstract}
+
+<<preliminary, echo=F>>=
+## library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
+library(relevance) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
+## options(warn=1)
+@ 
+\section{Introduction}
+
+\Tit{The p-value.}
+In the last decades, the p-value has been extensively criticized as too
+simple a tool to characterize statistical inference.
+
+This package implements alternative descriptions that lead to a more
+informative and scientifically meaningful characterization of inference
+as introduced in Stahel (2021).
+
+\Tit{The problem.}
+effect : parameter in a model
+
+two groups
+
+regression: coefficient
+
+dropping a term, prediction
+
+inference based on confidence interval for effect
+
+\Tit{Short introduction to Relevance.}
+
+need rel threshold
+
+relevance: effect, divided by relevance threshold
+
+inference: compare estimated relevance to rel threshold
+
+by-product: significance
+
+\Tit{Choice of Relevance Thresholds.}
+
+\Tit{Package \T{regr}.}
+
+\section{Output}
+
+\T{twogroups}
+
+<<twogroups>>=
+  t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+  twogroups(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+@ 
+
+\T{termtable}
+
+\T{print.termtable}
+
+symbols
+
+%% relevance category
+
+<<termtable>>=
+  data(swiss)
+  rr <- lm(Fertility ~ . , data = swiss)
+  rt <- termtable(rr)
+  rt
+  names(rt)
+##  str(rt)  ## too much avoidable output for the vignette
+  data.frame(rt) ## avoid selection and preparation of columns by 'print.termtable'
+@ 
+
+\section{Options}
+\Tit{Relevance threholds.}
+
+\Tit{Selecting columns of \T{termtable} objects to be printed.}
+
+\subsection*{References}
+
+Stahel, Werner A. (2021). 
+\textit{New relevance and significance measures to replace p-values} 
+Submitted to PLoS ONE
+
+\vspace{20mm}
+{\small
+\Tit{\noindent This is the end} 
+of the story for the time being, \the\day.\the\month.\the\year. 
+
+\noindent
+Werner Stahel, \T{stahel at stat.math.ethz.ch}
+}
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,7 +1,7 @@
 \name{termeffects}
 \alias{termeffects}
 \alias{print.termeffects}
-
+%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 all coefficients of a model fit
 }
@@ -13,11 +13,13 @@ termeffects(object, se = 2, df = df.residual(object), rlv = TRUE, ...)
 \method{print}{termeffects}(x, columns=NULL, printstyle=NULL, transpose=FALSE,
   single = FALSE, ...)
 }
-
+%- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{object}{a model fit, produced, e.g., by a call to \code{lm} or
     \code{regr}
 }
+%%-   \item{use.na}{as in \code{\link{dummy.coef}}
+%%- }
   \item{se}{logical: Should inference statistics be generated?
 }
   \item{df}{degrees of freedom for t-test
@@ -50,8 +52,10 @@ Werner A. Stahel
 \examples{
   data(d.blast)
   r.blast <-
-  lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
+    lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
   termeffects(r.blast)
 }
+% Add one or more standard keywords, see file 'KEYWORDS' in the
+% R documentation directory.
 \keyword{regression}
 

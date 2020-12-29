@@ -1,0 +1,66 @@
+\name{rloptions}
+\alias{rloptions}
+\alias{rl.optionsDefault}
+\alias{rl.envir}
+
+\title{Get and Set Option that Influence the Output of Relevance Functions}
+\description{
+  Get and set options that set relevance thresholds and select columns
+  of output tables to be shown as well as other items influencing output
+}
+\usage{
+  rloptions(x = NULL, list = NULL, default = NULL, options = NULL, 
+           assign = TRUE, ...)
+}
+\arguments{
+  \item{x}{character (vector): name(s) of option(s) to query.
+    If \code{x} is set, all further arguments will be ignored.
+  }
+  \item{list}{a named list of options to be set, see Details}
+  \item{default}{character vector of option names.
+    These ploptions will be set according to \code{ploptionsDefault}.
+    \code{default="all"} or \code{=TRUE} will reset all options.
+    If \code{default} is set, all further arguments will be ignored.
+  }
+  \item{options}{the list of options from which the option should be
+    obtained.
+    The effective default is a list of defaults called
+    \code{rl.optionsDefault}
+  }
+  \item{assign}{logical: should the list be assigned to
+    \code{.ploptions}?}
+  \item{...}{any options can be defined or modified,
+    using \code{name = value}, as in \code{\link{options}} of basic R.}
+}
+\value{For \code{ploptions(x)}, where \code{x} is the name of an option,
+  the current value of the option, or (\code{NULL} if such an option is
+  not defined). If \code{x} contains several (valid) names,
+  the respective list is returned.
+  For \code{ploptions()}, the list of all plptions s``orted by name.  
+  
+  For uses setting one or more options, the important effect is a changed
+  effective options list that is used by the package's functions
+  (if \code{assign} is \code{TRUE}).
+  The (invisibly) returned value is the same list, complemented by an
+  attribute \code{"old"} containing the previous values of those options
+  that have been changed.
+  This list is useful for restoring the previous status.
+}
+\note{The options list is stored in the environment code{rl.envir}
+  as \code{rl.options}. 
+}
+\author{Werner A. Stahel}
+\seealso{
+  \code{\link{options}()}
+}
+\examples{
+rloptions("na.print")
+
+## set options
+rloptions(digits=3,
+  termcolumns=c("coef", "stcoef", "df", "signif", "p.symb"))
+
+ls(envir=rl.envir)
+names(rl.optionsDefault)
+}
+\keyword{utilities}

@@ -1,0 +1,30 @@
+%% Latex macros for regr description
+\newcommand{\T}{\texttt}
+\newcommand{\ul}{\textbf}
+\newcommand{\Tit}[1]{\par\vspace{5pt}\noindent\textbf{#1}\hspace{1em}}
+
+\newcommand{\fn}[1]{\kern-2pt\left(#1\right)}
+\newcommand{\vc}[1]{\kern-1pt\underline{\kern1pt#1\kern-1pt}\kern1pt}
+\newcommand{\bmath}[1]{\relax\ifmmode{\mbox{\boldmath $#1$}}%
+  \else{\boldmath $#1$}\fi}    
+\newcommand{\mx}[1]{\bmath#1}  
+\newcommand{\sups}[1]{^{(#1)}}
+\newcommand{\inv}{^{-1}}
+\newcommand{\wb}[1]{{}\if Y#1\overline{Y}\else
+\kern0.2em\overline{\kern-0.2em#1}\fi}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\Bfig}{\begin{figure}[htb]}
+\newcommand{\Efig}[1]{\caption[]{#1}\end{figure}}
+\newcommand{\Item}[1]{\par\vspace{\Litemskip}
+  \noindent\hbox to \Litemwidth{#1}\hangindent\Litemwidth
+  \parskip\Lparskip\ignorespaces}
+\newcommand{\Itemone}[1]{\par\vspace{-\baselineskip}
+  \noindent\hbox to \Litemwidth{#1}\hangindent\Litemwidth\ignorespaces}
+\newcommand{\Itm}{\Item{\Bullet}\ignorespaces}
+\newcommand{\Itmone}{\Itemone{\Bullet}\ignorespaces}
+
+\newcommand{\Hneed}[1]{\penalty-8000\hskip#1 plus10pt\penalty-8000\hskip-#1}
+\newcommand{\Vneed}[1]{\penalty-5000\vskip#1%\vskip 0pt plus20pt
+\penalty-5000\vspace{-#1}}

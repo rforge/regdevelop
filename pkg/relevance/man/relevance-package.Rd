@@ -43,7 +43,12 @@ standardized coefficients as well as for the effect of dropping terms.
 
 The most important functions are
 
-rlstats
+twogroups
+
+to calculate the measure for two paired or unpaired groups
+or a simple mean.
+
+ciSgRl
 
 For models with a linear predictor, the results are given by tables.
 A coeftable is produced by \code{rlstats}.
@@ -61,9 +66,9 @@ more than one degree of freedom.
 Maintainer: \packageMaintainer{relevance}
 }
 \references{
-  Stahel, Werner A. (2020). 
-  Measuring Significance and Relevance instead of p-values.
-  In preparation.
+  Stahel, Werner A. (2021). 
+  New relevance and significance measures to replace p-values.
+  Submitted to PLoS ONE
 }
 \keyword{ package }
 %% \seealso{
@@ -73,8 +78,5 @@ Maintainer: \packageMaintainer{relevance}
 \examples{
   data(swiss)
   rr <- lm(Fertility ~ . , data = swiss)
-  rt <- termtable(rr)
-  rt
-  names(rt)
-  data.frame(rt)
+  termtable(rr)
 }

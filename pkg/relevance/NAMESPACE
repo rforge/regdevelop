@@ -18,9 +18,10 @@ importFrom("utils",
 ##- 
 ##- importFrom("quantreg", rq)
 
-export(confintF, dropNA, getcoeftable, getcoeffactor, getscalepar, getopt, 
-       print.termtable, print.termeffects, 
-       rlstats, sumNA, termeffects, termtable,
+export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, 
+       print.termtable, print.termeffects, p.symbols, rlv.symbols,
+       rloptions, rl.optionsDefault, rl.envir, 
+       termeffects, termtable, twogroups,
        DB
        )
 

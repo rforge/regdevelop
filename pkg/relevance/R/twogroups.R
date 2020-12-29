@@ -1,8 +1,8 @@
 twogroups <- #
   function(x, y, var.equal=TRUE, testlevel=0.05, RelTh=0.25)
 { ## effect (group difference) and relevance 
-  x <- dropNA(x)
-  y <- dropNA(y)
+  x <- x[is.finite(x)]
+  y <- y[is.finite(y)]
   lpq <- 1-testlevel/2
   lrlvth <- RelTh
   lnx <- length(x)
@@ -19,6 +19,6 @@ twogroups <- #
   lciwid <- lq*sqrt(lv/ln)
   leffci <- lmny-lmnx + c(0, -1, 1)*lciwid
   lrlvci <- leffci/sqrt(lv)/lrlvth
-  list(eff=leffci, rlv=lrlvci, V=lv,
+  list(estimate=leffci, rlv=lrlvci, V=lv,
        sig0=leffci[1]/lciwid, sigth=(lrlvci[1]-1)*2/diff(lrlvci[2:3]))
 }
