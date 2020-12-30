@@ -16,7 +16,7 @@
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{relevance-descr}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{regr}
+%\VignetteDepends{relevance}
 %\VignetteIndexEntry{'relevance: Calsulate Relevance and Significance Measures'}
 
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
@@ -52,7 +52,7 @@ Package \T{relevance} for calsulating Relevance and Significance Measures}
 
 <<preliminary, echo=F>>=
 ## library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
-library(relevance) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
+library(relevance) ##, lib.loc="/u/stahel/R/regdevelop/pkg/relevance.Rcheck")
 ## options(warn=1)
 @ 
 \section{Introduction}
