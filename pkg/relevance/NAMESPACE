@@ -18,12 +18,16 @@ importFrom("utils",
 ##- 
 ##- importFrom("quantreg", rq)
 
-export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, 
-       print.termtable, print.termeffects, p.symbols, rlv.symbols,
+export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, getsymbol, 
+       print.effecttable, print.termtable, print.termeffects, p.symbols, rlv.symbols,
        rloptions, rl.optionsDefault, rl.envir, 
-       termeffects, termtable, twogroups,
+       termeffects, termtable,
+       twosamples, twosamples.default, twosamples.formula,
        DB
        )
 
+S3method(twosamples, formula)
+S3method(twosamples, default)
 S3method(print, termtable)
 S3method(print, termeffects)
+S3method(print, effecttable)

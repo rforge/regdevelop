@@ -230,15 +230,16 @@ termtable <-
   ldrrl <- cbind(NA,NA,NA, sqrt(ldreff2)/lrlthdr,
                  pmax(0.5*log((ldfres+ldreff2*lnobs1)/(ldfres+ldf))/lrlthpr, 0))
   dimnames(ldrrl) <-
-    list(NULL, c(t(outer(c("","drop","pred"),c("Rle","Rls","Rlp"),paste, sep=""))))
+    list(NULL, c(t(outer(c("coef","drop","pred"),c("Rle","Rls","Rlp"),paste, sep=""))))
   ltst <- ldr1[,lpvcol-1]
   ## table, filled partially
-  ltb <- data.frame(coef=NA, df=ldr1[,1,drop=FALSE], ## keep name if only 1 coef
+  ltb <- data.frame(coef=NA, ldr1[,1,drop=FALSE], ## keep name if only 1 coef
                     se=NA, ciLow=NA, ciUp=NA,
                     signif0=sqrt(pmax(0,ltst)/ltstq),
                     stcoef=NA, st.Low=NA, st.Up=NA,
                     testst=ltst, p.value=lpv, p.symbol="", R2.x=lr2, ldrrl,
                     stringsAsFactors=FALSE)
+  names(ltb)[2] <- "df"
   ## intercept
   ljint <- "(Intercept)"==names(lcoef)[1]
   if (ljint) {
@@ -259,8 +260,10 @@ termtable <-
     lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
     ljc <- match(lcont,lasg) # index of coefs for cont variables
     lj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
+            "coefRle","coefRls","coefRlp")
+    ljj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "Rle","Rls","Rlp")
-    ltb[lcont1,lj] <- lcoeftab[ljc,lj] 
+    ltb[lcont1,lj] <- lcoeftab[ljc,ljj] 
     ltb[lcont1,"signif0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"signif0"]
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
@@ -284,13 +287,11 @@ termtable <-
   lrls <- get("rlv.symbols", pos=1)
 ##-   ltb[,"Rls.symbol"] <-
 ##-     if (any(!is.na(ll <- ltb$Rls)))
-##-       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
-  ltb[,"dropRls.symbol"] <-
-    if (any(!is.na(ll <- ltb$dropRls)))
-      lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
-  ltb[,"predRls.symbol"] <-
-    if (any(!is.na(ll <- ltb$predRls)))
-      lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
+  ##-       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
+  for (lr in c("coefRls","dropRls","predRls"))
+    ltb[,paste(lr,"symbol",sep=".")] <-
+      if (any(!is.na(ll <- ltb[,lr])))
+        lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
   ## ---
   structure(ltb, class=c("termtable", "data.frame"),
             testtype=testtype,
@@ -698,10 +699,11 @@ getRegrOption <- function(x, regroptions=NULL) {
   termtable = TRUE, vif = TRUE,
   show.termeffects = TRUE, show.coefcorr = FALSE,
   printstyle = "relevance",
-  termcolumns.r = c("coef",  "df", "Rle", "Rls", # "Rlp",
-                    "dropRle", "dropRls", "dropRls.symbol", "predRle"),
+  termcolumns.r = c("coef",  "df", "Rlp", "Rls", ## "dropRle", 
+                    "dropRls", "dropRls.symbol", "predRle"),
+  ##, "predRlp", "predRls", "predRls.symbol"
   termeffcolumns.r = c("coef","Rls.symbol"),
-  coefcolumns.r = c("coef", "Rle", "Rls", "Rlp", "Rls.symbol"),
+  coefcolumns.r = c("coef", "Rle", "Rlp", "Rls", "Rls.symbol"),
   termcolumns.p = c("coef",  "df", "ciLow","ciUp","R2.x", "signif0", "p.value",
                   "p.symbol"),
   termeffcolumns.p = c("coef","p.symbol"),

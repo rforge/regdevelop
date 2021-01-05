@@ -2,4 +2,5 @@
 ^man/TAGS
 ^div
 ^vignettes/figure
-^vignetees/auto
+^vignettes/auto
+^vignettes/*.log

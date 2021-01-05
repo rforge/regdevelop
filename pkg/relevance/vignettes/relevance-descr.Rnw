@@ -17,8 +17,7 @@
 \usepackage{relevance-descr}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{relevance}
-%\VignetteIndexEntry{'relevance: Calsulate Relevance and Significance Measures'}
-
+%\VignetteIndexEntry{'Package relevance for calsulating Relevance and Significance Measures'}
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
@@ -38,13 +37,13 @@ Package \T{relevance} for calsulating Relevance and Significance Measures}
 \begin{abstract}\noindent
   Relevance and significance measures are characteristics of statistical
   results that lead to an informative inference. 
-  They are based on the specification of a threshold of relevance and
-  indicate whether a result is to be called (scientifically) relevant,
-  negligible, or ambiguous.
+  The relevance measure is based on the specification of a threshold of 
+  relevance and indicates whether a result is to be called 
+  (scientifically) relevant, negligible, or ambiguous.
   
-  The package \T{relevance} calculates these measures for simple a
-  comparison of groups as well as for many regression models 
-  and allows for prinitng them in a decent manner.
+  The package \T{relevance} calculates these measures for a simple
+  comparison of two samples as well as for many regression models 
+  and provides a suitable prinitng method.
   It is available from \T{R-forge} and is still in development.
   
   This vignette version is very preliminary and incomplete.
@@ -66,46 +65,183 @@ informative and scientifically meaningful characterization of inference
 as introduced in Stahel (2021).
 
 \Tit{The problem.}
-effect : parameter in a model
+Consider the problem of estimating an \emph{effect}, for example,
+a mean (an expected value), a difference of means between two samples, 
+or a regression coefficient.
 
-two groups
+\Tit{The Zero Hypothesis Testing Paradox.}
+In common practice, statistical inference is reduced to testing whether
+the effect might be zero, and the respective p-value is given to give the
+answer. This has been widely criticized as being too simple an answer.
+In fact, this method answers a question that is not scientifically
+meaningful as seen by the ``Zero Hypothesis Testing Paradox'':
+When a study is undertaken to find some difference between samples or some 
+influence between variables, the
+\emph{true} effect---e.g., the difference between two within group 
+expected values---will never be precisely zero. 
+Therefore, the strawman hypothesis of zero true effect could
+in almost all reasonable applications be rejected if one had the
+patience and resources to obtain enough observations.
+Thus, the question that is answered mutates to:
+``Did we produce sufficiently many observations to prove
+the (alternative) hypothesis that was true on an apriori basis?''
+This does not seem to be a fascinating task.
 
-regression: coefficient
+\Tit{Relevance.}
+The scientifically meaningful question is whether the effect is
+\emph{relevant}, and this needs the specification of a 
+\emph{relevance threshold} $\zeta$.
+The \emph{relevance measure} is defined as the ratio of the 
+estimated effect $\wh\eff$ and the threshold,
+\[
+  \Rl e = \wh\eff\big/\zeta
+  \;.
+\]
+The confidence interval for the effect translates to the interval
+for the relevance. The limits of this interval are called
+\begin{description}
+\item
+  $\Rl s$: ``secured relevance'': the lower end;
+\item
+  $\Rl p$: ``potential relevance'': the upper end;
+\end{description}
 
-dropping a term, prediction
+\Tit{Significance.}
+Let us return to the problem of testing a null hypothesis,
+and even to the case of testing $\eff=0$.
+The common way to express the result is to provide the p-value.
+However, this measure is more difficult to interpret than needed.
+We have been trained to compare it to the ``level'' of $5\%$ and
+celebrate if it is \emph{below}. It is thus a measure of lack of
+significance, and the desired range is just $0\le p\le 0.05$.
+We also developed the skill of judging the values in this range
+as to ``how significant'' the result is.
 
-inference based on confidence interval for effect
+In ``ancient'' times, before the computer produced p-values readily,
+statisticians examined the test statistics and then compared them to
+tables of ``critical values.'' In the widespread
+case that the t test was concerned, they used the t statistic as an
+informal quantitative measure of significance of an effect by comparing it 
+to the number 2, which is approximately the critical value
+for moderate to large numbers of degrees of freedom.
 
-\Tit{Short introduction to Relevance.}
+The significance measure $\Sg0$ picks up this idea, but standardizes
+with the actual critical value,
+\[
+  \Sg0 = \wh\eff \big/ (q\;\mbox{se})
+\;,
+\]
+where $\mbox{se}$ is the standard error of $\wh\eff$ and $q$ is the
+appropriate quantile.
+Then, the test rejects the null hypothesis $\eff=0$ whenever $|\Sg0|>1$,
+and $\Sg0$ is proportional to the estimated effect.
 
-need rel threshold
-
-relevance: effect, divided by relevance threshold
-
-inference: compare estimated relevance to rel threshold
-
-by-product: significance
+\Tit{Regression models.}
+In regression, there are different ways to characterize the
+relevance of the individual terms of the model.
+Firstly, for continuous predictors, the coefficient is the obvious
+effect to examine. 
+An alternative is the effect of dropping the predictor from the model, 
+which also reflects its collinearity with the other predictors and
+generalizes to the case where the predictor is a factor 
+(or another term with more than one degree of freedom),
+thus also emcompassing \emph{analysis of variance.}
+A third aspect is the relevance of the term for prediction of the 
+target variable.
+For details, see Stahel (2021).
 
 \Tit{Choice of Relevance Thresholds.}
+As noted above, the new relevance measure presupposes the choice of a 
+relevance threshold. 
+Ideally, this threshold is determined for each scientific question
+on the basis of specific knowledge about the phenomenon that is modeled.
+Since this is a severe burden, Stahel (2021) proposes some conventions 
+for most common statistical models that may be used as a standard, 
+like the testing level of $5\%$ is for classical null hypothesis testing.
+(Note that the latter choice also affects the relevance measures 
+$\Rl s$ and $\Rl p$.)
 
-\Tit{Package \T{regr}.}
+The convention includes, as a first step, to determine an appropriate
+standardized effect or ``effect size'' for the model at hand,
+and then setting a relevance threshold for it.
+Table~\ref{tab:recommendation}, taken from Stahel (2021) collects the
+proposed effect sizes and thresholds.
+The symbol $\%\ell$ indicates that the threshold refers to a log scale.
+For small effects on the log scale, these transform to the respective
+percentages in the original scale.
 
-\section{Output}
+\begin{table}[hh]
+  \caption{Models, recommended effect scales and relevance thresholds}
+  \label{tab:recommendation}
+  \centering
+  \begin{tabular}{|l|c|c|c|}
+    Problem&Basic model
+      &Effect $\eff=g\fn{\theta}$&Rel.\ thresh.\ $\zeta$ \Hline{&&&}
+    One, or two & $\N\fn{\mu,\sigma^2}$ & $\mu/\sigma$ & $10\,\%$ \\[-2pt]
+    \Quad paired samples &&&\Hline{&&&} %\\[3pt]
+    Two independent & $\N\fn{\mu_k,\sigma^2}$ & $d=(\mu_1-\mu_0)/\sigma$
+                    & $20\,\%$ \\
+    \Quad samples&&$\eff=(\mu_1-\mu_0)\sqrt{\nu_0\nu_1}/\sigma$& $10\,\%$ \Hline{&&&} %\\[5pt]
+    Regression  & $Y_i=\alpha+\vc x_i\tr\vc\beta+\eps_i$ &&\\
+     & $\eps_i\sim\N\fn{0,\sigma^2}$ &&\\[-8pt]
+    \Quad coefficients &  & $\vc\beta_j \sqrt{\MS X\sups j}\big/\sigma$&$10\,\%$ \\
+    \Quad prediction error &&$-\oneover2\log\fn{1-R^2}$ &$0.5\,\%\ell$ or
+                                                          $5\,\%\ell$ \Hline{&&&} %\\[5pt]
+    Logistic regression %, coefficients
+           & $g\fn{Y_i=1}= \alpha+\vc x_i\tr\vc\beta$
+      & $\vc\beta_j 0.6\,\sqrt{\MS X\sups j}\big/\sqrt\phi$ & $10\,\%\ell$\Hline{&&&} %\\[8pt] 
+    Relative
+    Difference & $\log\fn Y\sim
+                          \N\fn{\mu_k,\sigma^2}$ & $\log\fn{\mu_1/\mu_0}$&$10\,\%\ell$\Hline{&&&} %\\[5pt]
+    Proportion  & $\Bin\fn{n, p}$ &  $\log\fn{p/(1-p)}$ & $33\,\%\ell$ or $10\,\%\ell$\Hline{&&&} %\\[5pt]
+%%-     Simple regression  & $Y_i=\alpha+\beta x_i+E$ & \\
+%%-            & $ E\sim\N\fn{0,\sigma^2}$
+%%-       & $\beta \sqrt{\MS X}/\sigma$&$10\,\%$ \\[5pt]
+    Correlation
+           & $\vc Y\sim
+             \N_2\fn{\vc\mu, \Sig}$ &&\\
+           & $\rho=\Sig_{12}/\sqrt{\Sig_{11}\Sig_{22}}$& $\oneover2
+                                      \log\fn{(1+\rho)/(1-\rho)}$&$10\,\%\ell$
+      %% &better: $-\oneover2\log\fn{1-\rho^2}$&$0.5\,\%\ell$ or $5\,\%\ell$\\[5pt]
+    \\[5pt]\hline
+  \end{tabular}
+\end{table}
 
-\T{twogroups}
+In the package, the thresholds used by default are given by 
+<<rlvthres>>=
+rloptions("rlvThres")
+@ 
+and can be modified by setting these options again, see below.
 
-<<twogroups>>=
+%%- \Tit{Package \T{regr}.}
+%%- For regression models, the new measures are obtained by calling
+%%- \T{ciSgRl}.
+%%- It is programmed to 
+
+\section{Functions}
+
+\Tit{\T{twosamples}}
+This function provides inference for the comparison of two samples, paired
+or unpaired, and also for a single sample.
+Its call mimics \T{t.test}.
+
+<<twosamples>>=
   t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
-  twogroups(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+  twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 @ 
 
-\T{termtable}
+\Tit{\T{termtable}}
+For regression models with a linear predictor, the basic function is
+\T{termtable}.
+For each term reflecting a scalar predictor, it contains the coefficient
+with the respective inference descriptors, confidence interval,
+significance against 0, p-value, and relevances.
+For all types of term, with one or more degrees of freedom, it adds
+the relevances %and
+for dropping the term and for its contribution to prediction.
 
-\T{print.termtable}
-
-symbols
-
-%% relevance category
+Since this leads to .. columns, the print method selects only the columns
+named by \T{rloptions("printstyle")} or \T{rloptions("termcolumns")}.
 
 <<termtable>>=
   data(swiss)
@@ -114,15 +250,67 @@ symbols
   rt
   names(rt)
 ##  str(rt)  ## too much avoidable output for the vignette
-  data.frame(rt) ## avoid selection and preparation of columns by 'print.termtable'
+##  data.frame(rt) ## avoid selection and preparation of columns by 'print.termtable'
+##    commented out here since it produces a large output.
 @ 
 
+\Tit{\T{termeffects}}
+For terms with more than one degree of freedom, notably for factors wit
+more than two levels,
+the function \T{termeffects} calculates effects and respective inference
+measures. 
+
+
 \section{Options}
-\Tit{Relevance threholds.}
 
-\Tit{Selecting columns of \T{termtable} objects to be printed.}
+The function \T{rloptions} plays a role like \T{options} of standard R.
+It gets or sets most importantly relevance thresholds as well as
+results to be printed by default. The most important elements are the
+following. 
 
-\subsection*{References}
+\begin{itemize}
+\item \T{rlvThres}:
+vector of relevance thresholds for 
+  \begin{itemize}
+  \item \T{stand}: an effect standardized by a standard deviation, 
+    as Cohen's d for two samples,
+  \item \T{rel}: a relative effect, that is, a change in a prameter 
+    expressed as a percentage of the parameter,
+  \item \T{coef}: a coefficient in the linear predictor of a regression model,
+  \item \T{drop}: the effect of dropping a term from a regression model,
+  \item \T{pred}: the effect of a term on the prediction accuracy.
+  \end{itemize}
+\item \T{printstyle}: selects the columns of a \T{termtable} 
+  and a \T{termeffects} table of a regression result to be printed. 
+  Currently, two styles are implemented:
+  \begin{itemize}
+  \item \T{relevance}: selects the columns determined by
+    \T{rloptions("termcolumns.r")}, the important columns for inference
+    based on relevance,
+  \item \T{old}: columns in \T{rloptions("termcolumns.o")}, suitable for
+    inference based on p values and significance values.
+  \end{itemize}
+\item \T{rlv.symbols} and \T{p.symbols}:
+  symbols to be used for characterizing \T{Rls} or p-values, respectively,
+\item \T{digits} and \T{na.print}: digits, and symbol to print \T{NA}
+  values, respectively, in termtables and termeffect tables.  
+\end{itemize}
+
+{\small
+\Tit{Detail.}\T{rloptions} accesses the list \T{rl.options} in the environment
+  \T{rl.envir} that is generated when the package is loaded.
+  The package's default setttings are available as \T{rl.optionsDefault}.  
+}
+
+<<rloptions>>=
+t.opt <- rloptions(termcolumns.r=c("coef", "dropRls", "dropRls.symbol"))
+rt
+## restore the old options
+rloptions(list = t.opt)
+@ 
+
+%% ============================================================================
+\subsection*{Reference}
 
 Stahel, Werner A. (2021). 
 \textit{New relevance and significance measures to replace p-values} 

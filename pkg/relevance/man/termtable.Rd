@@ -1,8 +1,6 @@
 \name{termtable}
 \alias{termtable}
 \alias{print.termtable}
-\alias{rlv.symbols}
-\alias{p.symbols}
 
 \title{Statistics for Linear Models, Including Relevance Statistics}
 \description{Calculate a table of statistics for (multiple) regression
@@ -15,9 +13,6 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE,
 
 \method{print}{termtable}(x, columns = NULL, printstyle = NULL, legend = NULL,
   digits = NULL, na.print = "  ", ...)
-
-rlv.symbols
-p.symbols
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -60,13 +55,6 @@ p.symbols
   If \code{testtype} is not specified, it is determined by the class of
   \code{object} and its attribute \code{family} as follows:
   ...
-
-  \code{p.symbols} and \code{rlv.symbols} are lists that define the
-  categories (by the component \code{cutpoint}) for
-  p-values and relevance values, respectively, and the corresponding
-  symbols (component \code{symbol}) to be printed. A third component
-  is the legend that is printed if the argument \code{legend} of
-  \code{print.termtable} is \code{TRUE}.
 }
 \value{data.frame with the following columns:
   \item{coef}{coefficients for terms with a single degree of freedom}

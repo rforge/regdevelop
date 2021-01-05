@@ -823,7 +823,7 @@ RNAMES <- function (x) if (!is.null(dim(x))) row.names(x) else names(x)
 
 is.formula <- function (object)
   length(class(object))>0 && inherits(object, "formula")
-u.isnull <- function(x)  length(x)==0
+u.isnull <- function(x)  length(x)==0||all(is.na(x))
 u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
 u.notfalse <-
   function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)

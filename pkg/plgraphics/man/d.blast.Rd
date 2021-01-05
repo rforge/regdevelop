@@ -19,6 +19,7 @@
     \item{\code{tremor}}{Tremor energy (target variable)}
     \item{\code{location}}{Code for location of the building,
     \code{loc1} to \code{loc8}}
+    \item{date}{date in Date format}
   }
 }
 \details{The charge of the blasting should be controled in order to
