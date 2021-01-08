@@ -781,7 +781,7 @@ rlvoptions <- #f
   }
   ## --- set options
   ## check
-  if (length(largs)) largs <- check.option(list=largs)
+  if (length(largs)) largs <- checkOption(list=largs)
   if (length(largs)) lnewo[names(largs)] <- largs
   lo <- intersect(names(largs),names(loldo))
   if (length(lo)) attr(lnewo, "old") <- loldo[lo]
@@ -802,7 +802,7 @@ rlvoptions <- #f
 ##-     lx <- lapply(x, getopt, opt=opt)
 ##-   else {
 ##-     lx <- opt[[x]]
-##-     lx <- if (length(lx)==0)  getOption(x) else lx <- check.option(x, lx)
+##-     lx <- if (length(lx)==0)  getOption(x) else lx <- checkOption(x, lx)
 ##-     if (length(lx)==0)  lx <- optdefault[[x]]
 ##-   }
 ##-   lx
@@ -821,7 +821,7 @@ i.getopt <- function(x, options = NULL) {
     lopt <- options[[lnam]]
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
     lopt <- rlvoptions(lnam)
-  else unlist(check.option(lnam, lopt))   ## check
+  else unlist(checkOption(lnam, lopt))   ## check
   if (is.null(lopt)) lopt <- rlv.optionsDefault[[lnam]]
   lopt
 }
@@ -860,7 +860,7 @@ rlv.optionsDefault <- list(
 )
 ## -----------------------
 rlvoptionsCheck <- list(
-  digits = cnr(c(3,10)),
+  digits = cnr(c(3,15)),
   testlevel = cnr(c(0.0001,0.5)),
   rlvThres = cnr(c(0.0001,1)),
   termtable = clg(), vif = clg(),

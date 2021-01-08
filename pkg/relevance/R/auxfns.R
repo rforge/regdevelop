@@ -22,7 +22,7 @@ i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
   rr
 }
 ## ====================================================================
-check.option <- function(optname, value, list = NULL) {
+checkOption <- function(optname, value, list = NULL) {
   if (is.null(list)) list <- setNames(list(value), optname)
   lnl <- length(list)
   loptnames <- names(list)
@@ -39,9 +39,9 @@ check.option <- function(optname, value, list = NULL) {
         lch <- lcheck[[lj]]
         lfn <- get(lch[[1]])
         lmsg[lj] <- lmsgj <-
-          switch(paste("v",length(lch),sep=""), v0="", v1=lfn(lvalue),
+          switch(paste("v",length(lch)-1,sep=""), v0="", v1=lfn(lvalue),
                  v2=lfn(lvalue, lch[[2]]), v3=lfn(lvalue, lch[[2]], lch[[3]]),
-                 "")
+                 "something wrong, please report")
         if (lmsgj=="") break
       }
 ##    }
@@ -49,7 +49,8 @@ check.option <- function(optname, value, list = NULL) {
         warning(":check.option: argument '", lnm,
                 "' not suitable. It should\n    ",
                 paste(lmsg, collapse=" -- or \n  "),
-                "\n  instead of (str())\n    ", format(str(lvalue)))
+                "\n  instead of (str())")
+        str(lvalue)
         list[lnm] <- NULL
       }
     }
@@ -101,7 +102,7 @@ check.numvalues <- #f
   ""
 }
 check.char <- #f
-  function(x, values, na.ok=TRUE) {
+  function(x, values=NA, na.ok=TRUE) {
   if (na.ok && (u.isnull(x) || all(is.na(x))) ) return("")
   if (!is.character(x)) return("be of mode character")
   if ((!na.ok) && any(is.na(x))) return("not contain NAs")
