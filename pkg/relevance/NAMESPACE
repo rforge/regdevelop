@@ -19,8 +19,8 @@ importFrom("utils",
 ##- importFrom("quantreg", rq)
 
 export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, getsymbol, 
-       print.effecttable, print.termtable, print.termeffects, p.symbols, rlv.symbols,
-       rloptions, rl.optionsDefault, rl.envir, 
+       print.effecttable, print.termtable, print.termeffects, pSymbols, rlvSymbols,
+       rlvoptions, rlv.optionsDefault, rlv.envir, 
        termeffects, termtable,
        twosamples, twosamples.default, twosamples.formula,
        DB

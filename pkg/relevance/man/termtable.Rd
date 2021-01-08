@@ -1,6 +1,6 @@
 \name{termtable}
 \alias{termtable}
-\alias{print.termtable}
+%% \alias{print.termtable}
 
 \title{Statistics for Linear Models, Including Relevance Statistics}
 \description{Calculate a table of statistics for (multiple) regression
@@ -11,10 +11,10 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE,
   rlv = TRUE, rlvThres = c(rel = 0.1, coef = 0.1, drop = 0.1, pred = 0.05),
   testlevel = 0.05)
 
-\method{print}{termtable}(x, columns = NULL, printstyle = NULL, legend = NULL,
-  digits = NULL, na.print = "  ", ...)
+%%\method{print}{termtable}(x, columns = NULL, printstyle = NULL, legend = NULL,
+%%  digits = NULL, na.print = "  ", ...)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
   \item{object}{result of a model fitting function like \code{\link{lm}}
   }
@@ -38,18 +38,6 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE,
   }
   \item{testlevel}{1 - confidence level
   }
-  For \code{print.termtable}
-  \item{x}{termtable to be printed}
-  \item{columns}{columns to be printed}
-  \item{printstyle}{determines which columns are selected if
-    \code{columns} is \code{NULL}.}
-  \item{legend}{logical: should the legend(s) for the symbols
-    characterizing p-values and relevances be printed?
-    Defaults to \code{regroptions("show.symbolLegend")}.
-  }
-  \item{digits}{number of significant digits to be printed}
-  \item{na.print}{string by which \code{NA}s are shown}
-  \item{...}{further arguments, passed to \code{print.data.frame}}
 }
 \details{
   If \code{testtype} is not specified, it is determined by the class of

@@ -1,7 +1,7 @@
 \name{getsymbol}
 \alias{getsymbol}
-\alias{rlv.symbols}
-\alias{p.symbols}
+\alias{rlvSymbols}
+\alias{pSymbols}
 
 \title{Get Symbol According to Categorization of Numerical Value
 }
@@ -12,8 +12,8 @@
 \usage{
 getsymbol(value, symbols)
 
-rlv.symbols
-p.symbols
+rlvSymbols
+pSymbols
 }
 
 \arguments{
@@ -27,7 +27,7 @@ p.symbols
 %%    symbols$symbol[as.numeric(cut(value, symbols$cutpoint))]
 }
 \details{
-  \code{p.symbols} and \code{rlv.symbols} are lists that define the
+  \code{pSymbols} and \code{rlvSymbols} are lists that define the
   categories (by the component \code{cutpoint}) for
   p-values and relevance values, respectively, and the corresponding
   symbols (component \code{symbol}) to be printed. A third component
@@ -37,9 +37,9 @@ p.symbols
 \author{Werner A. Stahel
 }
 \examples{
-   p.symbols
+   pSymbols
 
-   getsymbol(c(0.5, 0.02, 0.003, 0), p.symbols)
+   getsymbol(c(0.5, 0.02, 0.003, 0), pSymbols)
 
 ## [1] " "  "*"  "**" NA  
 }

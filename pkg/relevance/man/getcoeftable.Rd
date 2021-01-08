@@ -47,5 +47,5 @@ getcoeffactor(object)
   getcoeftable(rs)
   getcoeffactor(rs)
 }
-\keyword{utilities}% use one of  RShowDoc("KEYWORDS")
+\keyword{utilities}
 

@@ -209,7 +209,7 @@ percentages in the original scale.
 
 In the package, the thresholds used by default are given by 
 <<rlvthres>>=
-rloptions("rlvThres")
+rlvoptions("rlvThres")
 @ 
 and can be modified by setting these options again, see below.
 
@@ -241,7 +241,7 @@ the relevances %and
 for dropping the term and for its contribution to prediction.
 
 Since this leads to .. columns, the print method selects only the columns
-named by \T{rloptions("printstyle")} or \T{rloptions("termcolumns")}.
+named by \T{rlvoptions("printstyle")} or \T{rlvoptions("termcolumns")}.
 
 <<termtable>>=
   data(swiss)
@@ -263,7 +263,7 @@ measures.
 
 \section{Options}
 
-The function \T{rloptions} plays a role like \T{options} of standard R.
+The function \T{rlvoptions} plays a role like \T{options} of standard R.
 It gets or sets most importantly relevance thresholds as well as
 results to be printed by default. The most important elements are the
 following. 
@@ -285,28 +285,28 @@ vector of relevance thresholds for
   Currently, two styles are implemented:
   \begin{itemize}
   \item \T{relevance}: selects the columns determined by
-    \T{rloptions("termcolumns.r")}, the important columns for inference
+    \T{rlvoptions("termcolumns.r")}, the important columns for inference
     based on relevance,
-  \item \T{old}: columns in \T{rloptions("termcolumns.o")}, suitable for
+  \item \T{old}: columns in \T{rlvoptions("termcolumns.o")}, suitable for
     inference based on p values and significance values.
   \end{itemize}
-\item \T{rlv.symbols} and \T{p.symbols}:
+\item \T{rlvSymbols} and \T{pSymbols}:
   symbols to be used for characterizing \T{Rls} or p-values, respectively,
 \item \T{digits} and \T{na.print}: digits, and symbol to print \T{NA}
   values, respectively, in termtables and termeffect tables.  
 \end{itemize}
 
 {\small
-\Tit{Detail.}\T{rloptions} accesses the list \T{rl.options} in the environment
-  \T{rl.envir} that is generated when the package is loaded.
-  The package's default setttings are available as \T{rl.optionsDefault}.  
+\Tit{Detail.}\T{rlvoptions} accesses the list \T{rlv.options} in the environment
+  \T{rlv.envir} that is generated when the package is loaded.
+  The package's default setttings are available as \T{rlv.optionsDefault}.  
 }
 
-<<rloptions>>=
-t.opt <- rloptions(termcolumns.r=c("coef", "dropRls", "dropRls.symbol"))
+<<rlvoptions>>=
+t.opt <- rlvoptions(termcolumns.r=c("coef", "dropRls", "dropRls.symbol"))
 rt
 ## restore the old options
-rloptions(list = t.opt)
+rlvoptions(list = t.opt)
 @ 
 
 %% ============================================================================

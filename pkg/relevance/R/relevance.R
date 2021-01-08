@@ -5,8 +5,8 @@ twosamples <- #f
 twosamples.default <- #f
   function(x, y=NULL, paired=FALSE, var.equal=TRUE, testlevel=0.05, rlvThres=NULL, ...)
 { ## effect (group difference) and relevance
-  lpvs <- rloptions("p.symbols")
-  lrls <- rloptions("p.symbols")
+  lpvs <- rlvoptions("pSymbols")
+  lrls <- rlvoptions("pSymbols")
   lonegroup <- FALSE
   if (length(y)==0) {
     if (NCOL(x)==2) {
@@ -67,9 +67,10 @@ twosamples.default <- #f
            Rls.symbol=getsymbol(lrlvci[2], lrls),
            Sig0=c(leffci[1]/lciwid), Sigth=c((lrlvci[1]-1)*2/diff(lrlvci[2:3])),
            p.value=lpv, p.symbol=getsymbol(lpv, lpvs))),
-    class=c("effecttable","data.frame"), rlvThres=lrlvth,
+    class=c("effecttable", "data.frame"),
+    rlvThres=structure(lrlvth, type="standardized"),
     n=c(lnx, lny), df=ldf, means=if (!lonegroup) c(lmnx,lmny), V=lv,
-    p.symbols=rloptions("p.symbols"), rlv.symbols=rloptions("rlv.symbols"))
+    pSymbols=rlvoptions("pSymbols"), rlvSymbols=rlvoptions("rlvSymbols"))
 }
 ## ============================================================================
 twosamples.formula <- 
@@ -122,11 +123,12 @@ ciSgRl <-
   if (inherits(coef, regrModelClasses)) {
     object <- coef
     coef <- getcoeftable(object)
+    df <- df.residual(object)
   }
   if (!(is.atomic(coef)||length(dim(coef))==2))
     stop("!ciSgRl! first argument not suitable")
-  lpvs <- rloptions("p.symbols")
-  lrls <- rloptions("rlv.symbols")
+  lpvs <- rlvoptions("pSymbols")
+  lrls <- rlvoptions("rlvSymbols")
   if (is.null(se))
     if (NCOL(coef)>1) {
       se <- coef[,2]
@@ -147,7 +149,7 @@ ciSgRl <-
   lpsymb <- getsymbol(lpv, lpvs)
   rr <- data.frame(coef=coef, se=se, lci, testst=ltst,
                    Sig0=lsgf, p.value=lpv, p.symbol=lpsymb)
-  attr(rr, "p.symbols") <- lpvs
+  attr(rr, "pSymbols") <- lpvs
   ## --- standardized coefficients
   if (!u.notfalse(stcoef)) return (rr)
   ##    warning(":ciSigRlv: no standardized coefficients given. No relevances")
@@ -231,7 +233,7 @@ termtable <-
   lrlthpr <- rlvThres["pred"]
   ## --- sigma and threshold for standardized coefficient
   lsigma <- c(object$sigma, summary$sigma, 1)[1]
-  lfamily <- object$family$family
+  lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   ldist <- object$dist
   if ((inherits(object, "glm") &&
        lfamily %in% c("poisson","quasipoisson")) ||
@@ -243,8 +245,8 @@ termtable <-
     testtype <- "LRT"
     if (inherits(object, c("lm","lmrob"))) testtype <- "F"
     if (inherits(object, "glm")) {
-      testtype <- "LRT"
-      if (object$family %in% c("quasibinomial","quasipoisson")) testtype <- "F"
+      testtype <- 
+        if (lfamily %in% c("quasibinomial","quasipoisson")) "F" else "LRT"
     }
     if (inherits(object, c("survreg"))) testtype <- "Chisq"
   }
@@ -278,15 +280,15 @@ termtable <-
   ldr1 <-
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
       lcov <- summary$cov.unscaled
-      if (u.debug())
-        drop1Wald(object, test=testtype, scope=lterms) ## scale for AIC!!!
-      else try(drop1Wald(object, test=testtype, scope=lterms),
-                  silent=TRUE)
+##-       if (u.debug())
+##-         drop1Wald(object, test=testtype, scope=lterms) ## scale for AIC!!!
+      ##-       else
+      try(drop1Wald(object, test=testtype, scope=lterms), silent=TRUE)
     } else {
-      if (u.debug())
-        drop1(object, test=testtype, scope=lterms)
-      else try(drop1(object, test=testtype, scope=lterms),
-               silent=TRUE)
+##-       if (u.debug())
+##-         drop1(object, test=testtype, scope=lterms)
+      ##-       else
+      try(drop1(object, test=testtype, scope=lterms), silent=TRUE)
     }
   if (inherits(ldr1, "try-error")) {
     warning(":termtable: drop1 did not work. I return the codfficient table")
@@ -295,11 +297,12 @@ termtable <-
   }
   ldr1 <- ldr1[-1,]
   ldr1$RSS <- NULL # same ncol for lm and glm
-  if (inherits(object,"rlm"))  ldr1[,4] <- ldr1[,2]/ldr1[,1]
+  ldf <- ldr1[,1]
+  if (inherits(object,"rlm"))  ldr1[,4] <- ldr1[,2]/ldf
   ## -- critical value for test
-  ltstq <- if (testtype=="F") qf(ltlev1,c(1,pmax(1,ldr1[,1])),ldfres) else {
-    if (testtype=="Chisq") qchisq(ltlev1,c(1,pmax(1,ldr1[,1]))) else NA }
-  ltstq[which(ldr1[,1]==0)+1] <- NA
+  ltstq <- if (testtype=="F") qf(ltlev1,c(1,pmax(1,ldf)),ldfres) else {
+    if (testtype%in%c("Chisq", "LRT")) qchisq(ltlev1,c(1,pmax(1,ldf))) else NA }
+  ltstq[which(ldf==0)+1] <- NA
   ltstq1 <- sqrt(ltstq[1]) ## 1 degree of freedom
   ltstq <- ltstq[-1]
 ##-   if (inherits(object,"mlm")||inherits(object,"manova"))
@@ -321,7 +324,7 @@ termtable <-
   lr2 <- NA
   if (r2x) {
     lvift <-     ## lterms: n of levels for each term
-        if (u.debug()) vif.regr(object, mmat=lmmt) else
+##        if (u.debug()) vif.regr(object, mmat=lmmt) else
         try(vif.regr(object, mmat=lmmt), silent=TRUE)
     if (inherits(lvift, "try-error") || length(lvift)==0) {
       warning(":termtable: error in the calculation of R2.x")
@@ -334,6 +337,8 @@ termtable <-
   lpvcol <- pmatch("Pr(",names(ldr1), nomatch=ncol(ldr1))
   lpv <- ldr1[,lpvcol]
   ldf <- ldr1[,1]
+  ## !!!
+  lcont <- which(ldf==1)
   lnobs1 <- ldfres+sum(ldf)-1
   ## drop effect relevance
   ltst <- ldr1[, ifelse(inherits(object, "polr"), 3, 4)]
@@ -375,7 +380,7 @@ termtable <-
             "coefRle","coefRls","coefRlp")
     ljj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "Rle","Rls","Rlp")
-    ltb[lcont1,lj] <- lcoeftab[ljc,ljj] 
+    ltb[lcont1,lj] <- lcoeftab[ljc,ljj]
     ltb[lcont1,"Sig0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"Sig0"]
   }
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
@@ -391,11 +396,11 @@ termtable <-
     ltb <- rbind(ltb,"log(scale)"= lls)
   }
   ## p-symbol
-  lpvs <- rloptions("p.symbols")
+  lpvs <- rlvoptions("pSymbols")
   ltb[,"p.symbol"] <-
     if (any(!is.na(ll <- ltb$p.value))) getsymbol(ll, lpvs) else NA
   ## Rls-symbol
-  lrls <- rloptions("rlv.symbols")
+  lrls <- rlvoptions("rlvSymbols")
 ##-   ltb[,"Rls.symbol"] <-
 ##-     if (any(!is.na(ll <- ltb$Rls)))
   ##-       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
@@ -407,7 +412,7 @@ termtable <-
             testtype=testtype,
             fitclass=class(object), family=lfamily, dist=ldist,
             rlvThres=rlvThres,
-            p.symbols=lpvs, rlv.symbols=lrls)
+            pSymbols=lpvs, rlvSymbols=lrls)
 }
 ## end termtable
 ## ===========================================================
@@ -454,10 +459,10 @@ print.termtable <-
            digits = NULL, na.print = "  ", ...)
 {
   digits <- i.getopt(digits)
-  lcoldef <- rloptions(
+  lcoldef <- rlvoptions(
     if (i.getopt(printstyle)=="relevance")
       "termcolumns.r" else "termcolumns.o")
-  columns <- i.def(i.def(columns, rloptions("termcolumns")), lcoldef) 
+  columns <- i.def(i.def(columns, rlvoptions("termcolumns")), lcoldef) 
   columns[columns=="estimate"] <- "coef"
   names(x)[names(x)=="estimate"] <- "coef"
   if (length(columns)==1 && columns=="all")
@@ -505,14 +510,14 @@ print.termtable <-
                    row.names=row.names(x))
   print(if(ncol(xp)==1) t(xp) else xp, quote=FALSE, na.print=na.print, ...)
   ## --- legend(s)
-  lprleg <- i.def(legend, rloptions("show.symbolLegend"))
+  lprleg <- i.def(legend, rlvoptions("show.symbolLegend"))
   if (lprleg) {
     if (length(grep(".symbol", columns))) {
       ## cat("---")
       if ("p.symbol" %in% columns)
-        cat("\nSignificance codes for p.value:  ", lattr[["p.symbols"]]$legend,"\n", sep = "")
-      if (length(grep("Rl..symbol", columns)))
-        cat("\nRelevance codes:    ", lattr[["rlv.symbols"]]$legend,"\n", sep = "")
+        cat("\nSignificance codes for p.value:  ", lattr[["pSymbols"]]$legend,"\n", sep = "")
+      if (length(grep("rlvSymbol", columns)))
+        cat("\nRelevance codes:    ", lattr[["rlvSymbols"]]$legend,"\n", sep = "")
       cat("\n")
     }
   }
@@ -520,7 +525,7 @@ print.termtable <-
 }
 ## ===========================================================================
 termeffects <-
-  function (object, se = 2, df = df.residual(object), rlv = TRUE, ...)
+  function (object, se = 2, df = df.residual(object), rlv = TRUE)
     ## --------------------------------------------------------------
 {
   if (is.atomic(object)||is.null(terms(object)))
@@ -675,9 +680,9 @@ termeffects <-
 print.effecttable <- function (x, columns=NULL, ...)
 {
   lcoldef <-
-    if (rloptions("printstyle")=="relevance")
-      rloptions("effectcolumns.r") else rloptions("effectcolumns.o")
-  columns <- i.def(i.def(columns, rloptions("effectcolumns")), lcoldef) 
+    if (rlvoptions("printstyle")=="relevance")
+      rlvoptions("effectcolumns.r") else rlvoptions("effectcolumns.o")
+  columns <- i.def(i.def(columns, rlvoptions("effectcolumns")), lcoldef) 
   print.termtable(x, columns=columns, ...)
 }
 ## ---------------------------------------
@@ -687,7 +692,7 @@ print.termeffects <- function (x, columns=NULL, printstyle=NULL, transpose=FALSE
   if (is.null(columns))
     columns <-
       if (i.getopt(printstyle)=="relevance")
-        rloptions("termeffcolumns.r") else rloptions("termeffcolumns.o")
+        rlvoptions("termeffcolumns.r") else rlvoptions("termeffcolumns.o")
   lnam <- names(x)
   for (li in seq_along(x)) {
     xi <- x[[li]]
@@ -697,7 +702,7 @@ print.termeffects <- function (x, columns=NULL, printstyle=NULL, transpose=FALSE
       cat("\n")
       }
     else cat("\n",lnam[li],":\n")
-    print.termtable(xi, columns=columns, legend=FALSE)
+    print.termtable(xi, columns=columns, legend=FALSE, ...)
   }
 }
 ## ----------------------------------------------------------
@@ -732,20 +737,20 @@ getcoeffactor <-
       else 1
     }
   lfac <- apply(lmmt, 2, sd)/lsigma
-  lnm <- names(object$coefficients)
+  lfac[lfac==0] <- NA
+##  lnm <- names(object$coefficients)
 ##-   if (any(lna <- is.na(match(lnm,names(lfac))))) {
 ##-     warning(":getcoeffactor: error, possibly singular case", paste(lnm[lna], collapse=", "))
 ##-     lfac <- 1
 ##-   } else lfac <- lfac[lnm] ## needed for singular designs
   structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
-      ## model.matrix=lmmt, 
 }
 ## =================================================================================
-rloptions <- #f
+rlvoptions <- #f
   function (x=NULL, list=NULL, default=NULL, options = NULL, assign=TRUE, ...)
 { ##
-  loptdef <- rl.optionsDefault 
-  lnewo <- loldo <- i.def(options, get("rl.options", envir=rl.envir))
+  loptdef <- rlv.optionsDefault 
+  lnewo <- loldo <- i.def(options, get("rlv.options", envir=rlv.envir))
   ##
   if (length(list)&&length(lold <- attr(list, "old"))) list <- lold
   largs <- c(list, list(...))
@@ -753,7 +758,7 @@ rloptions <- #f
   ##
   if (length(x)) {  ## asking for options
     if(!is.character(x)) {
-      warning(":rloptions: First argument 'x' must be of mode character")
+      warning(":rlvoptions: First argument 'x' must be of mode character")
       return(NULL)
     }
     return(if(length(x)==1) loldo[[x]] else loldo[x])
@@ -762,7 +767,7 @@ rloptions <- #f
   if (length(default) && u.notfalse(default)) {
     if (u.true(default)) default <- "all"
     if (!is.character(default))
-      stop("!rloptions! Argument 'default' must be of mode character or logical")
+      stop("!rlvoptions! Argument 'default' must be of mode character or logical")
     if (default[1]=="all") largs = c(loptdef, largs)
     ## resets all available components
     else {
@@ -781,48 +786,13 @@ rloptions <- #f
   lo <- intersect(names(largs),names(loldo))
   if (length(lo)) attr(lnewo, "old") <- loldo[lo]
   ## set margin pars, whether changed or not
-  if (assign) assign("rl.options", lnewo, pos=rl.envir)
+  if (assign) assign("rlv.options", lnewo, pos=rlv.envir)
   ## assignInMyNamespace does not work
   invisible(lnewo)
 }
-## end or rloptions
-## -----------------------------------------------------------------------
-check.option <- function(optname, value, list = NULL) {
-  if (is.null(list)) list <- setNames(list(value), optname)
-  lnl <- length(list)
-  loptnames <- names(list)
-  for (lil in seq_len(lnl)) {
-    lnm <- loptnames[lil]
-    lvalue <- list[[lnm]]
-    lcheck <- rloptionsCheck[[lnm]]
-    if (length(lcheck)) {
-##    if (is.list(lcheck)) {
-      if (!is.list(lcheck[[1]])) lcheck <- list(lcheck)
-      lnopt <- length(lcheck)
-      lmsg <- rep("", lnopt)
-      for (lj in seq_len(lnopt)) {
-        lch <- lcheck[[lj]]
-        lfn <- get(lch[[1]])
-        lmsg[lj] <- lmsgj <-
-          switch(paste("v",length(lch),sep=""), v0="", v1=lfn(lvalue),
-                 v2=lfn(lvalue, lch[[2]]), v3=lfn(lvalue, lch[[2]], lch[[3]]),
-                 "")
-        if (lmsgj=="") break
-      }
-##    }
-      if (all(lmsg!="")) {
-        warning(":check.option: argument '", lnm,
-                "' not suitable. It should\n    ",
-                paste(lmsg, collapse=" -- or \n  "),
-                "\n  instead of (str())\n    ", format(str(lvalue)))
-        list[lnm] <- NULL
-      }
-    }
-  }
-  list
-}
+## end or rlvoptions
 ## ---------------------------------------------------------------------------------
-##- getopt <- function(x, opt = NULL, optdefault = rl.optionsDefault) {
+##- getopt <- function(x, opt = NULL, optdefault = rlv.optionsDefault) {
 ##-   ## x is character, opt list or NULL
 ##-   if (is.null(opt))  opt <- options()
 ##-   llx <- length(x)
@@ -843,33 +813,31 @@ getsymbol <- function(value, symbols)
 
 i.getopt <- function(x, options = NULL) {
   if (is.null(options))
-    options <- get("rl.options", envir=rl.envir) ## list in calling fn
+    options <- get("rlv.options", envir=rlv.envir) ## list in calling fn
   lnam <- as.character(substitute(x))
   lopt <- x
 ##  if (is.function(options)) options <- NULL
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
     lopt <- options[[lnam]]
   if (is.null(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
-    lopt <- rloptions(lnam)
+    lopt <- rlvoptions(lnam)
   else unlist(check.option(lnam, lopt))   ## check
-  if (is.null(lopt)) lopt <- rl.optionsDefault[[lnam]]
+  if (is.null(lopt)) lopt <- rlv.optionsDefault[[lnam]]
   lopt
 }
 
 ## ===========================================================================
 regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
-p.symbols <- list(symbol=c("***", "**", "*", ".", " ", ""),
+pSymbols <- list(symbol=c("***", "**", "*", ".", " ", ""),
                   cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )
-p.symbols$Legend <- paste(rbind(p.symbols$cutpoint,p.symbols$symbol), collapse="  ")
-rlv.symbols <- list(symbol=c("-", " ", ".", "+", "++", "+++", ""),
+pSymbols$legend <- paste(rbind(pSymbols$cutpoint,pSymbols$symbol), collapse="  ")
+rlvSymbols <- list(symbol=c("-", " ", ".", "+", "++", "+++", ""),
                   cutpoint=c(-Inf,-1,0,1,2,5,Inf) )
-rlv.symbols$legend <-
-  paste(i.last(rbind(rlv.symbols$cutpoint,rlv.symbols$symbol)[-1],-2), collapse="  ")
+rlvSymbols$legend <-
+  paste(i.last(rbind(rlvSymbols$cutpoint,rlvSymbols$symbol)[-1],-2), collapse="  ")
 ## -----------------------------------------------------------
-rl.optionsDefault <- list(
+rlv.optionsDefault <- list(
   digits = 4,
-  ##-   regr.contrasts = c(unordered="contr.wsum", ordered="contr.wpoly"),
-  ##-   factorNA = TRUE,
   testlevel = 0.05,
   rlvThres = c(stand=0.1, rel=0.1, coef=0.1, drop=0.1, pred=0.05),
   termtable = TRUE, vif = TRUE,
@@ -887,17 +855,32 @@ rl.optionsDefault <- list(
   effectcolumns.o = c("effect", "ciLow","ciUp", "Sig0", "p.value", "p.symbol"),
   show.symbolLegend = TRUE,
   na.print = ".",
-  doc = 2,
-  notices = TRUE,
-  debug = 0,
-  p.symbols = p.symbols,
-  rlv.symbols = rlv.symbols
+  pSymbols = pSymbols,
+  rlvSymbols = rlvSymbols
 )
 ## -----------------------
-rloptionsCheck <- list()
+rlvoptionsCheck <- list(
+  digits = cnr(c(3,10)),
+  testlevel = cnr(c(0.0001,0.5)),
+  rlvThres = cnr(c(0.0001,1)),
+  termtable = clg(), vif = clg(),
+  show.termeffects = clg(), show.coefcorr = clg(),
+  termcolumns = clg(), termeffcolumns = clg(), effectcolumns = clg(),
+  printstyle = cch(),
+  termcolumns.r = cch(),
+  termeffcolumns.r = cch(),
+  effectcolumns.r = cch(),
+  termcolumns.o = cch(),
+  termeffcolumns.o = cch(),
+  effectcolumns.o = cch(),
+  show.symbolLegend = clg(),
+  na.print = cch(),
+  pSymbols = cls(c("symbol","cutpoint","legend")),
+  rlvSymbols = cls(c("symbol","cutpoint","legend"))
+)
 ## -----------------------------------------------------------------------
-rl.envir <- new.env()
-rl.envir$rl.options <- rl.envir$rl.optionsDefault <- rl.optionsDefault
-rl.p.symbols <- p.symbols
-rl.rlv.symbols <- rlv.symbols
+rlv.envir <- new.env()
+rlv.envir$rlv.options <- rlv.envir$rlv.optionsDefault <- rlv.optionsDefault
+rlv.pSymbols <- pSymbols
+rlv.rlvSymbols <- rlvSymbols
 ## ========================================================================
