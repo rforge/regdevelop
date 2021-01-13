@@ -9,10 +9,10 @@
   of output tables to be shown as well as other items influencing output
 }
 \usage{
-  rlvoptions(x = NULL, list = NULL, default = NULL, options = NULL, 
+rlvoptions(x = NULL, list = NULL, default = NULL, options = NULL, 
            assign = TRUE, ...)
-  rlv.optionsDefault
-  rlv.envir
+rlv.optionsDefault
+rlv.envir
 }
 \arguments{
   \item{x}{character (vector): name(s) of option(s) to query.
@@ -20,17 +20,17 @@
   }
   \item{list}{a named list of options to be set, see Details}
   \item{default}{character vector of option names.
-    These ploptions will be set according to \code{ploptionsDefault}.
+    These options will be set according to \code{rlv.optionsDefault}.
     \code{default="all"} or \code{=TRUE} will reset all options.
     If \code{default} is set, all further arguments will be ignored.
   }
-  \item{options}{the list of options from which the option should be
+  \item{options}{the list of options from which the option(s) should be
     obtained.
     The effective default is a list of defaults called
     \code{rlv.optionsDefault}
   }
   \item{assign}{logical: should the list be assigned to
-    \code{.ploptions}?}
+    \code{rlv.options}?}
   \item{...}{any options can be defined or modified,
     using \code{name = value}, as in \code{\link{options}} of basic R.}
 }
@@ -46,11 +46,11 @@ as \code{rlv.options}.
 \code{rlvoptions} can also be used to store and get additional
 elements defined by the user.
 }
-\value{For \code{ploptions(x)}, where \code{x} is the name of an option,
+\value{For \code{rlvoptions(x)}, where \code{x} is the name of an option,
   the current value of the option, or (\code{NULL} if such an option is
   not defined). If \code{x} contains several (valid) names,
   the respective list is returned.
-  For \code{ploptions()}, the list of all plptions s``orted by name.  
+  For \code{rlvoptions()}, the list of all options sorted by name.  
   
   For uses setting one or more options, the important effect is a changed
   effective options list that is used by the package's functions
@@ -61,9 +61,9 @@ elements defined by the user.
   This list is useful for restoring the previous status.
 }
 
-\author{Werner A. Stahel}
+\author{\packageAuthor{relevance}}
 \seealso{
-  \code{\link{options}()}
+  \code{\link{options}}
 }
 \examples{
 rlvoptions(c("digits","na.print"))
@@ -81,3 +81,4 @@ ls(envir=rlv.envir)
 names(rlv.optionsDefault)
 }
 \keyword{utilities}
+\concept{relevance}

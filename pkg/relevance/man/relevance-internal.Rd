@@ -26,4 +26,5 @@ DB(on=TRUE)
     2 for turning warnings into errors
   }
 }
+\author{\packageAuthor{relevance}}
 \keyword{internal}

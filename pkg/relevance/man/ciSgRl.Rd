@@ -1,29 +1,29 @@
 \name{ciSgRl}
 \alias{ciSgRl}
 %- Also NEED an '\alias' for EACH other topic documented here.
-\title{Create Confidence Intervals and Significance Values for a Termtable
+\title{Calculate Confidence Intervals and Relevance and Significance Values
 }
-\description{Calculates confidence intervals and significance values for
-  the coefficients of a fitted model to be used in a
-  \code{termtable} as produced by \code{regr}.
+\description{Calculates confidence intervals and relevance and
+  significance values given estimates, standard errors and, for
+  relevance, additional quantities. 
 }
 \usage{
-ciSgRl(coef, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE, 
+ciSgRl(estimate, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE, 
             rlvThres=0.1, object=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{coef}{vector of coefficients or matrix containing
-    coefficients and their standard errors. The latter is needed if
+  \item{estimate}{vector of estimates or matrix containing
+    estimates and their standard errors. The latter is needed if
     \code{se} is not given.
   }
-  \item{se}{vector of standard errors of the coefficients
+  \item{se}{vector of standard errors of the estimates
   }
   \item{df}{degrees of freedom of the residuals
   }
   \item{testlevel}{test level
   }
-  \item{stcoef}{standardized coefficients.
+  \item{stcoef}{standardized coefficients, suitable for 
     If \code{NULL}, these will be calculated from \code{object}.
   }
   \item{rlv}{logical: Should relevances be calculated?
@@ -41,26 +41,32 @@ ciSgRl(coef, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE,
   A data.frame with the variables
   \item{estimate, se}{coefficients and standard errors}
   \item{ciLow, ciUp}{lower and upper limit of the confidence interval}
-  \item{teststatistic}{t-test statistic}
-  \item{signif}{significance value, i.e., test statistic divided by
+  \item{testst}{t-test statistic}
+  \item{Sig0}{significance value, i.e., test statistic divided by
     critical value, which in turn is the \code{1-testlevel/2}-quantile
     of the t-distribution.
   }
   \item{p.value}{p value}
   \item{p.symbol}{the conventional symbol corresponding to the p value}
-  If \code{rlv}
+  \cr
+  If \code{rlv} is \code{TRUE},
+  \item{stcoef}{standardized coefficient}
+  \item{st.Low, st.Up}{confidence interval for \code{stcoef}}
+  \item{Rle}{estimated relevance of \code{coef}}
+  \item{Rls}{secured relevance, lower end of confidence interval
+    for the relevance of \code{coef}}
+  \item{Rlp}{potential relevance, upper end of confidence interval
+    ...}
+  \item{Rls.symbol}{symbols for the secured relevance}
 }
-\author{Werner A. Stahel
-}
-%%- \seealso{
-%%- %% ~~objects to See Also as \code{\link{help}}, ~~~
-%%- }
+\author{\packageAuthor{relevance}}
+
 \examples{
 data(d.blast)
 rr <-
   lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) 
-ciSgRl(rr) %% same as
+ciSgRl(rr) ## same as
 ciSgRl(summary(rr)$coef)
 }
-\keyword{ regression }% use one of  RShowDoc("KEYWORDS")
-
+\keyword{ regression }
+\concept{relevance}

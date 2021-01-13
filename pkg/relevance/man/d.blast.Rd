@@ -36,7 +36,7 @@
 \examples{
 data(d.blast)
 
-lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-
+summary(lm(log10(tremor)~location+log10(distance)+log10(charge),
+           data=d.blast))
 }
 \keyword{datasets}

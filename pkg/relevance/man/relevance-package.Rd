@@ -13,20 +13,19 @@
 The DESCRIPTION file:
 \packageDESCRIPTION{relevance}
 \packageIndices{relevance}
-This package is being built.
 
-Relevance is a measure that expresses the relevance of an effect.
-The simplest case is a single sample supposedly normally distributed
-observations, and we are interested in the expectation,
+Relevance is a measure that expresses the (scientific) relevance of an effect.
+The simplest case is a single sample of supposedly normally distributed
+observations, where interest lies in the expectation,
 estimated by the mean of the observations.
 There is a threshold for the expectation, below which an effect is
 judged too small to be of interest.
 The estimated relevance Rle is then simply the estimated effect divided by
 the threshold. If it is larger than 1, the effect is thus judged
 relevant. The two other values that characterize the relevance are the
-limits of the confidence interval for the relevance, called
-the secured relevance Rls and the potential relevance Rlp.
-If Rle $>1$, then one might say that the effect is
+limits of the confidence interval for the true value of the relevance,
+called the secured relevance Rls and the potential relevance Rlp.
+If Rls $>1$, then one might say that the effect is
 "significantly relevant".
 
 Another useful measure, meant to replace the p-value, is the
@@ -38,27 +37,34 @@ is significant if Sg0 is $>1$.
 These measures are also calculated for the comparison of two groups,
 for proportions, and most importantly for regression models.
 For models with linear predictors, relevances are obtained for
-standardized coefficients as well as for the effect of dropping terms.
-%% The results are presented in tables
+standardized coefficients as well as for the effect of dropping terms
+and the effect on prediction.
 
 The most important functions are
-
-twogroups
-
-to calculate the measure for two paired or unpaired groups
-or a simple mean.
-
-ciSgRl
-
-For models with a linear predictor, the results are given by tables.
-A coeftable is produced by \code{rlstats}.
-\code{termtable} contains the relevance of the terms as characterized by
-the effect of dropping the term from the model formula.
-It also includes the relevance of the coefficients as produced by
-\code{rlstats} for terms with a single degree of freedom.
-\code{termeffects} calculates the relevances for the coefficients
-related to each term and is thus only of interest for terms with
-more than one degree of freedom.
+\itemize{
+  \item
+  \code{twosamples}:
+  calculate the measures for two paired or unpaired sampless or
+  a simple mean. This function calls 
+  \item
+  \code{ciSgRl}:
+  calculates the confidence interval and siginificance based on an
+  estimate and a standard error,
+  and adds relevance for a standardized effect.
+  \item
+  \code{termtable}:
+  deals with fits of regression models with a linear predictor.
+  It calculates confidence intervals and significances for
+  the coefficients of terms with a single degree of freedom.
+  It includes the effect of dropping each term
+  (based on the \code{drop1} function)
+  and the respective significance and relevance measures. 
+  \item
+  \code{termeffects}:
+  calculates the relevances for the coefficients
+  related to each term. These differ from the enties of \code{termtable}
+  only for terms with more than one degree of freedom.
+}
 }
 \author{
 \packageAuthor{relevance}
@@ -68,15 +74,13 @@ Maintainer: \packageMaintainer{relevance}
 \references{
   Stahel, Werner A. (2021). 
   New relevance and significance measures to replace p-values.
-  Submitted to PLoS ONE
+  To appear in PLoS ONE
 }
-\keyword{ package }
-%% \seealso{
-%% ~~ Optional links to other man pages, e.g. ~~
-%% ~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
-%% }
+\seealso{Package \code{regr}, avaiable from r.forge}
 \examples{
   data(swiss)
   rr <- lm(Fertility ~ . , data = swiss)
   termtable(rr)
 }
+\keyword{ package }
+\concept{relevance}

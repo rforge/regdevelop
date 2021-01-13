@@ -17,13 +17,13 @@ pSymbols
 }
 
 \arguments{
-  \item{value}{tne numerical value (may be a vector)
+  \item{value}{the numerical value (may be a vector)
   }
-  \item{symbols}{list with the component \code{cutpoint} and \code{symbol}
+  \item{symbols}{list with the components \code{cutpoint} and \code{symbol}
   }
 }
 \value{character (vector) with the required symbols.
-  Values in the $i$th interval will result in the $i$th symbol.
+  Values in the \code{i}th interval will result in the $i$th symbol.
 %%    symbols$symbol[as.numeric(cut(value, symbols$cutpoint))]
 }
 \details{
@@ -31,16 +31,15 @@ pSymbols
   categories (by the component \code{cutpoint}) for
   p-values and relevance values, respectively, and the corresponding
   symbols (component \code{symbol}) to be printed. A third component
-  is the legend that is printed if the argument \code{legend} of
-  \code{print.termtable} is \code{TRUE}.
+  is the legend that is printed alongside a \code{termtable} or the like
+  if the argument \code{legend} of \code{print.termtable} is \code{TRUE}.
 }
-\author{Werner A. Stahel
-}
+\author{\packageAuthor{relevance}}
+
 \examples{
-   pSymbols
+pSymbols
 
-   getsymbol(c(0.5, 0.02, 0.003, 0), pSymbols)
-
+getsymbol(c(0.5, 0.02, 0.003, 0), pSymbols)
 ## [1] " "  "*"  "**" NA  
 }
 \keyword{manip}

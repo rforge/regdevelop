@@ -2,7 +2,7 @@
 \alias{termeffects}
 
 \title{
-all coefficients of a model fit
+All Coefficients of a Model Fit
 }
 \description{
 A list of all coefficients of a model fit, possibly with respective statistics
@@ -26,9 +26,7 @@ termeffects(object, se = 2, df = df.residual(object), rlv = TRUE)
   Each component is a \code{\link{termtable}}s for the coefficients
   corresponding to the term.
 }
-\author{
-Werner A. Stahel
-}
+\author{\packageAuthor{relevance}}
 \seealso{
   \code{\link{dummy.coef}, \link{termtable}}
 }
@@ -40,4 +38,4 @@ Werner A. Stahel
 }
 
 \keyword{regression}
-
+\concept{relevance}

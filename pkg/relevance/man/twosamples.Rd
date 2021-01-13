@@ -2,7 +2,8 @@
 \alias{twosamples}
 \alias{twosamples.default}
 \alias{twosamples.formula}
-\title{Compare Two Groups, or Inference for one Sample: Relevance and Significance
+\title{Comparison of Two Samples, or Inference for One Sample:
+  Relevance and Significance
 }
 \description{Inference for a difference between two independent groups
   or for a single sample
@@ -27,7 +28,7 @@ twosamples(x, ...)
   \item{testlevel}{level for the test used for confidence intervals
   }
   \item{rlvThres}{Relevance threshold
-  }
+  }\cr
   For the \code{formula} method:
   \item{formula, data}{formula and data for the \code{formula} method
   }
@@ -39,19 +40,27 @@ twosamples(x, ...)
     code{rlvThres} of the \code{default} method.
   }
 }
-\value{List with the components:
-  \item{estimate}{estimated difference between expectations of the two
+\value{data.frame with \code{class 'effecttable'} with the components:
+  \item{effect}{estimated difference between expectations of the two
     groups, or mean in case of a single sample, with confidence interval
   }
-  \item{rlv}{relevance measures: estimated, secured, potential}
-  \item{V}{single observation variance}
-  \item{sig0}{significance measure for test on 0 difference}
-  \item{sigth}{significance measure for test on difference=rlevance
-    threshold}
+  \item{ciLow, ciUp}{confidence interval for the effect}
+  \item{Rle, Rls, Rlp}{relevance measures: estimated, secured,
+    potential}
+  \item{Rls.symbol}{symbol describing \code{Rls}}
+  \item{Sig0}{significance measure for test or 0 effect}
+  \item{Sigth}{significance measure for test of
+    \code{effect}==relevance threshold}
   \item{p.value}{p value for test against 0}
-  \item{n}{number of observations}
+  \item{p.symbol}{symbol for \code{p.value}}
+  Attributes:
+  \item{rlvThres}{relevance threshold}
+  \item{n}{number(s) of observations}
   \item{df}{degrees of freedom for the t distribution}
   \item{means}{in the case of 2 independent groups: their means}
+  \item{V}{single observation variance}
+  \item{pSymbols, rlvSymbols}{lists defining the symbols used for
+    p-values and relevances}
 }
 \references{W. A. Stahel (2021)
 }

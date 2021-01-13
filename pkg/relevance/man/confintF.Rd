@@ -38,16 +38,14 @@ confintF(f, df1, df2, testlevel = 0.05)
   or, if any of the arguments has length \code{>1}, matrix containing
   the intervals as rows.
 }
-\author{
-Werner A. Stahel
-}
+\author{\packageAuthor{relevance}}
 
 \seealso{\code{\link{qf}}
 }
 \examples{
-  confintF(5, 3, 200)
-  ## [1] 2.107 31.95
-  confintF(1:5, 5, 20)   ## lower limit is 0 for the first 3 f values
+confintF(5, 3, 200)
+## [1] 2.107 31.95
+confintF(1:5, 5, 20)   ## lower limit is 0 for the first 3 f values
 }
 \keyword{distribution}
 \keyword{univar}

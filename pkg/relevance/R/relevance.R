@@ -26,7 +26,7 @@ twosamples.default <- #f
   }
   if (length(y)==0) lonegroup <- TRUE
   lpq <- 1-testlevel/2
-  lrlvth <- i.def(i.def(rlvThres, i.getopt("rlvThres")["stand"]), 0.1)
+  lrlvth <- i.def(i.def(rlvThres, i.getopt(rlvThres)["stand"]), 0.1)
   x <- x[is.finite(x)]
   ln <- lnx <- length(x)
   ldf <- lnx-1
@@ -115,39 +115,39 @@ twosamples.formula <-
 ## ===========================================================================
 ## regression
 ciSgRl <-
-  function (coef=NULL, se=NULL, df=Inf, testlevel=0.05, stcoef=TRUE, rlv=TRUE,
+  function (estimate=NULL, se=NULL, df=Inf, testlevel=0.05, stcoef=TRUE, rlv=TRUE,
             rlvThres=0.1, object=NULL)
 { ## for a coefficients table,
   ## calculate confidence interval, significance and relevance
-  if (length(coef)==0) coef <- object
-  if (inherits(coef, regrModelClasses)) {
-    object <- coef
-    coef <- getcoeftable(object)
+  if (length(estimate)==0) estimate <- object
+  if (inherits(estimate, regrModelClasses)) {
+    object <- estimate
+    estimate <- getcoeftable(object)
     df <- df.residual(object)
   }
-  if (!(is.atomic(coef)||length(dim(coef))==2))
+  if (!(is.atomic(estimate)||length(dim(estimate))==2))
     stop("!ciSgRl! first argument not suitable")
   lpvs <- rlvoptions("pSymbols")
   lrls <- rlvoptions("rlvSymbols")
   if (is.null(se))
-    if (NCOL(coef)>1) {
-      se <- coef[,2]
-      coef <- coef[,1]
+    if (NCOL(estimate)>1) {
+      se <- estimate[,2]
+      estimate <- estimate[,1]
     }
-  if (is.null(se)) se <- attr(coef, "se")
+  if (is.null(se)) se <- attr(estimate, "se")
   if (is.null(se))
     stop("!ciSgRl! no standard errors found")
   if (df==0||!any(is.finite(se))) {
     warning("!ciSgRl! no finite standard errors")
-    return(cbind(coef))
+    return(cbind(estimate))
   }
   ltq <- qt(1-testlevel/2, df)
-  lci <- coef+outer(ltq*se, c(ciLow=-1,ciUp=1))
-  ltst <- coef/se
+  lci <- estimate+outer(ltq*se, c(ciLow=-1,ciUp=1))
+  ltst <- estimate/se
   lsgf <- ltst/ltq
   lpv <- 2*pt(-abs(ltst), df)
   lpsymb <- getsymbol(lpv, lpvs)
-  rr <- data.frame(coef=coef, se=se, lci, testst=ltst,
+  rr <- data.frame(estimate=estimate, se=se, lci, testst=ltst,
                    Sig0=lsgf, p.value=lpv, p.symbol=lpsymb)
   attr(rr, "pSymbols") <- lpvs
   ## --- standardized coefficients
@@ -164,13 +164,13 @@ ciSgRl <-
     }
     lfac <- getcoeffactor(object)
     ##   lcls <- attr(lfac, "fitclass")
-    stcoef <- coef*lfac
+    stcoef <- estimate*lfac
   }
-  if (length(stcoef)!=length(coef)) {
+  if (length(stcoef)!=length(estimate)) {
     warning(":ciSgRl: argument 'stcoef' not suitable. No relevances")
     return (rr)
   }
-  lfac <- stcoef/coef
+  lfac <- stcoef/estimate
   lstci <- cbind(stcoef=stcoef, st.Low=lfac*lci[,1], st.Up=lfac*lci[,2])
   rr <- cbind(rr, lstci)
   ## --- relevance
@@ -677,7 +677,8 @@ termeffects <-
   res
 }
 ## ---------------------------------------
-print.effecttable <- function (x, columns=NULL, ...)
+print.effecttable <- #f
+  function (x, columns=NULL, ...)
 {
   lcoldef <-
     if (rlvoptions("printstyle")=="relevance")
@@ -686,8 +687,9 @@ print.effecttable <- function (x, columns=NULL, ...)
   print.termtable(x, columns=columns, ...)
 }
 ## ---------------------------------------
-print.termeffects <- function (x, columns=NULL, printstyle=NULL, transpose=FALSE,
-                               single=FALSE, ...)
+print.termeffects <- #f
+  function (x, columns=NULL, printstyle=NULL,
+            transpose=FALSE, single=FALSE, ...)
 {
   if (is.null(columns))
     columns <-

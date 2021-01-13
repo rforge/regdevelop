@@ -3,7 +3,7 @@
 \alias{getscalepar}
 \alias{getcoeffactor}
 
-\title{Extract Componente of a Fit
+\title{Extract Components of a Fit
 }
 \description{Retrieve the table of coefficients and standard errors,
   or the scale parameter, or the factors needed for standardizing
@@ -34,7 +34,7 @@ getcoeffactor(object)
   \code{scale}, \code{fitclass} and \code{family} or \code{dist}
   according to \code{object}.
 }
-\author{Werner A. Stahel}
+\author{\packageAuthor{relevance}}
 
 \examples{
   rr <- lm(Fertility ~ . , data = swiss)
