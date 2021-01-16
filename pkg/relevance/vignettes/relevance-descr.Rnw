@@ -17,7 +17,7 @@
 \usepackage{relevance-descr}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{relevance}
-%\VignetteIndexEntry{'Package relevance for calsulating Relevance and Significance Measures'}
+%\VignetteIndexEntry{'Package relevance for calculating Relevance and Significance Measures'}
 \addtolength{\textwidth}{2.5cm}%%--- 15.0 + 2.5 = 17.5
 \addtolength{\oddsidemargin}{-1.04cm}
 
@@ -30,7 +30,7 @@
 \baselineskip 15pt
 
 \title{\vspace*{-10mm}
-Package \T{relevance} for calsulating Relevance and Significance Measures}
+Package \T{relevance} for calculating Relevance and Significance Measures}
 \author{Werner A. Stahel, ETH Zurich}
 \maketitle
 
@@ -226,7 +226,7 @@ or unpaired, and also for a single sample.
 Its call mimics \T{t.test}.
 
 <<twosamples>>=
-  t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+      t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
   twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 @ 
 
@@ -244,14 +244,16 @@ Since this leads to .. columns, the print method selects only the columns
 named by \T{rlvoptions("printstyle")} or \T{rlvoptions("termcolumns")}.
 
 <<termtable>>=
-  data(swiss)
+  data(swiss, package="datasets")
   rr <- lm(Fertility ~ . , data = swiss)
   rt <- termtable(rr)
   rt
   names(rt)
-##  str(rt)  ## too much avoidable output for the vignette
-##  data.frame(rt) ## avoid selection and preparation of columns by 'print.termtable'
-##    commented out here since it produces a large output.
+  if(interactive()) {
+    str(rt)  ## too much avoidable output for the vignette
+    print(data.frame(rt)) ## avoid selection and preparation of columns by 'print.termtable'
+   ##    commented out here since it produces a large output.
+  }
 @ 
 
 \Tit{\T{termeffects}}

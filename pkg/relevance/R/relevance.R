@@ -2,6 +2,7 @@
 ## two groups and one sample
 twosamples <- #f
   function(x, ...) UseMethod("twosamples")
+
 twosamples.default <- #f
   function(x, y=NULL, paired=FALSE, var.equal=TRUE, testlevel=0.05, rlvThres=NULL, ...)
 { ## effect (group difference) and relevance
@@ -24,18 +25,21 @@ twosamples.default <- #f
     x <- y-x
     lonegroup <- TRUE
   }
-  if (length(y)==0) lonegroup <- TRUE
+  else if (length(y)==0) lonegroup <- TRUE
   lpq <- 1-testlevel/2
   lrlvth <- i.def(i.def(rlvThres, i.getopt(rlvThres)["stand"]), 0.1)
   x <- x[is.finite(x)]
-  ln <- lnx <- length(x)
-  ldf <- lnx-1
-  ld <- lmnx <- mean(x)
+  lnx <- length(x)
+  lmnx <- mean(x)
   lssx <- sum((x-lmnx)^2)
-  lv <- lssx/ldf
-  lny <- NULL
-  method <- "One Sample t inference"
-  if (!lonegroup) {
+  if (lonegroup) {
+    ln <- lnx
+    ld <- lmnx
+    ldf <- lnx-1
+    lv <- lssx/ldf
+    lny <- NULL
+    method <- "One Sample t inference"
+  } else { # two sample
     y <- y[is.finite(y)]
     lny <- length(y)
     ln <- lnx+lny
@@ -67,24 +71,27 @@ twosamples.default <- #f
            Rls.symbol=getsymbol(lrlvci[2], lrls),
            Sig0=c(leffci[1]/lciwid), Sigth=c((lrlvci[1]-1)*2/diff(lrlvci[2:3])),
            p.value=lpv, p.symbol=getsymbol(lpv, lpvs))),
-    class=c("effecttable", "data.frame"),
-    rlvThres=structure(lrlvth, type="standardized"),
-    n=c(lnx, lny), df=ldf, means=if (!lonegroup) c(lmnx,lmny), V=lv,
-    pSymbols=rlvoptions("pSymbols"), rlvSymbols=rlvoptions("rlvSymbols"))
+    class = c("effecttable", "data.frame"),
+    rlvThres = structure(lrlvth, type="standardized"),
+    method = method,
+    n = c(lnx, lny), df = ldf, means = if(!lonegroup) c(lmnx,lmny),
+    V = lv,
+      pSymbols = rlvoptions("pSymbols"),
+    rlvSymbols = rlvoptions("rlvSymbols"))
 }
 ## ============================================================================
-twosamples.formula <- 
-  function (formula, data, subset, na.action, ...) 
+twosamples.formula <-
+  function (formula, data, subset, na.action, ...)
 { ## adapted from t.test.formula
-  if (missing(formula) || (length(formula) != 3L)) 
+  if (missing(formula) || (length(formula) != 3L))
     stop("!twosamples! 'formula' must have left and right term")
   oneSampleOrPaired <- FALSE
-  if (length(attr(terms(formula[-2L]), "term.labels")) != 1L) 
-    if (formula[[3]] == 1L) 
+  if (length(attr(terms(formula[-2L]), "term.labels")) != 1L)
+    if (formula[[3]] == 1L)
       oneSampleOrPaired <- TRUE
     else stop("!twosamples! 'formula' incorrect")
   m <- match.call(expand.dots = FALSE)
-  if (is.matrix(eval(m$data, parent.frame()))) 
+  if (is.matrix(eval(m$data, parent.frame())))
     m$data <- as.data.frame(data)
   m[[1L]] <- quote(stats::model.frame)
   m$... <- NULL
@@ -94,7 +101,7 @@ twosamples.formula <-
   response <- attr(attr(mf, "terms"), "response")
   if (!oneSampleOrPaired) { ## two indep. samples
     g <- factor(mf[[-response]])
-    if (nlevels(g) != 2L) 
+    if (nlevels(g) != 2L)
       stop("grouping factor must have exactly 2 levels")
     DATA <- setNames(split(mf[[response]], g), c("x", "y"))
     rr <- do.call("twosamples", c(DATA, paired=FALSE, list(...)))
@@ -102,7 +109,7 @@ twosamples.formula <-
   } else { ## one sample
     respVar <- mf[[response]]
     if (inherits(respVar, "Pair")) {
-      DATA <- list(x = respVar[, 1], y = respVar[, 2]) 
+      DATA <- list(x = respVar[, 1], y = respVar[, 2])
       rr <- do.call("twosamples", c(DATA, paired = TRUE, list(...)))
     } else {
       DATA <- list(x = respVar)
@@ -227,25 +234,25 @@ termtable <-
   if (length(summary)==0) summary <- summary(object)
   ## thresholds
   ltlev1 <- 1-testlevel
-  lrlthrl <- rlvThres["rel"]
-  lrlthcf <- rlvThres["coef"]
+  ## lrlthrl <- rlvThres["rel"]
+  ## lrlthcf <- rlvThres["coef"]
   lrlthdr <- rlvThres["drop"]
   lrlthpr <- rlvThres["pred"]
   ## --- sigma and threshold for standardized coefficient
-  lsigma <- c(object$sigma, summary$sigma, 1)[1]
+  ## lsigma <- c(object$sigma, summary$sigma, 1)[1]
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   ldist <- object$dist
-  if ((inherits(object, "glm") &&
-       lfamily %in% c("poisson","quasipoisson")) ||
-      (inherits(object, "survreg")&&
-       ldist %in% c("weibull", "exponential", "lognormal"))
-      )  lrlthcf <- lrlthrl
+  ## if ((inherits(object, "glm") &&
+  ##      lfamily %in% c("poisson","quasipoisson")) ||
+  ##     (inherits(object, "survreg")&&
+  ##      ldist %in% c("weibull", "exponential", "lognormal"))
+  ##     )  lrlthcf <- lrlthrl
   ## --- testtype
   if (length(testtype)==0) {
     testtype <- "LRT"
     if (inherits(object, c("lm","lmrob"))) testtype <- "F"
     if (inherits(object, "glm")) {
-      testtype <- 
+      testtype <-
         if (lfamily %in% c("quasibinomial","quasipoisson")) "F" else "LRT"
     }
     if (inherits(object, c("survreg"))) testtype <- "Chisq"
@@ -279,7 +286,7 @@ termtable <-
   ## --- drop1
   ldr1 <-
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
-      lcov <- summary$cov.unscaled
+      ## lcov <- summary$cov.unscaled
 ##-       if (u.debug())
 ##-         drop1Wald(object, test=testtype, scope=lterms) ## scale for AIC!!!
       ##-       else
@@ -373,8 +380,8 @@ termtable <-
   lcont1 <- lcont+ljint  # row number in dr1
   ## --- coefficients and statistics for terms with 1 df
   if (length(lcont)) { ## lcont refers to assign
-    ltlb <- dimnames(ltb)[[1]]
-    lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
+    ## ltlb <- dimnames(ltb)[[1]]
+    ## lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
     ljc <- match(lcont,lasg) # index of coefs for cont variables
     lj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "coefRle","coefRls","coefRlp")
@@ -401,9 +408,9 @@ termtable <-
     if (any(!is.na(ll <- ltb$p.value))) getsymbol(ll, lpvs) else NA
   ## Rls-symbol
   lrls <- rlvoptions("rlvSymbols")
-##-   ltb[,"Rls.symbol"] <-
-##-     if (any(!is.na(ll <- ltb$Rls)))
-  ##-       lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
+  ## ltb[,"Rls.symbol"] <-
+  ##     if (any(!is.na(ll <- ltb$Rls)))
+  ##         lrls$symbol[as.numeric(cut(ll, lrls$cutpoint))] else NA
   for (lr in c("coefRls","dropRls","predRls"))
     ltb[,paste(lr,"symbol",sep=".")] <-
       if (any(!is.na(ll <- ltb[,lr]))) getsymbol(ll, lrls) else NA
@@ -462,7 +469,7 @@ print.termtable <-
   lcoldef <- rlvoptions(
     if (i.getopt(printstyle)=="relevance")
       "termcolumns.r" else "termcolumns.o")
-  columns <- i.def(i.def(columns, rlvoptions("termcolumns")), lcoldef) 
+  columns <- i.def(i.def(columns, rlvoptions("termcolumns")), lcoldef)
   columns[columns=="estimate"] <- "coef"
   names(x)[names(x)=="estimate"] <- "coef"
   if (length(columns)==1 && columns=="all")
@@ -597,7 +604,7 @@ termeffects <-
   attr(df.dummy,"terms") <- attr(mf,"terms")
   lci <- sapply(df.dummy,is.factor)
   lcontr <- lcontr[names(lci)[lci]] ## factors with 1 level have disappeared (?)
-  if (lIpolr <- inherits(object, "polr")) {
+  if (inherits(object, "polr")) {
     attr(Terms, "intercept") <- 1
     mm <- model.matrix(Terms, df.dummy, contrasts.arg=lcontr, xlev=xtlv)
     asgn <- attr(mm, "assign")[-1]
@@ -627,9 +634,8 @@ termeffects <-
       warning(":termeffects: no covariance matrix of coefficients found.",
               " Returning coefficients only")
       se <- FALSE
-    } else
-      if (inherits(object, "polr"))
-        cov <- cov[1:length(coef),1:length(coef)]
+    } else if (inherits(object, "polr"))
+      cov <- cov[1:length(coef),1:length(coef)]
   }
 ##-   licf <- pmatch(colnames(mm), names(coef))
   licf <- pmatch(names(coef), colnames(mm))
@@ -667,7 +673,7 @@ termeffects <-
   if (int > 0) {
     res <- c(list(`(Intercept)` = coef[int]), res)
   }
-##-   if (lIpolr) {
+##-   if (inherits(object, "polr")) {
 ##-     lcfi <- object$intercepts[,1]
 ##-     res <- c(res,
 ##-              list("(Intercepts)"=ciSgRl(lcfi, object$intercepts[,2], df=df, stcoef=lcfi) ))
@@ -683,7 +689,7 @@ print.effecttable <- #f
   lcoldef <-
     if (rlvoptions("printstyle")=="relevance")
       rlvoptions("effectcolumns.r") else rlvoptions("effectcolumns.o")
-  columns <- i.def(i.def(columns, rlvoptions("effectcolumns")), lcoldef) 
+  columns <- i.def(i.def(columns, rlvoptions("effectcolumns")), lcoldef)
   print.termtable(x, columns=columns, ...)
 }
 ## ---------------------------------------
@@ -725,7 +731,7 @@ getcoeffactor <-
   lcls <- class(object)
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
-  lfamily <- object$family$family 
+  lfamily <- object$family$family
   ldist   <- object$dist
   lsigma <- getscalepar(object)
   lsigma <-
@@ -751,12 +757,12 @@ getcoeffactor <-
 rlvoptions <- #f
   function (x=NULL, list=NULL, default=NULL, options = NULL, assign=TRUE, ...)
 { ##
-  loptdef <- rlv.optionsDefault 
+  loptdef <- rlv.optionsDefault
   lnewo <- loldo <- i.def(options, get("rlv.options", envir=rlv.envir))
   ##
   if (length(list)&&length(lold <- attr(list, "old"))) list <- lold
   largs <- c(list, list(...))
-  lop <- c(names(largs))
+  ## lop <- c(names(largs))
   ##
   if (length(x)) {  ## asking for options
     if(!is.character(x)) {
@@ -846,7 +852,7 @@ rlv.optionsDefault <- list(
   show.termeffects = TRUE, show.coefcorr = FALSE,
   termcolumns = NA, termeffcolumns = NA, effectcolumns = NA,
   printstyle = "relevance",
-  termcolumns.r = c("coef",  "df", "coefRlp", "coefRls", ## "dropRle", 
+  termcolumns.r = c("coef",  "df", "coefRlp", "coefRls", ## "dropRle",
                     "dropRls", "dropRls.symbol", "predRle"),
   ##, "predRlp", "predRls", "predRls.symbol"
   termeffcolumns.r = c("coef","coefRls.symbol"),

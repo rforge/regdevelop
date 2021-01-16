@@ -7,7 +7,7 @@ drop1Wald <-
            k = 2, ...)
 {
     x <- model.matrix(object)
-    offset <- model.offset(model.frame(object))
+    ## offset <- model.offset(model.frame(object))
     n <- nrow(x)
     asgn <- attr(x, "assign")
     lterms <- terms(object)
