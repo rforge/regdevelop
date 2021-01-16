@@ -1,11 +1,11 @@
 
 importFrom("stats",
-           setNames, 
-           sd, pt, pf, pchisq, qnorm, qt, qf, qchisq, 
+           setNames,
+           sd, pt, pf, pchisq, qnorm, qt, qf, qchisq,
            uniroot,
            df.residual, terms, formula, update.formula, delete.response,
-           coefficients, 
-           model.matrix, model.frame, model.offset, drop1, vcov 
+           coefficients,
+           model.matrix, model.frame, model.offset, drop1, vcov
            )
 importFrom("utils",
            str, recover
@@ -13,16 +13,18 @@ importFrom("utils",
 ##- importFrom("MASS", rlm, polr)
 ##- importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
 ##- importFrom("survival", coxph, survreg, Surv, strata, cluster)
-##- 
+##-
 ##- importFrom("robustbase", lmrob)
-##- 
+##-
 ##- importFrom("quantreg", rq)
 
-export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, getsymbol, 
-       print.effecttable, print.termtable, print.termeffects, pSymbols, rlvSymbols,
-       rlvoptions, rlv.optionsDefault, rlv.envir, 
+export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, getsymbol,
+       ## print.effecttable, print.termtable, print.termeffects,
+       pSymbols, rlvSymbols,
+       rlvoptions, rlv.optionsDefault, rlv.envir,
        termeffects, termtable,
-       twosamples, twosamples.default, twosamples.formula,
+       twosamples,
+       ## twosamples.default, twosamples.formula,
        DB
        )
 

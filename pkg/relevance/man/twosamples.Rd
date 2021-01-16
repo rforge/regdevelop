@@ -1,10 +1,10 @@
 \name{twosamples}
+%zu lang:\title{Compare Two Groups, or Inference for one Sample: Relevance and Significance}
+\title{Relevance and Significance for One or Two Samples}
 \alias{twosamples}
 \alias{twosamples.default}
 \alias{twosamples.formula}
-\title{Comparison of Two Samples, or Inference for One Sample:
-  Relevance and Significance
-}
+\alias{print.effecttable}
 \description{Inference for a difference between two independent groups
   or for a single sample
   based on the t-test:
@@ -12,14 +12,17 @@
 }
 \usage{
 twosamples(x, ...)
-\method{twosamples}{default}(x, y = NULL, paired = FALSE, var.equal = TRUE, 
-    testlevel = 0.05, rlvThres = NULL, ...)
-\method{twosamples}{formula}(formula, data, subset, na.action, ...)
-}
 
+\method{twosamples}{default}(x, y = NULL, paired = FALSE, var.equal = TRUE,
+           testlevel = 0.05, rlvThres = NULL, ...)
+\method{twosamples}{formula}(formula, data, subset, na.action, ...)
+
+\method{print}{effecttable}(x, columns=NULL, ...)
+}
 \arguments{
-  \item{x, y}{data of the two groups
-  }
+  \item{x, y}{for \code{twotables()}: data of the two groups.
+    \cr for the \code{"effecttable"} \code{print()} method: the effect
+      table to be printed.}
   \item{paired}{logical: In case \code{x} and \code{y} are given.
     are their values paired?
   }
@@ -27,9 +30,12 @@ twosamples(x, ...)
   }
   \item{testlevel}{level for the test used for confidence intervals
   }
-  \item{rlvThres}{Relevance threshold
-  }\cr
-  For the \code{formula} method:
+  \item{rlvThres}{Relevance threshold}
+
+  %% [MM] Auskommentiert: Man bringt das nicht gut hin (Text|HTML|PDF) :
+  %% \cr
+  %% For the \code{formula} method:
+
   \item{formula, data}{formula and data for the \code{formula} method
   }
   \item{subset, na.action}{subset and na.action to be applied to
@@ -39,31 +45,36 @@ twosamples(x, ...)
     this includes the arguments \code{var.equal, testlevel} and
     code{rlvThres} of the \code{default} method.
   }
+
+  %% for print.effecttable()
+  \item{columns}{.. ..}% <<<<< TODO !
 }
-\value{data.frame with \code{class 'effecttable'} with the components:
-  \item{effect}{estimated difference between expectations of the two
-    groups, or mean in case of a single sample, with confidence interval
+\value{an object of \code{\link{class}} \code{'effecttable'}, a
+  \code{\link{data.frame}} with columns (components)
+  \describe{
+    \item{\code{effect}: }{estimated difference between expectations of the two
+      groups, or mean in case of a single sample, with confidence interval}
+    \item{\code{ciLow, ciUp}: }{confidence interval for the effect}
+    \item{\code{Rle, Rls, Rlp}: }{relevance measures: estimated, secured, potential}
+    \item{\code{Rls.symbol}: }{symbol describing \code{Rls}}
+    \item{\code{Sig0}: }{significance measure for test or 0 effect}
+    \item{\code{Sigth}: }{significance measure for test of \code{effect}  == relevance threshold}
+    \item{\code{p.value}: }{p value for test against 0}
+    \item{\code{p.symbol}: }{symbol for \code{p.value}}
   }
-  \item{ciLow, ciUp}{confidence interval for the effect}
-  \item{Rle, Rls, Rlp}{relevance measures: estimated, secured,
-    potential}
-  \item{Rls.symbol}{symbol describing \code{Rls}}
-  \item{Sig0}{significance measure for test or 0 effect}
-  \item{Sigth}{significance measure for test of
-    \code{effect}==relevance threshold}
-  \item{p.value}{p value for test against 0}
-  \item{p.symbol}{symbol for \code{p.value}}
-  Attributes:
-  \item{rlvThres}{relevance threshold}
-  \item{n}{number(s) of observations}
-  \item{df}{degrees of freedom for the t distribution}
-  \item{means}{in the case of 2 independent groups: their means}
-  \item{V}{single observation variance}
-  \item{pSymbols, rlvSymbols}{lists defining the symbols used for
-    p-values and relevances}
+  In addition to the columns/components, it has \code{\link{attributes}}
+  \describe{
+    \item{\code{rlvThres}: }{relevance threshold}
+    \item{\code{n}: }{number(s) of observations}
+    \item{\code{df}: }{degrees of freedom for the t distribution}
+    \item{\code{means}: }{in the case of 2 independent groups: their means}
+    \item{\code{V}: }{single observation variance}
+    \item{\code{pSymbols, rlvSymbols}: }{lists defining the symbols used for
+      p-values and relevances}
+  }
 }
-\references{W. A. Stahel (2021)
-}
+\references{see those in \code{\link{relevance-package}}.}
+
 \author{Werner A. Stahel}
 
 \seealso{\code{\link{t.test}}
