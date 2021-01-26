@@ -34,7 +34,7 @@ getcoeffactor(object)
   \code{scale}, \code{fitclass} and \code{family} or \code{dist}
   according to \code{object}.
 }
-\author{\packageAuthor{relevance}}
+\author{\Werner A. Stahel}
 
 \examples{
   rr <- lm(Fertility ~ . , data = swiss)
