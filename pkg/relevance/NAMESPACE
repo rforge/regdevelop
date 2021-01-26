@@ -1,8 +1,8 @@
 
 importFrom("stats",
-           setNames,
-           sd, pt, pf, pchisq, qnorm, qt, qf, qchisq,
-           uniroot,
+           setNames, uniroot, sd, symnum, plogis, qlogis, 
+           binom.test, fisher.test, 
+           pt, pf, pchisq, qnorm, qt, qf, qchisq, 
            df.residual, terms, formula, update.formula, delete.response,
            coefficients,
            model.matrix, model.frame, model.offset, drop1, vcov
@@ -18,13 +18,12 @@ importFrom("utils",
 ##-
 ##- importFrom("quantreg", rq)
 
-export(ciSgRl, confintF, getcoeftable, getcoeffactor, getscalepar, getsymbol,
-       ## print.effecttable, print.termtable, print.termeffects,
+export(ciSgRl, confintF, drop1Wald,
+       getcoeftable, getcoeffactor, getscalepar, 
        pSymbols, rlvSymbols,
-       rlvoptions, rlv.optionsDefault, rlv.envir,
+       rlv.optionsDefault, 
        termeffects, termtable,
        twosamples,
-       ## twosamples.default, twosamples.formula,
        DB
        )
 
@@ -32,4 +31,4 @@ S3method(twosamples, formula)
 S3method(twosamples, default)
 S3method(print, termtable)
 S3method(print, termeffects)
-S3method(print, effecttable)
+S3method(print, inference)

@@ -2,10 +2,20 @@
 ## vif.regr
 
 ## ===========================================================================
-drop1Wald <-
-  function (object, scope=NULL, scale = 0, test = c("none", "Chisq", "F"),
-           k = 2, ...)
+drop1Wald <- #f
+  function (object, scope=NULL, scale = NULL, test = NULL, k = 2, ...)
 {
+  if (is.null(test))
+    test <-
+      if (inherits(object, c("lm", "lmrob"))||
+          object$family$family$family%in%c("quasibinomial","quasipoisson")) "F"
+      else {
+        if (inherits(object, "glm")&&
+            object$family$family$family%in%c("binomial","poisson"))
+          "Chisq" else "none"
+      }
+  if (is.null(scale))
+    scale <- 
     x <- model.matrix(object)
     ## offset <- model.offset(model.frame(object))
     n <- nrow(x)
@@ -60,52 +70,52 @@ drop1Wald <-
     }
     scope <- c("<none>", scope)
     dfs <- c(c(object$rank,object$df)[1], dfs)
-    RSS <- chisq + c(0, RSS)
-    if (scale > 0)
-        AIC <- RSS/scale - n + k * dfs
-    else AIC <- n * log(RSS/n) + k * dfs
+  RSS <- chisq + c(0, RSS)
+  AIC <- if (lsig > 0)  RSS/lsig - n + k * dfs
+         else  n * log(RSS/n) + k * dfs
 ##-     dfs <- dfs[1] - dfs
 ##-     dfs[1] <- NA
-    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] -
-        RSS[1]), RSS = RSS, AIC = AIC, row.names = scope, check.names = FALSE)
-    if (scale > 0)
-        names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
-    test <- match.arg(test)
-    if (test == "Chisq") {
-        dev <- aod$"Sum of Sq"
-        if (scale == 0) {
-            dev <- n * log(RSS/n)
-            dev <- dev - dev[1]
-            dev[1] <- NA
-        }
-        else dev <- dev/scale
-        df <- aod$Df
-        nas <- !is.na(df)
-        dev[nas] <- pchisq(dev[nas], df[nas], lower.tail = FALSE)
-        aod[, "Pr(Chi)"] <- dev
+  aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - RSS[1]),
+                    RSS = RSS, AIC = AIC, row.names = scope,
+                    check.names = FALSE)
+  if (lsig > 0)
+    names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
+  if (test == "Chisq") {
+    dev <- aod$"Sum of Sq"
+    if (lsig == 0) {
+      dev <- n * log(RSS/n)
+      dev <- dev - dev[1]
+      dev[1] <- NA
     }
-    else if (test == "F") {
-        dev <- aod$"Sum of Sq"
-        dfs <- aod$Df
-        rdf <- object$df.residual
-        rms <- aod$RSS[1]/rdf
-        Fs <- (dev/dfs)/rms
-        Fs[dfs < 1e-04] <- NA
-        P <- Fs
-        nas <- !is.na(Fs)
-        P[nas] <- pf(Fs[nas], dfs[nas], rdf, lower.tail = FALSE)
-        aod[, c("F value", "Pr(F)")] <- list(Fs, P)
-    }
-    head <- c("Single term deletions (Wald test)", "\nModel:",
-              deparse(as.vector(formula(object))),
-        if (scale > 0) paste("\nscale: ", format(scale), "\n"))
-    class(aod) <- c("anova", "data.frame")
-    attr(aod, "heading") <- head
-    aod
+    else dev <- dev/lsig
+    df <- aod$Df
+    nas <- !is.na(df)
+    dev[nas] <- pchisq(dev[nas], df[nas], lower.tail = FALSE)
+    aod[, "Pr(Chi)"] <- dev
+  }
+  else if (test == "F") {
+    dev <- aod$"Sum of Sq"
+    dfs <- aod$Df
+    rdf <- object$df.residual
+    rms <- aod$RSS[1]/rdf
+    Fs <- (dev/dfs)/rms
+    Fs[dfs < 1e-04] <- NA
+    P <- Fs
+    nas <- !is.na(Fs)
+    P[nas] <- pf(Fs[nas], dfs[nas], rdf, lower.tail = FALSE)
+    aod[, c("F value", "Pr(F)")] <- list(Fs, P)
+  }
+  head <- c("Single term deletions (Wald test)", "\nModel:",
+            deparse(as.vector(formula(object))),
+            if (lsig > 0) paste("\nscale: ", format(lsig), "\n"))
+  class(aod) <- c("anova", "data.frame")
+  attr(aod, "heading") <- head
+  aod
 }
 
 ## ==========================================================================
-vif.regr <- function (object, cov=NULL, mmat=NULL)
+vif.regr <- #f
+  function (object, cov=NULL, mmat=NULL)
 {
   ## Purpose:   vif.lm  of library  car
   ## ----------------------------------------------------------------------

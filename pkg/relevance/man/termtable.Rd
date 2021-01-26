@@ -1,6 +1,5 @@
 \name{termtable}
 \alias{termtable}
-\alias{print.termtable}
 
 \title{Statistics for Linear Models, Including Relevance Statistics}
 \description{Calculate a table of statistics for (multiple) regression
@@ -10,9 +9,6 @@
 termtable(object, summary = NULL, testtype = NULL, r2x = TRUE, rlv = TRUE,
           rlvThres = c(rel = 0.1, coef = 0.1, drop = 0.1, pred = 0.05),
           testlevel = 0.05)
-
-\method{print}{termtable}(x, columns = NULL, printstyle = NULL, legend = NULL,
-      digits = NULL, na.print = "  ", ...)
 }
 
 \arguments{
@@ -30,22 +26,13 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE, rlv = TRUE,
   }
   \item{rlv}{logical: Should relevances be calculated?
   }
-  \item{rlvThres}{Relevance thresholds, vector with the three components
+  \item{rlvThres}{Relevance thresholds, vector containing the three elements
     \cr{\code{rel}:}  {threshold for relative effects,}
     \cr{\code{coef}:}  {for standardized coefficients,}
     \cr{\code{drop}:}  {for drop effects,}
     \cr{\code{pred}:}  {for prediction intervals.}
   }
   \item{testlevel}{1 - confidence level}
-
-  %%-- print method:
-  \item{x}{the \code{termtable} object to be printed.}
-  \item{columns}{.. ..}%--- TODO: replace all '.. ..' <<<<<<<<<<<<<<<<<
-  \item{printstyle}{.. ..}
-  \item{legend}{.. ..}
-  \item{digits}{.. ..}
-  \item{na.print}{.. ..}
-  \item{...}{potentially further arguments to \code{\link{print}()} methods.}
 }
 \details{
   If \code{testtype} is not specified, it is determined by the class of
@@ -92,15 +79,13 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE, rlv = TRUE,
 }
 \author{Werner A. Stahel}
 \seealso{
-  \code{summary(object)$coefficients}
+  \code{summary(object)$coefficients}, \code{\link{print.termtable}}
 }
 \examples{
   data(swiss)
   rr <- lm(Fertility ~ . , data = swiss)
   rt <- termtable(rr)
   rt
-  names(rt)
-  print(rt[2:4,], columns="all")
 }
 \keyword{regression}
 \concept{relevance}

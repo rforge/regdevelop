@@ -34,6 +34,7 @@ importFrom("plgraphics", asinp, dropNA, fitted.regrpolr,
            tit, "tit<-", doc, "doc<-",
            i.def, is.formula,
            u.true, u.notfalse, u.debug, DB)
+importFrom("relevance", termtable, termeffects)
 
 importFrom("MASS", rlm, polr)
 importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)

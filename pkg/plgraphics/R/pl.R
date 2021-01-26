@@ -4581,8 +4581,7 @@ plmbox <- #f
   ljrg <- any(lirg!=lrg)
   lirgd <- diff(lirg)
   loutl <- lx
-  lwoutl <- widthfac["outl"]
-  if (diff(lrg) > 0) { ## non-degenerate
+  lwoutl <- widthfac["outl"]  if (diff(lrg) > 0) { ## non-degenerate
     if (u.isnull(minheight))
       minheight <- if (lxsd==0) lirgd*0.02  else lxsd*0.01
     lqpl <- lq <- quinterpol(lx, probs=lprobs, extend=extquant)

@@ -1,40 +1,45 @@
 \name{twosamples}
-%zu lang:\title{Compare Two Groups, or Inference for one Sample: Relevance and Significance}
+%zu lang:\title{Compare Two Samples, or Inference for one Sample: Relevance and Significance}
 \title{Relevance and Significance for One or Two Samples}
 \alias{twosamples}
 \alias{twosamples.default}
 \alias{twosamples.formula}
-\alias{print.effecttable}
-\description{Inference for a difference between two independent groups
-  or for a single sample
-  based on the t-test:
-  Calculate Relevance and Significance measures
+\description{Inference for a difference between two independent samples
+  or for a single sample: Collect quantities for inference, 
+  including Relevance and Significance measures
 }
 \usage{
 twosamples(x, ...)
 
-\method{twosamples}{default}(x, y = NULL, paired = FALSE, var.equal = TRUE,
-           testlevel = 0.05, rlvThres = NULL, ...)
+\method{twosamples}{default}(x, y = NULL, paired = FALSE,
+  hypothesis = 0,var.equal = TRUE,
+  testlevel=getOption("testlevel"), rlvThres=getOption("rlvThres"), ...)
 \method{twosamples}{formula}(formula, data, subset, na.action, ...)
-
-\method{print}{effecttable}(x, columns=NULL, ...)
 }
 \arguments{
-  \item{x, y}{for \code{twotables()}: data of the two groups.
-    \cr for the \code{"effecttable"} \code{print()} method: the effect
-      table to be printed.}
+  \item{x}{a formula or the data for the first or the single sample
+  }
+  \item{y}{data for the second sample
+  }
   \item{paired}{logical: In case \code{x} and \code{y} are given.
     are their values paired?
   }
-  \item{var.equal}{logical: Should the variances be assumed equal?
+  \item{hypothesis}{the null effect to be tested, and anchor for the
+    relevance
   }
-  \item{testlevel}{level for the test used for confidence intervals
+  \item{var.equal}{logical: In case of two samples,
+    should the variances be assumed equal?
+    Only applies for quantitative data.
   }
-  \item{rlvThres}{Relevance threshold}
+  \item{testlevel}{level for the test,
+    also determining the confidence level
+  }
+  \item{rlvThres}{Relevance threshold, or a vector of thresholds
+    from which the element \code{stand} is taken for quantitative data
+    and the element \code{prop}, for binary data.
+  }
 
-  %% [MM] Auskommentiert: Man bringt das nicht gut hin (Text|HTML|PDF) :
-  %% \cr
-  %% For the \code{formula} method:
+  For the \code{formula} method:
 
   \item{formula, data}{formula and data for the \code{formula} method
   }
@@ -45,39 +50,41 @@ twosamples(x, ...)
     this includes the arguments \code{var.equal, testlevel} and
     code{rlvThres} of the \code{default} method.
   }
-
-  %% for print.effecttable()
-  \item{columns}{.. ..}% <<<<< TODO !
 }
 \value{an object of \code{\link{class}} \code{'effecttable'}, a
   \code{\link{data.frame}} with columns (components)
   \describe{
-    \item{\code{effect}: }{estimated difference between expectations of the two
-      groups, or mean in case of a single sample, with confidence interval}
+    \item{\code{effect}: }{for quantitative data:
+      estimated difference between expectations of the two
+      samples, or mean in case of a single sample.
+
+      For binary data: log odds (for one sample or paired samples) or
+      log odds ratio (for two samples)}
     \item{\code{ciLow, ciUp}: }{confidence interval for the effect}
     \item{\code{Rle, Rls, Rlp}: }{relevance measures: estimated, secured, potential}
-    \item{\code{Rls.symbol}: }{symbol describing \code{Rls}}
     \item{\code{Sig0}: }{significance measure for test or 0 effect}
-    \item{\code{Sigth}: }{significance measure for test of \code{effect}  == relevance threshold}
+    \item{\code{Sigth}: }{significance measure for test of
+      \code{effect}  == relevance threshold}
     \item{\code{p.value}: }{p value for test against 0}
-    \item{\code{p.symbol}: }{symbol for \code{p.value}}
   }
   In addition to the columns/components, it has \code{\link{attributes}}
   \describe{
-    \item{\code{rlvThres}: }{relevance threshold}
+    \item{\code{method}: }{problem and inference method}
+    \item{\code{effectname}: }{label for the effect}
+    \item{\code{hypothesis}: }{the null effect}
     \item{\code{n}: }{number(s) of observations}
-    \item{\code{df}: }{degrees of freedom for the t distribution}
-    \item{\code{means}: }{in the case of 2 independent groups: their means}
+    \item{\code{means}: }{in the case of 2 independent samples: their means}
+    \item{\code{statistic}: }{test statistic}
     \item{\code{V}: }{single observation variance}
-    \item{\code{pSymbols, rlvSymbols}: }{lists defining the symbols used for
-      p-values and relevances}
+    \item{\code{df}: }{degrees of freedom for the t distribution}
+    \item{\code{rlvThres}: }{relevance threshold}
   }
 }
 \references{see those in \code{\link{relevance-package}}.}
 
 \author{Werner A. Stahel}
 
-\seealso{\code{\link{t.test}}
+\seealso{\code{\link{t.test}, \link{binom.test}}
 }
 \examples{
   t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])

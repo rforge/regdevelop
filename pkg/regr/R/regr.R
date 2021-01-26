@@ -1,6 +1,6 @@
 ##  regr.R  Functions that are useful for regression, W. Stahel,
 ## ==========================================================================
-regr <-
+regr <- #F
   function (formula, data=NULL, family=NULL,
             robust = FALSE, method=NULL,
             nonlinear = FALSE, start=NULL,
@@ -289,7 +289,7 @@ regr <-
   lreg
 }
 ## -----------------------------------------------------------------------
-regr.control <-
+regr.control <- #F
   function (contrasts=getRegrOption("regr.contrasts"), factorNA = NULL,
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
@@ -312,7 +312,7 @@ regr.control <-
   ## flicken !!! model=T needed in i.lm_ for getting ly
 }
 ## =========================================================================
-i.lm <-
+i.lm <- #F
   function (formula, data, family, fname="gaussian", nonlinear=FALSE,
             robust=FALSE, method=NULL, control=NULL,
             vif=TRUE, termtable=TRUE, testlevel=0.05, call = NULL, ...)
@@ -438,7 +438,8 @@ i.lm <-
   lreg
 }
 ## -----------------------------------------------------------------------
-i.mlmsum <- function (object, termtable=TRUE)
+i.mlmsum <- #F
+  function (object, termtable=TRUE)
 {
   ## Purpose:  internal: fit multivariate lm;  called from i.lm() only
   ## ----------------------------------------------------------------------
@@ -485,7 +486,7 @@ i.mlmsum <- function (object, termtable=TRUE)
   object
 } # i.mlmsum
 ## -----------------------------------------------------------------------
-i.glm <-
+i.glm <- #F
   function (formula, data, family, fname,
             control=NULL, vif=TRUE, termtable=TRUE, call=NULL, ...)
 {
@@ -572,7 +573,7 @@ i.glm <-
   lreg
 }
 ## -----------------------------------------------------------------------
-i.multinomial <-
+i.multinomial <- #F
   function (formula, data, family, fname,
             model=TRUE, vif=TRUE, termtable=TRUE, call=NULL, ...)
 {
@@ -624,7 +625,7 @@ i.multinomial <-
   lreg
 }
 ## -----------------------------------------------------------------------
-i.polr <-
+i.polr <- #F
   function (formula, data, family, fname, weights = NULL,
             model=TRUE, vif=TRUE, termtable=TRUE, call=NULL, ...)
 {
@@ -687,7 +688,7 @@ i.polr <-
   lreg
 }
 ## -----------------------------------------------------------------------
-i.survreg <-
+i.survreg <- #F
   function (formula, data, family, yy, fname="ph", method, control,
            vif=TRUE, termtable=TRUE, ...)
 {
@@ -804,7 +805,7 @@ i.survreg <-
 }
 
 ## -----------------------------------------------------------------------
-i.polrfit <-
+i.polrfit <- #F
 function (formula, data, weights, start, ..., subset, na.action,
           contrasts = NULL, Hess = FALSE, model = FALSE, x = TRUE,
           method = c("logistic", "probit", "cloglog", "cauchit"),
@@ -990,7 +991,7 @@ function (formula, data, weights, start, ..., subset, na.action,
     fit
 }
 ## -------------------------------------------------------
-i.multinomfit <-
+i.multinomfit <- #F
 function (formula, data, weights, subset, na.action, contrasts = NULL,
     Hess = FALSE, summ = 0, censored = FALSE, model = FALSE, x = TRUE,
     ...)
@@ -1154,7 +1155,7 @@ function (formula, data, weights, subset, na.action, contrasts = NULL,
     fit
 }
 ## ================================================================
-i.termresults <-
+i.termresults <- #F
   function(object, summary, testtype="F", r2x=TRUE, leverage=TRUE)
 {
   lmmt <- object[["x"]]
@@ -1166,7 +1167,7 @@ i.termresults <-
 }
 ## -----------------------------------------------------------
 ## ==========================================================================
-contr.wsumpoly <-
+contr.wsumpoly <- #F
   function (n, scores = NULL, y = NULL, w = NULL,
            contrasts = TRUE, sparse = FALSE, poly = NA)
 {  ## provide weighted sum contrasts
@@ -1228,7 +1229,7 @@ contr.wsumpoly <-
   structure(contr, w=w)
 }
 ## --------------------------------------------------------------------
-contr.wsum <-
+contr.wsum <- #F
   function (n, scores = NULL, y=NULL, w = NULL, contrasts = TRUE,
             sparse = FALSE)
 {
@@ -1236,7 +1237,7 @@ contr.wsum <-
   contr.wsumpoly (n, y=y, w=w, contrasts=contrasts, sparse=sparse, poly=FALSE)
 }
 ## --------------------------------------------------------------------
-contr.wpoly <-
+contr.wpoly <- #F
   function (n, scores = NULL, y = NULL, w = NULL, contrasts = TRUE,
             sparse = FALSE)
 {
@@ -1264,7 +1265,7 @@ summary.regr <- function (object, ...)  object
 plot.regr <- plgraphics::plregr
 ## envirnment(plot.regr) <- environment(plgraphics::plregr)
 ##  ===================================================================
-print.regr <-
+print.regr <- #F
   function (x, call=TRUE, residuals = FALSE,
             termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
             printstyle = NULL, digits = getRegrOption("digits"),
@@ -1540,7 +1541,7 @@ residuals.regr <- function (object, type=NULL, standardized=FALSE, ...)
   rr
 }
 ## ===================================================================
-fitted.regr <-
+fitted.regr <- #F
   function (object, type=NULL, ...)
 {
   if (is.null(type)&&pmatch("fitted",names(object),nomatch=0))
@@ -1555,7 +1556,7 @@ fitted.regr <-
   }
 }
 ## ==========================================================================
-predict.regr <-
+predict.regr <- #F
   function (object, newdata = NULL, scale = object$sigma,
             df=object$df.residual, type = NULL, ...)
   ## bug: if used with NULL newdata, predictions will be produced
@@ -1696,7 +1697,62 @@ nobs.coxph <- function (object, use.fallback = TRUE) {
   object$n
 }
 ## ==========================================================================
-createNAvars <-
+vif.regr <- function (object, cov=NULL, mmat=NULL)
+{
+  ## Purpose:   vif.lm  of library  car
+  ## ----------------------------------------------------------------------
+  ## Author: objectified by Werner Stahel, Date: 11 Mar 2005, 09:18
+  terms <- labels(terms(object))
+  n.terms <- length(terms)
+  if (n.terms < 2) {
+    ##-         stop("model contains fewer than 2 terms")
+    return(matrix(1,1,3))
+  }
+  if (length(cov)==0) {
+    cov <- object$cov.unscaled
+    if (is.null(cov)) cov <- summary(object)$cov.unscaled
+    if (is.null(cov)) cov <- object$covariance ## /lsig^2 # no: a factor does not matter...
+    if (is.null(cov)) cov <- object$var ## survreg
+    if (length(cov)==0) {
+      warning("!vif.regr! no covariance matrix found")
+      return(NULL)
+    }
+  }
+  if (length(mmat)==0) mmat <- model.matrix(object)
+  if (length(mmat)==0) {
+    warning("!vif.regr! no model matrix found")
+    return(NULL)
+  }
+  cls <- dimnames(mmat)[[2]]%in%dimnames(cov)[[2]]
+  ##-                                         # needed for singular cases
+  assign <- attr(mmat,"assign")[cls]
+  if (names(coefficients(object)[1]) == "(Intercept)") {
+    cov <- cov[-1, -1]
+    assign <- assign[-1]
+  }
+  else if (object$fitfun%nin%c("polr","coxph","survreg"))
+    warning("No intercept: vifs may not be sensible.")
+  sd <- 1/sqrt(diag(cov))
+  if (any(!is.finite(sd))) {
+    warning(":vif.regr: zero variances of predictors. no R2x")
+    return(NULL)
+  }
+  R <- cov/outer(sd,sd)
+  detR <- det(R)
+  result <- matrix(0, n.terms, 3)
+  rownames(result) <- terms
+  colnames(result) <- c("GVIF", "Df", "GVIF^(1/2Df)")
+  for (term in 1:n.terms) {
+    subs <- which(assign == term)
+    result[term, 1] <- det(as.matrix(R[subs, subs])) *
+      det(as.matrix(R[-subs,-subs]))/detR
+    result[term, 2] <- length(subs)
+  }
+  result[, 3] <- result[, 1]^(1/(2 * result[, 2]))
+  result
+}
+## ==========================================================================
+createNAvars <- #F
   function (data, vars=NULL, na.prop=0.1, na.label=".NA.",
            na.values=NULL, name.suffix=c(".X",".NA"), append=TRUE, ...)
 {
@@ -1753,7 +1809,7 @@ factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
   structure(ldt, NA.label = na.label)
 }
 ## -------------------------------------------------------------------
-xNA <-
+xNA <- #F
   function (data, na.values=NULL, na.prop=0.1, name.suffix=c(".X",".NA"))
 {
   if (missing(data)||length(data)==0)
@@ -1783,7 +1839,7 @@ xNA <-
   ldt[, -1, drop=FALSE]
 }
 ## ====================================================================
-drop1.regr <-
+drop1.regr <- #F
   function (object, scope=NULL, scale = 0, test = NULL, k = 2,
            sorted = FALSE, add=FALSE, ...)
 {
@@ -1885,7 +1941,7 @@ drop1.regr <-
   dr1
 }
 ## ==========================================================================
-add1.regr <-
+add1.regr <- #F
   function (object, scope=NULL, scale = 0, test = NULL, k = 2,
            sorted = FALSE, ...)
 {
@@ -2107,7 +2163,7 @@ step.regr <- function (object, scope=NULL, expand=FALSE, scale = 0,
   step.results(models = models[seq(nm)], fit, object, usingCp)
 }
 ## ==========================================================================
-drop1.multinom <-
+drop1.multinom <- #F
   function (object, scope, test = c("Chisq","none"), ...)
 {
     if (!inherits(object, "multinom"))
@@ -2258,7 +2314,7 @@ drop1.mlm <- function (object, scope = NULL,
 ##    stats
 } ## {drop1.mlm}
 ## ==========================================================================
-add1.mlm <-
+add1.mlm <- #F
   function (object, scope=NULL,
            test = c("Wilks", "Pillai", "Hotelling-Lawley", "Roy"), ...)
 {
@@ -2318,7 +2374,7 @@ terms2order <- function (object, squared = TRUE, interactions = TRUE)
 }
 ## ==========================================================================
 ## ==========================================================================
-compareTerms <-
+compareTerms <- #F
   function (..., list=NULL, seq=NULL)
 {
   ## Purpose:   compare terms of several models
@@ -2451,7 +2507,7 @@ modelTable <-function (models, seq=NULL)
   rr
 }
 ## ==========================================================================
-format.modelTable <-
+format.modelTable <- #F
   function (x, digits=getRegrOption("digits"), sep="", ...)
 {
   ## Purpose:
@@ -2658,7 +2714,7 @@ factor2character <- function (x) {
   x
 }
 ## ===========================================================================
-regrAllEqns <-
+regrAllEqns <- #F
   function (formula, data, weights = NULL, nbest = 50, nvmax = 20,
            force.in = NULL, force.out = NULL, codes=NULL, really.big=FALSE,
            ...)
@@ -2770,7 +2826,7 @@ regrAllEqnsXtr <- function (object, nbest=1, criterion="cp")
   if (nbest==1) structure(rr[[1]], modelcode=names(rr)) else rr
 }
 ## ---------------------------------------------------------------------
-print.regrAllEqns <-
+print.regrAllEqns <- #F
   function (x, nbest=20, criterion="cp", printcriteria=FALSE, printcodes=TRUE,
            ...)
 {
@@ -2790,7 +2846,7 @@ print.regrAllEqns <-
   if (printcodes) print(cbind(code=x$codes), quote=FALSE, ...)
 }
 ## ------------------------------------------------------------------
-plot.regrAllEqns <-
+plot.regrAllEqns <- #F
   function (x, criterion="cp", critrange=10, minnumber=10, nbest=10,
            codes=x$codes, ncharhorizontal=6, col="blue",
            legend=TRUE, mar=6, main="", cex=0.7*par("cex"),
@@ -2869,7 +2925,7 @@ i.findformfac <- function (formula) {
         paste("~",paste(unlist(lapply(lmf, lf)), collapse="+"))))
 }
 ## ===================================================================
-predict.mlm <-
+predict.mlm <- #F
   function (object, newdata=NULL, se.fit = FALSE, scale = NULL, df = Inf,
     interval = c("none", "confidence", "prediction"), level = 0.95,
     type = c("response", "terms"), terms = NULL, na.action = na.pass,
@@ -3076,7 +3132,7 @@ predict.mlm <-
 ## ==========================================================================
 ## repaired versions of drop functions
 ## ===========================================================================
-add1.default <-
+add1.default <- #F
   function (object, scope, scale = 0, test=c("none", "Chisq"),
             k = 2, trace = FALSE, ...)
 {
@@ -3128,7 +3184,7 @@ add1.default <-
     aod
 }
 ## ==================================================================
-drop1.default <-
+drop1.default <- #F
   function (object, scope, scale = 0, test=c("none", "Chisq"),
             k = 2, trace = FALSE, ...)
 {

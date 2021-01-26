@@ -209,7 +209,7 @@ percentages in the original scale.
 
 In the package, the thresholds used by default are given by 
 <<rlvthres>>=
-rlvoptions("rlvThres")
+getOption("rlvThres")
 @ 
 and can be modified by setting these options again, see below.
 
@@ -241,7 +241,7 @@ the relevances %and
 for dropping the term and for its contribution to prediction.
 
 Since this leads to .. columns, the print method selects only the columns
-named by \T{rlvoptions("printstyle")} or \T{rlvoptions("termcolumns")}.
+named by \T{getOption("show")}.
 
 <<termtable>>=
   data(swiss, package="datasets")
@@ -265,10 +265,8 @@ measures.
 
 \section{Options}
 
-The function \T{rlvoptions} plays a role like \T{options} of standard R.
-It gets or sets most importantly relevance thresholds as well as
-results to be printed by default. The most important elements are the
-following. 
+The package works with some specific options, see \T{rlv.optionsDefault}.
+The most important ones are the following. 
 
 \begin{itemize}
 \item \T{rlvThres}:
@@ -282,33 +280,39 @@ vector of relevance thresholds for
   \item \T{drop}: the effect of dropping a term from a regression model,
   \item \T{pred}: the effect of a term on the prediction accuracy.
   \end{itemize}
-\item \T{printstyle}: selects the columns of a \T{termtable} 
-  and a \T{termeffects} table of a regression result to be printed. 
-  Currently, two styles are implemented:
+\item \T{show.ifc}: selects the inference items to be presented by the 
+  \T{print} methods.
+  Currently, three styles are implemented:
   \begin{itemize}
   \item \T{relevance}: selects the columns determined by
-    \T{rlvoptions("termcolumns.r")}, the important columns for inference
+    \T{getOption("show.ifc.relevance")}, \linebreak
+    \T{getOption("show.term.relevance")}
+    and \T{getOption("show.termeff.relevance")}, for the three print methods,
+    repectively; these are the important columns for inference
     based on relevance,
-  \item \T{old}: columns in \T{rlvoptions("termcolumns.o")}, suitable for
-    inference based on p values and significance values.
+  \item \T{classical, test}: selects \T{getOption("show.?.classical")}, 
+    in the same manner, suitable for inference based on significance or 
+    p values, respectively.
   \end{itemize}
 \item \T{rlvSymbols} and \T{pSymbols}:
   symbols to be used for characterizing \T{Rls} or p-values, respectively,
-\item \T{digits} and \T{na.print}: digits, and symbol to print \T{NA}
-  values, respectively, in termtables and termeffect tables.  
+\item \T{digits.reduced}: digits used for relevance and significance measures 
+  and test statistics. These numbers are rounded to \T{digits.reduced} decimals,
+  \T{p-values} to one more.
+\item  \T{na.print}: symbol to print \T{NA} values.
 \end{itemize}
 
 {\small
-\Tit{Detail.}\T{rlvoptions} accesses the list \T{rlv.options} in the environment
+\Tit{Detail.}\T{getOption} accesses the list \T{rlv.options} in the environment
   \T{rlv.envir} that is generated when the package is loaded.
   The package's default setttings are available as \T{rlv.optionsDefault}.  
 }
 
-<<rlvoptions>>=
-t.opt <- rlvoptions(termcolumns.r=c("coef", "dropRls", "dropRls.symbol"))
+<<getOption>>=
+t.opt <- options(show.term.relevance=c("coef", "dropRls", "dropRls.symbol"))
 rt
 ## restore the old options
-rlvoptions(list = t.opt)
+options(list = t.opt)
 @ 
 
 %% ============================================================================
