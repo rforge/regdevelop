@@ -1,3 +1,4 @@
+
 % -*- Mode: noweb; noweb-default-code-mode: R-mode; -*-
 %\SweaveUTF8
 \documentclass[11pt]{article}
@@ -47,7 +48,7 @@ production of useful graphics.
 <<preliminary, echo=FALSE, out=FALSE>>=
 library(plgraphics) ##, lib="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 options(warn=1)
-knitr::opts_chunk$set(fig.width=8, fig.height=6)
+knitr::opts_chunk$set(fig.width=8, fig.height=6, fig.ext="pdf") ## fig.path="figure/", 
 @ 
 
 \tableofcontents
@@ -455,7 +456,7 @@ deficiency of the model.
 \item
 Plots are selectively shown in accordance with the type of model that has 
 been fitted. For example, a normal plot is only shown if the model assumes
-a normal distribution of the random error.
+a normal distribution of the random deviations.
 \item
 Most importantly, residuals are plotted against explanatory variables.
 This can also be achieved by calling \T{termplot} for other fit objects,  
@@ -463,12 +464,17 @@ but experience shows that this is often neglected by the users.
 \item
 Residuals can be plotted easily against the index (sequence number) 
 of the observation (by setting \T{sequence=TRUE}), 
-since this may show trends or correlations of errors in time --
+since this may show trends or correlations of random deviations in time --
 if the sequence reflects time.
 \item
 The plots are augmented by a smooth line fitted to them -- which is also
-available in the classical R functions -- and two additional smooth lines
-that allow to judge the scale dependence on the variable shown.
+available in the classical R functions -- and two additional smooth lines.
+These allow to judge the scale dependence on the variable shown:
+If their distance varies, so does the scale of the residuals.
+In addition, if their distance to the central smooth differs, this 
+points to a skewed distribution of the random deviations, 
+that can also be seen in the qq plot. See the detailed description 
+of the ``Smooth band'' below. 
 In addition, simulated smooths are added in order to assess an informal 
 ``significance'' of curvature in the smooth of the data. 
 Furthermore, a reference line is given, which helps finding
@@ -568,6 +574,9 @@ Of course, some users may disagree.
   more symmetric.)
   This defines the ``high'' smooth line. 
   The construction of the ``low'' one is analogous.
+  The two lines characterize how something like the low and high quartiles
+  depend on the horizontal axis, and thus allow to examine the scale
+  and skewness of the distribution of the random deviations.
 }  
 
 \Tit{Absolute residuals against fit.}
@@ -584,13 +593,13 @@ They differ in two ways:
 They are standardized to have the same variances.
 If there are weights of observations (argument \T{weights} in the call to
 the fitting function), these are taken as inverse relative variances of
-the random errors.
+the random deviations.
 \Itm
-By default, they are modified because in the following way.
+By default, they are modified in the following way.
 Note first that the plot should show any dependence of the scale of the
-random errors on the model value.
+random deviations on the model value.
 If the plot of residuals against fit shows a clear curvature, the
-residuals do not show only the random errors but also the bias of the
+residuals do not show only the random deviations but also the bias of the
 regression function, which should be best approximated by the smooth line
 in that first plot. Therefore, the residuals from the smooth line are 
 used in the plot of absolute residuals against fit.
@@ -659,7 +668,7 @@ models.
 
 \Tit{Weights}
 If weights are given by the user, they should usually reflect different
-variances of the random errors $E_i$, and the residuals, multiplied by the
+variances of the random deviations $E_i$, and the residuals, multiplied by the
 square root of the weights, should have constant variance.
 The standardized absolute residuals are therefore plotted against the weights.
 If the size of these residuals is not constant but depends on the weight, 
@@ -846,7 +855,7 @@ They should be plotted against the linear predictor values
 
 In ordinal regression, the response variable is modeled as a classified
 version of a continuous latent variable, which in turn follows a linear
-model with logistic (or normal) error distribution.
+model with logistic (or normal) distribution of the random errors.
 According to this construction, the latent variable $\widetilde Y_i$, given the
 observed ordered variable $Y_i$ and the linear predictor $\eta_i$, 
 follows a truncated logistic (or normal) distribution. 
@@ -899,7 +908,8 @@ as the scatterplot matrix of residuals.
 If there are groups of observations with identical input variables
 (or identical $x_i$ vectors), then there is the possibility to perform a kind
 of overall goodness-of-fit test by comparing the variability of the
-residuals within these groups to the estimated variance of the error.
+residuals within these groups to the estimated variance of the 
+random deviations.
 This is performed by a simple Analysis of Variance of the standardized 
 residuals with the grouping just mentioned. 
 (Note that this method can be applied even if some or many $x_i$ vectors 
@@ -1253,13 +1263,14 @@ These are
   typically identical to the name of the variable
   in the data.frame it comes from;
 \item
-  \T{ticksat}: the values for which tick marks will be shown in plots.
-  This item may carry an attribute \T{small} that leads to an additional
-  set of smaller tickmarks;
+  \T{numvalues}: numerical values to represent the given data values in
+  case these are not numeric or for other reasons, see \T{plscale} and
+  \T{gendateaxis} below;
 \item
-  \T{ticklabelsat} the possibly tick labels \T{ticklabels}:
-  positions of labels to indicate values of the variable, and the lablels
-  themselves;
+  \T{plscale}: transformation function to generate the ``plotting scale'';    
+\item
+  \T{plcoord}: plotting coordinates, if different from the variable's data
+  values, typically when an inner plotting range or jittering is active;
 \item
   \T{innerrange, plrange}: inner and outer plotting range;
 \item
@@ -1268,12 +1279,13 @@ These are
 \item 
   \T{nouter}: the number of points modified at each end of the inner range;
 \item
-  \T{numvalues}: numerical values to represent the given data values in
-  case these are not numeric or for other reasons, see \T{plscale} and
-  \T{gendateaxis} below;
+  \T{ticksat}: the values for which tick marks will be shown in plots.
+  This item may carry an attribute \T{small} that leads to an additional
+  set of smaller tickmarks;
 \item
-  \T{plcoord}: coordinates, possibly different from the variable's data
-  values, typically when an inner plotting range or jittering is active;
+  \T{ticklabelsat} the possibly tick labels \T{ticklabels}:
+  positions of labels to indicate values of the variable, and the lablels
+  themselves;
 \item
   \T{pch, lty, col}: plotting symbol, line type and color to be used 
   if multiple y's are shown in a plot.

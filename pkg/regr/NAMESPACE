@@ -34,7 +34,12 @@ importFrom("plgraphics", asinp, dropNA, fitted.regrpolr,
            tit, "tit<-", doc, "doc<-",
            i.def, is.formula,
            u.true, u.notfalse, u.debug, DB)
-importFrom("relevance", termtable, termeffects)
+
+importFrom("relevance", termtable, termeffects,
+           ciSgRl, confintF, drop1Wald,
+           getcoeftable, getcoeffactor, getscalepar
+##           print.termtable, print.termeffects
+           )
 
 importFrom("MASS", rlm, polr)
 importFrom("nnet", multinom, nnet.default) ## , VR_summ2, multinomHess (not exported!)
@@ -51,16 +56,13 @@ importFrom("leaps", regsubsets)
 
 ## Ok, now we are better and do not export all
 export(add1.regr, ## add1.default, add1.mlm, ## see below
-       ciSgRl, confintF, 
        compareTerms,
        contr.wsumpoly ,contr.wsum, contr.wpoly, ## condquant,
        createNAvars, 
-       drop1.regr, ## drop1.default, drop1.mlm, drop1.multinom,
-       drop1Wald, ## extractAIC.lmrob,
+       drop1.regr, ## drop1.default, drop1.mlm, drop1.multinom, extractAIC.lmrob,
        factorNA, ## fitcomp,
        fitted.regr, ## fitted.polr,
        format.modelTable,
-       getRegrOption, getcoeffactor, getscalepar, getcoeftable, 
        ## i.add1na, i.main, i.mlmsum, i.plotlws, i.termtable,
        ## if we export these, can use quote(regr0::i.<foo>) and no check--warning
        i.glm, i.lm, i.multinomial, i.polr, i.survreg,
@@ -72,16 +74,13 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        plot.regrAllEqns, 
        ## predict.mlm, predict.polr,
        predict.regr,
-       print.termtable, print.termeffects, print.modelTable,
-       print.mregr, print.regr, print.regrAllEqns, 
+       print.modelTable, print.mregr, print.regr, print.regrAllEqns, 
        ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        ## quantilew, quinterpol,
-       p.symbols, 
        regr, regr.control,
-       regroptions, .regroptions, regroptionsDefault,
+       regr.optionsDefault,
        regrAllEqns, regrAllEqnsXtr, 
        residuals.regr,
-       rlv.symbols,
        ## residuals.regrpolr, residuals.regrcoxph, residuals.regrsurvreg,
        ## simresiduals, simresiduals.default, simresiduals.glm, 
        ## step, step.default,
@@ -90,7 +89,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        Surv, strata, cluster, ## need to export these since otherwise,
        ## they cannot be used in the formula of a regr call without
        ## require-ing the package survreg
-       terms2order, termeffects, termtable, ## Tobit,
+       terms2order, ## Tobit,
        ## vif.regr,
        ## xdistResdiff, xdistResscale,
        xNA
@@ -114,8 +113,8 @@ S3method(summary, regr)# trivial: returns it unchanged
 S3method(plot, regr) ## plgraphics::plregr
 S3method(print, regr)
 S3method(print, mregr)
-S3method(print, termtable)
-S3method(print, termeffects)
+##- S3method(print, termtable)
+##- S3method(print, termeffects)
 S3method(print, modelTable)
 S3method(format, modelTable)
 

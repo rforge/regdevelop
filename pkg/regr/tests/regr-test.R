@@ -26,14 +26,14 @@ t.ctr <- contr.wsumpoly(t.d)
 
 r.r6 <- regr(formula = y~f2+x1+x2, data=t.d)
 
-data(d.blast, package="plgraphics")
+data(d.blast)
 r.blast <-
   regr(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
 
-print(r.blast$termtable[-1,"signif0"], digits=9)
+print(r.blast$termtable[-1,"Sig0"], digits=9)
 with(r.blast,
      stopifnot(all.equal(
-     termtable[-1,"signif0"],
+     termtable[-1,"Sig0"],
      c(3.40649491, -12.01926386, 8.19479097) )
 ##                          c( 3.477157958, -12.133975476,   8.169091379) )
                )
@@ -108,7 +108,7 @@ plot(r.ae0, legend=c(5.5,3000), cex=1)
                      
 ## ========================================================================
 ## robust [MM: now works thanks to quote(robustbase::lmrob) hack]
-data(d.blast, package="plgraphics")
+data(d.blast)
 r.rob <-
   regr(log10(tremor) ~ location+log10(distance)+log10(charge),
        data = d.blast, robust=TRUE)

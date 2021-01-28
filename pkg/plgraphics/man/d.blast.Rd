@@ -11,6 +11,8 @@
   A data frame with 388 observations on the following 7 variables.
   \describe{
     \item{\code{no}}{Identification of the date and time}
+    \item{\code{date}}{Date in Date format. (The day and month are correct, the year is
+      a wild guess.)}
     \item{\code{datetime}}{Date and time in the format '\%d.\%m. \%H:\%M'}
     \item{\code{device}}{Number of measuring device, 1 to 4}
     \item{\code{charge}}{Charge of blast}
@@ -19,7 +21,6 @@
     \item{\code{tremor}}{Tremor energy (target variable)}
     \item{\code{location}}{Code for location of the building,
     \code{loc1} to \code{loc8}}
-    \item{date}{date in Date format}
   }
 }
 \details{The charge of the blasting should be controled in order to

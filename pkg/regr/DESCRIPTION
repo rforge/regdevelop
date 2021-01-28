@@ -4,6 +4,7 @@ Title: Building Regression Models
 Version: 1.1
 Author: Werner Stahel
 Maintainer: Werner Stahel <stahel@stat.math.ethz.ch>
+Depends: R (>= 3.5.0)
 Depends: plgraphics (>= 1.1), relevance
 Imports: stats, graphics, 
   MASS, nnet, survival, robustbase, quantreg, leaps

@@ -112,14 +112,14 @@ residuals.regrsurvreg <- function (object, type="condquant", ...)
   structure(lres, condquant=lr, type=type, family=ldist)
 }
 ## ==============================================================
-nobs.survreg <- function (object, ...) { ##use.fallback = TRUE
-  lnobs <- length(object$linear.predictors)
-  if (lnobs==0) lnobs <- NROW(residuals(object))
-  lnobs
-}
-nobs.coxph <- function (object, ...) {
-  object$n
-}
+##- nobs.survreg <- function (object, ...) { ##use.fallback = TRUE
+##-   lnobs <- length(object$linear.predictors)
+##-   if (lnobs==0) lnobs <- NROW(residuals(object))
+##-   lnobs
+##- }
+##- nobs.coxph <- function (object, ...) {
+##-   object$n
+##- }
 ## ===================================================================
 residuals.regrpolr <- function (object, type="condquant", ...) ## na.action=object, 
 {

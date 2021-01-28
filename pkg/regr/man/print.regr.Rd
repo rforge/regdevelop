@@ -8,7 +8,7 @@
 \usage{
 \method{print}{regr}(x, call=TRUE, residuals = FALSE, 
   termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
-  printstyle = NULL, digits = getRegrOption("digits"),
+  digits = getOption("digits.reduced"),
   na.print = NULL, symbolic.cor = p > 4, ...)
 }
 \arguments{
@@ -29,7 +29,6 @@
     coefficients be shown?}
   \item{niterations}{logical: should number of iterations be shown
     (if available)?}
-  \item{printstyle}{determines the columns to be printed}
   \item{digits}{number of significant digits to be shown}
   \item{na.print}{character string used to display NAs}
   \item{symbolic.cor}{logical: should correlations be shown by symbols?}

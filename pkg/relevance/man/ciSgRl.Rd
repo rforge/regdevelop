@@ -59,7 +59,7 @@ ciSgRl(estimate, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE,
     ...}
   \item{Rls.symbol}{symbols for the secured relevance}
 }
-\author{\Werner A. Stahel}
+\author{Werner A. Stahel}
 
 \examples{
 data(d.blast)

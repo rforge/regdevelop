@@ -1,8 +1,7 @@
 ##  regr.R  Functions that are useful for regression, W. Stahel,
 ## ==========================================================================
 regr <- #F
-  function (formula, data=NULL, family=NULL,
-            robust = FALSE, method=NULL,
+  function (formula, data=NULL, family=NULL, robust = FALSE, method=NULL,
             nonlinear = FALSE, start=NULL,
             subset=NULL, weights=NULL, offset=NULL, ...)
 {
@@ -290,7 +289,7 @@ regr <- #F
 }
 ## -----------------------------------------------------------------------
 regr.control <- #F
-  function (contrasts=getRegrOption("regr.contrasts"), factorNA = NULL,
+  function (contrasts=getOption("regr.contrasts"), factorNA = NULL,
            na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
            dist=NULL,
            model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
@@ -1268,14 +1267,14 @@ plot.regr <- plgraphics::plregr
 print.regr <- #F
   function (x, call=TRUE, residuals = FALSE,
             termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
-            printstyle = NULL, digits = getRegrOption("digits"),
+            digits = getOption("digits.reduced"),
             na.print = NULL, symbolic.cor = p > 4, ...)
 {
   ##
   na.print <- i.getopt(na.print)
-  lcoefcorr <- i.def(coefcorr, getRegrOption("show.coefcorr"))
+  lcoefcorr <- i.def(coefcorr, getOption("show.coefcorr"))
   ## doc
-  ldoc <- getRegrOption("doc")
+  ldoc <- getOption("show.doc")
   if (ldoc>=1) {
     if (length(tit(x))) cat("\nData: ",tit(x),"\n")
     if (ldoc>=2) if (length(doc(x))) cat("  ",paste(doc(x),"\n "))
@@ -1285,13 +1284,13 @@ print.regr <- #F
     return(invisible(print.mregr(x, na.print=na.print, ...)))
   ## preparation
 ##-   lItermeff <- i.def(termeffects, TRUE)
-  lprstyle <- i.getopt(printstyle)
+##  lprstyle <- i.getopt(printstyle)
 ##-   if (length(termcolumns)==1) {
 ##-     if (substring(termcolumns,1,3)=="rel")
-##-       termcolumns <- getRegrOption("termcolumns.r")
+##-       termcolumns <- getOption("termcolumns.r")
 ##-     else
 ##-       if (substring(termcolumns,1,3)=="con") {
-##-         termcolumns <- getRegrOption("termcolumns.c")
+##-         termcolumns <- getOption("termcolumns.c")
 ##-         if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
 ##-       }
 ##-   }
@@ -1349,30 +1348,11 @@ print.regr <- #F
   ## termtable
   lttab <- x$termtable
   if (length(lttab)>0) {
-##-    if (inherits(lttab, "termtable")) {
-##-       lIttab <- TRUE
-##-       if(!is.null(termcolumns)) {
-##-         if (all(termcolumns=="")) lIttab <- FALSE else {
-##-           ljp <- match(termcolumns,colnames(lttab), nomatch=0)
-##-           if (sum(ljp)!=0)
-##-             ##        warning(":print.regr: no valid columns of  termtable  selected") else
-##-             lttab <- lttab[,ljp,drop=FALSE]
-##-         }
-##-       }
-##-       if (lIttab) {
     cat("Terms:\n")
-    print(lttab, printstyle=lprstyle, digits=digits, na.print=na.print)
-##   else print(lttab, digits=digits, na.print=na.print) ## !inherits(.,"termtable")
-  ## --- error block
+    print(lttab, digits=digits, na.print=na.print)
   } else {
     if (length(lcftb <- x$coeftable)) {
-      cat("\nCoefficients:\n")
-      lcol <-
-        if (i.getopt(printstyle)=="relevance")
-          getRegrOption("coefcolumns.r") else getRegrOption("coefcolumns.p")
-##-       if("coef"%in%coeflcol & "coef"%in%names(lcftb))
-##-         names(lcftb)[match("coef", names(lcftb))] <- "coef"
-      print(lcftb[,lcol], na.print=na.print, digits=digits)
+      print(lcftb, na.print=na.print, digits=digits)
     }
   }
 ##-   if (length(x$binlevels)>0) {
@@ -1427,7 +1407,7 @@ print.regr <- #F
     cat("\nCoefficients:\n")
     print(t(x$coefficients), na.print=na.print)
   } else { ## termeffects
-    lshte <- i.def(termeffects, getRegrOption("show.termeffects"))
+    lshte <- i.def(termeffects, getOption("show.termeffects"))
     if (length(lttab)&lshte) {
       if (lshte==1) {
 ##-         lidf <- match("df",colnames(x$termtable))
@@ -1443,8 +1423,9 @@ print.regr <- #F
       } else mt <- x$termeffects
       if (length(mt)>0) {
         cat("\nEffects of ", if (lshte==1) "factor levels" else "terms", ":\n")
-        print.termeffects(mt, printstyle=lprstyle, digits=digits,
-                          na.print=na.print, ...)
+##-         print.termeffects(mt, printstyle=lprstyle, digits=digits,
+        ##-                           na.print=na.print, ...)
+        print(mt)
       }
     } ## else  cat("\n")
   }
@@ -1486,7 +1467,7 @@ print.regr <- #F
 }
 ## ==========================================================================
 ## currently only called from print.regr():
-print.mregr <- function (x, na.print=getRegrOption("na.print"), ...)
+print.mregr <- function (x, na.print=getOption("na.print"), ...)
 {
   ## Purpose:   collect results for mregr object
   ## ----------------------------------------------------------------------
@@ -1768,8 +1749,8 @@ createNAvars <- #F
     stop("!createNAvars! unsuitable argument 'na.prop'")
   lvna <- sumNA(data) > max(na.prop,0) * nrow(data)
   ldclass <- sapply(data, is.numeric) + 2*sapply(data, is.factor)
-  if (any(lwr <- ldclass==0))
-    stop("!createNAvars! Funny variables  ", paste(lwr, collapse=", "))
+##-   if (any(lwr <- ldclass==0))
+##-     stop("!createNAvars! Funny variables  ", paste(lwr, collapse=", "))
   if (any(lnum <- lvna & ldclass==1))
     rrx <- xNA(ldt[,lnum, drop=FALSE], na.values=na.values,
               name.suffix=name.suffix)
@@ -2071,8 +2052,8 @@ step.regr <- function (object, scope=NULL, expand=FALSE, scale = 0,
     keep.list[[nm]] <- keep(fit, bAIC)
   usingCp <- FALSE
   ## ------------------------
-  lrgopt <- regroptions(notices=FALSE)
-  on.exit(regroptions(notices=attr(lrgopt, "old")))
+  lrgopt <- options(notices=FALSE)
+  on.exit(options(lrgopt))
   while (steps > 0) {
     steps <- steps - 1
     AIC <- bAIC
@@ -2508,7 +2489,7 @@ modelTable <-function (models, seq=NULL)
 }
 ## ==========================================================================
 format.modelTable <- #F
-  function (x, digits=getRegrOption("digits"), sep="", ...)
+  function (x, digits=getOption("digits.reduced"), sep="", ...)
 {
   ## Purpose:
   ## ----------------------------------------------------------------------
@@ -2518,7 +2499,7 @@ format.modelTable <- #F
   ##            (la)tex source
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 23 Dec 2008, 10:09
-  lpvs <- get("p.symbols", pos=1)
+  lpvs <- get("pSymbols", pos=1)
   ## ---
   t.sd <- x$sd.terms
   lsd <- length(t.sd)>0
@@ -3275,7 +3256,7 @@ extractAIC.lmrob <- #f
   c(edf, dev + k * edf)
 }
 ## ==========================================================================
-##- getRegroption <- function (x, default = NULL)
+##- getoption <- function (x, default = NULL)
 ##- {
 ##-   if ((!is.atomic(x))||!is.character(x)) {
 ##-     warning(":i.getopt: argument 'x' must be of mode character")
@@ -3286,11 +3267,43 @@ extractAIC.lmrob <- #f
 ##-     x <- x[1]
 ##-   }
 ##-   if (is.null(default))
-##-     return(getRegrOption(x))
-##-   if (x %in% names(.i.getopt)&&!is.null(getRegrOption(x)))
-##-         getRegrOption(x)
+##-     return(getOption(x))
+##-   if (x %in% names(.i.getopt)&&!is.null(getOption(x)))
+##-         getOption(x)
 ##-     else default
 ##- }
+i.getopt <- #f
+  function(opt, opts = regr.optionsDefault)
+{
+  lnam <- as.character(substitute(opt))
+  lopt <- opt 
+  if (is.function(opts)) opts <- NULL
+  if (u.isnull(lopt)||(is.atomic(lopt)&&all(is.na(lopt))))
+    lopt <- opts[[lnam]]
+  if (u.isnull(lopt)||(is.atomic(lopt)&&all(is.na(lopt)))) 
+    lopt <- getOption(lnam)
+##  else unlist(check.option(lnam, lopt))   ## check
+  if (u.isnull(lopt)) lopt <- opts[[lnam]]
+  lopt
+}
+u.isnull <- function(x)  length(x)==0||all(is.na(x))
+u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
+u.notfalse <-
+  function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
+## -------------------------------------------------------------------------
+i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
+{
+  rr <- arg
+  if (length(arg)==0 ||
+      (mode(arg)%in%c("numeric","character","logical","complex")&&
+       all(is.na(arg)))
+      )  rr <- value
+  else {
+    if (length(arg)==1 && is.logical(arg))
+      rr <- if (arg) valuetrue else valuefalse
+  }
+  rr
+}
 ## ==========================================================================
 shift <- function(x, k = 1)
   if (k>0) c(rep(NA, k), last(x, -k)) else
@@ -3298,4 +3311,12 @@ shift <- function(x, k = 1)
 ## --------------------------------------------------------------------------
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)
-
+## ==========================================================================
+regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
+regr.optionsDefault <- list(
+  regr.contrasts = "contr.wsum",
+  factorNA = TRUE,
+  show.termeffects = TRUE,
+  show.coefcorr = FALSE
+)
+.onLoad <- function(lib, pkg) options(regr.optionsDefault)

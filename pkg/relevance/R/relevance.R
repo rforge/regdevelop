@@ -856,7 +856,6 @@ getcoeffactor <- #f
   structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
 }
 ## ====================================================================
-regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
 pSymbols <- list(symbol=c("***", "**", "*", ".", " "),
                   cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )
 rlvSymbols <- list(symbol=c(" ", ".", "+", "++", "+++"),
@@ -877,15 +876,15 @@ rlv.optionsDefault <- list(
                          "dropRls", "dropRls.symbol", "predRle"),
   show.term.test = c("df", "ciLow","ciUp", "R2.x", "Sig0", "p.value",
                          "p.symbol"),
-  show.term.classical = c("statistic",  "df", "ciLow","ciUp","R2.x", "p.value",
-                         "p.symbol"),
+  show.term.classical = c("df", "se", "statistic", "p.value", "p.symbol"),
   show.termeff.relevance = c("coef","coefRls.symbol"),
   show.termeff.test = c("coef","p.symbol"),
   show.termeff.classical = c("coef","p.symbol"),
   show.symbollegend = TRUE,
+  show.doc = TRUE,
   na.print = ".",
   pSymbols = pSymbols,
   rlvSymbols = rlvSymbols
 )
-.onAttach <- function(lib, pkg) options(rlv.optionsDefault)
+.onLoad <- function(lib, pkg) options(rlv.optionsDefault)
 ## -----------------------

@@ -1,3 +1,4 @@
+
 % -*- Mode: noweb; noweb-default-code-mode: R-mode; -*-
 %\SweaveUTF8
 \documentclass[11pt]{article}\usepackage[]{graphicx}\usepackage[]{color}
@@ -94,7 +95,12 @@ The intention is to furnish user-oriented functions that allow efficient
 production of useful graphics.
 \end{abstract}
 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Registered S3 methods overwritten by 'plgraphics':\\\#\#\ \  method\ \ \ \ \ \  from\ \ \ \ \\\#\#\ \  nobs.survreg survival\\\#\#\ \  nobs.coxph\ \  survival}}\end{kframe}
+\end{knitrout}
 
 \tableofcontents
 
@@ -197,12 +203,15 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \begin{alltt}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
-
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/plyx_smooth-1} 
+\begin{kframe}\begin{alltt}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
      \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/plyx_smooth-1} 
+\includegraphics[width=\maxwidth]{figure/plyx_smooth-2} 
 
 \end{knitrout}
 Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
@@ -256,11 +265,19 @@ plotted without and with inner plotting limits.
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)}
 
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange}\hlstd{=}\hlnum{FALSE}\hlstd{)}
-\hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd)}
-\hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange.factor}\hlstd{=}\hlnum{5}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/innerrange-1} 
+\begin{kframe}\begin{alltt}
+\hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/innerrange-2} 
+\begin{kframe}\begin{alltt}
+\hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange.factor}\hlstd{=}\hlnum{5}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/innerrange-3} 
 
 \end{knitrout}
 
@@ -328,6 +345,8 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multiplex-1} 
+
+\includegraphics[width=\maxwidth]{figure/plyx-multiplex-2} 
 
 \end{knitrout}
 %% \label{multiplex}
@@ -426,12 +445,16 @@ are labelled. This is achieved by setting the argument \T{markextremes}.
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlnum{0.1}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/markextremes-1} 
+\begin{kframe}\begin{alltt}
 \hlcom{## different proportions marked in different margins:}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlkwd{list}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwd{c}\hlstd{(}\hlnum{0.02}\hlstd{,}\hlnum{0.2}\hlstd{)),} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/markextremes-1} 
+\includegraphics[width=\maxwidth]{figure/markextremes-2} 
 
 \end{knitrout}
 The default value of \T{markextremes} is 0 for \T{plyx}.
@@ -501,12 +524,18 @@ the x and y variables.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(}\hlstr{"survival"}\hlstd{)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: survival}}\begin{alltt}
 \hlkwd{data}\hlstd{(lung,} \hlkwc{package}\hlstd{=}\hlstr{"survival"}\hlstd{)}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlkwc{mar}\hlstd{=}\hlkwd{c}\hlstd{(}\hlnum{3}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{))}
 \hlkwd{plyx}\hlstd{(}\hlkwd{Surv}\hlstd{(time,status)} \hlopt{~} \hlstd{age}\hlopt{+}\hlstd{wt.loss,} \hlkwc{data}\hlstd{=lung,} \hlkwc{pcol}\hlstd{=sex)}
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/censored-1} 
+
+\includegraphics[width=\maxwidth]{figure/censored-2} 
 
 \end{knitrout}
 
@@ -621,7 +650,7 @@ deficiency of the model.
 \item
 Plots are selectively shown in accordance with the type of model that has 
 been fitted. For example, a normal plot is only shown if the model assumes
-a normal distribution of the random error.
+a normal distribution of the random deviations.
 \item
 Most importantly, residuals are plotted against explanatory variables.
 This can also be achieved by calling \T{termplot} for other fit objects,  
@@ -629,12 +658,17 @@ but experience shows that this is often neglected by the users.
 \item
 Residuals can be plotted easily against the index (sequence number) 
 of the observation (by setting \T{sequence=TRUE}), 
-since this may show trends or correlations of errors in time --
+since this may show trends or correlations of random deviations in time --
 if the sequence reflects time.
 \item
 The plots are augmented by a smooth line fitted to them -- which is also
-available in the classical R functions -- and two additional smooth lines
-that allow to judge the scale dependence on the variable shown.
+available in the classical R functions -- and two additional smooth lines.
+These allow to judge the scale dependence on the variable shown:
+If their distance varies, so does the scale of the residuals.
+In addition, if their distance to the central smooth differs, this 
+points to a skewed distribution of the random deviations, 
+that can also be seen in the qq plot. See the detailed description 
+of the ``Smooth band'' below. 
 In addition, simulated smooths are added in order to assess an informal 
 ``significance'' of curvature in the smooth of the data. 
 Furthermore, a reference line is given, which helps finding
@@ -734,6 +768,9 @@ Of course, some users may disagree.
   more symmetric.)
   This defines the ``high'' smooth line. 
   The construction of the ``low'' one is analogous.
+  The two lines characterize how something like the low and high quartiles
+  depend on the horizontal axis, and thus allow to examine the scale
+  and skewness of the distribution of the random deviations.
 }  
 
 \Tit{Absolute residuals against fit.}
@@ -750,13 +787,13 @@ They differ in two ways:
 They are standardized to have the same variances.
 If there are weights of observations (argument \T{weights} in the call to
 the fitting function), these are taken as inverse relative variances of
-the random errors.
+the random deviations.
 \Itm
-By default, they are modified because in the following way.
+By default, they are modified in the following way.
 Note first that the plot should show any dependence of the scale of the
-random errors on the model value.
+random deviations on the model value.
 If the plot of residuals against fit shows a clear curvature, the
-residuals do not show only the random errors but also the bias of the
+residuals do not show only the random deviations but also the bias of the
 regression function, which should be best approximated by the smooth line
 in that first plot. Therefore, the residuals from the smooth line are 
 used in the plot of absolute residuals against fit.
@@ -825,7 +862,7 @@ models.
 
 \Tit{Weights}
 If weights are given by the user, they should usually reflect different
-variances of the random errors $E_i$, and the residuals, multiplied by the
+variances of the random deviations $E_i$, and the residuals, multiplied by the
 square root of the weights, should have constant variance.
 The standardized absolute residuals are therefore plotted against the weights.
 If the size of these residuals is not constant but depends on the weight, 
@@ -970,11 +1007,7 @@ and asking for smooths for each level of the factor.
 \begin{alltt}
 \hlkwd{plresx}\hlstd{(r.blast,} \hlkwc{xvar}\hlstd{=}\hlopt{~} \hlkwd{log10}\hlstd{(distance),} \hlkwc{pcol}\hlstd{=location,} \hlkwc{smooth.group}\hlstd{=location)}
 \end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# ..gensmooth: too few observations for a 'high' smooth for group\ \ 7}}
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# ..gensmooth: too few observations for a 'low' smooth for group\ \ 7}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plresxgroup-1} 
 
 \end{knitrout}
@@ -1046,7 +1079,7 @@ They should be plotted against the linear predictor values
 
 In ordinal regression, the response variable is modeled as a classified
 version of a continuous latent variable, which in turn follows a linear
-model with logistic (or normal) error distribution.
+model with logistic (or normal) distribution of the random errors.
 According to this construction, the latent variable $\widetilde Y_i$, given the
 observed ordered variable $Y_i$ and the linear predictor $\eta_i$, 
 follows a truncated logistic (or normal) distribution. 
@@ -1057,6 +1090,10 @@ conditional quantiles, which can be represented as described above.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{require}\hlstd{(MASS)}
+\end{alltt}
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MASS}}\begin{alltt}
 \hlkwd{data}\hlstd{(housing,} \hlkwc{package}\hlstd{=}\hlstr{"MASS"}\hlstd{)}
 \hlstd{rr} \hlkwb{<-} \hlkwd{polr}\hlstd{(Sat} \hlopt{~} \hlstd{Infl} \hlopt{+} \hlstd{Type} \hlopt{+} \hlstd{Cont,} \hlkwc{weights} \hlstd{= Freq,} \hlkwc{data} \hlstd{= housing)}
 \hlkwd{plregr}\hlstd{(rr,} \hlkwc{plotselect}\hlstd{=}\hlkwd{c}\hlstd{(}\hlkwc{resfit}\hlstd{=}\hlnum{2}\hlstd{,} \hlkwc{default}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{xvar}\hlstd{=}\hlnum{FALSE}\hlstd{)}
@@ -1113,7 +1150,8 @@ as the scatterplot matrix of residuals.
 If there are groups of observations with identical input variables
 (or identical $x_i$ vectors), then there is the possibility to perform a kind
 of overall goodness-of-fit test by comparing the variability of the
-residuals within these groups to the estimated variance of the error.
+residuals within these groups to the estimated variance of the 
+random deviations.
 This is performed by a simple Analysis of Variance of the standardized 
 residuals with the grouping just mentioned. 
 (Note that this method can be applied even if some or many $x_i$ vectors 
@@ -1181,7 +1219,13 @@ plot.
 \hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
 \hlkwd{plot}\hlstd{(xdrd,} \hlkwc{zeroline.col}\hlstd{=}\hlstr{"darkgreen"}\hlstd{)}
 \end{alltt}
-\end{kframe}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/xdist-1} 
 
 \end{knitrout}
@@ -1449,7 +1493,16 @@ These specifications are
 \item
   \T{psize}: plotting size, scaled by the pl option \T{cex};
 \item
-  \T{pcol}: color of the symbol.
+  \T{pcol}: color of the symbol. 
+  This can be a factor. Then, the colors in \T{ploptions("group.color")}
+  are used according to the \T{levels} of the factor.\\
+  It can be numeric and should then contain low integer values.
+  Values $>0$ are used again to select from \T{ploptions("group.color")};
+  A value $0$ selects \T{ploptions("color")[1]} which is black unless changed.
+  Negative values lead to a color of \T{NA} and will suppress plotting of
+  the point.\\
+  If \T{pcol} is logical, it is converted to \T{pcol+1} and selects the
+  first two group colors. 
 \end{itemize}
 These elements are stored in \T{pldata} as columns with names
 \T{(pch)}, \T{(plab)}, \T{(psize)}, \T{(pcol)}.
@@ -1491,13 +1544,14 @@ These are
   typically identical to the name of the variable
   in the data.frame it comes from;
 \item
-  \T{ticksat}: the values for which tick marks will be shown in plots.
-  This item may carry an attribute \T{small} that leads to an additional
-  set of smaller tickmarks;
+  \T{numvalues}: numerical values to represent the given data values in
+  case these are not numeric or for other reasons, see \T{plscale} and
+  \T{gendateaxis} below;
 \item
-  \T{ticklabelsat} the possibly tick labels \T{ticklabels}:
-  positions of labels to indicate values of the variable, and the lablels
-  themselves;
+  \T{plscale}: transformation function to generate the ``plotting scale'';    
+\item
+  \T{plcoord}: plotting coordinates, if different from the variable's data
+  values, typically when an inner plotting range or jittering is active;
 \item
   \T{innerrange, plrange}: inner and outer plotting range;
 \item
@@ -1506,12 +1560,13 @@ These are
 \item 
   \T{nouter}: the number of points modified at each end of the inner range;
 \item
-  \T{numvalues}: numerical values to represent the given data values in
-  case these are not numeric or for other reasons, see \T{plscale} and
-  \T{gendateaxis} below;
+  \T{ticksat}: the values for which tick marks will be shown in plots.
+  This item may carry an attribute \T{small} that leads to an additional
+  set of smaller tickmarks;
 \item
-  \T{plcoord}: coordinates, possibly different from the variable's data
-  values, typically when an inner plotting range or jittering is active;
+  \T{ticklabelsat} the possibly tick labels \T{ticklabels}:
+  positions of labels to indicate values of the variable, and the lablels
+  themselves;
 \item
   \T{pch, lty, col}: plotting symbol, line type and color to be used 
   if multiple y's are shown in a plot.
@@ -1574,7 +1629,7 @@ see \ref{intro.plscale}.
   \hlkwd{attr}\hlstd{(dd}\hlopt{$}\hlstd{Weight,} \hlstr{"ticklabels"}\hlstd{)}
 \end{alltt}
 \begin{verbatim}
-## [1] "600"  "700"  "800"  "1000" "1200" "1500"
+## [1] "500"  "1000" "2000"
 \end{verbatim}
 \begin{alltt}
   \hlkwd{str}\hlstd{(dd}\hlopt{$}\hlstd{SurvPerc)}
@@ -1583,7 +1638,8 @@ see \ref{intro.plscale}.
 ##  num [1:10] 0 14.3 33.3 36.4 71.9 ...
 ##  - attr(*, "numvalues")= num [1:10] 0 0.247 0.392 0.412 0.644 ...
 ##  - attr(*, "ticksat")= num [1:6] 0 0.205 0.295 0.436 0.564 ...
-##  - attr(*, "ticklabels")= chr [1:6] "0" "10" "20" "40" ...
+##  - attr(*, "ticklabelsat")= num [1:3] 0 0.5 1
+##  - attr(*, "ticklabels")= chr [1:3] "0" "50" "100"
 ##  - attr(*, "plscale")= chr "asinp"
 \end{verbatim}
 \begin{alltt}
@@ -1643,7 +1699,10 @@ These are available from \T{.plargs\$ploptions}
 \begin{alltt}
 \hlkwd{mtext}\hlstd{(}\hlstr{"here is the right place"}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
 \hlkwd{points}\hlstd{(t.usr[}\hlnum{2}\hlstd{],t.usr[}\hlnum{4}\hlstd{],} \hlkwc{pch}\hlstd{=}\hlstr{"O"}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
-
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/marginpars-1} 
+\begin{kframe}\begin{alltt}
 \hlkwd{par}\hlstd{(}\hlkwd{attr}\hlstd{(t.plo,} \hlstr{"oldpar"}\hlstd{))}  \hlcom{## restores old 'margin parameters' }
 \end{alltt}
 \begin{verbatim}
@@ -1666,7 +1725,7 @@ These are available from \T{.plargs\$ploptions}
 \hlkwd{mtext}\hlstd{(}\hlstr{"this goes to the right place, too"}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/marginpars-1} 
+\includegraphics[width=\maxwidth]{figure/marginpars-2} 
 
 \end{knitrout}
 
@@ -1910,9 +1969,9 @@ affected, the pl functions use an implicit palette given by
 \hlstd{ploptionsDefault}\hlopt{$}\hlstd{colors}
 \end{alltt}
 \begin{verbatim}
-##  [1] "black"        "red"          "blue"         "darkgreen"   
-##  [5] "orange"       "purple"       "deepskyblue2" "green3"      
-##  [9] "coral4"       "pink3"        "aquamarine3"  "brown2"
+##  [1] "black"        "red"          "blue"         "darkgreen"    "orange"      
+##  [6] "purple"       "deepskyblue2" "green3"       "coral4"       "pink3"       
+## [11] "aquamarine3"  "brown2"
 \end{verbatim}
 \end{kframe}
 \end{knitrout}

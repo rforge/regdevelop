@@ -50,7 +50,8 @@ export(asinp,
        last, legendr, leverage, linear.predictors, linpred, logst, 
        markextremes, modarg, 
        nainf.exclude, "%nin%", #narestore, 
-       nobs.survreg, nobs.coxph, notice, 
+       ## nobs.survreg, nobs.coxph,
+       notice, 
        panelSmooth,
        ploptions, plmarginpar, ploptionsDefault, .ploptions, .plargs, 
        plyx, plmatrix, plcond, plpanelCond, plmframes, plpanel, 
@@ -97,7 +98,7 @@ S3method(predict, regrpolr)
 S3method(residuals, regrpolr)
 S3method(residuals, regrsurvreg)
 S3method(residuals, regrcoxph)
-S3method(nobs, survreg)
-S3method(nobs, coxph)
+##S3method(nobs, survreg)
+##S3method(nobs, coxph)
 
 ## S3method(family, merMod)

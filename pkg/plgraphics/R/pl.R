@@ -3748,7 +3748,7 @@ gensmooth <- #f
   lsmiter <- i.getploption("smooth.iter")
   lsmfunc <- i.getploption("smooth.function")
   if (is.character(lsmfunc)) lsmfunc <- get(lsmfunc)
-  if (u.isnull(lsmfunc)) lsmfunc <- smoothRegr
+  if (is.null(lsmfunc)) lsmfunc <- smoothRegr
   lIfm <- names(formals(lsmfunc))[1]=="formula"
   lsmf <-
     if (lIfm) function(x, y, power=1, weights=NULL, par=NULL, iterations=lsmiter, ...)
@@ -3919,7 +3919,7 @@ plmatrix <- #f
   }
   lf.eq <- function(v1,v2) {
     if (is.factor(v1)) is.factor(v2)&& all(dropNA(as.numeric(v1)==as.numeric(v2)))
-    else all(dropNA(v1==v2))
+    else all(dropNA(as.numeric(v1)==as.numeric(v2)))
   }
 ##-   lkeeppar <- i.getploption("keeppar")
 ##-   oldpar <- par(c("mar","cex","mgp","oma")) ##, "ask", "mfrow"
@@ -4005,6 +4005,7 @@ plmatrix <- #f
                 plargs=plargs)
   lmline <- lmarpar$margin.line
   lcsize <- i.getploption("csize")
+  if (is.function(lcsize)) lcsize <- lcsize(lnobs)
   lmar <- lmarpar$mar
 ##-   lomaarg <- i.def(oma, rep(NA,4))  ## if the argument 'oma' is available, it must be respected
 ##-   if (length(lomaarg)==1) lomaarg <- c(NA,NA,lomaarg,NA)
@@ -4555,7 +4556,7 @@ plmbox <- #f
   ## -----------------------------------
   lq <- lwid <- NULL
   lfac <- 0
-  lx <- x[!is.na(x)]
+  lx <- as.numeric(x[!is.na(x)])
   if (length(lx)==0) {
     if (warn>=0) warning(":plmbox: no non-missing data")
     return(structure(numeric(0), q=lq, width=lwid))
@@ -4581,7 +4582,8 @@ plmbox <- #f
   ljrg <- any(lirg!=lrg)
   lirgd <- diff(lirg)
   loutl <- lx
-  lwoutl <- widthfac["outl"]  if (diff(lrg) > 0) { ## non-degenerate
+  lwoutl <- widthfac["outl"]
+  if (diff(lrg) > 0) { ## non-degenerate
     if (u.isnull(minheight))
       minheight <- if (lxsd==0) lirgd*0.02  else lxsd*0.01
     lqpl <- lq <- quinterpol(lx, probs=lprobs, extend=extquant)
@@ -5231,7 +5233,7 @@ i.getploption <- #f
     opts <- get("ploptions", envir=parent.frame()) ## list in calling fn
   if (is.function(opts)) opts <- NULL
   lopt <- opts[[opt]]
-  if (u.isnull(lopt)||(!is.function(lopt))&&all(is.na(lopt))) ## NULL or NA
+  if (is.null(lopt)||(!is.function(lopt))&&all(is.na(lopt))) ## NULL or NA
       lopt <- ploptions(opt)
   else {lopt <- check.ploption(opt, lopt)
     if (length(lopt)) lopt <- lopt[[1]]

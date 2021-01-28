@@ -22,7 +22,7 @@
 \usage{
 modelTable(models, seq = NULL) % data = NULL, 
 
-\method{format}{modelTable}(x, digits=getRegrOption("digits"), sep="", ...)
+\method{format}{modelTable}(x, digits=getOption("digits.reduced"), sep="", ...)
 \method{print}{modelTable}(x, tex = FALSE, transpose = FALSE, ...)
 
 compareTerms(... , list=NULL, seq = NULL)

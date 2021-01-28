@@ -25,7 +25,7 @@
 ## i.polr(...)
 ## i.smooth(...)
 
-\method{print}{mregr}(x, na.print=getRegrOption("na.print"), ...)
+\method{print}{mregr}(x, na.print=getOption("na.print"), ...)
 notice(..., notices = NULL)
 }
 \arguments{
