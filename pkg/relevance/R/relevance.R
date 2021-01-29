@@ -260,7 +260,7 @@ print.inference <- #f
   ## ---
   if (!is.na(leff <- x["effect"]))
     cat(if(length(leffn <- attr(x, "effectname")))
-          paste(leffn, ": ") else "effect:   ", format(leff)) 
+          paste(leffn, ": ") else "effect:   ", format(leff))
   if (getOption("show.confint"))
     if (length(lci <- x[c("ciLow","ciUp")]))
       cat(";  confidence int.: [",
@@ -305,7 +305,7 @@ i.getshow <- #f
   lcoll <- pmatch(show, c("test", "relevance", "classical"))
   if(length(lcoll)) {
     ltype <- pmatch(type, c("inference", "terms", "termeffects"), nomatch=0)
-    ## if (length(ltype)==0) 
+    ## if (length(ltype)==0)
     lc <- paste("show", c("ifc","term","termeff")[ltype], lcoll, sep=".")
     for (l in lc)
       show <- c(show, getOption(l))
@@ -351,10 +351,10 @@ termtable <- #f
   if (length(summary)==0) summary <- summary(object)
   ## thresholds
   ltlev1 <- 1-testlevel
-  ## lrlthrl <- rlvThres["rel"]
-  ## lrlthcf <- rlvThres["coef"]
-  lrlthdr <- rlvThres["drop"]
-  lrlthpr <- rlvThres["pred"]
+  ## lrlthrl <- rlvThres[["rel"]]
+  ## lrlthcf <- rlvThres[["coef"]]
+  lrlthdr <- rlvThres[["drop"]]
+  lrlthpr <- rlvThres[["pred"]]
   ## --- sigma and threshold for standardized coefficient
   ## lsigma <- c(object$sigma, summary$sigma, 1)[1]
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
@@ -608,7 +608,7 @@ print.termtable <- #f
   ## --- paste symbols to numbers
   lpleg <- lrleg <- NULL
   if ("p.symbol"%in%show & "p.value"%in%colnames(x)) {
-    lx <- ff.mergesy(lx, x, "p.value", "Sig0") 
+    lx <- ff.mergesy(lx, x, "p.value", "Sig0")
 ##-     lpv <- x[,"p.value"]
 ##-     lpv[is.na(lpv)] <- 1
 ##-     lpsy <- symnum(lpv, pSymbols$cutpoint, pSymbols$symbol)
@@ -627,10 +627,10 @@ print.termtable <- #f
   ## ---------------
   ## print
   if (transpose.ok &&
-      ((lnc1 <- ncol(lx)==1)|| ncol(lx)==2 && length(grep(".symbol", show))) ) { 
+      ((lnc1 <- ncol(lx)==1)|| ncol(lx)==2 && length(grep(".symbol", show))) ) {
     if (lnc1) print(lx[[1]])
     else print(paste(format(lx[[1]]),lx[[2]]), quote=FALSE)
-  } else 
+  } else
     print(lx, quote=FALSE, na.print=na.print)
   ## --- legend(s)
   if(u.notfalse(legend)) {

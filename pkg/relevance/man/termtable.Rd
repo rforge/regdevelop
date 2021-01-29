@@ -15,22 +15,25 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE, rlv = TRUE,
   \item{object}{result of a model fitting function like \code{\link{lm}}
   }
   \item{summary}{result of \code{summary(object)}.  If \code{NULL}, the
-    \code{summary} will be called.
+    \code{summary} will be called. % FIXME: MM: I'd rather *not* use NULL but summary(object)  as default:
+				   % -----  this shortens your R code *and* % is self-documenting.
   }
   \item{testtype}{type of test to be applied for dropping each term in
     turn. If \code{NULL}, it is selected according to the class of the
     object, see Details.
   }
-  \item{r2x}{logical: should the collinearity measures \code{"R2.x"}
+  \item{r2x}{logical: should the collinearity measures \dQuote{\code{R2.x}} (see below)
     for the terms be calculated?
   }
   \item{rlv}{logical: Should relevances be calculated?
   }
-  \item{rlvThres}{Relevance thresholds, vector containing the three elements
-    \cr{\code{rel}:}  {threshold for relative effects,}
-    \cr{\code{coef}:}  {for standardized coefficients,}
-    \cr{\code{drop}:}  {for drop effects,}
-    \cr{\code{pred}:}  {for prediction intervals.}
+  \item{rlvThres}{Relevance thresholds, vector containing the  elements
+   \describe{
+    \item{\code{rel}:}{threshold for relative effects,}
+    \item{\code{coef}:}{for standardized coefficients,}
+    \item{\code{drop}:}{for drop effects,}
+    \item{\code{pred}:}{for prediction intervals.}
+   }
   }
   \item{testlevel}{1 - confidence level}
 }
@@ -79,7 +82,8 @@ termtable(object, summary = NULL, testtype = NULL, r2x = TRUE, rlv = TRUE,
 }
 \author{Werner A. Stahel}
 \seealso{
-  \code{summary(object)$coefficients}, \code{\link{print.termtable}}
+  \code{\link{getcoeftable}};
+  for printing options, \code{\link{print.termtable}}
 }
 \examples{
   data(swiss)

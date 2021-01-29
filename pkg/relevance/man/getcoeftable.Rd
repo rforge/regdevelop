@@ -17,19 +17,21 @@ getcoeffactor(object)
 }
 
 \arguments{
-  \item{object}{results of a model fitting function
-  }
+  \item{object}{an \R object resulting from a model fitting function.}
 }
 
-\details{Object \code{regrModelClasses} contains the names of the
+\details{Object \code{regrModelClasses} contains the names of the %% <<< FIXME: not existing!
   classes for which the result should work.
   For other model classes, the function is not tested and may fail.
 }
 
-\value{For \code{getcoeftable}:
+\value{
+  For \code{getcoeftable}:
   Matrix containing at least the two columns containing the estimated
-  coefficients (first column) and the standard errors (second column).\cr 
-  For \code{getscalepar}: scale parameter. \cr
+  coefficients (first column) and the standard errors (second column).
+
+  For \code{getscalepar}: scale parameter.
+
   For \code{getcoeffactor}: vector of factors, with attributes
   \code{scale}, \code{fitclass} and \code{family} or \code{dist}
   according to \code{object}.
@@ -38,14 +40,16 @@ getcoeffactor(object)
 
 \examples{
   rr <- lm(Fertility ~ . , data = swiss)
-  getcoeftable(rr)
+  getcoeftable(rr) # identical to  coef(summary(rr))  or also summary(rr)$coefficients
   getscalepar(rr)
 
+ if(requireNamespace("survival", quietly=TRUE)) {
   data(ovarian, package="survival")
   rs <- survival::survreg(survival::Surv(futime, fustat) ~ ecog.ps + rx,
                 data = ovarian, dist = "weibull")
   getcoeftable(rs)
   getcoeffactor(rs)
+ }
 }
 \keyword{utilities}
 
