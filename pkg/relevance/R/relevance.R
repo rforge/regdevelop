@@ -302,7 +302,7 @@ i.getshow <- #f
   ##-   lstyles <- c("test", "relevance", "classical")
 ##-   li <- pmatch(show, lstyles, nomatch=0)
 ##-   lcoll <- lstyles[li] ## careful: explicit columns might pmatch!
-  lcoll <- pmatch(show, c("test", "relevance", "classical"))
+  lcoll <- intersect(show, c("test", "relevance", "classical"))
   if(length(lcoll)) {
     ltype <- pmatch(type, c("inference", "terms", "termeffects"), nomatch=0)
     ## if (length(ltype)==0)
@@ -603,7 +603,7 @@ print.termtable <- #f
   ## --- round some columns to 3 digits
   ljrp <- lcols[pmatch(c("R2","p.v"), lcols, nomatch=0)]
   if (length(ljrp)) lx[,ljrp] <- round(as.matrix(lx[,ljrp]),digits)
-  ljrp <- lcols[pmatch(c("Rl","Sig"), lcols, nomatch=0)]
+  ljrp <- lcols[c(grep("Rl", lcols),grep("Sig", lcols))]
   if (length(ljrp)) lx[,ljrp] <- round(as.matrix(lx[,ljrp]),i.last(digits)-1)
   ## --- paste symbols to numbers
   lpleg <- lrleg <- NULL
@@ -629,7 +629,8 @@ print.termtable <- #f
   if (transpose.ok &&
       ((lnc1 <- ncol(lx)==1)|| ncol(lx)==2 && length(grep(".symbol", show))) ) {
     if (lnc1) print(lx[[1]])
-    else print(paste(format(lx[[1]]),lx[[2]]), quote=FALSE)
+    else print(setNames(paste(format(lx[[1]]),lx[[2]]),
+                        paste(row.names(lx),"    ")), quote=FALSE)
   } else
     print(lx, quote=FALSE, na.print=na.print)
   ## --- legend(s)
@@ -801,8 +802,9 @@ termeffects <- #f
 print.termeffects <- #f
   function (x, show = getOption("show.ifc"), transpose.ok=TRUE, single=FALSE, ...)
 {
-  if (length(show)>1 || show!="all")
-    show <- unique(c("coef", i.getshow(show, "termeff")))
+  show <- if (length(show)==1 && show=="all")
+            c(colnames(x), "p.symbol", "coefRls.symbol")
+  else unique(c("coef", i.getshow(show, "termeffects")))
   lnam <- names(x)
   for (li in seq_along(x)) {
     xi <- x[[li]]
@@ -862,7 +864,7 @@ rlvSymbols <- list(symbol=c(" ", ".", "+", "++", "+++"),
                   cutpoint=c(-Inf,0,1,2,5,Inf) )
 ## -----------------------------------------------------------
 rlv.optionsDefault <- list(
-  digits.reduced = 4,
+  digits.reduced = 3,
   testlevel = 0.05,
   rlvThres = c(stand=0.1, rel=0.1, prop=0.1, coef=0.1, drop=0.1, pred=0.05),
   show.confint = TRUE,

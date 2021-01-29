@@ -178,7 +178,7 @@ rr <- plscale(c(0.01,1,2,5,10), "log")
 aa <- c(0.1,10,50,100)
 stopifnot(all( abs(attr(asinp, "inverse")(asinp(aa)) - aa)<1e-13) )
 ## =========================================
-#require(regr0)
+#require(regr)
 ## attach("../div/pl-data.rda")
 showd(dd)
 data(d.blast)

@@ -182,18 +182,19 @@ regr <- #F
 	     "i.survreg" = quote(regr::i.survreg),
 	     ## default:
 	     as.name(lfitname))
-##!!!  if (lfitname=="i.glm") lcl$family <- lfam
+ ##!!!  if (lfitname=="i.glm") lcl$family <- lfam
   if (lfitname=="i.survreg") {
     lcl$yy <- lyy
     lcl$model <- TRUE  ## model needed, see below
   }
   ## --- contrasts
   lcontr <- largs$contrasts
-  if(is.atomic(lcontr)&&length(lcontr)) {
+  if(length(lcontr)&&is.atomic(lcontr)) {
     if(!is.character(lcontr))
       warning("!regr! invalid contrasts argument")
     else {
-      loldopt <- options(contrasts=c(lcontr,getOption("contrasts")[2])[1:2])
+      loldopt <-
+        options(contrasts=c(lcontr,c(getOption("regr.contrasts"),"contr.wpoly")[2])[1:2])
       on.exit(options(loldopt))
       lcl$contrasts <- NULL
     }
@@ -213,6 +214,7 @@ regr <- #F
     }
 ##    if (lcontr[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, y=lyy)
   }
+  lctrnm <- getOption("contrasts")
   lcl$data <- lallvars ## must be evaluated!
   lcall$na.action <- lcl$na.action <- largs$na.action
   mode(lcl) <- "call"
@@ -241,6 +243,7 @@ regr <- #F
   lreg$funcall <- lfc
   lcall$formula <- formula(lreg) # hope this never damages anything
   lreg$call <- lcall
+  lreg$contrastsname <- lctrnm
   tit(lreg) <- if (length(largs$tit)==0) attr(data,"tit") else largs$tit
   doc(lreg) <- attr(data,"doc")
   if (largs$model&&length(lreg$model)==0) {
@@ -1265,16 +1268,16 @@ plot.regr <- plgraphics::plregr
 ## envirnment(plot.regr) <- environment(plgraphics::plregr)
 ##  ===================================================================
 print.regr <- #F
-  function (x, call=TRUE, residuals = FALSE,
-            termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
+  function (x, call=getOption("show.call"), residuals = FALSE,
+            termeffects = getOption("show.termeffects"),
+            coefcorr = getOption("show.coefcorr"), niterations = FALSE,
             digits = getOption("digits.reduced"),
-            na.print = NULL, symbolic.cor = p > 4, ...)
+            na.print = getOption("na.print"), symbolic.cor = p > 4, ...)
 {
   ##
   na.print <- i.getopt(na.print)
-  lcoefcorr <- i.def(coefcorr, getOption("show.coefcorr"))
   ## doc
-  ldoc <- getOption("show.doc")
+  ldoc <- i.def(getOption("show.doc"), TRUE)
   if (ldoc>=1) {
     if (length(tit(x))) cat("\nData: ",tit(x),"\n")
     if (ldoc>=2) if (length(doc(x))) cat("  ",paste(doc(x),"\n "))
@@ -1283,18 +1286,8 @@ print.regr <- #F
   if (inherits(x,"mlm"))
     return(invisible(print.mregr(x, na.print=na.print, ...)))
   ## preparation
-##-   lItermeff <- i.def(termeffects, TRUE)
-##  lprstyle <- i.getopt(printstyle)
-##-   if (length(termcolumns)==1) {
-##-     if (substring(termcolumns,1,3)=="rel")
-##-       termcolumns <- getOption("termcolumns.r")
-##-     else
-##-       if (substring(termcolumns,1,3)=="con") {
-##-         termcolumns <- getOption("termcolumns.c")
-##-         if (signif.stars) termcolumns <- union(termcolumns, "p.symbol")
-##-       }
-##-   }
   ## call, fitting fn
+  call <- i.def(call, TRUE)
   if (call) {
     if(!is.null(x$call)) {
       cat("\nCall:\n")
@@ -1311,7 +1304,7 @@ print.regr <- #F
                         ) else lfam
               ),
       if (length(ldist <- x$dist)) paste("| distribution:", ldist),
-      if (length(lctr <- x$contrasts))
+      if (length(lctr <- x$contrastsname))
         paste("| contrasts:", paste(unique(lctr),collapse=", ")),
       "\n")
     cat(lout,"\n")
@@ -1444,8 +1437,9 @@ print.regr <- #F
   if (niterations&&length(x$iter)>0)
     cat("Number of iterations:", x$iter, "\n")
   ## ---- correlation
+  coefcorr <- i.def(coefcorr, FALSE, TRUE)
   correl <- x$correlation
-  if (length(correl)>0 && lcoefcorr) {
+  if (length(correl)>0 && coefcorr) {
     p <- NCOL(correl)
     if (p > 1) {
       cat("\nCorrelation of Coefficients:\n")
@@ -1470,8 +1464,6 @@ print.regr <- #F
 print.mregr <- function (x, na.print=getOption("na.print"), ...)
 {
   ## Purpose:   collect results for mregr object
-  ## ----------------------------------------------------------------------
-  ## Arguments:
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: Feb 2008
   f.prv <- function(x) paste(paste(names(x),x,sep=" = "),collapse=", ")
@@ -3316,7 +3308,6 @@ regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","po
 regr.optionsDefault <- list(
   regr.contrasts = "contr.wsum",
   factorNA = TRUE,
-  show.termeffects = TRUE,
-  show.coefcorr = FALSE
+  show.call = TRUE, show.termeffects = TRUE, show.coefcorr = FALSE
 )
 .onLoad <- function(lib, pkg) options(regr.optionsDefault)

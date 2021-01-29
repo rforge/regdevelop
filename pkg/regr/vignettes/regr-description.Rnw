@@ -150,7 +150,7 @@ Here is a result of printing a \T{regr} object.
 data(d.blast, package="plgraphics")
 attr(d.blast,"doc")[1] <- 
   "Blasting: measurements of tremor in nearby house basements"
-regroptions(printstyle="conventional")
+options(show.ifc="test")
 r.blast <- regr(logst(tremor) ~ location + log10(distance) + log10(charge), 
     data = d.blast)
 r.blast
@@ -159,12 +159,11 @@ r.blast
 The package also implements a new alternative set of characteristics for the
 terms in the model, including ``relevance'' measures, see
 %%\citeasnoun{StaW20} 
-Stahel (2020) and below.
+Stahel (2021) and below.
 As shown in the previous and the following R statements, the selection of the
-desired output is done by setting an option, using the function 
-\T{regroptions} to be introduced below.
+desired output is done by setting an option,
 <<regroutrel>>=
-regroptions(printstyle="relevance")
+options(show.ifc="relevance")
 r.blast
 
 @ 
@@ -290,17 +289,16 @@ in the \T{termtable} component.
 The user can select the columns to be shown by setting the 
 \T{printstyle} or \T{termcolumns} options.
 Asking for 
-\T{regroptions(printstyle="relevance")} (the default)
+\T{options(show.ifc="relevance")} (the default)
 or \\ %% \Hneed{100mm}
-\T{regroptions(printstyle="conventional")} selects one of two
-default sets of columns.
+\T{options(show.ifc="classical")} selects a default sets of columns.
 
 <<termtable>>=
 names(r.blast$termtable)
-regroptions(termcolumns=c("coef", "stcoef", "df", "signif0", "p.symbol"))
+t.opt <- options(show.ifc=c("coef", "stcoef", "df", "Sig0", "p.symbol"))
 
 print(r.blast, call=FALSE, termeffects=FALSE) ## avoid repetition of these parts
-regroptions(default="all")  ## reset the options
+options(t.opt)
 @ 
 
 The columns of the \T{termtable} not yet mentioned are:
@@ -318,9 +316,12 @@ The columns of the \T{termtable} not yet mentioned are:
 \item[\T{stciLow, stciUp, estciLow, estciUp},] the respective confidence
   intervals;
 \item[\T{dropRle, dropRlp},] estimated and potential Relevance for the term;
-\item[\T{p.symbol, coefRls.symbol, dropRls.symbol},]
+\item[\T{p.symbol, coefRls.symbol, dropRls.symbol, predRls.symbol},]
   the symbols for significance and secured relevance that are attached to
   their numerical values when printed. 
+  They are not contained in the \T{termtable} but generated upon printing,
+  using the R function \T{symnun} with the opjects 
+  \T{pSymbols} and \T{rlvSymbols}, respectively.
 \end{description}
 
 \subsection{Factors}

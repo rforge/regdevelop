@@ -6,10 +6,11 @@
   \code{\link{regr}(*)}.
 }
 \usage{
-\method{print}{regr}(x, call=TRUE, residuals = FALSE, 
-  termeffects = TRUE, coefcorr = FALSE, niterations = FALSE,
-  digits = getOption("digits.reduced"),
-  na.print = NULL, symbolic.cor = p > 4, ...)
+\method{print}{regr}(x, call=getOption("show.call"), residuals = FALSE,
+            termeffects = getOption("show.termeffects"),
+            coefcorr = getOption("show.coefcorr"), niterations = FALSE,
+            digits = getOption("digits.reduced"),
+            na.print = getOption("na.print"), symbolic.cor = p > 4, ...)
 }
 \arguments{
   \item{x}{'regr' object}
