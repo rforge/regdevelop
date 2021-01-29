@@ -21,9 +21,11 @@ DB(on=TRUE)
 }
 \arguments{
   \item{on}{
-    0 or \code{FALSE} for switching debugging off,\cr
-    1 or \code{TRUE} for switching debugging on,\cr
-    2 for turning warnings into errors
+    \describe{
+      \item{0 or \code{FALSE}} for switching debugging off,
+      \item{1 or \code{TRUE}} for switching debugging on,
+      \item{2} for turning warnings into errors
+    }
   }
 }
 \author{\packageAuthor{relevance}}

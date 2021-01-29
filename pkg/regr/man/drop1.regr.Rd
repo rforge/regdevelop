@@ -20,11 +20,12 @@
 \arguments{
   \item{object}{a fitted model object}
   \item{scope}{a formula giving the terms to be considered for dropping
-    or adding.\cr
-    Defaults to the terms in the 'object's formula for \code{drop1}
+    or adding. 
+    It defaults to the terms in the \code{object}'s formula for \code{drop1}
     and to all first order interactions between these and squared terms
     in the continuous variables for \code{add1}
-    (see \code{\link{terms2order}})}
+    (see \code{\link{terms2order}})
+  }
   \item{scale}{an estimate of the error variance if applicable. Will be
     recalculated from the fit if ==0 or NULL}
   \item{test}{see \code{\link{drop1}}}

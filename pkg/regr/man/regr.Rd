@@ -24,22 +24,26 @@ regr(formula, data=NULL, family=NULL, robust = FALSE, method=NULL,
   \item{data}{ data frame containing the variables in the model. }
   \item{family}{ character string describing the type of model and the
     fitting procedure. By default, \code{regr} will fit a model that is
-    suitable for the response variable, if possible.\cr
+    suitable for the response variable, if possible.
     Can be either
-    "gaussian" for ordinary regression, including multivariate response,
-    "binomial" for logistic regression,
-    "poisson"  for Poisson regression,
-    "multinomial" for multinomial regression,
-    "polr" for ordered response (cumulative logits) regression,
-    "weibull", "lognormal", "loglogistic", "extreme"
-    for survival regression with the respective distribution,
-    "ph" for Cox regression,
-    or a suitable argument for \code{glm}, i.e.: A
-    description of the error distribution and link
-    function to be used in the model. This can be a character string
-    naming a family function, a family function or the result of a call
-    to a family function.  (See 'family' for details of family
-    functions.) }
+    \describe{
+      \item{"gaussian"}{for ordinary regression, including multivariate
+	response,}
+      \item{"binomial"}{for logistic regression,}
+      \item{"poisson"}{for Poisson regression,}
+      \item{"multinomial"}{for multinomial regression,}
+      \item{"polr"}{for ordered response (cumulative logits) regression,}
+      \item{"weibull", "lognormal", "loglogistic", "extreme"}{
+	for survival regression with the respective distribution,}
+      \item{"ph"}{for Cox regression,}
+      or a suitable argument for \code{glm}, i.e.: A
+      description of the error distribution and link
+      function to be used in the model. This can be a character string
+      naming a family function, a family function or the result of a call
+      to a family function.  (See 'family' for details of family
+      functions.)
+    }
+  }
   \item{nonlinear}{if TRUE, a non-linear model is expected, to be fitted
     by \code{nlm}
   }
@@ -50,10 +54,11 @@ regr(formula, data=NULL, family=NULL, robust = FALSE, method=NULL,
     available, see Details.
     }
     \item{method}{"rq" or "quantreg" requires fitting by quantile
-  regression. Then, the argument \code{tau} is used for setting the
-  quantile: \code{regr(..., method="quantreg", tau=0.9)}.
-  Otherwise, if suitable, a method argument that is passed to the
-  fitting procedure, see also Details.}
+      regression. Then, the argument \code{tau} is used for setting the
+      quantile: \code{regr(..., method="quantreg", tau=0.9)}.
+      Otherwise, if suitable, a method argument that is passed to the
+      fitting procedure, see also Details.
+    }
 %%  \item{init.reg}{ function used to initialize robust methods }
   \item{subset}{ an optional vector specifying a subset of observations to be
     used in the fitting process. Names of variables in \code{data} can

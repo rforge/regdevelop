@@ -20,8 +20,8 @@ importFrom("utils",
 
 export(ciSgRl, confintF, drop1Wald,
        getcoeftable, getcoeffactor, getscalepar, 
-       pSymbols, rlvSymbols,
-       rlv.optionsDefault, 
+       pSymbols, rlvSymbols, rlv.optionsDefault,
+       regrModelClasses, 
        termeffects, termtable,
        twosamples,
        DB

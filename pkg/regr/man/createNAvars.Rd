@@ -10,7 +10,7 @@ Make NAs available for regression
 \description{
   For numeric variables, introduces a new indicator (binary) variable
   for missing values and assigns a fixed, non-missing value for them 
-  in the (renamed) original variable\cr
+  in the (renamed) original variable. -
   For factors, introduces a new level for missing values and assigns
   it to all missing values.
 }
@@ -57,7 +57,7 @@ Make NAs available for regression
     }
     \item{
       for each factor, the factor consisting of the original values,
-      but with NAs replaced by a level '.NA.' (unless specified
+      but with NAs replaced by a level \code{.NA.} (unless specified
       otherwise).
     }
   }

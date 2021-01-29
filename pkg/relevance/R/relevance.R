@@ -353,6 +353,7 @@ termtable <- #f
   ltlev1 <- 1-testlevel
   ## lrlthrl <- rlvThres[["rel"]]
   ## lrlthcf <- rlvThres[["coef"]]
+  browser()
   lrlthdr <- rlvThres[["drop"]]
   lrlthpr <- rlvThres[["pred"]]
   ## --- sigma and threshold for standardized coefficient
