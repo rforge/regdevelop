@@ -22,10 +22,10 @@ regr <- #F
   laRegr <- c("formula", "data", "family", "robust", "method",
               "nonlinear", "start", "subset", "weights", "offset")
   laControl <- c("contrasts","factorNA", "na.action", "calcdisp", "suffmean",
-                 "model", "x", "termtable", "vif", "testlevel", "leveragelimit",
+                 "model", "x", "termtable", "r2x", "testlevel", "leveragelimit",
                  "dist", "control")
   latransfer <- c("na.action", "calcdisp", "suffmean",
-                 "model", "x", "termtable", "vif")
+                 "model", "x", "r2x", "termtable")
   lextra <- setdiff(names(lac), c(laRegr, laControl))
   if (length(lextra))
     warning(":regr: argument(s)  ",paste(lextra, collapse=", "),
@@ -280,9 +280,9 @@ regr <- #F
   ## --- misc
   if (nonlinear) lreg$r.squared <- 1-lreg$sigma^2/var(lyy,na.rm=TRUE)
   if (!largs$x) lreg$x <- NULL
-  if (length(lnaaction)&length(largs$na.action))
-    class(lnaaction) <-
-      sub("na.","", sub("nainf.","", as.character(largs$na.action)))
+##-   if (length(lnaaction)&length(largs$na.action))
+##-     class(lnaaction) <-
+##-       sub("na.","", sub("nainf.","", as.character(substitute(largs$na.action))))
   lreg$na.action <- lnaaction
   class(lreg) <- if (inherits(lreg, "orig")) ## (class(lreg)[1]=="orig")  ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
@@ -292,32 +292,27 @@ regr <- #F
 }
 ## -----------------------------------------------------------------------
 regr.control <- #F
-  function (contrasts=getOption("regr.contrasts"), factorNA = NULL,
-           na.action=as.name("nainf.exclude"), calcdisp=NULL, suffmean=3,
-           dist=NULL,
-           model = FALSE, x = TRUE, termtable=NULL, vif=NULL,
-           testlevel = NULL, leveragelimit=NULL, tit=NULL,
-           control = NULL
-           )
+  function (contrasts=getOption("regr.contrasts"), factorNA = getOption("factorNA"),
+            na.action=as.name("nainf.exclude"), calcdisp=NULL,
+            suffmean=getOption("suffmean"), dist=NULL,
+            model = FALSE, x = TRUE, termtable=TRUE, r2x=getOption("r2x"),
+            testlevel = getOption("testlevel"), leveragelimit=NULL, tit=NULL,
+            control = NULL
+            )
 {
-  factorNA <- i.getopt(factorNA)
-  testlevel <- i.getopt(testlevel)
-  termtable <- i.getopt(termtable)
-  vif <- i.getopt(vif)
   list(contrasts=contrasts, factorNA=factorNA,
-       na.action=as.name("nainf.exclude"), calcdisp=calcdisp,
-       suffmean=suffmean,
-       dist=dist, model=TRUE, x=x, termtable=termtable, vif=vif,
+       na.action=na.action, calcdisp=calcdisp,
+       suffmean=suffmean, dist=dist,
+       model=model, x=x, termtable=termtable, r2x=r2x,
        testlevel=testlevel, leveragelimit=leveragelimit, tit=tit,
        control=control
        )
-  ## flicken !!! model=T needed in i.lm_ for getting ly
 }
 ## =========================================================================
 i.lm <- #F
   function (formula, data, family, fname="gaussian", nonlinear=FALSE,
             robust=FALSE, method=NULL, control=NULL,
-            vif=TRUE, termtable=TRUE, testlevel=0.05, call = NULL, ...)
+            r2x=TRUE, termtable=TRUE, testlevel=0.05, call = NULL, ...)
 {
   ## Purpose:  internal: fit lm
   ## ----------------------------------------------------------------------
@@ -371,9 +366,10 @@ i.lm <- #F
   ##  lcall[[1]] <- mkFn(lfn)
   if(lfn!="lmrob") lcall$control <- NULL
   lcall <- lcall[setdiff(names(lcall),
-                         c("fname","family","vif","nonlinear","robust",
+                         c("fname","family","r2x","nonlinear","robust",
                            "calcdisp","suffmean","termtable"))] #,"control"
   lcl <- c(list(mkFn(lfn)),as.list(lcall)[-1])
+  lcl$model <- TRUE
   mode(lcl) <- "call"
   ## --------------------------
   lreg <- eval(lcl, envir=environment())
@@ -414,7 +410,7 @@ i.lm <- #F
     attr(lcf, "se") <- lcftab[,2]
   ##  lreg$coefficients <- lcf
     lreg$coeftable <-
-      ciSgRl(lcftab, df=lreg$df.residual, testlevel=testlevel, object=lreg)
+      inference(lcftab, df=lreg$df.residual, testlevel=testlevel, object=lreg)
 ##  }
   ## -------
 #   lreg$r.squared <- 1-(lsig/lsdy)^2
@@ -427,10 +423,10 @@ i.lm <- #F
   ## --- table of terms
   if (!nonlinear) {
     if(termtable) {
-      ltr <- i.termresults(lreg, lreg1, lttype, vif)
+      ltr <- i.termresults(lreg, lreg1, lttype, r2x)
 ##-       ly <- lreg$model[[1]]
 ##-       lsdy <- sqrt(var(ly))
-##-       lreg$termtable <- termtable(lreg, lreg1, lttype, r2x=vif)
+##-       lreg$termtable <- termtable(lreg, lreg1, lttype, r2x=r2x)
 ##-       lreg$termeffects <- termeffects(lreg)
 ##-       if (leverage) lreg$leverage <- hat(lmmt)
       lreg[names(ltr)] <- ltr
@@ -490,7 +486,7 @@ i.mlmsum <- #F
 ## -----------------------------------------------------------------------
 i.glm <- #F
   function (formula, data, family, fname,
-            control=NULL, vif=TRUE, termtable=TRUE, call=NULL, ...)
+            control=NULL, r2x=TRUE, termtable=TRUE, call=NULL, ...)
 {
   ## Purpose:  internal: fit glm
   ## ----------------------------------------------------------------------
@@ -500,7 +496,7 @@ i.glm <- #F
   if (length(fname)) lcall$family <- get(fname)
   lcall$x <- TRUE
   lcall <- lcall[setdiff(names(lcall),
-                         c("fname","vif","nonlinear","robust",
+                         c("fname","r2x","nonlinear","robust",
                            "calcdisp","suffmean","termtable","control"))]
   lcall <- c(list(quote(stats::glm)),as.list(lcall[-1]))
   mode(lcall) <- "call"
@@ -510,7 +506,8 @@ i.glm <- #F
   lreg$leverage <- pmax(0,hat(lreg$x))
   lreg1 <- summary(lreg)
   lcoeftable <- lreg1$coef
-  ly <- as.numeric(lreg$model[,1])
+  browser()
+  ly <- lreg$y 
   ldisp <- lreg1$dispersion
   ## ---
   lfcount <- fname=="binomial"|fname=="poisson"
@@ -565,8 +562,8 @@ i.glm <- #F
   ## ---
   lreg$fitfun <- "glm"
   if (termtable) {
-    ltr <- i.termresults(lreg, lreg1, lttype, vif)
-  ##  ltt <- i.termtable(lreg, lcoeftable, data, lcov, lttype, lsdy=1, vif=vif)
+    ltr <- i.termresults(lreg, lreg1, lttype, r2x)
+  ##  ltt <- i.termtable(lreg, lcoeftable, data, lcov, lttype, lsdy=1, r2x=r2x)
 ##-     lcmpn <- c("termtable","termeffects","leverage")
     ##-     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
     lreg[names(ltr)] <- ltr
@@ -577,7 +574,7 @@ i.glm <- #F
 ## -----------------------------------------------------------------------
 i.multinomial <- #F
   function (formula, data, family, fname,
-            model=TRUE, vif=TRUE, termtable=TRUE, call=NULL, ...)
+            model=TRUE, r2x=TRUE, termtable=TRUE, call=NULL, ...)
 {
   ## Purpose:  internal: fit multinom
   ## ----------------------------------------------------------------------
@@ -589,7 +586,7 @@ i.multinomial <- #F
 ##  require(nnet)   ## !?!
   lcall <- match.call()
   lcall[[1]] <- quote(regr::i.multinomfit)
-  lcall$fname <- lcall$family <- lcall$control <- lcall$vif <- NULL
+  lcall$fname <- lcall$family <- lcall$control <- lcall$r2x <- NULL
   lcall$trace <- FALSE
   lreg <- eval(lcall, envir=environment())
   ## ---------------
@@ -629,7 +626,7 @@ i.multinomial <- #F
 ## -----------------------------------------------------------------------
 i.polr <- #F
   function (formula, data, family, fname, weights = NULL,
-            model=TRUE, vif=TRUE, termtable=TRUE, call=NULL, ...)
+            model=TRUE, r2x=TRUE, termtable=TRUE, call=NULL, ...)
 {
   ## Purpose:  internal: fit ordered y
   ## ----------------------------------------------------------------------
@@ -638,7 +635,7 @@ i.polr <- #F
   ## Author: Werner Stahel, Date:  4 Aug 2004, 11:18
 ##  require(MASS)   ## !?!
   lcall <- match.call()
-  ladrop <- c("fname","family","vif","nonlinear","robust",
+  ladrop <- c("fname","family","r2x","nonlinear","robust",
               "calcdisp","suffmean","termtable")
   lcl <- as.list(lcall[setdiff(names(lcall),ladrop)])
   lcl[1] <- list(quote(regr::i.polrfit))
@@ -674,9 +671,9 @@ i.polr <- #F
   ## --- deviances
   lreg$fitfun <- "polr"
   if (termtable) {
-    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=vif)
+    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=r2x)
 ##    ltt <- i.termtable(lreg, lreg1$coef, data, lcov, lttype="Chisq",
-##                       lsdy=1, vif=vif, leverage=TRUE)
+##                       lsdy=1, r2x=r2x, leverage=TRUE)
     lreg[names(ltr)] <- ltr
 ##-     lcmpn <- c("termtable","termeffects","leverage")
 ##-     lreg[lcmpn[lcmpn%in%names(ltt)]] <- ltt
@@ -692,7 +689,7 @@ i.polr <- #F
 ## -----------------------------------------------------------------------
 i.survreg <- #F
   function (formula, data, family, yy, fname="ph", method, control,
-           vif=TRUE, termtable=TRUE, ...)
+           r2x=TRUE, termtable=TRUE, ...)
 {
   ## Purpose:  internal: fit ordered y
   ## ----------------------------------------------------------------------
@@ -713,9 +710,9 @@ i.survreg <- #F
   }
   lyy <- lcall$yy
   if (is.null(lcall$dist)) lcall$dist <- lcall$family
-  lcall <- lcall[names(lcall)%nin%c("yy","fname","vif","family",
+  lcall <- lcall[names(lcall)%nin%c("yy","fname","r2x","family",
                                     "calcdisp","suffmean","termtable")]
-##  lcall$yy <- lcall$fname <- lcall$family <- lcall$vif <- NULL
+##  lcall$yy <- lcall$fname <- lcall$family <- lcall$r2x <- NULL
   lcall$y <- lcall$x <- TRUE
   ## ---
   lreg <- eval(lcall, envir=environment())
@@ -789,9 +786,9 @@ i.survreg <- #F
     }
   }
   if (termtable) {
-    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=vif)
+    ltr <- i.termresults(lreg, lreg1, testtype="Chisq", r2x=r2x)
     ## ltt <- i.termtable(lreg, lreg1$table, data, lcov, lttype="Chisq",
-       ##                lsdy=1, vif=vif)
+       ##                lsdy=1, r2x=r2x)
     lreg[names(ltr)] <- ltr
     ## log(scale): signif<-NA. no! log(scale)==0 means
     ##    exp.distr for weibull/gumbel
@@ -1163,7 +1160,7 @@ i.termresults <- #F
   lmmt <- object[["x"]]
   if (length(lmmt)==0)  object$x <- lmmt <- model.matrix(object)
   list(termtable=termtable(object, summary, testtype, r2x),
-       termeffects=termeffects(object),
+       termeffects = termeffects(object),
        leverage=if(leverage) hat(lmmt)
        )
 }
@@ -1418,7 +1415,7 @@ print.regr <- #F
         cat("\nEffects of ", if (lshte==1) "factor levels" else "terms", ":\n")
 ##-         print.termeffects(mt, printstyle=lprstyle, digits=digits,
         ##-                           na.print=na.print, ...)
-        print(mt)
+        relevance:::print.termeffects(mt) ## needed temporarily only
       }
     } ## else  cat("\n")
   }
@@ -2388,7 +2385,7 @@ modelTable <-function (models, seq=NULL)
   ##   models   character vector of names of model objects
   ## -------------------------------------------------------------------------
   ## Author: Werner Stahel, Date:  9 Aug 2000, 11:50
-  if (inherits(models, regrModelClasses))
+  if (inherits(models, regr.modelclasses))
     stop("!modelTable! First argument is a single model.",
          " I need a list of at least two models")
   t.islist <- is.list(models)
@@ -2399,7 +2396,7 @@ modelTable <-function (models, seq=NULL)
     else t.mnm <- models
   if (t.islist) {
     if (any(t.wr <- sapply(models,
-                           function(x) !inherits(x, regrModelClasses))))
+                           function(x) !inherits(x, regr.modelclasses))))
       stop("!modelTable! element  ",paste(t.mnm[t.wr],collapse=", "),
            "  has inadequate class")
   } else  if(!is.character(models))
@@ -2491,7 +2488,7 @@ format.modelTable <- #F
   ##            (la)tex source
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 23 Dec 2008, 10:09
-  lpvs <- get("pSymbols", pos=1)
+  lpvs <- getOption("p.symbols")
   ## ---
   t.sd <- x$sd.terms
   lsd <- length(t.sd)>0
@@ -3265,7 +3262,7 @@ extractAIC.lmrob <- #f
 ##-     else default
 ##- }
 i.getopt <- #f
-  function(opt, opts = regr.optionsDefault)
+  function(opt, opts = regr.options)
 {
   lnam <- as.character(substitute(opt))
   lopt <- opt 
@@ -3304,10 +3301,11 @@ shift <- function(x, k = 1)
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)
 ## ==========================================================================
-regrModelClasses <- c("regr","lm","lmrob","rlm","glm","survreg","coxph","rq","polr")
-regr.optionsDefault <- list(
-  regr.contrasts = "contr.wsum",
-  factorNA = TRUE,
+regr.modelclasses <- c("regr","lm","lmrob","glm","polr","survreg","coxph","rq")
+## ,"rlm"
+regr.options <- list(
+  regr.contrasts = c("contr.wsum","contr.wpoly"), r2x = TRUE,
+  factorNA = TRUE, suffmean = 3,
   show.call = TRUE, show.termeffects = TRUE, show.coefcorr = FALSE
 )
-.onLoad <- function(lib, pkg) options(regr.optionsDefault)
+.onLoad <- function(lib, pkg) options(regr.options)

@@ -1,19 +1,21 @@
 \name{twosamples}
-%zu lang:\title{Compare Two Samples, or Inference for one Sample: Relevance and Significance}
-\title{Relevance and Significance for One or Two Samples}
 \alias{twosamples}
+\alias{onesample}
 \alias{twosamples.default}
 \alias{twosamples.formula}
+
+\title{Relevance and Significance for One or Two Samples}
 \description{Inference for a difference between two independent samples
   or for a single sample: Collect quantities for inference, 
   including Relevance and Significance measures
 }
 \usage{
 twosamples(x, ...)
+onesample(x, ...)
 
 \method{twosamples}{default}(x, y = NULL, paired = FALSE,
   hypothesis = 0,var.equal = TRUE,
-  testlevel=getOption("testlevel"), rlvThres=getOption("rlvThres"), ...)
+  testlevel=getOption("testlevel"), rlv.threshold=getOption("rlv.threshold"), ...)
 \method{twosamples}{formula}(formula, data, subset, na.action, ...)
 }
 \arguments{
@@ -34,7 +36,7 @@ twosamples(x, ...)
   \item{testlevel}{level for the test,
     also determining the confidence level
   }
-  \item{rlvThres}{Relevance threshold, or a vector of thresholds
+  \item{rlv.threshold}{Relevance threshold, or a vector of thresholds
     from which the element \code{stand} is taken for quantitative data
     and the element \code{prop}, for binary data.
   }
@@ -48,7 +50,7 @@ twosamples(x, ...)
   }
   \item{...}{further arguments. For the \code{formula} method,
     this includes the arguments \code{var.equal, testlevel} and
-    code{rlvThres} of the \code{default} method.
+    code{rlv.threshold} of the \code{default} method.
   }
 }
 \value{an object of \code{\link{class}} \code{'effecttable'}, a
@@ -77,9 +79,11 @@ twosamples(x, ...)
     \item{\code{statistic}: }{test statistic}
     \item{\code{V}: }{single observation variance}
     \item{\code{df}: }{degrees of freedom for the t distribution}
-    \item{\code{rlvThres}: }{relevance threshold}
+    \item{\code{rlv.threshold}: }{relevance threshold}
   }
 }
+\note{\code{onesample} and \code{twosamples} are identical.
+  }
 \references{see those in \code{\link{relevance-package}}.}
 
 \author{Werner A. Stahel}
@@ -87,8 +91,8 @@ twosamples(x, ...)
 \seealso{\code{\link{t.test}, \link{binom.test}}
 }
 \examples{
-  t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
-  twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 
 ## Two-sample test, wilcox.test example,  Hollander & Wolfe (1973), 69f.
 ## Permeability constants of the human chorioamnion (a placental membrane)
@@ -99,6 +103,9 @@ d.permeabililty <-
              )
 t.test(perm~atterm, data=d.permeabililty)
 twosamples(perm~atterm, data=d.permeabililty)
+
+## one sample
+onesample(sleep[sleep$group == 2, "extra"])
 }
 \keyword{htest}
 \concept{relevance}

@@ -48,7 +48,7 @@ The package \T{regr} contains the functions that go along with
 It is available from \T{R-forge} and is still in development.
 \end{abstract}
 
-<<preliminary, echo=F>>=
+<<preliminary, echo=FALSE>>=
 ## library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 library(regr) ##, lib.loc="/u/stahel/R/regdevelop/pkg/regr.Rcheck")
 plmframes()

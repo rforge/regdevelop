@@ -1,5 +1,5 @@
-\name{ciSgRl}
-\alias{ciSgRl}
+\name{inference}
+\alias{inference}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{Calculate Confidence Intervals and Relevance and Significance Values
 }
@@ -8,8 +8,8 @@
   relevance, additional quantities. 
 }
 \usage{
-ciSgRl(estimate, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE, 
-            rlvThres=0.1, object=NULL)
+inference(estimate, se = NULL, df = NULL, testlevel = 0.05, stcoef=TRUE, rlv=TRUE, 
+            rlv.threshold=0.1, object=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -28,7 +28,7 @@ ciSgRl(estimate, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE,
   }
   \item{rlv}{logical: Should relevances be calculated?
   }
-  \item{rlvThres}{Relevance threshold
+  \item{rlv.threshold}{Relevance threshold
   }
   \item{object}{model fit, needed for calculating \code{stcoef}.
   }
@@ -65,8 +65,8 @@ ciSgRl(estimate, se = NULL, df = Inf, testlevel = 0.05, stcoef=TRUE, rlv=TRUE,
 data(d.blast)
 rr <-
   lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) 
-ciSgRl(rr) ## same as
-ciSgRl(summary(rr)$coef)
+inference(rr) ## same as
+inference(summary(rr)$coef)
 }
 \keyword{ regression }
 \concept{relevance}

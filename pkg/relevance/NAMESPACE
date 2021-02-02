@@ -18,12 +18,11 @@ importFrom("utils",
 ##-
 ##- importFrom("quantreg", rq)
 
-export(ciSgRl, confintF, drop1Wald,
+export(confintF, drop1Wald,
        getcoeftable, getcoeffactor, getscalepar, 
-       pSymbols, rlvSymbols, rlv.optionsDefault,
-       regrModelClasses, 
-       termeffects, termtable,
-       twosamples,
+       inference, onesample, p.symbols, rlv.symbols,
+       relevance.options, relevance.modelclasses, 
+       termeffects, termtable, twosamples,
        DB
        )
 

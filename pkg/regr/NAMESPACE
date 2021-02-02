@@ -36,7 +36,7 @@ importFrom("plgraphics", asinp, dropNA, fitted.regrpolr,
            u.true, u.notfalse, u.debug, DB)
 
 importFrom("relevance", termtable, termeffects,
-           ciSgRl, confintF, drop1Wald,
+           inference, confintF, drop1Wald,
            getcoeftable, getcoeffactor, getscalepar
 ##           print.termtable, print.termeffects
            )
@@ -78,7 +78,7 @@ export(add1.regr, ## add1.default, add1.mlm, ## see below
        ## drevgumbel, prevgumbel, qrevgumbel, rrevgumbel, ## qrevgumbelexp,
        ## quantilew, quinterpol,
        regr, regr.control,
-       regr.optionsDefault,
+       regr.options, regr.modelclasses, 
        regrAllEqns, regrAllEqnsXtr, 
        residuals.regr,
        ## residuals.regrpolr, residuals.regrcoxph, residuals.regrsurvreg,

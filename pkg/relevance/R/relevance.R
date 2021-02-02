@@ -1,11 +1,11 @@
 ## relevance.R
 ## two groups and one sample
 twosamples <- #f
-  function(x, ...) UseMethod("twosamples")
+  onesample <- function(x, ...) UseMethod("twosamples")
 
 twosamples.default <- #f
   function(x, y=NULL, paired=FALSE, hypothesis=0, var.equal=TRUE,
-           testlevel=getOption("testlevel"), rlvThres=getOption("rlvThres"), ...)
+           testlevel=getOption("testlevel"), rlv.threshold=getOption("rlv.threshold"), ...)
 { ## effect (group difference) and relevance
   ltlev2 <- testlevel/2
   ## --------------
@@ -33,9 +33,10 @@ twosamples.default <- #f
   lmnx <- mean(x)
   ln <- lnx <- length(x)
   lny <- NULL
+  lse <- NULL
   if (lbin) { ## binary data
     lrlvth <-
-      i.def(rlvThres["prop"], c(rlvThres, rlv.optionsDefault[["rlvThres"]]["prop"])[1])
+      i.def(rlv.threshold["prop"], c(rlv.threshold, relevance.options[["rlv.threshold"]]["prop"])[1])
     lx <- sum(x)
     if (lonegroup) { ## one proportion
       if (paired) x <- (x[x!=0]+1)/2 ## McNemar
@@ -68,7 +69,7 @@ twosamples.default <- #f
     ldf <- lv <- NULL
   } else { ## quantitative data
     lrlvth <-
-      i.def(rlvThres["stand"], c(rlvThres, rlv.optionsDefault[["rlvThres"]]["stand"])[1])
+      i.def(rlv.threshold["stand"], c(rlv.threshold, relevance.options[["rlv.threshold"]]["stand"])[1])
     lssx <- sum((x-lmnx)^2)
     lpq <- 1-ltlev2
     if (lonegroup) { ## one quantitative sample
@@ -110,14 +111,15 @@ twosamples.default <- #f
   }
   if (leff<0) lrlvci <- -lrlvci[c(1,3,2)]
   structure(
-      c(effect=leff, ciLow=leffci[1], ciUp=leffci[2],
-        Rle=lrlvci[1], Rls=lrlvci[2], Rlp=lrlvci[3],
-        Sig0=lsig, Sigth=lsigth, p.value=lpv),
+    c(effect=leff, se=lse, statstic=ltst, p.value=lpv, Sig0=lsig,
+      ciLow=leffci[1], ciUp=leffci[2],
+      Rle=lrlvci[1], Rls=lrlvci[2], Rlp=lrlvci[3],
+      Sigth=lsigth),
     class = "inference",
     method = method, effectname=effname, hypothesis = hypothesis,
     n = c(lnx, lny), means = if(!lonegroup) c(lmnx,lmny),
     statistic = ltst, V = lv, df = ldf,
-    rlvThres =
+    rlv.threshold =
       structure(lrlvth, type=ifelse(lbin, "proportion","standardized"))
   )
 }
@@ -175,19 +177,24 @@ qintpol <- function(p, par1, par2, dist="binom")
 }
 ## ===========================================================================
 ## regression
-ciSgRl <-
-  function (estimate=NULL, se=NULL, df=Inf, testlevel=0.05, stcoef=TRUE, rlv=TRUE,
-            rlvThres=0.1, object=NULL)
+inference <-
+  function (estimate=NULL, se=NULL, df=NULL, testlevel=0.05, stcoef=TRUE, rlv=TRUE,
+            rlv.threshold=0.1, object=NULL)
 { ## for a coefficients table,
   ## calculate confidence interval, significance and relevance
   if (length(estimate)==0) estimate <- object
-  if (inherits(estimate, regrModelClasses)) {
+  ldf <- Inf
+  if (inherits(estimate, relevance.modelclasses)) {
     object <- estimate
     estimate <- getcoeftable(object)
-    df <- df.residual(object)
+    ldf <-
+      if (class(object)[1]%in%c("rlm", "coxph"))
+        length(object$residuals)-length(object$coef)
+      else df.residual(object)
   }
+  df <- i.def(df, ldf, valuefalse=Inf)
   if (!(is.atomic(estimate)||length(dim(estimate))==2))
-    stop("!ciSgRl! first argument not suitable")
+    stop("!inference! first argument not suitable")
   if (is.null(se))
     if (NCOL(estimate)>1) {
       se <- estimate[,2]
@@ -195,9 +202,9 @@ ciSgRl <-
     }
   if (is.null(se)) se <- attr(estimate, "se")
   if (is.null(se))
-    stop("!ciSgRl! no standard errors found")
+    stop("!inference! no standard errors found")
   if (df==0||!any(is.finite(se))) {
-    warning("!ciSgRl! no finite standard errors")
+    warning("!inference! no finite standard errors")
     return(cbind(estimate))
   }
   ltq <- qt(1-testlevel/2, df)
@@ -205,26 +212,26 @@ ciSgRl <-
   ltst <- estimate/se
   lsgf <- ltst/ltq
   lpv <- 2*pt(-abs(ltst), df)
-  rr <- data.frame(estimate=estimate, se=se, lci, testst=ltst,
-                   Sig0=lsgf, p.value=lpv)
+  rr <- data.frame(estimate=estimate, se=se, statistic=ltst, p.value=lpv,
+                   Sig0=lsgf, lci)
   ## --- standardized coefficients
   if (!u.notfalse(stcoef)) return (rr)
   ##    warning(":ciSigRlv: no standardized coefficients given. No relevances")
   if (length(stcoef)==0||u.true(stcoef)) {
     if (length(object)==0) {
-      warning(":ciSgRl: argument 'object' needed. No relevances")
+      warning(":inference: argument is not a fitted model. No relevances")
       return (rr)
     }
     if (inherits(object, "nls")) {
-      warning(":ciSgRl: cannot calculate standardized coefficients for 'nls' objects.")
+      warning(":inference: cannot calculate standardized coefficients for 'nls' objects.")
       return(rr)
     }
     lfac <- getcoeffactor(object)
     ##   lcls <- attr(lfac, "fitclass")
-    stcoef <- estimate*lfac
+    stcoef <- estimate*lfac[names(estimate)]
   }
   if (length(stcoef)!=length(estimate)) {
-    warning(":ciSgRl: argument 'stcoef' not suitable. No relevances")
+    warning(":inference: argument 'stcoef' not suitable. No relevances")
     return (rr)
   }
   lfac <- stcoef/estimate
@@ -232,12 +239,12 @@ ciSgRl <-
   rr <- cbind(rr, lstci)
   ## --- relevance
   if (!rlv) return(rr)
-  if (length(rlvThres)>1) rlvThres <- rlvThres["coef"]
-  if (is.na(rlvThres)) {
-    warning(":ciSgRl: argument 'rlvThres' not suitable. No relevances")
+  if (length(rlv.threshold)>1) rlv.threshold <- rlv.threshold["coef"]
+  if (is.na(rlv.threshold)) {
+    warning(":inference: argument 'rlv.threshold' not suitable. No relevances")
     return (rr)
   }
-  lrlv <- lstci/rlvThres
+  lrlv <- lstci/rlv.threshold
   li <- which(lstci[,1]<0)
   if (length(li)) lrlv[li,] <- - lrlv[li,c(1,3,2)]
   colnames(lrlv) <- c("Rle","Rls","Rlp")
@@ -260,18 +267,20 @@ print.inference <- #f
   ## ---
   if (!is.na(leff <- x["effect"]))
     cat(if(length(leffn <- attr(x, "effectname")))
-          paste(leffn, ": ") else "effect:   ", format(leff))
-  if (getOption("show.confint"))
+          paste(leffn, ": ",sep="") else "effect:   ", format(leff))
+  if (getOption("show.confint")) {
     if (length(lci <- x[c("ciLow","ciUp")]))
       cat(";  confidence int.: [",
           paste(format(lci), collapse=", "),"]\n")
+    else cat("\n")
+  } else cat("\n")
   ## ---
   if ("test"%in%lshow) {
     cat("Test:     hypothesis: effect = ", attr(x,"hypothesis"), "\n  ")
     lpv <- x["p.value"]
     lps <-
       if (length(lpv)& ("p.symbol"%in%lshow | getOption("show.signif.stars")) )
-             symnum(lpv, pSymbols$cutpoint, pSymbols$symbol)
+             symnum(lpv, p.symbols$cutpoint, p.symbols$symbol)
     out <- c(if(length(ltst <- attr(x, "statistic")))
                paste("statistic: ", round(ltst, digits)),
              ## !!! df
@@ -284,13 +293,13 @@ print.inference <- #f
     if (length(out)) cat(paste(out, collapse=" ;  "), "\n")
   }
   ## ---
-  if ("relevance"%in%lshow) {
-    cat("Relevances (threshold: ", attr(x, "rlvThres"), "):\n  ")
+  if (any(substring(lshow,1,2)=="Rl")) {
+    cat("Relevances (threshold: ", attr(x, "rlv.threshold"), "):\n  ")
     lrs <- if ("Rls.symbol"%in%lshow)
-             symnum(x["Rls"], rlvSymbols$cutpoint, rlvSymbols$symbol)
-    out <- c(paste("Rle: ", round(x["Rle"], digits)),
-             paste("Rlp: ", round(x["Rlp"], digits)),
-             paste("Rls: ", round(x["Rls"], digits), lrs)
+             symnum(x["Rls"], rlv.symbols$cutpoint, rlv.symbols$symbol)
+    out <- c(if("Rle"%in%lshow) paste("Rle: ", round(x["Rle"], digits)),
+             if("Rlp"%in%lshow) paste("Rlp: ", round(x["Rlp"], digits)),
+             if("Rls"%in%lshow) paste("Rls: ", round(x["Rls"], digits), lrs)
              )
     if (length(out)) cat(paste(out, collapse=" ;  "), "\n")
   }
@@ -342,20 +351,18 @@ getcoeftable <-
 }
 ## --------------------------------------------------------------------------
 termtable <- #f
-  function (object, summary=NULL, testtype=NULL, r2x = TRUE, rlv = TRUE,
-            rlvThres=c(rel=0.1, coef=0.1, drop=0.1, pred=0.05), testlevel=0.05)
+  function (object, summary=summary(object), testtype=NULL, r2x = TRUE,
+            rlv = TRUE, rlv.threshold = getOption("rlv.threshold"), 
+            testlevel = getOption("testlevel"))
 {
   ## Purpose:  generate term table for various models
   ## --------------------------------------------------------
-  ## prep
-  if (length(summary)==0) summary <- summary(object)
   ## thresholds
   ltlev1 <- 1-testlevel
-  ## lrlthrl <- rlvThres[["rel"]]
-  ## lrlthcf <- rlvThres[["coef"]]
-  browser()
-  lrlthdr <- rlvThres[["drop"]]
-  lrlthpr <- rlvThres[["pred"]]
+  ## lrlthrl <- rlv.threshold[["rel"]]
+  ## lrlthcf <- rlv.threshold[["coef"]]
+  lrlthdr <- rlv.threshold[["drop"]]
+  lrlthpr <- rlv.threshold[["pred"]]
   ## --- sigma and threshold for standardized coefficient
   ## lsigma <- c(object$sigma, summary$sigma, 1)[1]
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
@@ -377,48 +384,33 @@ termtable <- #f
   }
   ## ---
   lterms <- terms(object)
-  if(length(attr(lterms,"term.labels"))==0)
-    return(data.frame(
-      coef=c(object$coefficients,NA)[1], df = NA, se=NA, ciLow=NA, ciUp=NA,
-      Sig0=NA, stcoef=NA, stciLow = NA, stciUp = NA,
-      testst=NA, p.value=NA, R2.x=NA,
-      stringsAsFactors=FALSE)
-      )
-  ## degrees of freedom
   ldfres <- df.residual(object)
-  if (ldfres<1) {
-    warning(":termtable: no degrees of freedom left.")
+  if (class(object)[1]%in%c("rlm", "coxph"))
+    ldfres <- length(object$residuals)-length(object$coef)
+  if(length(attr(lterms,"term.labels"))==0 | ldfres<1)
     return(data.frame(
-      coef=c(object$coefficients,NA)[1], df = NA, se=NA, ciLow=NA, ciUp=NA,
-      Sig0=NA, stcoef=NA, stciLow = NA, stciUp = NA,
-      testst=NA, p.value=NA, R2.x=NA,
+      coef=i.def(object$coefficients,NA), df = NA, se=NA,
+      statistic=NA, p.value=NA, Sig0=NA, ciLow=NA, ciUp=NA,
+      stcoef=NA, st.Low = NA, st.Up = NA, R2.x=NA,
       stringsAsFactors=FALSE)
       )
-  }
   ## --- coefficients
   lcoef <- object$coefficients
-##-   lcoeftab <- object$coeftable
-##-   if (length(lcoeftab)==0||ncol(lcoeftab)<10)
-  lcoeftab <- ciSgRl(object=object)
+  lcoeftab <- inference(object=object)
   names(lcoeftab)[1] <- "coef"
   ## --- drop1
   ldr1 <-
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
-      ## lcov <- summary$cov.unscaled
-##-       if (u.debug())
-##-         drop1Wald(object, test=testtype, scope=lterms) ## scale for AIC!!!
-      ##-       else
       try(drop1Wald(object, test=testtype, scope=lterms), silent=TRUE)
     } else {
-##-       if (u.debug())
-##-         drop1(object, test=testtype, scope=lterms)
-      ##-       else
       try(drop1(object, test=testtype, scope=lterms), silent=TRUE)
     }
   if (inherits(ldr1, "try-error")) {
     warning(":termtable: drop1 did not work. I return the codfficient table")
-##                  produced by ", object$fitfun
-    return(list(termtable=lcoeftab))
+    lii <- match(c("Rle","Rls","Rlp"), names(lcoeftab), nomatch=0)
+    names(lcoeftab)[lii] <- c("coefRle","coefRls","coefRlp")[lii!=0]
+    return( structure(cbind(coef=lcoeftab[,1], df=1, lcoeftab[,-1]),
+                      class=c("termtable","data.frame")))
   }
   ldr1 <- ldr1[-1,]
   ldr1$RSS <- NULL # same ncol for lm and glm
@@ -476,17 +468,15 @@ termtable <- #f
   ltst <- ldr1[,lpvcol-1]
   ## table, filled partially
   ltb <- data.frame(coef=NA, ldr1[,1,drop=FALSE], ## keep name if only 1 coef
-                    se=NA, ciLow=NA, ciUp=NA,
-                    Sig0=sqrt(pmax(0,ltst)/ltstq),
+                    se=NA, statistic=ltst, p.value=lpv,
+                    Sig0=sqrt(pmax(0,ltst)/ltstq), ciLow=NA, ciUp=NA,
                     stcoef=NA, st.Low=NA, st.Up=NA,
-                    testst=ltst, p.value=lpv, R2.x=lr2, ldrrl,
+                    testst=ltst, R2.x=lr2, ldrrl,
                     stringsAsFactors=FALSE)
   names(ltb)[2] <- "df"
   ## intercept
   ljint <- "(Intercept)"==names(lcoef)[1]
   if (ljint) {
-    ##    ltstint <- # if(class(object)[1] %in% c("lm","nls","rlm"))
-    ##      lcoeftab[1,3]^2 # else lcoeftab[1,3]
     ltb <- rbind("(Intercept)"=ltb[1,],ltb)
     ltb[1,] <- NA
     ltb[1,"df"] <- 1
@@ -500,10 +490,9 @@ termtable <- #f
     ## ltlb <- dimnames(ltb)[[1]]
     ## lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
     ljc <- match(lcont,lasg) # index of coefs for cont variables
-    lj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
+    lj <- c("coef","se","statistic","ciLow","ciUp","stcoef", "st.Low","st.Up",
             "coefRle","coefRls","coefRlp")
-    ljj <- c("coef","se","ciLow","ciUp","stcoef", "st.Low","st.Up",
-            "Rle","Rls","Rlp")
+    ljj <- sub("coefRl","Rl",lj)
     ltb[lcont1,lj] <- lcoeftab[ljc,ljj]
     ltb[lcont1,"Sig0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"Sig0"]
   }
@@ -515,14 +504,14 @@ termtable <- #f
     lls[1,] <- NA
     lq <- qnorm(1-testlevel/2)
     lls[1,1:7] <-
-      c(ltsc[1],ltsc[2],ltsc[1]+c(-1,1)*lq*ltsc[2], 1, ltsc[3], ltsc[3]/lq)
+      c(ltsc[1:3],ltsc[2],ltsc[1]+c(-1,1)*lq*ltsc[2], 1, ltsc[3], ltsc[3]/lq)
     lls[,"p.value"] <- ltsc[4]
     ltb <- rbind(ltb,"log(scale)"= lls)
   }
   structure(ltb, class=c("termtable", "data.frame"),
             testtype=testtype,
             fitclass=class(object), family=lfamily, dist=ldist,
-            rlvThres=rlvThres)
+            rlv.threshold=rlv.threshold)
 }
 ## end termtable
 ## ===========================================================
@@ -575,11 +564,12 @@ print.termtable <- #f
     lxx <- x[,var]
     ltypep <- substring(var,1,3)=="p.v"
     lxx[is.na(lxx)] <- ltypep
-    lsymb <- if(ltypep) pSymbols else rlvSymbols
+    lsymb <- if(ltypep) p.symbols else rlv.symbols
     ls <- symnum(lxx, lsymb$cutpoint, lsymb$symbol)
     lsy <- format(c("    ",ls))[-1]
     ## trick needed to ensure flush left priniting of the symbols
-    lcl <- match(c(var, place, "coef"), colnames(lx), nomatch=0)[1]
+    lcl <- match(c(var, place, "coef"), colnames(lx), nomatch=0)
+    lcl <- lcl[lcl>0][1]
     rr <- if(lcl<ncol(lx)) cbind(lx[,1:lcl], lsy, lx[,-(1:lcl),drop=FALSE])
           else  cbind(lx[,1:lcl], rsy=lsy)
     names(rr)[lcl+1] <- paste(substring(var,1,1),if (!ltypep) "R", "sy",sep="")
@@ -588,13 +578,13 @@ print.termtable <- #f
   }
     ## -------------------------------------
   digits <- pmax(digits, 3)
-  show <- if (length(show)==1 && show=="all")
+  lshow <- if (length(show)==1 && show=="all")
             c(colnames(x),
               "p.symbol", "coefRls.symbol", "dropRls.symbol", "predRls.symbol")
   else unique(c("coef", i.getshow(show, "terms")))
-  show[show=="estimate"] <- "coef"
+  lshow[lshow=="estimate"] <- "coef"
   colnames(x)[colnames(x)=="estimate"] <- "coef"
-  lcols <- intersect(show, colnames(x))
+  lcols <- intersect(lshow, colnames(x))
   if (length(lcols)==0) {
     warning(":print.termtable: no columns selected")
     return(invisible(x))
@@ -608,27 +598,32 @@ print.termtable <- #f
   if (length(ljrp)) lx[,ljrp] <- round(as.matrix(lx[,ljrp]),i.last(digits)-1)
   ## --- paste symbols to numbers
   lpleg <- lrleg <- NULL
-  if ("p.symbol"%in%show & "p.value"%in%colnames(x)) {
+  if ("p.symbol"%in%lshow & "p.value"%in%colnames(x)) {
     lx <- ff.mergesy(lx, x, "p.value", "Sig0")
 ##-     lpv <- x[,"p.value"]
 ##-     lpv[is.na(lpv)] <- 1
-##-     lpsy <- symnum(lpv, pSymbols$cutpoint, pSymbols$symbol)
+##-     lpsy <- symnum(lpv, p.symbols$cutpoint, p.symbols$symbol)
 ##-     lcl <- match(c("p.value","Sig0","coef"), lcols, nomatch=0)[1]
 ##-     lx <- if(lcl<ncol(lx)) cbind(lx[,1:lcl], psy=lpsy, lx[,-(1:lcl),drop=FALSE])
 ##-           else  cbind(lx[,1:lcl], psy=lpsy)
   }
-  li <- grep("Rls.symbol", show)
+  li <- grep("Rls.symbol", lshow)
   if (length(li)) {
-    lrs <- show[li]
+    lrs <- lshow[li]
     lrc <- sub(".symbol","",lrs)
     for (lii in seq_along(li)) {
-      lx <- ff.mergesy(lx, x, lrc[lii], c("dropRls", "coefRls"))
+      lvar <- lrc[lii]
+      if (!lvar%in%names(x)) {
+        warning(":print.termtable: column ",lvar, " not available")
+        next
+      }
+      lx <- ff.mergesy(lx, x, lvar, c("dropRls", "coefRls"))
     }
   }
   ## ---------------
   ## print
   if (transpose.ok &&
-      ((lnc1 <- ncol(lx)==1)|| ncol(lx)==2 && length(grep(".symbol", show))) ) {
+      ((lnc1 <- ncol(lx)==1)|| ncol(lx)==2 && length(grep(".symbol", lshow))) ) {
     if (lnc1) print(lx[[1]])
     else print(setNames(paste(format(lx[[1]]),lx[[2]]),
                         paste(row.names(lx),"    ")), quote=FALSE)
@@ -667,7 +662,10 @@ termeffects <- #f
   int <- attr(Terms, "intercept")
   facs <- attr(Terms, "factors")
   mf <- object$model  ##! d.c used all.vars
-  if (is.null(mf)) mf <- model.frame(object)
+  if (is.null(mf)) {
+    object$call$model <- object$call$x <- object$call$envir <- NULL
+    mf <- model.frame(object)
+  }
   xtnm <- dimnames(facs)[[1]]  ## names  ##! replaces vars
   xtlv <- lapply(mf[,xtnm, drop=FALSE],function(x) levels(x)) ## levels
   lcontr <- object$contrasts
@@ -776,7 +774,7 @@ termeffects <- #f
 ##-                 tl[j], "'. no standard errors etc")
           ljfail <- c(ljfail, tl[j])
         } else {
-          rrj <- ciSgRl(rrj, sej, df, stcoef=rrj*0.5/lsigma, rlv=rlv)
+          rrj <- inference(rrj, sej, df, stcoef=rrj*0.5/lsigma, rlv=rlv)
           li <- match(c("Rle","Rlp","Rls"), names(rrj))
           names(rrj)[li] <- c("coefRle","coefRlp","coefRls")
         }
@@ -793,13 +791,13 @@ termeffects <- #f
 ##-   if (inherits(object, "polr")) {
 ##-     lcfi <- object$intercepts[,1]
 ##-     res <- c(res,
-##-              list("(Intercepts)"=ciSgRl(lcfi, object$intercepts[,2], df=df, stcoef=lcfi) ))
+##-              list("(Intercepts)"=inference(lcfi, object$intercepts[,2], df=df, stcoef=lcfi) ))
 ##-   }
   ##  class(res) <- "termeffects" ## don't do that:
   ##                                 want to be able to print the whole table
-  res
+  structure(res, class="termeffects")
 }
-## ---------------------------------------
+## --------------------------------------------------------------------------------
 print.termeffects <- #f
   function (x, show = getOption("show.ifc"), transpose.ok=TRUE, single=FALSE, ...)
 {
@@ -859,22 +857,24 @@ getcoeffactor <- #f
   structure(lfac, sigma=lsigma, fitclass=lcls, family=lfamily, dist=ldist)
 }
 ## ====================================================================
-pSymbols <- list(symbol=c("***", "**", "*", ".", " "),
+relevance.modelclasses <- c("regr","lm","lmrob","glm","polr","survreg","coxph")
+## ,"rlm" : no correlation matrix of coef
+## ,"rq"
+p.symbols <- list(symbol=c("***", "**", "*", ".", " "),
                   cutpoint=c(0, 0.001, 0.01, 0.05, 0.1, 1) )
-rlvSymbols <- list(symbol=c(" ", ".", "+", "++", "+++"),
+rlv.symbols <- list(symbol=c(" ", ".", "+", "++", "+++"),
                   cutpoint=c(-Inf,0,1,2,5,Inf) )
 ## -----------------------------------------------------------
-rlv.optionsDefault <- list(
+relevance.options <- list(
   digits.reduced = 3,
   testlevel = 0.05,
-  rlvThres = c(stand=0.1, rel=0.1, prop=0.1, coef=0.1, drop=0.1, pred=0.05),
-  show.confint = TRUE,
-  termtable = TRUE, vif = TRUE,
-##-   show.termeffects = TRUE, show.coefcorr = FALSE,
+  rlv.threshold = c(stand=0.1, rel=0.1, prop=0.1, coef=0.1, drop=0.1, pred=0.05),
+  termtable = TRUE, 
+  show.confint = TRUE, show.doc = TRUE, 
   show.ifc = "relevance",
-  show.ifc.relevance = c("Rle", "Rlp", "Rls", "Rls.symbol"),
-  show.ifc.test = c("Sig0", "p.symbol"),
-  show.ifc.classical = c("statistic", "p.value", "p.symbol"),
+  show.ifc.relevance = c("Rle", "Rlp", "Rls"),
+  show.ifc.test = c("Sig0"),
+  show.ifc.classical = c("statistic", "p.value"),
   show.term.relevance = c("df", "R2.x", "coefRlp", "coefRls", ## "dropRle",
                          "dropRls", "dropRls.symbol", "predRle"),
   show.term.test = c("df", "ciLow","ciUp", "R2.x", "Sig0", "p.value",
@@ -884,10 +884,9 @@ rlv.optionsDefault <- list(
   show.termeff.test = c("coef","p.symbol"),
   show.termeff.classical = c("coef","p.symbol"),
   show.symbollegend = TRUE,
-  show.doc = TRUE,
   na.print = ".",
-  pSymbols = pSymbols,
-  rlvSymbols = rlvSymbols
+  p.symbols = p.symbols,
+  rlv.symbols = rlv.symbols
 )
-.onLoad <- function(lib, pkg) options(rlv.optionsDefault)
+.onLoad <- function(lib, pkg) options(relevance.options)
 ## -----------------------

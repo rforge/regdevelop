@@ -10,10 +10,10 @@ Further Arguments to \code{regr}
 }
 \usage{
 regr.control(contrasts = getOption("regr.contrasts"),
-  factorNA = NULL, na.action = as.name("nainf.exclude"),
-  calcdisp = NULL, suffmean = 3, dist = NULL,
-  model = FALSE, x = TRUE, termtable = NULL, vif = NULL,
-  testlevel = NULL, leveragelimit = NULL, tit = NULL,
+  factorNA = getOption("factorNA"), na.action=as.name("nainf.exclude"),
+  calcdisp=NULL, suffmean=getOption("suffmean"), dist=NULL,
+  model = FALSE, x = TRUE, termtable=TRUE, r2x=getOption("r2x"),
+  testlevel = getOption("testlevel"), leveragelimit=NULL, tit=NULL,
   control = NULL)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -45,7 +45,7 @@ regr.control(contrasts = getOption("regr.contrasts"),
   \item{termtable}{
 %%     ~~Describe \code{termtable} here~~
 }
-  \item{vif}{
+  \item{r2x}{
 %%     ~~Describe \code{vif} here~~
 }
   \item{testlevel}{
