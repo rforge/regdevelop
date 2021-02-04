@@ -220,7 +220,7 @@ and can be modified by setting these options again, see below.
 
 \section{Functions}
 
-\Tit{\T{twosamples}}
+\Tit{Function \T{twosamples}.}
 This function provides inference for the comparison of two samples, paired
 or unpaired, and also for a single sample.
 Its call mimics \T{t.test}.
@@ -230,7 +230,7 @@ Its call mimics \T{t.test}.
   twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 @ 
 
-\Tit{\T{termtable}}
+\Tit{Function \T{termtable}.}
 For regression models with a linear predictor, the basic function is
 \T{termtable}.
 For each term reflecting a scalar predictor, it contains the coefficient
@@ -256,7 +256,7 @@ named by \T{getOption("show")}.
   }
 @ 
 
-\Tit{\T{termeffects}}
+\Tit{Function \T{termeffects}.}
 For terms with more than one degree of freedom, notably for factors wit
 more than two levels,
 the function \T{termeffects} calculates effects and respective inference
@@ -266,7 +266,7 @@ measures.
 \section{Options}
 
 The package works with some specific options, see \T{rlv.optionsDefault}.
-The most important ones are the following. 
+The more important ones are the following. 
 
 \begin{itemize}
 \item \T{rlvThres}:
@@ -294,6 +294,9 @@ vector of relevance thresholds for
     in the same manner, suitable for inference based on significance or 
     p values, respectively.
   \end{itemize}
+  Any elements of the vector resulting from a call to \T{towsamples} or any
+  columns of a \T{termtable} object can also be selected, like
+  \T{options(show.ifc=c("classical","Sig0","Rls"))}.
 \item \T{rlvSymbols} and \T{pSymbols}:
   symbols to be used for characterizing \T{Rls} or p-values, respectively,
 \item \T{digits.reduced}: digits used for relevance and significance measures 

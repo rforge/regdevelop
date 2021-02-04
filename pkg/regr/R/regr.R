@@ -3306,6 +3306,7 @@ regr.modelclasses <- c("regr","lm","lmrob","glm","polr","survreg","coxph","rq")
 regr.options <- list(
   regr.contrasts = c("contr.wsum","contr.wpoly"), r2x = TRUE,
   factorNA = TRUE, suffmean = 3,
-  show.call = TRUE, show.termeffects = TRUE, show.coefcorr = FALSE
+  show.call = TRUE, show.termeffects = TRUE, show.coefcorr = FALSE,
+  notices = TRUE
 )
 .onLoad <- function(lib, pkg) options(regr.options)

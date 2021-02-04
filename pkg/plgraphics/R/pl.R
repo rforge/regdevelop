@@ -96,7 +96,7 @@ pl.control <- #f
       lxnames <- names(x)
       ldtlab <- lrr$dtlab
     }
-    if (u.isnull(lform)) 
+    if (is.null(lform)) 
       lform <-
         as.formula(paste(paste(lynames, collapse="+"), "~",
                          paste(lxnames, collapse="+")))
@@ -117,14 +117,14 @@ pl.control <- #f
       y <- lrr$x
       lynames <- names(y)
       ldtlab <- lrr$dtlab
-      if (u.isnull(lyform)) 
+      if (is.null(lyform)) 
         lyform <- as.formula(paste("~", paste(lynames, collapse="+")))
     }
   }
     ## ---
     if (u.isnull(lynames)) ## y is formula
       lynames <- getvarnames(y, data=data, transformed=transformed)$varnames
-    if (u.isnull(lyform)) 
+    if (is.null(lyform)) 
       lyform <- as.formula(paste("~", paste(lynames, collapse="+")))
     lftext <- paste(shortenstring(substring(format(lyform),2,100), lmaxchars/2), lftext)
     ## fixes maximal length of formula text
@@ -164,7 +164,7 @@ pl.control <- #f
   lvarnames <- c(lxnames, lynames, lcvnames)
   ## --- data
   ## ltransformed <- i.def(lcl$transformed, TRUE)
-  if (!u.isnull(attr(data,"terms"))) { ## data is model.frame
+  if (!is.null(attr(data,"terms"))) { ## data is model.frame
     if (!transformed) {
       warning(":pl.control! Raw data not available.",
               "I can only use transformed data.")
@@ -449,7 +449,8 @@ genvarattributes <- #f
   }
   ## ---------------------------------------------
   if (length(plscale)) data <- setvarattributes(data, plscale=plscale)
-  innerrange <- i.getplopt(innerrange)
+  innerrange <- i.def(innerrange, i.getploption("innerrange", ploptions))
+  ## i.getplopt(innerrange) would be ok, but checks the option in a wrong way
   data <- setvarattributes(data, innerrange=innerrange)
   ## innerrange, coordinates, ticks
   for (lv in lnmdata) {
@@ -458,7 +459,7 @@ genvarattributes <- #f
     attr(lvv, "varname") <- lv
     lnv <- sum(!duplicated(dropNA(lvv)))
     ##
-    if (replace || u.isnull(attr(lvv, "nvalues", exact=TRUE)))
+    if (replace || is.null(attr(lvv, "nvalues", exact=TRUE)))
       attr(lvv, "nvalues") <- lnv
     ## turn character into factor
     if (lcls=="character") lvv <- factor(lvv)
@@ -472,14 +473,14 @@ genvarattributes <- #f
       ## factor
       lvv <- transferAttributes(i.factor(lvv), lvv)
       lat <- seq_along(levels(lvv))
-      if (replace || u.isnull(attr(lvv, "plrange", exact=TRUE)))
+      if (replace || is.null(attr(lvv, "plrange", exact=TRUE)))
         attr(lvv, "plrange") <- c(0.35, max(lat)+0.65)
-      if (replace || u.isnull(attr(lvv, "ticksat", exact=TRUE)))
+      if (replace || is.null(attr(lvv, "ticksat", exact=TRUE)))
         attr(lvv, "ticksat") <- lat
-      if (replace || u.isnull(attr(lvv, "ticklabels", exact=TRUE)))
+      if (replace || is.null(attr(lvv, "ticklabels", exact=TRUE)))
         attr(lvv, "ticklabels") <- levels(lvv)
       ## jitter
-      if(replace || u.isnull(attr(lvv, "numvalues", exact=TRUE)) &&
+      if(replace || is.null(attr(lvv, "numvalues", exact=TRUE)) &&
          (lij <- ljt[lv])) {
         attr(lvv, "numvalues") <-
           jitter(as.numeric(lvv), factor=jitter.factor,
@@ -491,14 +492,14 @@ genvarattributes <- #f
     } else {
       ## Date
       if (inherits(lvv, c("Date", "times")) &&
-          u.isnull(attr(lvv, "numvalues", exact=TRUE)))
+          is.null(attr(lvv, "numvalues", exact=TRUE)))
         lvv <- gendateaxis(setNames(lvv, lrown))
       else { ## ----------------- 
         ## continuous variable
         lvv <-
           i.genvattrcont(lvv, attr(lvv, "innerrange", exact=TRUE), lirfactor, ltickint,
                          replace=replace, ploptions=ploptions)
-##-           if (replace || u.isnull(attr(lvv, "zeroline"))) 
+##-           if (replace || is.null(attr(lvv, "zeroline"))) 
 ##-             attr(lvv, "zeroline") <- i.getplopt(zeroline)
       } ## end of continuous variable
     }
@@ -573,7 +574,7 @@ i.genvattrcont <- #f
   attr(x, "plrange") <- replaceNA(lvlimsc, lplrg)
   if (lIirg) attr(x, "innerrange") <- lirg
   ## ticks: cover only inner range!
-  if (replace || u.isnull(attr(x, "ticksat", exact=TRUE))) {
+  if (replace || is.null(attr(x, "ticksat", exact=TRUE))) {
     lrg <- if (length(lirg)==2) lirg else lplrg
     lnouter <- i.def(attr(x, "nouter", exact=TRUE), c(0, 0))
     lrg <- ifelse(lnouter==0, lrg, lplrg)
@@ -581,9 +582,9 @@ i.genvattrcont <- #f
                     tickintervals=ltint, ploptions=ploptions)
     attr(x, "ticksat") <- ltks$ticksat
     ## do not replace  ticklabesat  if  ticksat  is set
-    if (replace || u.isnull(attr(x, "ticklabelsat", exact=TRUE)))
+    if (replace || is.null(attr(x, "ticklabelsat", exact=TRUE)))
       attr(x, "ticklabelsat") <- ltks$ticklabelsat
-    if (replace || u.isnull(attr(x, "ticklabels", exact=TRUE)))
+    if (replace || is.null(attr(x, "ticklabels", exact=TRUE)))
       attr(x, "ticklabels") <- ltks$ticklabels
   }
   x
@@ -646,7 +647,7 @@ plscale <- #f
     }
   }
   ## ---
-  lx <- i.def(if (u.isnull(attr(x,"plscale")))
+  lx <- i.def(if (is.null(attr(x,"plscale")))
                 attr(x, "numvalues", exact=TRUE), c(x))
   ln <- i.def(n, i.getploption("tickintervals"))
   lvlimsc <- lvlim <- attr(x, "vlim", exact=TRUE)
@@ -790,7 +791,7 @@ plframe <- #f
     list(x = lx, xx = lxx, range = lrg, innerrange = lirg) ## was x=x
   } ## end of lf.getcoord
   ## ---
-  if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
+  if (is.null(plargs)) plargs <- get(".plargs", globalenv())
   if (length(ploptions)) plargs$ploptions <- ploptions
   lmarpar <- plargs$marpar
   if (u.isnull(lmarpar))
@@ -807,7 +808,7 @@ plframe <- #f
   ## ---
   if (getxy) {
     lxy <- i.getxy(x=x, y=y, plargs=plargs, call=match.call(), envir=parent.frame())
-    if (u.isnull(lxy)) return()
+    if (is.null(lxy)) return()
     x <- lxy$x
     y <- lxy$y
     plargs <- lxy$plargs
@@ -1144,7 +1145,7 @@ plpoints <- #f
   }
   if (getxy) {
     lxy <- i.getxy(x, y, plargs, ploptions, call=lcl, envir=parent.frame())
-    if (u.isnull(lxy)) return()
+    if (is.null(lxy)) return()
     x <- lxy$x
     y <- lxy$y
     ploptions <- lxy$ploptions
@@ -1375,7 +1376,7 @@ plbars <- #f
   }
   if (NCOL(x)==1) x <- c(x)
   if (NCOL(y)==1) y <- c(y)
-  if (!(u.isnull(dim(x))&NCOL(y)>=3 | u.isnull(dim(y))&NCOL(x)>=3)) {
+  if (!(is.null(dim(x))&NCOL(y)>=3 | is.null(dim(y))&NCOL(x)>=3)) {
     warning(":plbars: unsuitable arguments 'x', 'y'. Either one must have 3 columns.",
             " -> no bars.")
     return()
@@ -1459,7 +1460,7 @@ plsmooth <- #f
   if (getxy) {
     lxy <- i.getxy(x, y, plargs, ploptions=ploptions,
                    call=match.call(), envir=parent.frame())
-    if (u.isnull(lxy)) return()
+    if (is.null(lxy)) return()
     x <- lxy$x
     y <- lxy$y
     ploptions <- lxy$ploptions
@@ -1766,16 +1767,22 @@ plcoord <- #f
   plext <- i.getplopt(plext)
   ## ---
   if (length(range)>0) {
-    range <- range(range, finite=TRUE)
-    if (range[1]>ldtrg[2] | range[2]<ldtrg[1]) { ## ranges do not overlap
+    range <- rep(range, length=2)
+    ## range <- range(range, finite=TRUE)
+    if ( (!is.na(range[1])&&range[1]>ldtrg[2]) |
+         (!is.na(range[2])&&range[2]<ldtrg[1]) ) { ## ranges do not overlap
       warning(":plcoord: inadequate range. Not used")
       range <- NULL
     } 
   }
   lrg <- range
-  if (length(lrg)==0) {
+  if (length(lrg)==0||any(is.na(lrg))) {
     lrg <- lirfunc(lx, fac=innerrange.factor)
     if (length(lrg)==0) lrg <- ldtrg
+    if (length(range)) {
+      li <- !is.na(range)
+      lrg[li] <- range[li]
+    }
   } else 
     if (diff(lrg)==0) lrg <- c(-1,1)*lrg
   ## --------- transformation of data into plcoord
@@ -2250,7 +2257,7 @@ plyx <- #f
   lnobs <- max(10, median(sapply(pldata[,attr(pldata, "variables", exact=TRUE)],
                                  function(x) sum(is.finite(x)) )) )
   lxnm <- attr(pldata,"xvar", exact=TRUE)
-  if (u.isnull(lynm <- attr(pldata,"yvar", exact=TRUE))) {
+  if (is.null(lynm <- attr(pldata,"yvar", exact=TRUE))) {
     lynm <- last(lxnm)
     lxnm <- last(lxnm, -1)
   }
@@ -2555,7 +2562,7 @@ setvarattributes <- #f
   if (length(attributes)) {
     if (!is.list(attributes))
       stop("!setvarattributes! argument 'attributes' must be a list")
-    if (u.isnull(names(attributes))) {
+    if (is.null(names(attributes))) {
       if (length(attributes)!=ncol(data))
         stop("!setvarattributes! argument 'attributes' must have names ",
              "or be of appropriate length")
@@ -2648,8 +2655,9 @@ plregr.control <- #f
   x$sigma <- lsigma
   ## --- standardized residuals
   llev <- x$leverage
-  llevlim <- i.getplopt(leveragelimit) ## should be , ploptions
-  lstdres <- attr(lres, "stdresiduals", exact=TRUE)
+  llevlim <- i.getplopt(leveragelimit)
+  if (length(llevlim)==1) llevlim <- c(llevlim, i.getploption("leveragelimit")[2])
+    lstdres <- attr(lres, "stdresiduals", exact=TRUE)
   if (stdresid) { ## not needed for plresx
     if (length(lstdres)==0) { 
       lstdres <- stdresiduals(x, residuals=lres, leveragelimit=llevlim[2])
@@ -2662,7 +2670,7 @@ plregr.control <- #f
     if (length(llev)==0) llev <- leverage(x)
   }
   ##
-##  if (u.isnull(data)) ***
+##  if (is.null(data)) ***
   ## --- xvar
   ## formula(x) inappropriate for merMod
   lform <- if (inherits(x, "regrMer")) x$formula else formula(x)  
@@ -2961,7 +2969,7 @@ plregr <- #f
   lImer <- inherits(x, "merMod")
   if (lImer) x <- i.merprep(x)
   ## ----------------
-  if (u.isnull(plargs)) {
+  if (is.null(plargs)) {
     lcall <- match.call()
     lcall <- lcall[setdiff(names(lcall),argPlregr)]
     lcall$x <- x
@@ -3034,7 +3042,7 @@ plregr <- #f
   lfitname <- "linear predictor"
   if (inherits(x, "polr")) lfit <- fitted.regrpolr(x, type="link")
   else {
-    if(u.isnull(lfit)) {
+    if(is.null(lfit)) {
       lfit <- fitted(x)
       lfitname <- "fitted value"
     } else lfit <- naresid(lnaaction, lfit)
@@ -3291,7 +3299,10 @@ plregr <- #f
           notice("plregr: all leverage elements equal, no leverage plot")
         else {
           llevpl <- genvarattributes(
-            data.frame(leverage = plcoord(llev, c(0,llevlim[2]), ploptions=ploptions)) )[,1]
+            ##-             data.frame(leverage = plcoord(llev, c(0,llevlim[1]),
+            data.frame(leverage=llev),innerrange= list(leverage=c(0,llevlim[1])),
+            ploptions=ploptions)[,1]
+          attr(llevpl, "plrange")[1] <- 0
           lstdres <- genvarattributes(lstdres, varlabels = lstdresname)
           ## mark extremes
           lmx <- i.getploption("markextremes")
@@ -3357,7 +3368,7 @@ plregr <- #f
       if(lpls=="qqmult")  ## qq plot of Mahalanobis lenghts for multivariate regr
         if ((!is.na(lpllevel))&&lpllevel>0) {
           lresmahal <- plargs$resmahal
-          if (u.isnull(lresmahal)) ## should never happen. generated in plregr.control !!!
+          if (is.null(lresmahal)) ## should never happen. generated in plregr.control !!!
             lresmahal <-
               mahalanobis(lres,0,
                           var(apply(lres,2, function(x) ifelse(is.finite(x), x, NA)),
@@ -3478,7 +3489,7 @@ plresx <- #f
   } 
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   lmarpar <- plargs$marpar
-  if (u.isnull(lmarpar)) 
+  if (is.null(lmarpar)) 
     plargs$marpar <- lmarpar <- i.getmarpar(plargs=plargs)
   ## -------------------------------------------------------------------
   if (inherits(x,"mulltinom"))
@@ -3495,7 +3506,7 @@ plresx <- #f
   lvars <- attr(pldata, "xvar", exact=TRUE)
   lrawv <- u.allvars(lvars)
   lsimres <- plargs$simres
-  lnsims <- if (u.isnull(lsimres)) 0 else ncol(lsimres)
+  lnsims <- if (is.null(lsimres)) 0 else ncol(lsimres)
   lInnls <- !inherits(x, "nls")
   lnr <- nrow(pldata)
   lIwgt <- length(plargs$weights)>0 &
@@ -3531,7 +3542,7 @@ plresx <- #f
     lvars <- c(lvars, ".weights.")
   }
   ## ------------------
-  if (u.isnull(lvars)) {
+  if (is.null(lvars)) {
     warning(":plresx: I did not find any x variables")
     return() }
   ## terminouterel
@@ -3892,7 +3903,7 @@ plmatrix <- #f
 ## -------------------------------------------------------------------------
   lcall <- match.call()
 ##  lIplargs <- u.isnull(lcall[["plargs"]])
-  if (u.isnull(plargs)) {
+  if (is.null(plargs)) {
     lcall[[1]] <- quote(pl.control)
     lcall$x <- x  ## needs evaluation
     lcall$.subdefault <- as.expression(substitute(x)) ##as.character(as.expression(substitute(x)))
@@ -3952,7 +3963,7 @@ plmatrix <- #f
 ##-     if (!".smooth.group."%in%names(pldata))
 ##-       plargs$pldata[,".smooth.group."] <- pldata[,".group."]
   }
-##  if (u.isnull(i.getplopt(main))) plargs$main <- plargs$datalabel
+##  if (is.null(i.getplopt(main))) plargs$main <- plargs$datalabel
   xvar <- i.def(attr(pldata,"xvar", exact=TRUE), names(pldata))
   nv1 <- length(xvar)
   lv1 <- lv2 <- 0
@@ -3964,7 +3975,7 @@ plmatrix <- #f
     ldata <- pldata[,xvar]
   } else { # cbind y to data for easier preparations
     reduce <- FALSE
-    if (!u.isnull(dim(y))) {
+    if (!is.null(dim(y))) {
       yvar <- colnames(y)
       ldata <- cbind(pldata[,xvar], as.data.frame(y))
     } else {
@@ -4120,7 +4131,7 @@ plpanel <- #f
       any(c("data","pcol","psize")%in%names(lcall))) {
     lcall$assign <- FALSE
     lcall$ploptions <- ploptions
-    if (u.isnull(lcall$data)) lcall$data <- pldata
+    if (is.null(lcall$data)) lcall$data <- pldata
     lplargs <- do.call(pl.control, as.list(lcall[-1]), envir=parent.frame())
     ploptions <- lplargs$ploptions
     plargs$pldata <- pldata <- lplargs$pldata
@@ -4229,8 +4240,8 @@ plcond <- #f
   }
   ## --------------------------------------------------------------------
   lcall <- match.call()
-##  lIplargs <- u.isnull(lcall[["plargs"]])
-  if (u.isnull(plargs)) {
+##  lIplargs <- is.null(lcall[["plargs"]])
+  if (is.null(plargs)) {
     lcall[[1]] <- quote(pl.control)
     lcall$x <- x  ## needs evaluation
     lcall$.subdefault <- as.expression(substitute(x)) ##as.character(as.expression(substitute(x)))
@@ -4344,7 +4355,7 @@ plcond <- #f
 ##-   lomaarg <- i.def(oma, rep(NA,4))  ## if the argument 'oma' is available, it must be respected
 ##-   if (length(lomaarg)==1) lomaarg <- c(NA,NA,lomaarg,NA)
 ##-   loma <- ifelse(is.na(lomaarg), lmar, lomaarg) ## oma must fit axis margins
-##-   if (u.isnull(c(nrow,ncol))) {
+##-   if (is.null(c(nrow,ncol))) {
 ##-     lpin <- par("fin")
 ##-     lnrc <- c(lnrow, lncol)
 ##-     if (lpin[1]>1.3*lpin[2]) {
@@ -4506,7 +4517,7 @@ plpanelCond <- #f
   function(x, y, ckeyx, ckeyy, pch = 1, pcol = 1, psize = 1, pale = c(0.2,0.6),
            csize=0.8, smooth = NULL, smooth.minobs = NULL, plargs = NULL, ...)
 {
-  if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
+  if (is.null(plargs)) plargs <- get(".plargs", globalenv())
   ploptions <- plargs$ploptions
   lsmminobs <- i.getplopt(smooth.minobs)
   lcpl <- (1-abs(ckeyx))*(1-abs(ckeyy))
@@ -4673,7 +4684,7 @@ plmboxes.default <- #f
     c((1+ext)*ylm[1]-ext*ylm[2], (1+ext)*ylm[2]-ext*ylm[1])
   ##
   lcall <- match.call()
-  if (u.isnull(plargs)) {
+  if (is.null(plargs)) {
     lcall[[1]] <- quote(pl.control)
     lcall$x <- x  ## needs evaluation
     ## lcall$.subdefault <- .subdefault ## as.character(substitute(x))
@@ -4690,7 +4701,7 @@ plmboxes.default <- #f
   }
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   lmarpar <- plargs$marpar
-  if (u.isnull(lmarpar)) 
+  if (is.null(lmarpar)) 
     plargs$marpar <- lmarpar <- i.getmarpar(plargs=plargs)
   lcsize <- i.getploption("csize") 
   ## ----------------------------------------------------------------------
@@ -4928,7 +4939,7 @@ plres2x <- #f
 ## right hand side of  formula
 ## --------------------------------------------------------------------------
   lcall <- match.call()
-  if (u.isnull(plargs)) {
+  if (is.null(plargs)) {
     lac <- as.list(lcall)[-1]
     lac$x <- lac$reg
     lac$xvar <- lac$formula
@@ -5057,8 +5068,8 @@ plmframes <- #f
     lmcol <- ceiling(mft/mfrow)
     c(ceiling(mft/lmcol), lmcol)
   }
-  if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
-  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
+  if (is.null(plargs)) plargs <- get(".plargs", globalenv())
+  if (is.null(ploptions)) ploptions <- plargs$ploptions
   lmarpar <- plargs$marpar
   ## requested numbers
   ldin <- par("din")
@@ -5076,10 +5087,10 @@ plmframes <- #f
   if (reduce) lmfg <- lmfgsug
   ## margin pars
 ##-   lmarpar <- plargs$marpar
-##-   if (u.isnull(lmarpar)) lmarpar <- i.getmarpar(plargs=plargs)
+##-   if (is.null(lmarpar)) lmarpar <- i.getmarpar(plargs=plargs)
 ##-   mar <- c(i.getplopt(mar),rep(NA,4))[1:4]
   ##-   oma <- c(i.getplopt(oma),rep(NA,4))[1:4]
-  if (u.isnull(lmarpar))
+  if (is.null(lmarpar))
     lmarpar <- i.getmarpar(mar=mar, oma=oma, plargs=plargs)
   ## if the argument 'mar' is available, it must be respected
 ##  lmarpar <- i.getmarpar(mar=mar, oma=oma, title.outer=prod(lmfg)>1, plargs=plargs)
@@ -5153,7 +5164,7 @@ ploptions <- #f
 { ##
   lpldef <- get("ploptionsDefault", pos=1)
   lnewo <- loldo <-
-    if (u.isnull(ploptions)) {
+    if (is.null(ploptions)) {
     if (exists(".ploptions", where=1)) get(".ploptions", pos=1)
     else  lpldef
     } else ploptions
@@ -5201,9 +5212,9 @@ ploptions <- #f
 plmarginpar <- #f
   function(plargs=NULL)
 {
-  if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
+  if (is.null(plargs)) plargs <- get(".plargs", globalenv())
   lmarpar <- plargs$marpar
-  if (u.isnull(lmarpar)) lmarpar <- i.getmarpar(plargs=plargs)
+  if (is.null(lmarpar)) lmarpar <- i.getmarpar(plargs=plargs)
   lcsize <- i.getploption("csize", plargs$ploptions)
   loldpar <- par(mar=lcsize*lmarpar$mar, mgp=c(lcsize*lmarpar$margin.line,0))
   ## workaround a problem with changing margin pars
@@ -5215,7 +5226,7 @@ plmarginpar <- #f
 ##-   function(x=NULL, list=NULL, default=NULL, ploptions = NULL,
 ##-            assign = FALSE, getpar = TRUE, ...)
 ##- {
-##-   if (u.isnull(ploptions)) ploptions <- get(".plargs", globalenv())$ploptions
+##-   if (is.null(ploptions)) ploptions <- get(".plargs", globalenv())$ploptions
 ##-   largs <- c(list, list(...))
 ##-   lip <- c("mar","oma","mgp","cex")
 ##-   if (length(largs)==0) largs <- ploptions[lip]
@@ -5229,7 +5240,7 @@ i.getploption <- #f
   function(opt, opts=NULL) {
   ## opt is character, opts list or NULL
   lpldef <- get("ploptionsDefault", pos=1)
-  if (u.isnull(opts))
+  if (is.null(opts))
     opts <- get("ploptions", envir=parent.frame()) ## list in calling fn
   if (is.function(opts)) opts <- NULL
   lopt <- opts[[opt]]
@@ -5246,7 +5257,7 @@ i.getploption <- #f
 i.getplopt <- #f
   function(opt, opts = NULL) {
   lpldef <- get("ploptionsDefault", pos=1)
-  if (u.isnull(opts))
+  if (is.null(opts))
     opts <- get("ploptions", envir=parent.frame()) ## list in calling fn
   lnam <- as.character(substitute(opt))
   lopt <- opt 
@@ -5264,8 +5275,8 @@ i.getplopt <- #f
 i.getxy <- #f
   function(x=NULL, y=NULL, plargs=NULL, ploptions=NULL, call=NULL, envir = NULL)
 {
-  if (u.isnull(plargs)) plargs <- get(".plargs", globalenv())
-  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
+  if (is.null(plargs)) plargs <- get(".plargs", globalenv())
+  if (is.null(ploptions)) ploptions <- plargs$ploptions
   pldata <- plargs$pldata
   if (is.formula(x)|is.formula(y) |
       any(c("data","pcol","pch","psize","group")%in%names(call))) {
@@ -5302,7 +5313,7 @@ i.getxy <- #f
 i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=TRUE,
                         plargs, ploptions=NULL, ...)
 {
-  if (u.isnull(ploptions)) ploptions <- plargs$ploptions
+  if (is.null(ploptions)) ploptions <- plargs$ploptions
   if (u.isnull(mar)) mar <- c(i.getploption("mar", ploptions), rep(NA,4))[1:4]
   if (u.isnull(oma)) oma <- c(i.getploption("oma", ploptions), rep(NA,4))[1:4]
   if (length(oma)==1) oma <- c(NA,NA,oma,NA)
@@ -5346,7 +5357,7 @@ smoothxtrim <- function(n, c=2) 1.6^(log10(n)*c)/n
 ## -----------------------------------------------------------------------
 check.ploption <- #f
   function(optname, value, list=NULL) {
-  if (u.isnull(list)) list <- setNames(list(value), optname)
+  if (is.null(list)) list <- setNames(list(value), optname)
   lnl <- length(list)
   loptnames <- names(list)
   for (lil in seq_len(lnl)) {
@@ -5597,7 +5608,7 @@ c.dateticks <- data.frame(
     ## plregr
     functionxvalues = 51,
     smooth.xtrim = smoothxtrim,
-    leveragelimit = c(0.5, 0.99),
+    leveragelimit = c(NA, 0.99),
     cookdistlines = 1:2,
     printnotices = TRUE, debug = FALSE )
 .plargs <- list(ploptions=.ploptions)
@@ -5678,6 +5689,6 @@ ploptionsCheck <-
     ## plregr
     functionxvalues = cnr(c(5,500)),
     smooth.xtrim = list(cfn(), cnr(c(0,0.4), na.ok=FALSE)),
-    leveragelimit = cnr(c(0.1,0.99999)), cookdistlines = cnr(c(0.05, 5)),
+    leveragelimit = cnr(c(0.05,0.99999)), cookdistlines = cnr(c(0.05, 5)),
     printnotices = clg(), debug = clg()
   )
