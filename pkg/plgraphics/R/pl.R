@@ -3294,6 +3294,7 @@ plregr <- #f
       ## --- leverage plot. If weight are present, use "almost unweighted h"
       if(lpls=="leverage")
       if ((!is.na(lpllevel))&&lpllevel>0) {
+          browser()
         if (lIwgt) llev <- llev/lweights
         if (diff(range(llev,finite=TRUE))<0.001)
           notice("plregr: all leverage elements equal, no leverage plot")

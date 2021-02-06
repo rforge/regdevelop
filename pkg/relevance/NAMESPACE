@@ -28,6 +28,5 @@ export(confintF, drop1Wald,
 
 S3method(twosamples, formula)
 S3method(twosamples, default)
-S3method(print, termtable)
 S3method(print, termeffects)
 S3method(print, inference)

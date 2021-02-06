@@ -87,7 +87,7 @@ relevance.modelclasses
 \author{Werner A. Stahel}
 \seealso{
   \code{\link{getcoeftable}};
-  for printing options, \code{\link{print.termtable}}
+  for printing options, \code{\link{print.inference}}
 }
 \examples{
   data(swiss)
