@@ -315,8 +315,9 @@ termtable <- #f
     warning(":termtable: drop1 did not work. I return the codfficient table")
     lii <- match(c("Rle","Rls","Rlp"), names(lcoeftab), nomatch=0)
     names(lcoeftab)[lii] <- c("coefRle","coefRls","coefRlp")[lii!=0]
-    return( structure(cbind(coef=lcoeftab[,1], df=1, lcoeftab[,-1]),
-                      class=c("termtable","data.frame")))
+    return( structure(cbind(coef=lcoeftab[,1,drop=FALSE], df=1,
+                            lcoeftab[,-1,drop=FALSE]),
+                      class=c("inference", "data.frame")))
   }
   ldr1 <- ldr1[-1,]
   ldr1$RSS <- NULL # same ncol for lm and glm
@@ -758,14 +759,14 @@ print.inference <- #f
       )
     }
   }
-  rr <- structure(lout, class=c("printList", class(lout)), head=lhead, tail=lleg)
-  if (print) print.printList(rr)
+  rr <- structure(lout, class=c("printInference", class(lout)), head=lhead, tail=lleg)
+  if (print) print.printInference(rr)
   invisible(rr)
 }
 
 ## --------------------------------------      
-print.printList <- #f
-  function(x)
+print.printInference <- #f
+  function(x, ...)
 {
   ltail <- NULL
   if (is.list(x)&!is.data.frame(x)) {
@@ -777,7 +778,7 @@ print.printList <- #f
   for (li in seq_along(x)) {
     if (lInam) cat("\n$",lnam[li],"\n")
     lx <- x[[li]]
-    class(lx) <- setdiff(class(lx), "printList")
+    class(lx) <- setdiff(class(lx), "printInference")
     if (length(lt <- attr(lx,"head"))) cat(lt, "\n", sep="")
     if (length(dim(lx))) print(lx)
     else {
@@ -849,9 +850,9 @@ print.termeffects <- #f
     attr(lr, "head") <- attr(lr,"tail") <- NULL
     lx[[li]] <- lr
   }
-  rr <- structure(lx, class="printList",
+  rr <- structure(lx, class="printInference",
                   head=paste(attr(x, "head"),"\n"), tail=ltail)
-  if (print) print.printList(rr)
+  if (print) print.printInference(rr)
   invisible(rr)
 }
 ## ----------------------------------------------------------

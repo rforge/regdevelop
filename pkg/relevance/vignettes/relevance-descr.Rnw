@@ -15,6 +15,7 @@
 % \usepackage[textfont=it,font=small,labelfont=it]{caption}
 \interfootnotelinepenalty=10000 % prevent LaTex from two-sided footnotes
 \usepackage{relevance-descr}
+\usepackage{parskip}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{relevance}
 %\VignetteIndexEntry{'Package relevance for calculating Relevance and Significance Measures'}
@@ -49,20 +50,18 @@ Package \T{relevance} for calculating Relevance and Significance Measures}
   This vignette version is very preliminary and incomplete.
 \end{abstract}
 
-<<preliminary, echo=F>>=
+<<preliminary, echo=F, message=F>>=
 ## library(plgraphics, lib.loc="/u/stahel/R/regdevelop/pkg/plgraphics.Rcheck")
 library(relevance) ##, lib.loc="/u/stahel/R/regdevelop/pkg/relevance.Rcheck")
 ## options(warn=1)
 @ 
 \section{Introduction}
 
-\Tit{The p-value.}
-In the last decades, the p-value has been extensively criticized as too
-simple a tool to characterize statistical inference.
-
-This package implements alternative descriptions that lead to a more
-informative and scientifically meaningful characterization of inference
-as introduced in Stahel (2021).
+This package implements the concepts of relevance and significance as
+introduced by Stahel (2021). 
+They allow for meaningful statistical inference beyond the questionable 
+common practice of Null Hypothesis Statistical Testing that is in turn
+often reduced to citing a p-value.
 
 \Tit{The problem.}
 Consider the problem of estimating an \emph{effect}, for example,
@@ -99,12 +98,10 @@ estimated effect $\wh\eff$ and the threshold,
 \]
 The confidence interval for the effect translates to the interval
 for the relevance. The limits of this interval are called
-\begin{description}
-\item
-  $\Rl s$: ``secured relevance'': the lower end;
-\item
-  $\Rl p$: ``potential relevance'': the upper end;
-\end{description}
+
+\Quad  $\Rl s$: ``secured relevance'': the lower end;
+
+\Quad  $\Rl p$: ``potential relevance'': the upper end.
 
 \Tit{Significance.}
 Let us return to the problem of testing a null hypothesis,
@@ -171,7 +168,8 @@ For small effects on the log scale, these transform to the respective
 percentages in the original scale.
 
 \begin{table}[hh]
-  \caption{Models, recommended effect scales and relevance thresholds}
+  \caption{Models, recommended effect scales and relevance thresholds
+  \protect\linebreak} %% ???
   \label{tab:recommendation}
   \centering
   \begin{tabular}{|l|c|c|c|}
@@ -209,7 +207,7 @@ percentages in the original scale.
 
 In the package, the thresholds used by default are given by 
 <<rlvthres>>=
-getOption("rlvThres")
+getOption("rlv.threshold")
 @ 
 and can be modified by setting these options again, see below.
 
@@ -219,6 +217,7 @@ and can be modified by setting these options again, see below.
 %%- It is programmed to 
 
 \section{Functions}
+\label{sec:functions}
 
 \Tit{Function \T{twosamples}.}
 This function provides inference for the comparison of two samples, paired
@@ -226,22 +225,39 @@ or unpaired, and also for a single sample.
 Its call mimics \T{t.test}.
 
 <<twosamples>>=
-      t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
-  twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+  t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+(r.sleep <- 
+   twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+)
+@ 
+The output shows the estimated effect and its confidence interval together
+with the relevance measures. 
+The estimated relevance $\Rl e$ compares the standardized effect
+$\wb X/S =$\Sexpr{r.sleep["effect"]}/\Sexpr{r.sleep["se"]*sqrt(18)},
+where $S$ is the estimated standard deviation of the observations,
+to its relevance threshold $0.1$.
+The classical results, t test statistic, standard error and p value 
+are also calculated, but not shown with the default printing options.
+They can also be obtained, as well as the significance \T{Sig0},
+by changing options (for details, see Section \ref{sec:options}),
+<<sleep2>>=
+t.oldopt <- options(show.inference = "classical")
+r.sleep
+options(t.oldopt)
 @ 
 
 \Tit{Function \T{termtable}.}
 For regression models with a linear predictor, the basic function is
 \T{termtable}.
-For each term reflecting a scalar predictor, it contains the coefficient
-with the respective inference descriptors, confidence interval,
+For each term reflecting a scalar predictor, its result contains the 
+coefficient with the respective inference descriptors, confidence interval,
 significance against 0, p-value, and relevances.
 For all types of term, with one or more degrees of freedom, it adds
 the relevances %and
 for dropping the term and for its contribution to prediction.
 
-Since this leads to .. columns, the print method selects only the columns
-named by \T{getOption("show")}.
+Since this leads to 22 columns, the print method selects columns
+according to \T{getOption("show")}.
 
 <<termtable>>=
   data(swiss, package="datasets")
@@ -251,65 +267,69 @@ named by \T{getOption("show")}.
   names(rt)
   if(interactive()) {
     str(rt)  ## too much avoidable output for the vignette
-    print(data.frame(rt)) ## avoid selection and preparation of columns by 'print.termtable'
-   ##    commented out here since it produces a large output.
+    print(data.frame(rt)) ## avoid selection and preparation of columns 
+    ## by 'print.inference'. This produces an extensive output.
   }
 @ 
 
 \Tit{Function \T{termeffects}.}
-For terms with more than one degree of freedom, notably for factors wit
+For terms with more than one degree of freedom, notably for factors with
 more than two levels,
 the function \T{termeffects} calculates effects and respective inference
 measures. 
+<<termeffects>>=
+data(d.blast)
+r.blast <-
+  lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
+( r.termeff <- print(termeffects(r.blast), print=FALSE) )
+
+@ 
 
 
 \section{Options}
+\label{sec:options}
 
-The package works with some specific options, see \T{rlv.optionsDefault}.
+The package works with some specific options, see \T{relevance.options}.
 The more important ones are the following. 
-
 \begin{itemize}
-\item \T{rlvThres}:
+\item \T{rlv.threshold}:
 vector of relevance thresholds for 
   \begin{itemize}
   \item \T{stand}: an effect standardized by a standard deviation, 
     as Cohen's d for two samples,
   \item \T{rel}: a relative effect, that is, a change in a prameter 
-    expressed as a percentage of the parameter,
+    expressed as a percentage of the parameter, %% !!! log scale?
+  \item \T{prop}: a proportion, expressed in logit units,
   \item \T{coef}: a coefficient in the linear predictor of a regression model,
   \item \T{drop}: the effect of dropping a term from a regression model,
   \item \T{pred}: the effect of a term on the prediction accuracy.
   \end{itemize}
-\item \T{show.ifc}: selects the inference items to be presented by the 
+\item \T{show.inference}: selects the inference items to be presented by the 
   \T{print} methods.
   Currently, three styles are implemented:
   \begin{itemize}
   \item \T{relevance}: selects the columns determined by
-    \T{getOption("show.ifc.relevance")}, \linebreak
-    \T{getOption("show.term.relevance")}
-    and \T{getOption("show.termeff.relevance")}, for the three print methods,
-    repectively; these are the important columns for inference
-    based on relevance,
+    \T{getOption("show.simple.relevance")}, \linebreak
+    \T{getOption("show.terms.relevance")}
+    and \T{getOption("show.termeffects.relevance")}, for the three 
+    print methods (see below), repectively; 
+    these are the important columns for inference based on relevance;
   \item \T{classical, test}: selects \T{getOption("show.?.classical")}, 
-    in the same manner, suitable for inference based on significance or 
-    p values, respectively.
+    in the same manner, suitable for inference based on p values or
+    significance, respectively.
   \end{itemize}
   Any elements of the vector resulting from a call to \T{towsamples} or any
   columns of a \T{termtable} object can also be selected, like
   \T{options(show.ifc=c("classical","Sig0","Rls"))}.
-\item \T{rlvSymbols} and \T{pSymbols}:
+\item \T{rlv.symbols} and \T{p.symbols}:
   symbols to be used for characterizing \T{Rls} or p-values, respectively,
 \item \T{digits.reduced}: digits used for relevance and significance measures 
   and test statistics. These numbers are rounded to \T{digits.reduced} decimals,
   \T{p-values} to one more.
 \item  \T{na.print}: symbol to print \T{NA} values.
 \end{itemize}
-
-{\small
-\Tit{Detail.}\T{getOption} accesses the list \T{rlv.options} in the environment
-  \T{rlv.envir} that is generated when the package is loaded.
-  The package's default setttings are available as \T{rlv.optionsDefault}.  
-}
+The packages defaults can always be restored by typing
+\T{options(relevance.options)}
 
 <<getOption>>=
 t.opt <- options(show.term.relevance=c("coef", "dropRls", "dropRls.symbol"))
@@ -317,6 +337,22 @@ rt
 ## restore the old options
 options(list = t.opt)
 @ 
+
+These options are used when calling the \T{print} methods on the objects 
+produced by the functions in Section \ref{sec:functions}.
+These objects are either of class \T{inference} or \T{termeffects}.
+The methods \T{print.inference} and \T{print.termeffects}
+convert such objects into printable form by producing an object of
+class \T{printInference}. They terminate by calling the method
+\T{print.printInference}, which in turn produces the output.
+This two-step procedure allows for editing the output in the following
+manner: 
+<<printlist>>=
+rr <- print(termeffects(r.blast), print=FALSE)
+attr(rr, "head") <- sub("lm", "Linear Regression", attr(rr, "head"))
+print(rr)
+@ 
+
 
 %% ============================================================================
 \subsection*{Reference}

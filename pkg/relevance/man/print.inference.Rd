@@ -1,7 +1,7 @@
 \name{print.inference}
 \alias{print.inference}
 \alias{print.termeffects}
-\alias{print.printList}
+\alias{print.printInference}
 
 \title{Print Tables with Inference Measures}
 \description{Print methods for objects of class
@@ -15,7 +15,7 @@
 \method{print}{termeffects}(x, show = getOption("show.inference"),
   transpose.ok = TRUE, single = FALSE, print = TRUE, warn = TRUE, ...)
 
-\method{print}{printList}(x)
+\method{print}{printInference}(x, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -38,7 +38,7 @@
   \item{...}{further arguments, passed to \code{print.data.frame}}
 }
 \value{A kind of formatted version of \code{x}, with class
-  \code{printList}.
+  \code{printInference}.
   For \code{print.inference}, it will be
   a character vector or a data.frame with attributes
   \code{head} and \code{tail} if applicable.
@@ -47,7 +47,7 @@
   It is invisibly returned.
 }
 \details{The result, say \code{rr}, can be printed by using
-  \code{print.printList} writing just \code{print(rr)}, which is just
+  \code{print.printInference} writing just \code{print(rr)}, which is just
   what happens internally unless \code{print=FALSE} is used.  
   This allows for editing the result before printing it, see Examples
   }
