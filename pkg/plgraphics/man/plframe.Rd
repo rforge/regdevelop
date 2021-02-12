@@ -93,7 +93,7 @@ plaxis(side, x=NULL, showlabels=TRUE, range=NULL, varlabel=NULL, col=1,
 }
 \details{
   If the arguments \code{x} and \code{y} are not given,
-  they are obtained from \code{.plargs$pldata}.
+  they are obtained from \code{pl.envir$pldata}.
   
   \code{plframe} draws axes according to argument \code{axes},
   by calling \code{plaxis}.
@@ -124,13 +124,13 @@ plaxis(side, x=NULL, showlabels=TRUE, range=NULL, varlabel=NULL, col=1,
 plyx(Sepal.Width ~ Sepal.Length, data=iris)
 
 ## again, each step separately
-t.dt <- .plargs$pldata
-oldpar <- plframe() ## or plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
-plsmooth() ## or plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=.plargs)
+t.dt <- pl.envir$pldata
+oldpar <- plframe() ## or plframe(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=pl.envir)
+plsmooth() ## or plsmooth(t.dt$Sepal.Length, t.dt$Sepal.Width, plargs=pl.envir)
 t.plab <- plmark(markextremes=0.03)
-  ## or plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03, plargs=.plargs)
+  ## or plmark(t.dt$Sepal.Length, t.dt$Sepal.Width, markextremes=0.03, plargs=pl.envir)
 plpoints(plab=t.plab) ## or plpoints(t.dt$Sepal.Length, t.dt$Sepal.Width,
-                      ##      plargs=.plargs, plab=t.plab)
+                      ##      plargs=pl.envir, plab=t.plab)
 plaxis(4)
 
 par(oldpar)   ## reset the changed graphical parameters

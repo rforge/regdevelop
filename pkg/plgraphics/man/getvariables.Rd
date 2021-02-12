@@ -15,7 +15,8 @@ getvariables(formula, data = NULL, transformed = TRUE,
 getvarnames(formula, data = NULL, transformed = FALSE)
 }
 \arguments{
-  \item{formula}{a model 'formula' or 'terms' object or an R object.}
+  \item{formula}{a model 'formula' or 'terms' object or an R object,
+  or a character vector of variable names}
   \item{data}{a data.frame, list or environment (or object coercible by
     'as.data.frame' to a data.frame), containing the variables in
     'formula'.  Neither a matrix nor an array will be accepted.}

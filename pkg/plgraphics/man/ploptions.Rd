@@ -1,8 +1,8 @@
 \name{ploptions}
 \alias{ploptions}
-%% \alias{plpar}
-\alias{.ploptions}
-\alias{ploptionsDefault}
+\alias{current}
+\alias{pl.envir}
+\alias{pl.optionsDefault}
 \title{Set and Get User "Session" Options that influence "regr0"s behavior}
 \description{
   The user can set (and get) options -- mostly graphical "parameters" --
@@ -11,10 +11,11 @@
 \usage{
 ploptions(x = NULL, list = NULL, default = NULL, ploptions = NULL,
           assign = TRUE, setpar = FALSE, ...)
-%%- plpar(x=NULL, list=NULL, default=NULL, ploptions = NULL,
-%%-       assign = FALSE, setpar = TRUE, ...)
-.ploptions
-ploptionsDefault
+
+current(x = NULL, current = pl.envir, list = NULL, assign=TRUE, ...)
+
+pl.envir
+pl.optionsDefault
 }
 \arguments{
   \item{x}{character (vector) of name(s) of ploptions to query.
@@ -27,13 +28,16 @@ ploptionsDefault
   }
   \item{list}{a named list of options to be set, see Details}
   \item{default}{character vector of option names.
-    These ploptions will be set according to \code{ploptionsDefault}.
+    These ploptions will be set according to \code{pl.optionsDefault}.
     \code{default="all"} or \code{=TRUE} will reset all options.
     If \code{default} is set, all further arguments will be ignored.
   }
-  \item{ploptions}{the list of options that should be modified}
+  \item{ploptions}{the list of options that should be inspected or
+    modified}
+  \item{current}{the list that should be inspected or modified by
+    \code{current}} 
   \item{assign}{logical: should the list be assigned to
-    \code{.ploptions}?}
+    \code{pl.envir$ploptions}?}
   \item{setpar}{logical: should the 'margin parameters'
     \code{("mar","oma","mgp","cex")} be set permanently by calling
     \code{\link{par}}? If \code{FALSE}, these options will only be
@@ -50,7 +54,8 @@ ploptionsDefault
   For \code{ploptions()}, the list of all plptions sorted by name.  
   
   For uses setting one or more options, the important effect is a changed
-  list \code{.ploptions} that is used by the packages functions
+  list \code{ploptions} in the \code{pl.envir} environment
+  that is used by the packages functions
   (if \code{assign} is \code{TRUE}).
   The (invisibly) returned value is the same list, complemented by an
   attribute \code{"old"} containing the previous values of those options
@@ -58,10 +63,11 @@ ploptionsDefault
   This list is useful for undoing the changes, usually at the end of
   graphical functions, to restore the previous status.
 
-  \code{.ploptions} and \code{ploptionsDefault} are lists of options.
+  \code{ploptions} in the \code{pl.envir} environment and
+  \code{pl.optionsDefault} are lists of options.
   The first one is generated whenever ploptions are set
   (and \code{assign} is \code{TRUE}), and is then
-  stored in the \code{".GlobalEnv"} environment.
+  stored in the \code{pl.envir} environment.
   The second is stored in the package \code{plgraphics}.
 }
 \details{
@@ -70,10 +76,11 @@ ploptionsDefault
   is used as described for arguments in \code{...}, see above
   (in addition to such arguments).
   
-  Here is a list of the components of \code{ploptionsDefault},
+  Here is a list of the components of \code{pl.optionsDefault},
   describing the suitable alternative values to be set by calling
   \code{ploptions}:
-  \cr incomplete for the time being!!!
+
+  incomplete for the time being!!!
   %% ===========================================================
   \itemize{
     \item{keeppar:}{ logical. If TRUE, the graphical parameter settings 
@@ -205,7 +212,7 @@ ploptions(mar=c(2,2,1,1))  ## only active in pl funcions
   ## (unless  ploptions("keeppar")  is  FALSE )
 ploptions(mar=c(2,2,1,1), setpar=TRUE)  ## changes the margins permanently
 ploptions(setpar=TRUE) ## does the same. All the margin pars are
-  ## set permanently to the values in  .ploptions
+  ## set permanently in \code{ploptions} in the \code{pl.envir} environment.
 
 ## switching 'margin parameters' between those used
 ## outside and inside high level pl functions

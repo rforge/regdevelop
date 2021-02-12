@@ -9,7 +9,7 @@
 \usage{
 plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   panel = NULL, xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
-  markextremes = 0, rescale = TRUE, mar = NULL, mf = TRUE,
+  markextremes = 0, rescale = TRUE, mar = NULL, mf = FALSE,
   plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -57,8 +57,8 @@ plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   }
   \item{ploptions}{list of pl options.
   }
-  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
-    in the \code{.GlobelEnv}?
+  \item{assign}{logical: Should the plargs be stored
+    in the \code{pl.envir} environment?
   }
   \item{\dots}{ more arguments, to be passed to \code{\link{pl.control}}
   }

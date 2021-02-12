@@ -174,7 +174,7 @@ logst <- function (data, calib=data, threshold=NULL, mult=1)
     if (ljdt[lj]) {
       ldt <- data[,lj]
       lc <- lthr[lj]
-      data[,lj] <- ifelse(ldt<lc, log10(lc)+(ldt-lc)/(lc*log(10)), log10(ldt))
+      data[,lj] <- ifelse(ldt<lc, log10(lc)+(ldt-lc)/(lc*log(10)), log10(pmax(lc,ldt)))
   } }
   if (length(colnames(data)))
     lnmpd <- names(ljdt) <- names(lthr) <- colnames(data)  else
@@ -577,11 +577,14 @@ getvariables <-
             envir = parent.frame(), ...)
 {
   ## similar to get_all_vars , different error handling; generate is.fac
+  if (is.atomic(formula) && is.character(formula)) formula <- list(formula)
+##  browser()
   if (is.list(formula)) {
+    llf <- length(formula)
     lvnm <- getvarnames(formula[[1]], data=data, transformed=transformed)
-    lvnmy <- if (length(lfo <- formula[[2]]))
+    lvnmy <- if (llf>1 && length(lfo <- formula[[2]]))
                getvarnames(lfo, data=data, transformed=transformed)
-    lvnmcv <- if (length(lfo <- formula[[3]]))
+    lvnmcv <- if (llf>2 && length(lfo <- formula[[3]]))
                getvarnames(lfo, data=data, transformed=transformed)
     lvarnames <- unique(c(lvnm$varnames, lvnmy$varnames, lvnmcv$varnames))
 ##    lenv <- environment(formula[[1]])

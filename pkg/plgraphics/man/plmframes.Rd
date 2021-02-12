@@ -34,7 +34,7 @@ plmframes(mfrow = NULL, mfcol = NULL, mft = NULL, byrow = TRUE, reduce = FALSE,
   }
   \item{plargs, ploptions}{result of calling \code{pl.control}, used
     for generating appropriate values for the margin parameters.
-    If \code{NULL}, \code{.plargs} will be used.
+    If \code{NULL}, \code{pl.envir} will be used.
   }
   \item{\dots}{further graphical parameters passed to
     \code{\link{par}(...)}.

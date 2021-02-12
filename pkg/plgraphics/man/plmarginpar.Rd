@@ -15,7 +15,7 @@ plmarginpar(plargs = NULL)
 %- maybe also 'usage' for other objects documented here.
 \arguments{
   \item{plargs}{list from which the margin parameters are obtained.
-    If \code{NULL}, the default, \code{.plargs} is used. 
+    If \code{NULL}, the default, \code{pl.envir} is used. 
   }
 }
 \value{The old settings of \code{par(c("mar","mgp"))} are returned

@@ -94,7 +94,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   \item{oma}{vector of length 4 giving the number of lines in the outer
     margin. If it is of length 2, they refer to top an right margins.}
     \item{assign}{logical: should the result of \code{pl.control} be
-    assigned to \code{.plargs} in the global environment?
+    assigned to the \code{pl.envir} environment?
     This will be done for high level pl functions, but avoided for low
     level ones. It allows for reusing the settings and helps debug
     unexpected behavior.

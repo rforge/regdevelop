@@ -1,144 +1,286 @@
 
-cexSize.Rd,26
-\examples{xamples25,378
+asinp.Rd,26
+\examples{xamples25,678
 
-d.babysurvival.Rd,19
+c.colors.Rd,44
+% Add one or more standard keywords,21,340
+
+charSize.Rd,90
+\usage{sage10,172
+\examples{xamples25,381
+% Add one or more standard keywords,29,464
+
+clipat.Rd,26
+\examples{xamples30,891
+
+c.months.Rd,44
+% Add one or more standard keywords,32,659
+
+colorpale.Rd,47
+\usage{sage10,198
+\examples{xamples46,1173
+
+condquant.Rd,47
+\usage{sage10,307
+\examples{xamples44,1773
+
+d.babysurvival.Rd,46
 \usage{sage9,222
+\examples{xamples43,1245
 
-d.fossileShapes.Rd,20
+d.birthrates.Rd,47
+\usage{sage11,327
+\examples{xamples69,2902
+
+d.blast.Rd,46
+\usage{sage9,243
+\examples{xamples37,1345
+
+d.fossileShapes.Rd,72
 \usage{sage13,459
+\details{etails71,2790
+\examples{xamples97,3825
+
+doc.Rd,47
+\usage{sage16,546
+\examples{xamples49,1641
+
+d.pollZH16.Rd,47
+\usage{sage18,539
+\examples{xamples54,2042
 
 d.river.Rd,118
 \usage{sage9,251
     \item{\code{date}}{Date of the observation, class \code{ode14,391
 \examples{xamples42,1329
 
+dropdata.Rd,45
+% Add one or more standard keywords,48,1406
+
+dropNA.Rd,20
+\usage{sage11,298
+
+fitcomp.Rd,52
+\details{etails47,2268
+\examples{xamples71,3258
+
+gendateaxis.Rd,20
+\usage{sage12,335
+
+gensmooth.Rd,47
+\usage{sage9,190
+\examples{xamples118,4939
+
+genvarattributes.Rd,47
+\usage{sage12,370
+\examples{xamples97,3612
+
+getmeth.Rd,44
+% Add one or more standard keywords,22,552
+
+getvariables.Rd,79
+\description{escription6,124
+\value{alue36,1324
+\examples{xamples53,1794
+
+last.Rd,45
+% Add one or more standard keywords,42,1508
+
+legendr.Rd,44
+% Add one or more standard keywords,31,956
+
 leverage.Rd,27
 \examples{xamples44,1415
 
-plframe.Rd,28
-\examples{xamples106,4061
+linear.predictors.Rd,65
+\value{alue19,481
+% Add one or more standard keywords,46,1185
 
-plmboxes.Rd,32
+logst.Rd,19
+\usage{sage8,222
+
+markextremes.Rd,90
+\usage{sage12,310
+\examples{xamples27,523
+% Add one or more standard keywords,31,614
+
+modarg.Rd,46
+\usage{sage13,409
+\examples{xamples33,765
+
+nainf.exclude.Rd,44
+% Add one or more standard keywords,31,845
+
+notice.Rd,44
+% Add one or more standard keywords,43,808
+
+plbars.Rd,52
+\details{etails36,1087
+\examples{xamples58,1891
+
+plcond.Rd,72
+\usage{sage14,462
+\details{etails67,2629
+\examples{xamples98,4014
+
+pl.control.Rd,28
+\examples{xamples135,5395
+
+plfitpairs.Rd,19
+\usage{sage8,226
+
+plframe.Rd,48
+\usage{sage12,211
+\examples{xamples123,4795
+
+plinnerrange.Rd,27
+\examples{xamples41,1131
+
+pllimits.Rd,20
+\usage{sage10,268
+
+plmarginpar.Rd,25
+  Function Called 5,168
+
+plmark.Rd,46
+\usage{sage9,193
+\examples{xamples43,1358
+
+plmatrix.Rd,47
+\usage{sage11,309
+\examples{xamples95,4147
+
+plmboxes.Rd,193
 \description{escription10,124
+\usage{sage17,457
+  \item{tem115,4491
+  \item{tem132,5183
+  \item{tem146,5691
+  If given,169,6526
+\details{etails184,7123
+\examples{xamples209,7918
 
-ploptions.Rd,56
-\arguments{rguments16,442
-\examples{xamples146,6507
+plmframes.Rd,46
+\usage{sage8,206
+\examples{xamples55,2084
+
+ploptions.Rd,87
+\description{escription7,172
+\arguments{rguments19,613
+\examples{xamples190,8658
+
+plpanel.Rd,20
+\usage{sage12,352
+
+plpoints.Rd,47
+\usage{sage11,197
+\examples{xamples81,2803
+
+plregr.control.Rd,51
+} %%    jitter 23,738
+\examples{xamples122,5615
 
 plregr.Rd,20
 \usage{sage16,573
 
-smoothRegr.Rd,20
+plres2x.Rd,27
+\examples{xamples62,2557
+
+plscale.Rd,20
+\usage{sage10,297
+
+plsmooth.Rd,48
+\usage{sage11,206
+\examples{xamples127,5315
+
+plsubset.Rd,27
+\examples{xamples46,1439
+
+plticks.Rd,46
+\usage{sage8,107
+\examples{xamples60,1887
+
+plyx.Rd,27
+\examples{xamples92,3692
+
+predict.regrpolr.Rd,46
+\usage{sage9,240
+\examples{xamples35,1136
+
+prettyscale.Rd,41
+\usage{sage11,269
+\value{alue59,2280
+
+quantilew.Rd,106
+  remove NAs from 'x'? If FALSE and 'x' contains NAs,27,717
+% Add one or more standard keywords,50,1412
+
+quinterpol.Rd,45
+% Add one or more standard keywords,48,1271
+
+residuals.regrpolr.Rd,48
+\usage{sage17,652
+\arguments{rguments24,977
+
+revGumbel.Rd,47
 \usage{sage12,331
+\examples{xamples43,1354
+
+robrange.Rd,45
+% Add one or more standard keywords,36,1171
+
+shortenstring.Rd,46
+\value{alue25,582
+\examples{xamples31,701
+
+showd.Rd,47
+\usage{sage10,337
+\examples{xamples37,1398
+
+simresiduals.Rd,47
+\usage{sage12,278
+\examples{xamples64,2477
+
+smoothpar.Rd,45
+\usage{sage9,177
+\examples{xamples21,309
+
+smoothRegr.Rd,20
+\usage{sage12,334
+
+smoothxtrim.Rd,46
+\usage{sage13,347
+\examples{xamples29,662
+
+stamp.Rd,46
+\usage{sage8,217
+\examples{xamples48,1711
 
 stdresiduals.Rd,27
-\examples{xamples46,1557
+\examples{xamples46,1535
 
-xdistResdiff.Rd,0
+sumNA.Rd,44
+% Add one or more standard keywords,30,826
 
-warn.Rd,0
+Tobit.Rd,27
+\examples{xamples55,1387
 
-transferAttributes.Rd,0
+transferAttributes.Rd,83
+\usage{sage8,151
+\value{alue19,421
+% Add one or more standard keywords,34,762
 
-Tobit.Rd,0
+warn.Rd,44
+% Add one or more standard keywords,27,584
 
-sumNA.Rd,0
+weekday.Rd,47
+\usage{sage10,242
+\examples{xamples46,1406
 
-stamp.Rd,0
-
-smoothxtrim.Rd,0
-
-simresiduals.Rd,0
-
-showd.Rd,0
-
-robrange.Rd,0
-
-revGumbel.Rd,0
-
-residuals.regrpolr.Rd,0
-
-quinterpol.Rd,0
-
-quantilew.Rd,0
-
-predict.regrpolr.Rd,0
-
-plyx.Rd,0
-
-plsubset.Rd,0
-
-plres2x.Rd,0
-
-plregr.control.Rd,0
-
-plpoints.Rd,0
-
-plpanel.Rd,0
-
-plmframes.Rd,0
-
-plmatrix.Rd,0
-
-pllimits.Rd,0
-
-plinnerrange.Rd,0
+xdistResdiff.Rd,47
+\usage{sage14,465
+\examples{xamples77,2974
 
 plgraphics-internal.Rd,0
 
-plfitpairs.Rd,0
-
 plcoord.Rd,0
-
-pl.control.Rd,0
-
-nobs.survreg.Rd,0
-
-nainf.exclude.Rd,0
-
-modarg.Rd,0
-
-logst.Rd,0
-
-linear.predictors.Rd,0
-
-legendr.Rd,0
-
-last.Rd,0
-
-getvariables.Rd,0
-
-getmeth.Rd,0
-
-genvarattributes.Rd,0
-
-gensmooth.Rd,0
-
-gendateaxis.Rd,0
-
-fitcomp.Rd,0
-
-dropNA.Rd,0
-
-dropdata.Rd,0
-
-d.pollZH16.Rd,0
-
-doc.Rd,0
-
-d.blast.Rd,0
-
-d.birthrates.Rd,0
-
-condquant.Rd,0
-
-colorpale.Rd,0
-
-c.months.Rd,0
-
-clipat.Rd,0
-
-c.colors.Rd,0
-
-asinp.Rd,0

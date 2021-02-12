@@ -1090,7 +1090,7 @@ plot.xdistResscale <- function (x, lwd=2, cex=2, xlab="distance in x space",
   lymax <- if (lIse <- length(lse <- attr(x,"se"))) max(lrd+2*lse) else max(lrd)
   ##
   plyx(lxdist, lrd, xlab=xlab, ylab=ylab, type="b", plscale=c("sqrt",""),
-       smooth=FALSE, 
+       smooth=FALSE, innerrange=FALSE,
        xlim=c(0,sqrt(max(llim))), xaxs="i", yaxs="i", ylim=c(0,1.05*lymax),
         ...)
   if (lIse) {

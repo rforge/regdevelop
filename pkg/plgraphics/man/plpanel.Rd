@@ -81,8 +81,8 @@ plpanelCond(x, y, ckeyx, ckeyy, pch = 1, pcol = 1, psize = 1,
   the \code{x} and \code{y} coordinates in the plot.
   When \code{frame} is true, \code{plpanel} can be used instead of
   \code{\link{plyx}} for generating a single plot.
-  Note that \code{plpanel} does not set \code{.plargs} in the
-  global environment, in contrast to \code{plyx}.
+  Note that \code{plpanel} does not modify \code{pl.envir},
+  in contrast to \code{plyx}.
 
   \code{plpanelCond} shows selected points only and may show
   some of them with reduced size and paled color.

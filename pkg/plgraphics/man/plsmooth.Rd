@@ -116,7 +116,7 @@ plrefline(refline, x=NULL, innerrange=NULL, y=NULL,
   This is needed if the high level pl function has changed \code{mar},
   since this change has been reversed when the function was left.
   By default, these graphical parameters will be retieved from
-  \code{.plargs$ploptions}.
+  \code{pl.envir$ploptions}.
 }
   
 \author{Werner A. Stahel

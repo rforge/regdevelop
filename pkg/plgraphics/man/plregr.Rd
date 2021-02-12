@@ -72,8 +72,8 @@ plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
   }
   \item{ploptions}{list of pl options.
   }
-  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
-    in the \code{.GlobelEnv}?
+  \item{assign}{logical: Should the plargs be stored
+    in the \code{pl.envir} environment?
   }
   \item{\dots}{Many further arguments are available to customize the plots,
     see below for some of the most useful ones, and

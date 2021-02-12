@@ -82,13 +82,14 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
     }
   \item{ploptions}{Plotting attributes, e.g., plotting character,
     line types, colors and the like, for different aspects of plots.
-    Result of \code{\link{ploptions}}. Defaults to \code{.ploptions}.
+    Result of \code{\link{ploptions}}. Defaults to
+    \code{pl.envir$ploptions}.
   }
   \item{.environment.}{used by the calling function to provide the
     environment for evaluating \code{x} and \code{y}
   }
   \item{assign}{logical: should the result of \code{pl.control} be
-    assigned to \code{.plargs} in the global environment?
+    assigned to the \code{pl.envir} environment?
     This will be done for high level pl functions, but avoided for low
     level ones. It allows for reusing the settings and helps debug
     unexpected behavior.
@@ -103,7 +104,7 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
       \item{}{any further ... arguments will be passed on to
 	\code{ploptions}. The respective settings will be used
 	in the calling pl function, but not permanently stored
-	in \code{.ploptions}
+	in \code{ploptions} in the \code{pl.envir} environment.
       }
     }
   }

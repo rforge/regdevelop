@@ -12,7 +12,7 @@
 \usage{
 genvarattributes(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
   varlabels = NULL, innerrange = NULL, plscale = NULL, zeroline = NULL, 
-  replace=FALSE, ploptions = NULL)
+  replace=FALSE, ploptions = NULL, ...)
 
 setvarattributes(data, attributes = NULL, list = NULL, ...)
 }

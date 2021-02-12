@@ -40,14 +40,14 @@ plbars(x = NULL, y = NULL, midpointwidth = NULL,
   proportional to the number of (finite) observations.
 
   \code{plargs} and \code{ploptions} may be specified explicitly.
-  Otherwise, they are taken from \code{.plargs}.
+  Otherwise, they are taken from \code{pl.envir}.
 
   The argument \code{getpar} is used for setting the graphical
   parameters \code{cex, mar, mgp} according to \code{ploptions}.
   This is needed if the high level pl function has changed \code{mar},
   since this change has been reversed when the function was left.
   By default, these graphical parameters will be retieved from
-  \code{.plargs$ploptions}.
+  \code{pl.envir$ploptions}.
 }
   
 \author{Werner A. Stahel

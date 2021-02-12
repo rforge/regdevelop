@@ -198,15 +198,12 @@ Smooths can also be fitted groupwise by specifying \T{smooth.group}.
 \begin{alltt}
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{)}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.col}\hlstd{=}\hlstr{"red"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/plyx_smooth-1} 
-\begin{kframe}\begin{alltt}
+
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris,} \hlkwc{smooth.group}\hlstd{=Species,}
      \hlkwc{pcol}\hlstd{=Species)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/plyx_smooth-2} 
+\includegraphics[width=\maxwidth]{figure/plyx_smooth-1} 
 
 \end{knitrout}
 Setting \T{pcol=Species} allowed the color of plotting symbols and smooth
@@ -260,19 +257,11 @@ plotted without and with inner plotting limits.
 \hlkwd{plmframes}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{3}\hlstd{)}
 
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange}\hlstd{=}\hlnum{FALSE}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/innerrange-1} 
-\begin{kframe}\begin{alltt}
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/innerrange-2} 
-\begin{kframe}\begin{alltt}
 \hlkwd{plyx}\hlstd{( tremor}\hlopt{~}\hlstd{distance,} \hlkwc{data}\hlstd{=dd,} \hlkwc{innerrange.factor}\hlstd{=}\hlnum{5}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/innerrange-3} 
+\includegraphics[width=\maxwidth]{figure/innerrange-1} 
 
 \end{knitrout}
 
@@ -340,8 +329,6 @@ If multiple x variables are given, a separate plot is drawn for each of them.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-multiplex-1} 
-
-\includegraphics[width=\maxwidth]{figure/plyx-multiplex-2} 
 
 \end{knitrout}
 %% \label{multiplex}
@@ -440,16 +427,12 @@ are labelled. This is achieved by setting the argument \T{markextremes}.
 
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlnum{0.1}\hlstd{,} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/markextremes-1} 
-\begin{kframe}\begin{alltt}
 \hlcom{## different proportions marked in different margins:}
 \hlkwd{plyx}\hlstd{(Sepal.Width}\hlopt{~}\hlstd{Sepal.Length,} \hlkwc{data}\hlstd{=iris[}\hlnum{1}\hlopt{:}\hlnum{50}\hlstd{,],} \hlkwc{smooth}\hlstd{=F,}
      \hlkwc{markextremes}\hlstd{=}\hlkwd{list}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwd{c}\hlstd{(}\hlnum{0.02}\hlstd{,}\hlnum{0.2}\hlstd{)),} \hlkwc{cex}\hlstd{=}\hlnum{0.7}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/markextremes-2} 
+\includegraphics[width=\maxwidth]{figure/markextremes-1} 
 
 \end{knitrout}
 The default value of \T{markextremes} is 0 for \T{plyx}.
@@ -529,8 +512,6 @@ the x and y variables.
 \end{alltt}
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/censored-1} 
-
-\includegraphics[width=\maxwidth]{figure/censored-2} 
 
 \end{knitrout}
 
@@ -1214,13 +1195,7 @@ plot.
 \hlstd{xdrd} \hlkwb{<-} \hlkwd{xdistResdiff}\hlstd{(rr)}
 \hlkwd{plot}\hlstd{(xdrd,} \hlkwc{zeroline.col}\hlstd{=}\hlstr{"darkgreen"}\hlstd{)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning in FUN(newX[, i], ...): :robrange: not enough valid data. returning ordinary range}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/xdist-1} 
 
 \end{knitrout}
@@ -1269,22 +1244,20 @@ with the data as ``properties'' of variables.
 There are some differences between the behavior of \T{ploptions} and \T{par}:
 \begin{itemize}
 \item 
-The pl options are stored in a list \T{.ploptions} in the global
-environment and are therefore not erased when leaving the R session with
-saving the workspace (\T{q(save="yes")}).
+  The pl options are stored in a list \T{.ploptions} in the environment
+  \T{pl.envir}.
 \item
-There is a list \T{ploptionsDefault} in the package. It collects the
-package's default settings and is used as a backup if some components should
-not be contained in \T{.ploptions}.
+  There is a list \T{pl.optionsDefault} in the package. It collects the
+  package's default settings and is used as a backup if some components should
+  not be contained in \T{.ploptions}.
 \item
-Both of these lists can be overriden by objects with the same name
-that appear earlier in the search list than the \T{plgraphics} package.
+  Both of these lists can be overriden by objects with the same name
+  that appear earlier in the search list than the \T{plgraphics} package.
 \item
-The value returned by \T{ploptions} is the entire, modified list of 
-pl options. The old values are stored in the attribute \T{attr( ,"old")}
-to be used for restoring them, see above.
+  The value returned by \T{ploptions} is the entire, modified list of 
+  pl options. The old values are stored in the attribute \T{attr( ,"old")}
+  to be used for restoring them, see above.
 \end{itemize}
-
 
 \Remark
 The concept of the ploptions list is a version of a more general idea, 
@@ -1305,11 +1278,10 @@ in
 \item
   the \T{ploptions} argument of the calling function,
 \item
-  the \T{.ploptions} list in the global environment or in the \T{search()} list,
+  the \T{.ploptions} list in environment \T{pl.envir},
 \item
-  the list \T{ploptionsDefault} in the package \T{plgraphics}
+  the list \T{pl.optionsDefault} in the package \T{plgraphics}
   or in an environment hiding it.
-  %% same as .ploptions!
 \end{enumerate}
 
 The components of these lists include
@@ -1459,10 +1431,15 @@ will restore the old settings. Here, we have commented out the plotting
 statement to save space.
 
 The options that are finally used in high level pl displays are saved 
-in the list \T{.plargs} in the global environment as
-\T{.plargs\$ploptions}.
-This allows for re-using the same settings and may help debugging when
-displays do not show what was desired.
+as the list \T{ploptions} in an environment called \T{pl.envir}.
+They will be retrieved by subsequent low level pl functions,
+like \T{plpoints}.
+They can be inspected and changed by, e.g.,
+\T{pl.envir\$mar} or \T{pl.envir\$mar\Gets c(5,3,2,1)}.
+%% This may also help debugging when displays do not show what was desired.
+(The list \T{.ploption}, with a leading dot, stores the options set by
+the function \T{ploptions}.)
+
 
 %% ---------------------------------
 \subsection{Graphical metadata, attributes of variables used for plotting}
@@ -1517,7 +1494,7 @@ argument \T{data}.
 \end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx_pattr-1} 
 \begin{kframe}\begin{alltt}
-\hlkwd{table}\hlstd{(.plargs}\hlopt{$}\hlstd{pldata[,}\hlstr{".pch."}\hlstd{])}
+\hlkwd{table}\hlstd{(pl.envir}\hlopt{$}\hlstd{pldata[,}\hlstr{".pch."}\hlstd{])}
 \end{alltt}
 \begin{verbatim}
 ## 
@@ -1526,8 +1503,9 @@ argument \T{data}.
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
+%% table( current("pldata")[,".pch."] )  ## or 
 As the last statement shows, the \T{pldata} dataset is available after
-calling the plotting function as a component of the list \T{.plargs}.
+calling the plotting function in the environment \T{pl.envir}.
 
 \Tit{Properties of variables.}
 A second type of properties determines how variables should be displayed.
@@ -1592,9 +1570,9 @@ It generates the ``plotting dataset'' \T{pldata}, which
 collects data dependent information needed for plotting in an enriched,
 standardized form. 
 It also takes any futher arguments to be passed on to \T{ploptions}.
-The result is stored as \T{.plargs} in the global environment.
+The result is stored in the \T{pl.envir} environment.
 This allows for inspection of the plotting data
-\T{.plargs\$pldata} and the active \T{ploptions} (\T{.plargs\$ploptions})
+\T{pl.envir\$pldata} and the active \T{ploptions} (\T{pl.envir\$ploptions})
 and thereby helps debugging.
 
 \Tit{Plot scale.}
@@ -1663,7 +1641,7 @@ margin by \T{mtext(...)} would be wrongly positioned.
 As an alternative to setting \T{keeppar=TRUE}, the function \T{plmarginpar}
 can be called to set the ``margin parameters'' \T{mar, oma, mgp, cex}
 to the values used in the last call to a high level pl function.
-These are available from \T{.plargs\$ploptions} 
+These are available from \T{pl.envir\$ploptions} 
 (unless \T{assign} was \T{FALSE} in this call).
 
 \begin{knitrout}
@@ -1684,7 +1662,7 @@ These are available from \T{.plargs\$ploptions}
 \hlkwd{points}\hlstd{(t.usr[}\hlnum{2}\hlstd{],t.usr[}\hlnum{4}\hlstd{],} \hlkwc{pch}\hlstd{=}\hlstr{"X"}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)}
 \hlkwd{plpoints}\hlstd{(t.usr[}\hlnum{2}\hlstd{],t.usr[}\hlnum{4}\hlstd{],} \hlkwc{pch}\hlstd{=}\hlstr{"+"}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
 
-\hlstd{t.plo} \hlkwb{<-} \hlkwd{plmarginpar}\hlstd{()} \hlcom{## get margin parameters from .plargs }
+\hlstd{t.plo} \hlkwb{<-} \hlkwd{plmarginpar}\hlstd{()} \hlcom{## get margin parameters from pl.envir }
   \hlcom{## generated by the last pl graphics call}
 \hlkwd{par}\hlstd{(}\hlstr{"mar"}\hlstd{)}
 \end{alltt}
@@ -1694,10 +1672,7 @@ These are available from \T{.plargs\$ploptions}
 \begin{alltt}
 \hlkwd{mtext}\hlstd{(}\hlstr{"here is the right place"}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
 \hlkwd{points}\hlstd{(t.usr[}\hlnum{2}\hlstd{],t.usr[}\hlnum{4}\hlstd{],} \hlkwc{pch}\hlstd{=}\hlstr{"O"}\hlstd{,} \hlkwc{col}\hlstd{=}\hlstr{"blue"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/marginpars-1} 
-\begin{kframe}\begin{alltt}
+
 \hlkwd{par}\hlstd{(}\hlkwd{attr}\hlstd{(t.plo,} \hlstr{"oldpar"}\hlstd{))}  \hlcom{## restores old 'margin parameters' }
 \end{alltt}
 \begin{verbatim}
@@ -1720,7 +1695,7 @@ These are available from \T{.plargs\$ploptions}
 \hlkwd{mtext}\hlstd{(}\hlstr{"this goes to the right place, too"}\hlstd{,}\hlnum{3}\hlstd{,}\hlnum{1}\hlstd{)}
 \end{alltt}
 \end{kframe}
-\includegraphics[width=\maxwidth]{figure/marginpars-2} 
+\includegraphics[width=\maxwidth]{figure/marginpars-1} 
 
 \end{knitrout}
 
@@ -1813,10 +1788,10 @@ or change the ploption, \T{ploptions(panel=my.panel)}.
 \Tit{Coordinates from last high level pl function.}
 The low level functions that act on \T{x} and \T{y} coordinates can be used
 with empty \T{x} and \T{y} arguments. They will then obtain these values
-from \T{.plargs\$pldata}, which is generated and stored by high level 
+from \T{pl.envir\$pldata}, which is generated and stored by high level 
 pl functions and will thus reflect the coordinates that are likely the
 bases of the current plot. 
-The pl options are also recovered from \T{.plargs} (unless the argument
+The pl options are also recovered from \T{pl.envir} (unless the argument
 \T{ploptions} is specified in the call to the low level function).
 
 
@@ -1961,7 +1936,7 @@ affected, the pl functions use an implicit palette given by
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{ploptionsDefault}\hlopt{$}\hlstd{colors}
+\hlstd{pl.optionsDefault}\hlopt{$}\hlstd{colors}
 \end{alltt}
 \begin{verbatim}
 ##  [1] "black"        "red"          "blue"         "darkgreen"    "orange"      
@@ -2147,7 +2122,7 @@ Vectors of residuals will contain \T{NA}s where appropriate and have
 the same length as the variables in the data.
 
 The pl functions \T{plregr, plresx, plres2x} work with the extended
-version. This is reflected in \T{.plargs\$pldata} and allows for
+version. This is reflected in \T{pl.envir\$pldata} and allows for
 combining that data.frame with the original dataset.
 
 \subsection{Documentation}

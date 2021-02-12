@@ -49,8 +49,8 @@ plmatrix(x, y = NULL, data = NULL, panel = NULL,
   }
   \item{ploptions}{list of pl options.
   }
-  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
-    in the \code{.GlobelEnv}?
+  \item{assign}{logical: Should the plargs be stored in the \code{pl.envir}
+    environment?
   }
   \item{\dots}{further arguments passed to the \code{panel} function
     and possibly further to functions called by the panel function\cr}

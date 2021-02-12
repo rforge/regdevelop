@@ -48,20 +48,16 @@ plcond(x, y = NULL, condvar = NULL, data = NULL,
   \item{oma}{width of outer margins, see \code{\link{par}}.
     Note that a minimum of 2.1 is generally needed for showing
     tick and axis labels.}
-%%  \item{cex}{general character expansion, will be multiplied by
-%%    \code{par("cex")}
-%%  }
   \item{plargs}{result of calling \code{pl.control}.
     If \code{NULL}, \code{pl.control} will be called to generate it.
     If not null, arguments given in \code{...} will be ignored.
   }
   \item{ploptions}{list of pl options.
   }
-  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
-    in the \code{.GlobelEnv}?
+  \item{assign}{logical: Should the plargs be stored in \code{pl.envir}? 
   }
   \item{\dots}{further arguments passed to the \code{panel} function
-    and possibly further to functions called by the panel function\cr
+    and possibly further to functions called by the panel function.
   }
 }
 \details{A numerical conditioning variable (\code{condvar}) will be

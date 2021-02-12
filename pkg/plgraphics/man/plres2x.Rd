@@ -46,8 +46,8 @@ plres2x(formula = NULL, reg = NULL, data = NULL, restrict = NULL,
   }
   \item{ploptions}{list of pl options.
   }
-  \item{assign}{logical: Should the plargs be stored as \code{.plargs}
-    in the \code{.GlobelEnv}?
+  \item{assign}{logical: Should the plargs be stored 
+    in the \code{pl.envir} environment?
   }
   \item{\dots}{further arguments, passed to \code{plotregr.control}}
 }
