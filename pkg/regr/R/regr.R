@@ -3295,8 +3295,17 @@ i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
 }
 ## ==========================================================================
 shift <- function(x, k = 1)
-  if (k>0) c(rep(NA, k), last(x, -k)) else
-  if (k==0) x else c(last(x, k), rep(NA, -k))
+{
+  if (k==0) return(x)
+  if(length(dim(x))) {
+    lna <- matrix(NA,abs(k),ncol(x))
+    if (is.data.frame(x)) lna <- setNames(as.data.frame(lna), names(x))
+    if (k>0) rbind(lna, last(x,-k)) else rbind(x[-(1:(-k)),], lna)
+  } else {
+    if (k>0) c(rep(NA, k), last(x, -k))
+    else c(last(x, k), rep(NA, -k))
+  }
+}
 ## --------------------------------------------------------------------------
 notice <- function(..., notices = NULL)
   if (i.getopt(notices)) message("Notice in ",...)

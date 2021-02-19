@@ -1290,8 +1290,11 @@ These are
   positions of labels to indicate values of the variable, and the lablels
   themselves;
 \item
-  \T{pch, lty, col}: plotting symbol, line type and color to be used 
+  \T{vpch, vlty, vcol}: plotting symbol, line type and color to be used 
   if multiple y's are shown in a plot.
+  These elements are obtained by default from
+  \T{ploptions("variables.xxx")}, where \T{xxx} is T{pch}, T{lty}, or
+  T{col}.
 \end{itemize}
 These elements are stored as attributes of the variables,
 e.g., \T{attr(var, "thicksat")}.

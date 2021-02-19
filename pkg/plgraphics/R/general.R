@@ -354,7 +354,7 @@ shortenstring <- function (x, n=50, endstring="..", endchars=NULL)
 ## ======================================================================
 colorpale <- function(col=NA, pale=0.3, rgb = FALSE, ...)
 {
-  pale <- i.def(pale, 0.3)
+  pale <- i.def(pale, 0.3)[1]
   if (NCOL(col)!=3||length(lcn <- colnames(col))%nin%c(0,3)||
       any(lcn!=c("red","green","blue"))) {
     lcolna <- is.na(col)
@@ -364,7 +364,7 @@ colorpale <- function(col=NA, pale=0.3, rgb = FALSE, ...)
     }
     col <- t(col2rgb(col)/255)
   }
-  rr <- 1-(1-pale)*(1-col)
+  rr <- if (pale>0) 1-(1-pale)*(1-col) else (1+pale)*col
   if (rgb) rr else rgb(rr, ...)
 }
 ## ===========================================================================

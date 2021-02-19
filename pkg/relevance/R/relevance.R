@@ -469,6 +469,12 @@ termeffects <- #f
       stop("!termeffects! inadequate first argument")
  ##  xl <- object$xlevels
   Terms <- delete.response(terms(object))
+  int <- attr(Terms, "intercept")
+  facs <- attr(Terms, "factors")
+  if (length(facs)==0) {
+    message(".termeffects. No terms, no termeffects")
+    return(NULL)
+  }
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   lmethod <- paste(c(class(object),
                      if (length(lfamily)) c("; family = ", lfamily),
@@ -483,8 +489,6 @@ termeffects <- #f
       (is.matrix(allc[[length(allc)]])|!se)) return(allc) ## !!! check!
   ## ---
   if (rlv) lsigma <- getscalepar(object)
-  int <- attr(Terms, "intercept")
-  facs <- attr(Terms, "factors")
   mf <- object$model  ##! d.c used all.vars
   if (is.null(mf)) {
     object$call$model <- object$call$x <- object$call$envir <- NULL
@@ -577,7 +581,7 @@ termeffects <- #f
 ##-   licf <- pmatch(colnames(mm), names(coef))
   licf <- pmatch(names(coef), colnames(mm))
   lasgn <- asgn[licf]
-  mm <- mm[,licf]
+  mm <- mm[,licf,drop=FALSE]
 ##  asgn <- asgn[names(coef)] ## !!!
   res <- setNames(vector("list", length(tl)), tl)
   ljfail <- NULL

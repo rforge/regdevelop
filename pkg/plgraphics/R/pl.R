@@ -322,7 +322,7 @@ pl.control <- #f
   ##   
   if (length(ploptions$smooth.col)==1)
     ploptions$smooth.col[2] <-
-      colorpale(ploptions$smooth.col, i.getploption("smooth.pale"))
+      colorpale(ploptions$smooth.col, i.getploption("smooth.pale")[1])
   ## ---
   lmardf <- i.getploption("mar")
   if (length(lynames)>1) lmardf[4] <- lmardf[2] ## need space at the right
@@ -344,7 +344,7 @@ pl.control <- #f
   lrefl <- if (length(lrefl)>1 | is.function(lrefl)) lrefl
   ## --- main
   main <- i.def(main, "", "", "")
-  sub <- i.def(sub, NULL, ":", NULL)
+  sub <- i.def(sub, i.def(i.getploption("sub"), NULL, ":", NULL))
   ## ------------------------------------------------------------
   ## result of pl.control
   rr <- list(
@@ -528,7 +528,7 @@ i.genvattrcont <- #f
   lirg <- i.def(i.getplopt(innerrange), TRUE)
   lirf <- i.getplopt(innerrange.factor) 
   ltint <- i.getplopt(tickintervals) ## logical
-  lplrg <- attr(x, "plrange", exact=TRUE)
+  lplrg <- i.def(attr(x, "vlim", exact=TRUE), attr(x, "plrange", exact=TRUE))
   lIplrg <- u.isnull(lplrg) ## new range
   lvlimsc <- lvlim <- attr(x, "vlim", exact=TRUE)
 ##  lvlimsc <- i.def(attr(x, "vlimscaled"), lvlim)
@@ -566,8 +566,7 @@ i.genvattrcont <- #f
     ## to avoid unnecessary inner bounds when plotting
   }
   ## set plrange
-  lplrg <- i.def(attr(x, "plrange", exact=TRUE), NA, valuefalse=NA)
-  if (length(lplrg)==1) lplrg <- c(NA,NA)
+  if (length(lplrg)<=1) lplrg <- c(NA,NA)
   if (any(!is.finite(lplrg))) { ## 
     lrg <- i.extendrange(
       if (length(lirg)==2) lirg else range(lx, finite=TRUE),
@@ -790,8 +789,8 @@ plframe <- #f
       lxx <- i.def(i.def(attr(lx,"numvalues", exact=TRUE),
                          attr(lx,"plcoord", exact=TRUE)), as.numeric(lx))
       lrg <- replaceNA(lrg, i.extendrange(range(lxx, finite=TRUE), lext))
-      lirg <-
-        replaceNA(replaceNA(lvlim, attr(lx,"innerrange", exact=TRUE)), lplrg)
+      lirg <- if(length(lir <- attr(lx,"innerrange", exact=TRUE)))
+        replaceNA(replaceNA(lvlim, lir), lplrg)
     }
     list(x = lx, xx = lxx, range = lrg, innerrange = lirg) ## was x=x
   } ## end of lf.getcoord
@@ -1041,11 +1040,13 @@ pltitle <- #f
   minadj <- 0.2
   ## ---
   main <- i.def(main, plargs$main)
-  sub <- i.def(sub, plargs$sub, valuefalse=NULL) ## paste(":",plargs$sub,sep="")
-  if (is.logical(sub)) sub <- if(sub) ":" else NULL
+  sub <- i.def(sub, i.def(plargs$sub, i.getploption("sub")))
+  ## i.def(sub, plargs$sub, valuefalse=NULL) ## paste(":",plargs$sub,sep="")
+  ##  if (is.logical(sub)) sub <- if(sub) ":" else NULL
+  if (u.true(sub)) sub <- ":"
   sub <- if (length(sub) && substr(sub,1,1)==":")
             paste(substring(sub,2,30), plargs$.subdefault, sep="")
-          else as.character(sub)
+          else if (u.notfalse(sub)) as.character(sub)
   if (length(main)&&main=="") main <- NULL
   if (length(sub)&&sub=="") sub <- NULL
   if (length(main)==0 & length(sub)==0) return(invisible(list(main=NULL,sub=NULL)))
@@ -1238,7 +1239,7 @@ plpoints <- #f
     li <- lipch>0
     if (any(li)) {
       pch[li] <- rep(i.getploption("censored.pch"), length=8)[lipch[li]]
-      pcol[li] <- colorpale(pcol[li], i.getploption("censored.pale"))
+      pcol[li] <- colorpale(pcol[li], i.getploption("censored.pale")[1])
       lspch[li] <- lspch[li]*i.getploption("censored.size")
     }
   }
@@ -1936,17 +1937,17 @@ gendateaxis <- #f
       substring(ifelse(x<10, paste("0",x,sep=""), as.character(x)),1,2)
   lf.seq <- function(x) seq(min(x),max(x))
   lf.tickat <-
-    function(tickunit, tickint, llev, llvlg, ystart, mstart, lnlev) {
+    function(tickunit, tickint, llev, llvlg, ystart, mstart, lnlev) { ## , label=FALSE
       ## generate ticks in  tickint [tickunit]  intervals
       if (tickunit=="y") return(ystart)
       llunit <- match(tickunit, names(lnlev))
-      llev[[llunit]] <- ltatu <-
+      llev[[llunit]] <- ltatu <- ## units that may be used
         seq(llunit%in%2:3, lnlev[llunit], tickint) ## m and d start at 1
       ## keep llev component of highest category if higher than tickunit,
       ## generate levels of lower ones for the whole span PLUS 1 for the end
       lv1 <- llev[[llvlg]]
       if (llvlg < llunit-1) {
-        for (ll in (llvlg+1):llunit-1) {
+        for (ll in (llvlg+1):(llunit-1)) { ## no llunit-1 instead of (llunit-1) !!!?
           llev[[ll]] <- llv <- seq(ll%in%2:3, lnlev[ll]) ## m and d start at 1
           lv1 <- c(outer(llv, lv1*100, "+"))
         }
@@ -1956,7 +1957,7 @@ gendateaxis <- #f
       ## ---
       if (tickunit=="m")  ltat <- mstart[seq(1, length(mstart), tickint)]
       else { ## mstart contains start of month for whole year(s). select those needed
-        ltat <- c(outer(llev[["d"]]-1, mstart[llev[["m"]]], "+")) ## day starts with 1
+        ltat <- c(outer(llev[["d"]]-1, mstart, "+")) ## day starts with 1 [llev[["m"]]]
         lmd <- c(outer(llev[["d"]], 100*(llev[["m"]]), "+"))
         ltatu[lmd%in%c(limpossible, limpossible+1)] <- NA 
         liat <- lmd%nin% (limpossible+1) ## +1: keep tick at end of last day month
@@ -1979,9 +1980,10 @@ gendateaxis <- #f
       li <- length(ltat)+1-which(duplicated(rev(ltat)))
       if (length(li)) {
         ltat <- ltat[-li]
-        ltatu <- ltatu[-li]
+        ltatu <- ltatu[-li] ## if (label) 
       }
-      structure(ltat, at.inunit=ltatu)
+      attr(ltat, "at.inunit") <- ltatu  ## if (label) 
+      ltat ## structure(ltat, at.inunit=ltatu)
     } ## end lf.tickat
   lnlev <- c(y=100, m=12, d=31, h=24, M=60, s=60)
   limpossible <- c(229, 230, 231, 431, 631, 931, 1131) ## non-existing days
@@ -2047,7 +2049,7 @@ gendateaxis <- #f
   ltatlabel <-
     lf.tickat(llunit, llint,
               llev=llev, llvlg=llvlg, ystart=lystart, mstart=lmstart,
-              lnlev=lnlev)
+              lnlev=lnlev)  ## , label=TRUE
   ## --- ticklabels
   ltatu <- attr(ltatlabel, "at.inunit", exact=TRUE)
   lls <- any(ltatu>=100, na.rm=TRUE)
@@ -2074,7 +2076,7 @@ gendateaxis <- #f
     llv1 <- c("A",names(llev))[llvlg] ## level that does not vary
     lvlab <- structure(
       switch(llv1,
-             A = "year",
+             A = list(), ## "year",
              y = as.character(llev[[1]]),
              m = paste(c.months[llev[[2]]], llev[[1]]), 
              d = paste(llev[[3]], c.months[llev[[2]]]),
@@ -2293,6 +2295,7 @@ plyx <- #f
   ltadj <- i.getploption("title.adj")
   lcsize.pch <- i.getploption("csize.pch")  ## need to do this here such that
   ltitl <- i.getploption("title.line")
+  lsmpale <- i.getploption("smooth.pale")[2]
   lmfkeep <- !u.notfalse(mf)
   ## csize is fixed and does not vary with group size
   if (is.function(lcsize.pch)) lcsize.pch <- lcsize.pch(lnobs)
@@ -2319,9 +2322,10 @@ plyx <- #f
   } else  lgroup <- rep(1, nrow(ly))
   ## lgrp <- unique(lgroup)
   ## ranges
-  lf.rg <- function(y)
-    i.def(i.def(attr(y, "innerrange", exact=TRUE), attr(y,"plrange", exact=TRUE)),
-          range(y, finite=TRUE))
+  lf.rg <- function(y) { ## plranges and innerranges
+    plrg <- i.def(attr(y,"plrange", exact=TRUE), range(y, finite=TRUE))
+    c(plrg, i.def(attr(y, "innerrange", exact=TRUE), plrg))
+  }
   lrgy <-
     sapply(ly, lf.rg)
   ## inner plotting range
@@ -2340,15 +2344,16 @@ plyx <- #f
         attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgy)
     } else {
       if (rescale<0) { ## do not adjust tick marks etc
-        lrgyy <- c(min(lrgy[1,]),max(lrgy[2,]))
+        lrgyy <- c(min(lrgy[1,]),max(lrgy[2,]),min(lrgy[3,]),max(lrgy[4,])) 
         for (lj in 1:lny) 
           attr(ly[,lj], "plcoord") <- plcoord(ly[,lj], range=lrgyy)
       } 
       else  ## rescale >0
         lrgyy <- lrgy[,1]
-      attr(ly[,1],"plrange") <-     ## extend the plrange of ly[,1] if needed
-        lrgyy + diff(lrgyy)*c(-1,1)*
-          ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
+      attr(ly[,1],"plrange") <- lrgyy[1:2]
+        ## extend the plrange of ly[,1] if needed
+##-         lrgyy + diff(lrgyy)*c(-1,1)*
+##-           ifelse(lIinner, i.getploption("innerrange.ext"), 0) ## ploptions$plext
     } ## !!! welche attr sollen wirklich gesetzt werden?
     attr(ly[,1], "nouter") <- lIinner ## plframe is called for ly[,1], needs attr
   } ## end lny>1
@@ -2503,9 +2508,11 @@ plyx <- #f
           if (length(lpch)==lnr) lpchg <- lpch[li]
           if (length(lplab)==lnr) lplabg <- lplab[li]
         } 
-        if (lny>1) 
-          ploptions$col <-ploptions$lcol <-
+        if (lny>1) {
+          lcol <- ploptions$col <- ploptions$lcol <- 
             plargs$pldata$".pcol." <- attr(ly1g,"vcol", exact=TRUE)
+          if (lIsmooth) ploptions$smooth.col <- colorpale(lcol, lsmpale)
+        }
         panel(lxjg, ly1g, type=type, plargs=plargs, ploptions=ploptions)
         ## multiple y
         lusr <- par("usr")
@@ -2516,11 +2523,14 @@ plyx <- #f
             lpcol <- attr(lyjg, "vcol", exact=TRUE) ##  the color must reflect the variable
             if (!lIpch) lpchg <- attr(lyjg, "pch", exact=TRUE)
             if (rescale>0) {
-              lusr[3:4] <- lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
+              lrgcomp <- cbind(lrgj,lrgold)[1:2+2*lIinner,]
+              lusr[3:4] <- lrgcomp[1,1] +
+                diff(lrgcomp[,1])/diff(lrgcomp[,2]) * (lusr[3:4]-lrgold[1])
+                ##lrgj[1] + diff(lrgj)/diff(lrgold)*(lusr[3:4]-lrgold[1])
               par(usr=lusr)
             }
             if (lIsmooth) {
-              plargs$ploptions$smooth.col <- lpcol
+              plargs$ploptions$smooth.col <- colorpale(lpcol,lsmpale)
               plsmooth(lxjg, lyjg, plargs=plargs)
             }
             plpoints(lxjg, lyjg, type=type, plab=lplab, pch=lpchg, col=lpcol,
@@ -5591,7 +5601,8 @@ c.dateticks <- data.frame(
     oma.width = 2.5, 
     ## title (mtext)
     title.line=c(2,0.8), title.adj = c(0.5,0.97,0.03),
-    title.csize=c(1.2,1), title.csizemin=0.6, title.maxchars=80, 
+    title.csize=c(1.2,1), title.csizemin=0.6, title.maxchars=80,
+    sub = TRUE,
     ##
     panel = "plpanel", panelsep = 0.5, 
     tickintervals = c(7,3),
@@ -5613,7 +5624,7 @@ c.dateticks <- data.frame(
     refline.lty = c(4,6), refline.lwd = c(1,0.7), refline.col = "darkgreen",
     ## smoothline
     smooth.lty = 2, smooth.lwd = c(2, 0.7),
-    smooth.col = "blue", smooth.pale = 0.7,
+    smooth.col = "blue", smooth.pale = c(0.7,-0.5),
     ## smooth
     smooth = TRUE, 
     smooth.function = "smoothRegr", smooth.par = smoothpar, smooth.iter = 50,
@@ -5679,7 +5690,8 @@ ploptionsCheck <-
     plext=cnr(c(0,0.5)), plextext=cnr(c(0,0.5)),
     ## title
     title.csize=cnr(c(0.1,5)), title.csizemin=cnr(c(0.1,2)), title.adj = cnr(c(-0.2,1.2)),
-    title.line=cnr(c(-5,5)), title.maxchars=cnr(c(5,200)), 
+    title.line=cnr(c(-5,5)), title.maxchars=cnr(c(5,200)),
+    sub = list(clg(),cch()),
     ## plcond options
     plcond.panel = cfn(),
     plcond.ninterval = cnr(0,50), plcond.extend=list(cfn(), cnr(c(0,10))),
@@ -5694,7 +5706,7 @@ ploptionsCheck <-
     refline.col = ccl(), 
     ## smoothline
     smooth.lty = cnv(c.ltyvalues), smooth.lwd = cnr(c(0.1,5)),
-    smooth.col = ccl(), smooth.pale = cnr(c(0,1)),
+    smooth.col = ccl(), smooth.pale = cnr(c(-1,1)),
     smooth = clg(), 
     smooth.function = cfn(), smooth.par = list(cfn(), cnr(c(0,2))),
     smooth.minobs = cnr(c(3,20)), smooth.band = clg(),
