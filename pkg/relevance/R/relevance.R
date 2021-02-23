@@ -235,7 +235,7 @@ inference <-
     return (rr)
   }
   lfac <- stcoef/estimate
-  lstci <- cbind(stcoef=stcoef, st.Low=lfac*lci[,1], st.Up=lfac*lci[,2])
+  lstci <- cbind(stcoef=stcoef, stciLow=lfac*lci[,1], stciUp=lfac*lci[,2])
   rr <- cbind(rr, lstci)
   ## --- relevance
   if (!rlv) return(rr)
@@ -266,13 +266,16 @@ termtable <- #f
   lrlthpr <- rlv.threshold[["pred"]]
   ## --- sigma and threshold for standardized coefficient
   ## lsigma <- c(object$sigma, summary$sigma, 1)[1]
+  lf.intercept <- function(object)
+    length(ln <- names(object$coefficients))&&ln[1]=="(Intercept)" ## !!! polr and other models?
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   ldist <- object$dist
-  lmethod <- paste(c(class(object),
-                     if (length(lfamily)) c("; family = ", lfamily),
-                     if (length(ldist)) c("; sitribution = ", ldist),
+  lmethod <- paste(c(setdiff(class(object),"regr")[1],
+                     if (length(lfamily)) c(" ; family = ", lfamily),
+                     if (length(ldist)) c(" ; distribution = ", ldist),
                      " :  Drop-term effects"),
                    collapse="")
+  ldname <- as.character(object$call$data)
   ## if ((inherits(object, "glm") &&
   ##      lfamily %in% c("poisson","quasipoisson")) ||
   ##     (inherits(object, "survreg")&&
@@ -286,7 +289,7 @@ termtable <- #f
       testtype <-
         if (lfamily %in% c("quasibinomial","quasipoisson")) "F" else "LRT"
     }
-    if (inherits(object, c("survreg"))) testtype <- "Chisq"
+    if (inherits(object, c("survreg", "polr"))) testtype <- "Chisq"
   }
   ## ---
   lterms <- terms(object)
@@ -297,7 +300,7 @@ termtable <- #f
     return(data.frame(
       coef=i.def(object$coefficients,NA), df = NA, se=NA,
       statistic=NA, p.value=NA, Sig0=NA, ciLow=NA, ciUp=NA,
-      stcoef=NA, st.Low = NA, st.Up = NA, R2.x=NA,
+      stcoef=NA, stciLow = NA, stciUp = NA, R2x=NA,
       stringsAsFactors=FALSE)
       )
   ## --- coefficients
@@ -309,15 +312,17 @@ termtable <- #f
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
       try(drop1Wald(object, test=testtype, scope=lterms), silent=TRUE)
     } else {
-      try(drop1(object, test=testtype, scope=lterms), silent=TRUE)
+      try(i.drop1(object, test=testtype, scope=lterms), silent=TRUE)
     }
   if (inherits(ldr1, "try-error")) {
-    warning(":termtable: drop1 did not work. I return the codfficient table")
+    warning(":termtable: drop1 did not work. I return the coefficient table")
     lii <- match(c("Rle","Rls","Rlp"), names(lcoeftab), nomatch=0)
     names(lcoeftab)[lii] <- c("coefRle","coefRls","coefRlp")[lii!=0]
-    return( structure(cbind(coef=lcoeftab[,1,drop=FALSE], df=1,
-                            lcoeftab[,-1,drop=FALSE]),
-                      class=c("inference", "data.frame")))
+    return(
+      structure(cbind(coef=lcoeftab[,1,drop=FALSE],df=1,lcoeftab[,-1,drop=FALSE]),
+                class=c("inference", "data.frame"), type="terms",
+                formula=formula(object), data.name=ldname
+                ))
   }
   ldr1 <- ldr1[-1,]
   ldr1$RSS <- NULL # same ncol for lm and glm
@@ -346,15 +351,20 @@ termtable <- #f
   ## -----------------------------------
   ## --- r2x
   lr2 <- NA
-  if (r2x) {
-    lvift <-     ## lterms: n of levels for each term
-##        if (u.debug()) vif.regr(object, mmat=lmmt) else
+  if (r2x) 
+  {
+    if (inherits(object, c("polr", "coxph")))
+      warning("!termtable! No R2x for such models")
+    else {
+      lvift <-     ## lterms: n of levels for each term
+        ##        if (u.debug()) vif.regr(object, mmat=lmmt) else
         try(vif.regr(object, mmat=lmmt), silent=TRUE)
-    if (inherits(lvift, "try-error") || length(lvift)==0) {
-      warning(":termtable: error in the calculation of R2.x")
-      lvif <- NA
-    } else lvif <- lvift[,3]^2
-    lr2 <- 1-1/lvif
+      if (inherits(lvift, "try-error") || length(lvift)==0) {
+        warning(":termtable: error in the calculation of R2x")
+        lvif <- NA
+      } else lvif <- lvift[,3]^2
+      lr2 <- 1-1/lvif
+    }
   }
   ## -----------------------------------
   ## --- prepare table
@@ -363,7 +373,7 @@ termtable <- #f
   ldf <- ldr1[,1]
   ## !!!
   lcont <- which(ldf==1)
-  lnobs1 <- ldfres+sum(ldf)-1
+  lnobs1 <- ldfres+sum(ldf)-lf.intercept(object)
   ## drop effect relevance
   ltst <- ldr1[, ifelse(inherits(object, "polr"), 3, 4)]
   ldrncci <- rbind(confintF(ltst, ldf, ldfres, testlevel))
@@ -377,8 +387,8 @@ termtable <- #f
   ltb <- data.frame(coef=NA, ldr1[,1,drop=FALSE], ## keep name if only 1 coef
                     se=NA, statistic=ltst, p.value=lpv,
                     Sig0=sqrt(pmax(0,ltst)/ltstq), ciLow=NA, ciUp=NA,
-                    stcoef=NA, st.Low=NA, st.Up=NA,
-                    testst=ltst, R2.x=lr2, ldrrl,
+                    stcoef=NA, stciLow=NA, stciUp=NA,
+                    testst=ltst, R2x=lr2, ldrrl,
                     stringsAsFactors=FALSE)
   names(ltb)[2] <- "df"
   ## intercept
@@ -397,7 +407,7 @@ termtable <- #f
     ## ltlb <- dimnames(ltb)[[1]]
     ## lclb <- ltlb[lcont1] ## lcont1 is the row in the coef table of summary(object)
     ljc <- match(lcont,lasg) # index of coefs for cont variables
-    lj <- c("coef","se","statistic","ciLow","ciUp","stcoef", "st.Low","st.Up",
+    lj <- c("coef","se","statistic","ciLow","ciUp","stcoef", "stciLow","stciUp",
             "coefRle","coefRls","coefRlp")
     ljj <- sub("coefRl","Rl",lj)
     ltb[lcont1,lj] <- lcoeftab[ljc,ljj]
@@ -406,21 +416,56 @@ termtable <- #f
   if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
     ltsc <- lcoeftab[nrow(lcoeftab),]
     lcont1 <- c(lcont1, nrow(lcoeftab))
-    if (!u.true(object$dist=="weibull")) ltsc[2:4] <- NA
+    if (!u.true(object$dist=="weibull")) ltsc[2:5] <- NA
     lls <- ltb[1,]
     lls[1,] <- NA
     lq <- qnorm(1-testlevel/2)
-    lls[1,1:7] <-
-      c(ltsc[1:3],ltsc[2],ltsc[1]+c(-1,1)*lq*ltsc[2], 1, ltsc[3], ltsc[3]/lq)
+    lls[1,1:8] <- c(ltsc[1],NA,ltsc[2:7]) ## ???
     lls[,"p.value"] <- ltsc[4]
     ltb <- rbind(ltb,"log(scale)"= lls)
   }
   structure(ltb, class=c("inference", "data.frame"), type="terms",
-            testtype=testtype, 
+            testtype=testtype, method=lmethod, 
             fitclass=class(object), family=lfamily, dist=ldist,
-            method=lmethod, rlv.threshold=rlv.threshold)
+            formula=formula(object), data.name=ldname,
+            rlv.threshold=rlv.threshold)
 }
 ## end termtable
+## --------------------------------------------------------------------
+i.drop1 <- #F
+  function (object, scope=drop.scope(object), scale = 0, test = NULL, k = 2,
+           sorted = FALSE, add=FALSE, ...)
+{
+  ## Purpose:    drop1/add1 for regr objects
+  ## ----------------------------------------------------------------------
+  lfam <- i.def(object$distrname, "gaussian")
+  lres <- object$residuals
+  if (is.null(test))
+    test <- if (inherits(object, c("lm","roblm"))||
+        ((lfam=="binomial"|lfam=="poisson")&&object$dispersion>1)) {
+          if (inherits(object,"mlm")) "Wilks" else "F" }
+    else "Chisq"
+  if (length(scope)==0) {  ## || !is.formula(scope) ## drop.scope is character
+    warning(":drop1/add1.regr: no valid scope")
+    return(data.frame(Df = NA, "Sum of Sq" = NA, RSS =NA, AIC = NA,
+                      row.names = "<none>") )
+  }
+  class(object) <- setdiff(class(object), "regr")
+  fcall <- object$funcall
+  if (!is.null(fcall)) object$call <- fcall
+##-     if (class(object)[1]%in%c("lmrob")) ## to be expanded
+##-        drop1Wald(object, test="F", ...) else {
+  ldata <- object$model
+  if (is.null(ldata)) ldata <- eval(object$call$data)[,all.vars(formula(object))]
+  if (is.null(ldata)) stop("!i.drop1! no data found ")
+  ## all predictors must get the same missing observations
+  object$call$data <- na.omit(ldata)
+  dr1 <- drop1(object, scope=scope, scale=scale, test=test, k=k, ...)
+  if (sorted) 
+    if (0!=(lsrt <- match(c("AIC","p.value"),colnames(dr1), nomatch=0)))
+      dr1 <- dr1[order(dr1[, lsrt[1]]), ]
+  dr1
+}
 ## ===========================================================
 confintF <- #f
   function(f, df1, df2=Inf, testlevel=0.05) {
@@ -446,16 +491,19 @@ confintF <- #f
     if (lx>100)
       rr[li,] <- df1[li]*(sqrt(lx)+c(-1,1)*abs(qt(p[li],df2[li]))/sqrt(df1[li]))^2
     else {
+      ldf1i <- df1[li]
+      if (ldf1i==0) next
       rr[li,1] <-  ## lower limit
-        if (lf.fq(0, f[li], df1[li], df2[li], 1-p[li])>=0) 0
+        lf0 <- lf.fq(0, f[li], ldf1i, df2[li], 1-p[li])
+        if (lf0>=0) 0
         else
           uniroot(lf.fq, c(0,df1[li]*f[li]),
-                  fvalue=f[li], df1=df1[li], df2=df2[li], p=1-p[li])$root
+                  fvalue=f[li], df1=ldf1i, df2=df2[li], p=1-p[li])$root
       rr[li,2] <- ## upper limit
-        if (pf(f[li], df1[li], df2[li])<=p[li]) 0  ## tiny F value
+        if (pf(f[li], ldf1i, df2[li])<=p[li]) 0  ## tiny F value
         else
         uniroot(lf.fq, interval=c(df1[li]*f[li], lf.ciup(f[li], df1[li], 1-p[li])),
-                fvalue=f[li], df1=df1[li], df2=df2[li], p=p[li], extendInt="upX")$root
+                fvalue=f[li], df1=ldf1i, df2=df2[li], p=p[li], extendInt="upX")$root
     }
   }
   if (ln==1) c(rr) else rr
@@ -477,8 +525,8 @@ termeffects <- #f
   }
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   lmethod <- paste(c(class(object),
-                     if (length(lfamily)) c("; family = ", lfamily),
-                     if (length(ldist <- object$dist)) c("; sitribution = ", ldist),
+                     if (length(lfamily)) c(" ; family = ", lfamily),
+                     if (length(ldist <- object$dist)) c(" ; sitribution = ", ldist),
                      " :  Term effects"),
                    collapse="")
   tl <- attr(Terms, "term.labels")
@@ -656,15 +704,18 @@ print.inference <- #f
                if (lItable) c("coefRls.symbol", "dropRls.symbol", "predRls.symbol")
                else "Rls.symbol")
            else i.getshow(show, type)
+  if ("nocoef"%nin%lshow) lshow <- c("coef", lshow)
   if (any(c("statistic","p.value","Sig0")%in%lshow)) lshow <- c(lshow,"test")
   ## ---
   lout <- c(
     if (length(ldn <- attr(x, "data.name"))) paste("data: ", ldn),
-    if (length(lfo <- attr(x, "formula"))) paste("formula: ", format(lfo))
+    if (length(lfo <- attr(x, "formula")))
+##-       format(paste("formula: ", paste(format(lfo),collapse="")))
+      paste("target variable: ", format(lfo[[2]]) )
   )
   lhead <- c(
     paste(attr(x, "method"),"\n",collapse="  "),
-    if (length(lout)) paste(paste(lout, collapse=";  "), "\n")
+    if (length(lout)) paste(paste(lout, collapse=" ;  "), "\n") ## " ;  "
   )
   ## ---
   lleg <- NULL
@@ -675,7 +726,7 @@ print.inference <- #f
           paste(leffn, ": ",sep="") else "effect:   ", format(leff)),
       if (getOption("show.confint")) {
         if (length(lci <- x[c("ciLow","ciUp")]))
-          paste(";  confidence int.: [",
+          paste(" ;  confidence int.: [",
                 paste(format(lci), collapse=", "),"]\n")
         else "\n"
       } else "\n"
@@ -815,7 +866,7 @@ getcoeftable <-
   else {
     if (inherits(object, "survreg")) {
       ltb <- summary(object)$table
-      ltb <- ltb[-nrow(ltb),]
+  ##    ltb <- ltb[-nrow(ltb),]
     } else {
       if (inherits(object, "coxph")) {
         lcoef <- object$coefficients
@@ -918,9 +969,9 @@ relevance.options <- list(
   show.simple.relevance = c("Rle", "Rlp", "Rls"),
   show.simple.test = c("Sig0"),
   show.simple.classical = c("statistic", "p.value"),
-  show.terms.relevance = c("df", "R2.x", "coefRlp", "coefRls", ## "dropRle",
+  show.terms.relevance = c("df", "R2x", "coefRlp", "coefRls", ## "dropRle",
                          "dropRls", "dropRls.symbol", "predRle"),
-  show.terms.test = c("df", "ciLow","ciUp", "R2.x", "Sig0", "p.value",
+  show.terms.test = c("df", "ciLow","ciUp", "R2x", "Sig0", "p.value",
                          "p.symbol"),
   show.terms.classical = c("df", "se", "statistic", "p.value", "p.symbol"),
   show.termeffects.relevance = c("coef","coefRls.symbol"),

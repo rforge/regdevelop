@@ -668,7 +668,7 @@ plscale <- #f
   attr(lxt, "innerrange") <- attr(x, "innerrange") 
   lxtv <- i.genvattrcont(structure(lxt, vlim=lvlimsc, ticksat=ticksat))
   ## lxtv <- transferAttributes(lxtv, x)
-  lrg <- replaceNA(replaceNA(lvlimsc, attr(lxtv, "innerrange")), attr(lxtv, "plrange"))
+  lrg <- replaceNA(lvlimsc, i.def(attr(lxtv, "innerrange"), attr(lxtv, "plrange")))
   ltks <- plticks(range=lrg, plscale=lscname, transformed=TRUE,
                   nouter=attr(lxtv, "nouter", exact=TRUE), ploptions=ploptions)
   structure(x, numvalues = lxt, 

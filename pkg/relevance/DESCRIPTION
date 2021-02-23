@@ -7,7 +7,7 @@ Author: Werner A. Stahel
 Maintainer: Werner A. Stahel <stahel@stat.math.ethz.ch>
 Depends: R (>= 3.5.0)
 Imports: stats, utils
-Suggests: survival, knitr
+Suggests: MASS, survival, knitr
 VignetteBuilder: knitr
 Description: Calculates Relevance and Significance values for
   simple models and for many types of regression models.

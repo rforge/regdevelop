@@ -1,7 +1,8 @@
 
 importFrom("stats",
            setNames, uniroot, sd, symnum, plogis, qlogis, 
-           binom.test, fisher.test, 
+           binom.test, fisher.test,
+           drop.scope, na.omit,
            pt, pf, pchisq, qnorm, qt, qf, qchisq, 
            df.residual, terms, formula, update.formula, delete.response,
            coefficients,
