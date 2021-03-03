@@ -284,13 +284,15 @@ For terms with more than one degree of freedom, notably for factors with
 more than two levels,
 the function \T{termeffects} calculates effects of levels and 
 respective inference measures. 
+As seen here, there are \T{print} and \T{plot} methods for the resulting objects.
 <<termeffects, fig.width=9, fig.height=6>>=
 data(d.blast)
 r.blast <-
   lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-( r.termeff <- print(termeffects(r.blast), print=FALSE) )
+(rte <- termeffects(r.blast))
+print(rte, show=c("classical","coefRls","coefRls.symbol"), single=TRUE)
 
-plot(termeffects(r.blast))
+plot(termeffects(r.blast), single=TRUE)  ## plot all effects
 @ 
 
 

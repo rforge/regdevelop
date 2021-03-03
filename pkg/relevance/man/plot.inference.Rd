@@ -12,7 +12,7 @@
   xlab = "relevance", ...)
 \method{plot}{termeffects}(x, pos = NULL, single=FALSE,
   plpars=list(lwd=c(2,1,2), endmarks=1, extend=NA, framecol="gray70",
-              termeffects.gap = 1.1), xlab="relevance", ...)
+              termeffects.gap = 0.2), xlab="relevance", ...)
 }
 
 \arguments{
