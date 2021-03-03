@@ -161,7 +161,7 @@ twosamples.formula <-
     }
   }
 ##  attr(rr, "data.name") <- DNAME
-  structure(rr, formula=formula, data.name=as.character(substitute(data)))
+  structure(rr, formula=formula, data.name=format(substitute(data)))
 }
 ## ========================================================================
 qintpol <- function(p, par1, par2, dist="binom")
@@ -526,7 +526,7 @@ termeffects <- #f
   lfamily <- if (is.character(lfm <- object$family)) lfm else lfm$family
   lmethod <- paste(c(class(object),
                      if (length(lfamily)) c(" ; family = ", lfamily),
-                     if (length(ldist <- object$dist)) c(" ; sitribution = ", ldist),
+                     if (length(ldist <- object$dist)) c(" ; distribution = ", ldist),
                      " :  Term effects"),
                    collapse="")
   tl <- attr(Terms, "term.labels")
@@ -983,4 +983,101 @@ relevance.options <- list(
   rlv.symbols = rlv.symbols
 )
 .onLoad <- function(lib, pkg) options(relevance.options)
-## -----------------------
+## =============================================================================
+plot.inference <- #f
+  function(x, pos = NULL,
+           plpars=list(lwd=c(2,1,2), endmarks=1, extend=NA, framecol="gray70"),
+           xlab="relevance", ...) ## sub=NULL, 
+{
+  lcexsub <- 1
+##-   if (length(sub)&&(":"==(sub <- as.character(sub)))) {
+##-     sub <- sub("    ","", paste(format(attr(x, "method")),collapse=""))
+##-     lnc <- nchar(sub)
+##-     lncmax <- 1.5*par("fin")[1]/par("cin")[1]
+##-     lcexsub <- min(1,max(0.5, lncmax/lnc))
+##-     if (lcexsub==0.5) sub <- shortenstring(sub, lncmax/lcexsub)
+##-   }
+  lframecol <- plpars[["framecol"]]
+  lwd <- rep(c(plpars[["lwd"]],2), length=3)
+  if (is.null(dim(x))) x <- rbind(x)
+  lnm <- colnames(x)
+  lj <- match(c("Rle","Rls","Rlp"), lnm)
+  if (any(is.na(lj)))
+    lj <- match(c("coefRle","coefRls","coefRlp"), lnm)
+  if (any(is.na(lj)))
+    stop("!plot.inference! Rle, Rls, Rlp not found")
+  lx <- as.matrix(x[is.finite(x[,lj[1]]),lj, drop=FALSE]) ## drop intercept row
+  lnmeff <- row.names(lx)
+  lnch <- max(nchar(lnmeff))
+  ## range
+  lrg <- range(c(lx), na.rm=TRUE)
+  ln <- nrow(lx)
+  ly <- pos
+  if (is.null(ly)) ly <- seq(ln,1)
+  lmh <- 0.05 * plpars[["endmarks"]] ## * diff(range(ly))/ln 
+  lmar <- par("mar")
+  lmar[2] <- 0.5*lnch+2
+  loldp <- par(mar=lmar)
+  on.exit(par(loldp))
+  lxt <- plpars[["extend"]]
+  if (is.na(lxt)) lxt <- 1/ln
+  lylim <- matrix(c(1+lxt, -lxt, -lxt, 1+lxt),2)%*%range(ly)
+  ## ----------------------------------------
+  plot(c(min(0,lrg[1]), max(1,lrg[2])), lylim, yaxs="i", type="n", axes=FALSE,
+       xlab=xlab, ylab="", ...)
+##  if (length(sub)) mtext(sub, side=3, line=0.2, adj=1, cex=lcexsub)
+  abline(v=c(-1,0,1), h=par("usr")[3], lty=1, lwd=lwd[3], col=lframecol)
+  segments(lx[,2],ly, lx[,3],ly, lwd=lwd[1])
+  segments(lx[,1],ly-lmh,lx[,1],ly+lmh, lwd=2*lwd[2])
+  segments(c(lx[,2],lx[,3]),rep(ly,2)-lmh,c(lx[,2],lx[,3]),rep(ly,2)+lmh,
+           lwd=lwd[2])
+  ## ---
+  mtext(lnmeff, side=2, at=ly, line=1, adj=1, las=1)
+##  axis(2, labels=lnmeff, at=ly, adj=1, las=1, col="white")
+  axis(1, col=lframecol)
+}
+## ---------------------------------------------------------------
+plot.termeffects <- #f
+  function(x, pos = NULL, single=FALSE,
+           plpars=list(lwd=c(2,1,2), endmarks=1, extend=NA, framecol="gray70",
+                       termeffects.gap = 1.1), xlab="relevance", ...) ## , sub=":"
+{
+  li <- sapply(x, is.atomic)
+  x <- x[!li]  ## (Intercept)
+  llen <- sapply(x, nrow)
+  if (!single) {
+    x <- x[llen>1]
+    llen <- llen[llen>1]
+  }
+  if (length(llen)==1) {
+    plot.inference(x[[1]], pos=pos, plpars=plpars, xlab=xlab, ...) ## sub=sub, 
+    return()
+  }
+  ## lx <- t(sapply(x, function(x) x[,c("coefRle","coefRls","coefRlp")]))
+  lx <- matrix(,0,3)
+  for (ll in seq_along(x)) lx <- rbind(lx, x[[ll]][,c("coefRle","coefRls","coefRlp")])
+  row.names(lx) <- unlist(lapply(x, row.names))
+  gap <- plpars$termeffects.gap
+  if (is.null(pos)) {
+    pos <- gap*rep(1:length(llen), llen) + 1:sum(llen)
+    pos <- max(pos)+gap-pos
+  }
+  plot.inference(lx, pos=pos, plpars=plpars, xlab=xlab, ...) ## sub=sub, 
+  mtext(names(x), side=2, at=c(max(pos),pos)[1+i.last(c(0,cumsum(llen)),-1)], las=1)
+}
+## ----------------------------------------------------------------
+##- shortenstring <- function (x, n=50, endstring="..", endchars=NULL)
+##- { ## from plgraphics
+##-   if (length(endchars)==0) endchars <- pmin(3,ceiling(n/10))
+##-   if (any(li <- 1 >= (ncut <- n-nchar(endstring)-endchars))) {
+##-     warning(":shortenstring: argument 'n' too small for given 'endstring' and 'endchar'")
+##-     endstring <- ifelse(li, ".", endstring)
+##-     endchars <- ifelse(li, 0, endchars)
+##-     ncut <- n-nchar(endstring)-endchars
+##-   }
+##-   if (length(x) && any(n < (lnc <- nchar(x))))
+##-     ifelse(n<lnc & ncut>1, paste(substring(x, 1, ncut), endstring,
+##-                                  substring(x, lnc-endchars+1, lnc), sep=""), x)
+##-   else x
+##- }
+##- ## ======================================================================
