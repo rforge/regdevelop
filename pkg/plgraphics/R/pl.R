@@ -518,8 +518,7 @@ genvarattributes <- #f
 } ## end genvarattributes
 ## ---------------------------------------------------------------------
 i.genvattrcont <- #f
-i.genvattrcont
-function(x, innerrange=NULL, innerrange.factor=NULL, tickintervals=NULL,
+  function(x, innerrange=NULL, innerrange.factor=NULL, tickintervals=NULL,
            replace=FALSE, ploptions = NULL, tickscale = NULL)##///
 {
   if(inherits(x,"Surv")) x <- transferAttributes(x[,1], x)
