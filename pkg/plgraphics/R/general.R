@@ -758,7 +758,7 @@ i.getvarattribute <- function (attr, value=NULL, data, ploptionscomp, drop=0)
   pla
 }
 ## ------------------------------------------------------------------------
-i.setvarattribute <- function(attr, value=NULL, data)
+i.setvarattribute <- function(attr, value=NULL, data, replace=FALSE)
 { ## data <- i.setvarattributes("plrange", c("T","ra"), dd, list(T=c(15,20)))
   var <- names(data)
   if (!is.list(value))
@@ -773,10 +773,12 @@ i.setvarattribute <- function(attr, value=NULL, data)
   lvar <- var[ljvar]
   if (length(lvar))
     for (lv in lvar) {
-      if (attr=="plrange") {
-        lattr <- i.adjustticks(value[[lv]], data[,lv])
-        attributes(data[,lv])[names(lattr)] <- lattr
-      } else  attr(data[,lv], attr) <- value[[lv]]
+      if (replace || is.null(attr(data[,lv], attr))) {
+        if (attr=="plrange") {
+          lattr <- i.adjustticks(value[[lv]], data[,lv])
+          attributes(data[,lv])[names(lattr)] <- lattr
+        } else  attr(data[,lv], attr) <- value[[lv]]
+      }
     }
   data
 }

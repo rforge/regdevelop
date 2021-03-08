@@ -93,7 +93,7 @@ plmframes()
 plyx(jitter(Sepal.Width) ~ jitter(Sepal.Length), data=iris, axp=7, plab=T)
 plmframes(2,3, mar=c(NA, 0.5), oma=c(2,2,2,2)+2)
 plyx(Petal.Length+Petal.Width~Sepal.Length+Sepal.Width, group=Species,
-     data=iris)
+     data=iris, mf=FALSE)
 plmframes(2,2)
 plyx(Petal.Length ~ Sepal.Length+Sepal.Width, data=iris, smooth=TRUE,
      smooth.group=iris$Species, refline=lm, refline.lwd=2)

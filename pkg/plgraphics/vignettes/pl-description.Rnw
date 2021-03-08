@@ -1696,18 +1696,22 @@ Other types of groupings are:
 
 \Tit{Setting pl ranges.}
 The regular and inner plotting ranges can be set by specifying
-\T{plrange} and \T{innerrange} in the high level pl function 
-by giving a named list of vectors of length 2.
-Alternatively, a range can be specified for any variable in a dataset
-by setting the attribute \T{attr(dd, "plrange")} or
-\T{attr(dd, "innerrange")} or both.
+\T{vlim} and \T{innerrange} as attributes of variables using 
+\T{setvarattributes} (or directly setting the attributes 
+\T{attr(dd, "plrange")} or \T{attr(dd, "innerrange")}),
+or by giving named lists of vectors of length 2
+as arguments of high level pl functions.
+
+The "variable limits" \T{vlim} can also be set as
+\T{xlim} and \T{ylim} arguments of high level functions.
 
 Set the \T{innerrange} attribute by calling \T{genvarattributes}. 
 Otherwise, you need to call also \T{plcoord} in order to have a conforming
 \T{plcoord} attribute of the variable(s).
-
 Note that the resulting \T{innerrange} may differ from the required 
 inner range at the end(s) where no data are modified (\T{nouter==0}).
+
+%% !!! add a <<>>!
 
 \Tit{Tick marks.}
 The tick mark occur in three ``degrees'', the first one being labelled,

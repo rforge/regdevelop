@@ -12,7 +12,7 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   weights = NULL, stdresid = TRUE, mar = NULL,
   glm.restype = "working", condquant = TRUE, smresid = TRUE,
   partial.resid = TRUE, cookdistlines = NULL,
-  leveragelimit = NULL, condprobRange = NULL,
+  leveragelimit = NULL, condprob.range = NULL,
   testlevel = 0.05,
   refline = TRUE, 
   smooth = 2, %% smoothPar = NA, smoothIter = NULL,
@@ -56,10 +56,10 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   \item{leveragelimit}{bound for leverages to be used in standardizing
     residuals and in calculation of standardized residuals from smooth
     (if \code{smresid} is \code{TRUE}).}
-  \item{condprobRange}{numeric vector of length 2.
+  \item{condprob.range}{numeric vector of length 2.
     In the case of residuals of class \code{condquant}, quartile bars
     are only drawn for residuals with probability between
-    \code{condprobRange[1]} and \code{condprobRange[1]}.
+    \code{condprob.range[1]} and \code{condprob.range[1]}.
     Default is \code{c(0.05,0.8)} for less than 50 observations, and
     \code{c(0,0)}, suppressing the bars, otherwise.}
   \item{testlevel}{level for statistical tests}

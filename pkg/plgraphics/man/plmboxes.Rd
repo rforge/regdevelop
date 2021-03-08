@@ -16,7 +16,7 @@ Multibox plots
 }
 \usage{
 plmboxes(x, ...)
-\method{plmboxes}{formula}(x, data, ...)
+\method{plmboxes}{formula}(x, y=NULL, data, ...)
 
 \method{plmboxes}{default}(x, y, data, width=1, at=NULL, horizontal=FALSE,
     probs=NULL, outliers=TRUE, na=FALSE, backback=NULL, refline=NULL,

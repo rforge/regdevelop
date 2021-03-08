@@ -314,7 +314,13 @@ the additional arguments of \T{plyx}, respectively.
        \hlkwc{subset}\hlstd{=date}\hlopt{<}\hlkwd{as.Date}\hlstd{(}\hlstr{"2010-03-31"}\hlstd{)}\hlopt{&}\hlstd{hour}\hlopt{==}\hlnum{14}\hlstd{,}
        \hlkwc{smooth.par}\hlstd{=}\hlnum{0.5}\hlstd{,} \hlkwc{smooth.xtrim}\hlstd{=}\hlnum{0.03}\hlstd{,} \hlkwc{smooth.lty}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{sub}\hlstd{=}\hlstr{"river data"}\hlstd{)}
 \end{alltt}
-\end{kframe}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in lf.tickat(ldtk\$smallunit[lidtk], ldtk\$smallint[lidtk], llev = llev, : debug lf.ticksat: length(ltat)!=length(ltatu)}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in lf.tickat(ldtk\$bigunit[lidtk], ldtk\$bigint[lidtk], llev = llev, : debug lf.ticksat: length(ltat)!=length(ltatu)}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning in lf.tickat(llunit, llint, llev = llev, llvlg = llvlg, ystart = lystart, : debug lf.ticksat: length(ltat)!=length(ltatu)}}\end{kframe}
 \includegraphics[width=\maxwidth]{figure/plyx-time-1} 
 
 \end{knitrout}
@@ -1541,8 +1547,11 @@ These are
   positions of labels to indicate values of the variable, and the lablels
   themselves;
 \item
-  \T{pch, lty, col}: plotting symbol, line type and color to be used 
+  \T{vpch, vlty, vcol}: plotting symbol, line type and color to be used 
   if multiple y's are shown in a plot.
+  These elements are obtained by default from
+  \T{ploptions("variables.xxx")}, where \T{xxx} is T{pch}, T{lty}, or
+  T{col}.
 \end{itemize}
 These elements are stored as attributes of the variables,
 e.g., \T{attr(var, "thicksat")}.
@@ -2018,18 +2027,22 @@ Other types of groupings are:
 
 \Tit{Setting pl ranges.}
 The regular and inner plotting ranges can be set by specifying
-\T{plrange} and \T{innerrange} in the high level pl function 
-by giving a named list of vectors of length 2.
-Alternatively, a range can be specified for any variable in a dataset
-by setting the attribute \T{attr(dd, "plrange")} or
-\T{attr(dd, "innerrange")} or both.
+\T{vlim} and \T{innerrange} as attributes of variables using 
+\T{setvarattributes} (or directly setting the attributes 
+\T{attr(dd, "plrange")} or \T{attr(dd, "innerrange")}),
+or by giving named lists of vectors of length 2
+as arguments of high level pl functions.
+
+The "variable limits" \T{vlim} can also be set as
+\T{xlim} and \T{ylim} arguments of high level functions.
 
 Set the \T{innerrange} attribute by calling \T{genvarattributes}. 
 Otherwise, you need to call also \T{plcoord} in order to have a conforming
 \T{plcoord} attribute of the variable(s).
-
 Note that the resulting \T{innerrange} may differ from the required 
 inner range at the end(s) where no data are modified (\T{nouter==0}).
+
+%% !!! add a <<>>!
 
 \Tit{Tick marks.}
 The tick mark occur in three ``degrees'', the first one being labelled,

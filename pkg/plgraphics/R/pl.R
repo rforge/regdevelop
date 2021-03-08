@@ -42,20 +42,19 @@ pl.control <- #f
     lcl$smooth.weights <- lcl$smooth.weight
     lcl$smooth.weight <- NULL
   }
-  
   ## ploptions
-  ploptions <- i.def(ploptions, get(".ploptions", pl.envir))
+  ploptions <- i.def(ploptions, pl.envir$.ploptions)
   lnmd <- setdiff(names(pl.optionsDefault), names(ploptions) )
   if (length(lnmd)) ploptions <- c(ploptions, pl.optionsDefault[lnmd])
   largsplo <- setdiff(names(lcl)[-1],
-                      c("xlab","ylab", ## "csize","markextremes",
+                      c("xlab","ylab","mf", ## "csize","markextremes",
                        i.argPlcontr, i.argPldata))
   if (length(largsplo)) {
     lcl <- lcl[c("",largsplo)]
     lcl[1] <- list(quote(list))
     lcl <- as.call(lcl)
     lls <- eval(lcl, envir=parent.frame())
-    lls$ploptions <- ploptions
+ ##   lls$ploptions <- ploptions
     ploptions <- ploptions(list=lls, assign=FALSE) ## !!!
   }
   lcl <- lcall
@@ -226,7 +225,7 @@ pl.control <- #f
           plscale <-
             setNames(c(rep(plscale[1],length(lxnames)),
                        rep(plscale[2],length(lynames))), lvarnames)
-        else {
+        else { 
           warning(":pl.control: argument 'plscale' not suitable")
           plscale <- NULL
         }
@@ -319,7 +318,7 @@ pl.control <- #f
   }
   ## ----------------------------------------------------
   ## more ploptions
-  ##   
+  ##
   if (length(ploptions$smooth.col)==1)
     ploptions$smooth.col[2] <-
       colorpale(ploptions$smooth.col, i.getploption("smooth.pale")[1])
@@ -327,11 +326,11 @@ pl.control <- #f
   lmardf <- i.getploption("mar")
   if (length(lynames)>1) lmardf[4] <- lmardf[2] ## need space at the right
   ploptions$mar <- i.def(mar, lmardf)
-  ## --- condprobRange
-  ploptions$condprobRange <-
-    if (length(ploptions$condprobRange)==0) {
+  ## --- condprob.range
+  ploptions$condprob.range <-
+    if (length(ploptions$condprob.range)==0) {
       if (lnobs>50) c(0,0) else c(0.05,0.8) }
-    else c(ploptions$condprobRange,1)[1:2]
+    else c(ploptions$condprob.range,1)[1:2]
   ## --- smooth
   lsmgrp <- lpldata$".smooth.group."
   lsmgrplab <- levels(lsmgrp)
@@ -523,15 +522,14 @@ i.genvattrcont <- #f
 {
   if(inherits(x,"Surv")) x <- transferAttributes(x[,1], x)
   lnouter <- c(0,0)
+  ## innerrange
   innerrange <- i.def(innerrange, attr(x, "innerrange"))
-  lIirg <- u.notfalse(innerrange)
-  lirg <- i.def(i.getplopt(innerrange), TRUE)
-  lirf <- i.getplopt(innerrange.factor) 
+  lirg <- i.def(i.getplopt(innerrange), TRUE) 
+  lIirg <- u.notfalse(lirg)
+  lirf <- i.getplopt(innerrange.factor)
+  ##
   ltint <- i.getplopt(tickintervals) ## logical
-  lplrg <- i.def(attr(x, "vlim", exact=TRUE), attr(x, "plrange", exact=TRUE))
-  lIplrg <- u.isnull(lplrg) ## new range
   lvlimsc <- lvlim <- attr(x, "vlim", exact=TRUE)
-##  lvlimsc <- i.def(attr(x, "vlimscaled"), lvlim)
   ## plscale
   lplscale <- attr(x, "plscale", exact=TRUE)
   if (length(lplscale)) {
@@ -555,24 +553,24 @@ i.genvattrcont <- #f
     lpc <- plcoord(lx, lirg, ploptions=ploptions)
     ## attributes: avoid a level...
     lpca <- attributes(lpc)
-    if (!lIplrg) lpca$plrange <- lplrg 
+    ## if (!lIplrg) lpca$plrange <- lplrg 
     attributes(x)[names(lpca)] <- lpca
     attributes(lpc) <- NULL
     attr(x, "plcoord") <- lpc
     lnouter <- lpca$nouter
     if (u.isnull(lnouter)) lnouter <- c(0,0)
-    lirg <- replaceNA(lvlimsc, attr(x, "innerrange", exact=TRUE))
+    ## lirg <- replaceNA(lvlimsc, attr(x, "innerrange", exact=TRUE))
     ## innerrange may have changed
     ## to avoid unnecessary inner bounds when plotting
   }
   ## set plrange
-  if (length(lplrg)<=1) lplrg <- c(NA,NA)
-  if (any(!is.finite(lplrg))) { ## 
-    lrg <- i.extendrange(
-      if (length(lirg)==2) lirg else range(lx, finite=TRUE),
-      i.getploption("plext"))
-    lplrg <- replaceNA(lplrg, lrg)
-  }
+##-   if (length(lplrg)<=1) lplrg <- c(NA,NA)
+##-   if (any(!is.finite(lplrg))) { ## 
+  lplrg <- i.extendrange( ## was lrg
+    if (length(lirg)==2) lirg else range(lx, finite=TRUE),
+    i.getploption("plext"))
+  ## lplrg <- replaceNA(lplrg, lrg)
+  ## }
   ## vlim overrides lplrg
   attr(x, "plrange") <- replaceNA(lvlimsc, lplrg)
   if (lIirg) attr(x, "innerrange") <- lirg
@@ -1209,7 +1207,7 @@ plpoints <- #f
                  i.getploption("pch"), valuefalse="")
   pch <- rep(pch, length=lnr)
   ## color
-  lpcol <- i.def(i.def(pcol, pldata[[".pcol."]]),
+  lpcol <- i.def(i.def(i.def(pcol, pldata[[".pcol."]]), lattry$vcol),
                  i.getploption("group.col")[lgroup])
   if (length(lpcol)) {
     lgrpcol <- i.getploption("group.col")
@@ -1222,8 +1220,9 @@ plpoints <- #f
     if (is.logical(lpcol)) lpcol <- lgrpcol[lpcol+1]
   } else lpcol <- i.getploption("col")[1]
   pcol <- rep( lpcol, length=lnr)
-  lty <- i.def(lty, i.getploption("lty"))
-  lwd <- i.def(lwd, i.getploption("lwd")) * i.getploption("linewidth")[lty]
+  lty <- i.def(i.def(lty, , lattry$vlty), i.getploption("lty"))
+  lwd <- i.def(i.def(lwd, lattry$vlwd), i.getploption("lwd")) *
+    i.getploption("linewidth")[lty]
   lcol <- i.getplopt(lcol)[1]
   lnobs <- sum(is.finite(lx) & is.finite(ly))
   csize.pch <- i.getploption("csize.pch")
@@ -1314,7 +1313,7 @@ plpoints <- #f
       llcdf <-
         if (length(lpc <- unique(dropNA(pcol)))==1) lpc else i.getploption("lcol")[1]
       llcol <- i.def(attr(y, "vcol", exact=TRUE), llcdf)
-      points(lxy[,1], lxy[,2], type=type, pch=NA, col=llcol, ...)
+      points(lxy[,1], lxy[,2], type=type, pch=NA, col=llcol, lwd=lwd, ...)
       if (type=="l") return()
       type <- "p"
     }
@@ -1561,7 +1560,6 @@ plsmoothline <- #f
   }
   lbd <- smoothline$yband
   lIband <- length(lbd)>0
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
   if (length(smooth.col)) ploptions$smooth.col <- smooth.col
   if (length(smooth.lty)) ploptions$smooth.lty <- smooth.lty
   if (length(smooth.lwd)) ploptions$smooth.lwd <- smooth.lwd
@@ -2264,7 +2262,7 @@ function(x=NULL, y=NULL, group=NULL, data=NULL, type="p", panel=NULL,
     plargs <- eval(lcall, envir=parent.frame())
   }
   ##
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   ## --- data
   pldata <- plargs$pldata
   lnr <- NROW(pldata)
@@ -2626,7 +2624,7 @@ plregr.control <- #f
            ## specify some specific aspects / contents of plots
            glm.restype = "working", condquant = TRUE, smresid = TRUE, 
            partial.resid = TRUE, cookdistlines = NULL,
-           leveragelimit = NULL, condprobRange = NULL,
+           leveragelimit = NULL, condprob.range = NULL,
            testlevel = 0.05,
            ## smooth and refline
            refline = TRUE, 
@@ -2800,8 +2798,8 @@ plregr.control <- #f
   ## -------------------------------------
   plargs <- eval(lcall, parent.frame())  ## pl.control
   ## -------------------------------------
-  plargs$ploptions$smooth <- i.getplopt(smooth)
-  ploptions <- plargs$ploptions
+  ploptions <- plargs$.ploptions
+  ploptions$smooth <- i.getplopt(smooth)
   plargs$main <- i.def(ploptions$main, i.form2char(lform))
   lpldata <- plargs$pldata 
   ## margins for multivariate regression
@@ -2898,7 +2896,7 @@ plregr.control <- #f
   ## -----------------
   partial.resid <- i.def(partial.resid, TRUE)
   cookdistlines <- i.getplopt(cookdistlines)
-  plargs$ploptions$refline <- i.getplopt(refline)
+  ploptions$refline <- i.getplopt(refline)
   testlevel <- i.getplopt(testlevel)
   if (testlevel<=0 | testlevel>=1)
     stop("!plregr.control! invalid test level")
@@ -2925,7 +2923,7 @@ plregr.control <- #f
       ## -- return arguments
       glm.restype = glm.restype, smresid = smresid,
       partial.resid = partial.resid, cookdistlines = cookdistlines,
-      leveragelimit = llevlim, ## condprobRange = condprobRange,
+      leveragelimit = llevlim, ## condprob.range = condprob.range,
       testlevel=testlevel,
       ## smooth and refline
       smooth.sim = lnsims,
@@ -2980,7 +2978,7 @@ i.argPlcontr <-
 ##-     "main", "sub", "csize.main", "varlabels",
 ##-     ## plregr.control
 ##-     "xvar", "weights", "glm.restype", "smresid",
-##-     "partial.resid", "cookdistlines", "leveragelimit", "condprobRange", 
+##-     "partial.resid", "cookdistlines", "leveragelimit", "condprob.range", 
 ##-     "testlevel", "refline", "smooth.sim",
 ##-     "xlabs", "reslabs", 
 ##-     "mf", "mfcol", "multnrow", "multncol", "multmar", "oma"
@@ -3013,7 +3011,7 @@ plregr <- #f
     mode(lcall) <- "call"
     plargs <- eval(lcall, parent.frame())
   }
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   if (u.isnull(mar)) mar <- c(3,3,1,1)+i.getploption("panelsep")
   plargs$marpar <- i.getmarpar(mar=mar, plargs=plargs, ...) 
   ## -------------------------------------------------------------------
@@ -3021,7 +3019,6 @@ plregr <- #f
   lres <-  plargs$residuals
   lmres <- plargs$rescol
   lpldata <- plargs$pldata
-  ##  ploptions <- plargs$ploptions
   lsmgrp <- lpldata$".smooth.group."
   lsmooth <- i.getploption("smooth")
   ## lsmpar <- i.getploption("smooth.par")
@@ -3059,7 +3056,7 @@ plregr <- #f
   lbinary <- lglm && length(unique(plargs$y))==2 ## binary binomial
   lcensored <- inherits(x[["y"]], "Surv")
   lnnls <- !inherits(x, "nls")
-  if (u.true(plargs$famcount)) plargs$ploptions$smooth.iter <- 0
+  if (u.true(plargs$famcount)) ploptions$smooth.iter <- 0
   condquant <- NULL
   lIcq <- u.true(i.getploption("condquant")) & (lbinary|lcensored)
   ## -----------------------------------
@@ -3522,7 +3519,7 @@ plresx <- #f
     mode(lcall) <- "call"
     plargs <-eval(lcall, parent.frame())
   } 
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   lmarpar <- plargs$marpar
   if (is.null(lmarpar)) 
     plargs$marpar <- lmarpar <- i.getmarpar(plargs=plargs)
@@ -3954,7 +3951,7 @@ plmatrix <- #f
     ##
     plargs <- eval(lcall, envir=parent.frame())
   }
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   ## --------------
   lf.axis <- function(k, x, axm, labm, txt, ...) {
     if (k %in% axm) plaxis(k, x, varlabel="", plargs=plargs, getpar=FALSE)
@@ -4078,8 +4075,7 @@ plmatrix <- #f
   ## csize.pch
   lcsize.pch <- i.getploption("csize.pch")
   if (is.function(lcsize.pch)) lcsize.pch <- lcsize.pch(lnobs)
-  plargs$ploptions$csize.pch <- lcsize.pch
-##  plargs$ploptions$axes <- FALSE
+  ploptions$csize.pch <- lcsize.pch ##!!! plargs
   lipanelargs <-
     intersect(names(as.list(args(panel))), c("indx","indy","plargs"))
 ##
@@ -4154,7 +4150,7 @@ plpanel <- #f
   if (length(ploptions)==0) ploptions <- plargs$ploptions
   pldata <- plargs$pldata
   ##
-  plargs$ploptions$stamp <- FALSE
+  ploptions$stamp <- FALSE ##!!! plargs
   lshrefl <- u.notfalse(i.getploption("refline"))
   mbox <- i.getploption("factor.show")=="mbox"
   lIsm <- i.getploption("smooth")
@@ -4293,7 +4289,7 @@ plcond <- #f
     plargs <- eval(lcall, envir=parent.frame())
 ##    plargs$main <- lmain
   }
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   ## -----------
   pldata <- plargs$pldata
   ## ----------------
@@ -4429,8 +4425,8 @@ plcond <- #f
   ## cexpch
   lcsize.pch <- ploptions$csize.pch
   if (is.function(lcsize.pch)) lcsize.pch <- lcsize.pch(lnobs)
-  plargs$ploptions$csize.pch <- lcsize.pch
-  plargs$ploptions$axes <- FALSE
+  ploptions$csize.pch <- lcsize.pch ##!!! plargs
+  ploptions$axes <- FALSE  ##!!! plargs
 ##-   lipanelargs <-
 ##-     intersect(names(as.list(args(panel))), c("indx","indy","panelargs"))
 ##
@@ -4734,7 +4730,7 @@ plmboxes.default <- #f
     ##
     plargs <- eval(lcall, parent.frame())
   }
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   lmarpar <- plargs$marpar
   if (is.null(lmarpar)) 
     plargs$marpar <- lmarpar <- i.getmarpar(plargs=plargs)
@@ -4855,9 +4851,9 @@ plmboxes.default <- #f
     if (!i.getploption("keeppar"))
       on.exit(par(loldp))
     ## ---
-    plargs$ploptions$axes <- FALSE
+    ploptions$axes <- FALSE ##!!! plargs
     if (u.true(ploptions$grid))
-      plargs$ploptions$grid <-
+      ploptions$grid <- ##!!! plargs
         if(lhoriz) list(TRUE, at) else list(at, TRUE)
     llev <- levels(x[,1])
     attr(lx, "ticklabelsat") <- attr(lx, "ticksat") <- seq_along(llev)
@@ -4975,7 +4971,7 @@ plres2x <- #f
     mode(lcall) <- "call"
     plargs <- eval(lcall, parent.frame())
   } 
-  if (length(ploptions)==0) ploptions <- plargs$ploptions
+  if (length(ploptions)==0) ploptions <- plargs$.ploptions
   plargs$marpar <- i.getmarpar(plargs=plargs)
   ## ------------------------------------------------------------------
   lz <- plargs$residuals
@@ -5095,8 +5091,7 @@ plmframes <- #f
     c(ceiling(mft/lmcol), lmcol)
   }
   if (is.null(plargs)) plargs <- pl.envir ## get(...)
-  if (is.null(ploptions)) ploptions <- plargs$ploptions
-  lmarpar <- plargs$marpar
+  if (is.null(ploptions)) ploptions <- plargs$.ploptions
   ## requested quantities
   ldin <- par("din")
   lmfg0 <- if (length(mft)) lf.mft2mf(mft, ldin)
@@ -5347,10 +5342,10 @@ i.getmarpar <- function(mar=NULL, oma=NULL, axes=NULL, axlab=axes, title.outer=T
                         plargs, ploptions=NULL, ...)
 { ## get margin parameters
   if (is.null(ploptions)) ploptions <- plargs$ploptions
-  if (u.isnull(mar)) mar <- c(i.getploption("mar", ploptions), rep(NA,4))[1:4]
-  if (u.isnull(oma)) oma <- c(i.getploption("oma", ploptions), rep(NA,4))[1:4]
-  if (length(oma)==1) oma <- c(NA,NA,oma,NA)
-  if (u.isnull(axes)) axes <- i.getploption("axes", ploptions)
+  mar <- c(i.getplopt(mar, ploptions), rep(NA,4))[1:4]
+  oma <- i.getplopt(oma, ploptions)
+  oma <- if (length(oma)==1) c(NA,NA,oma,NA) else c(oma, rep(NA,4))[1:4]
+  axes <- i.getplopt(axes, ploptions)
   ## if the argument 'mar' is available, it must be respe
   lml <- i.getploption("margin.line", ploptions)
   lmc <- i.getploption("margin.csize", ploptions)
