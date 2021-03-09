@@ -251,6 +251,7 @@ inference <-
   cbind(rr, lrlv)
 }
 ## --------------------------------------------------------------------------
+## --------------------------------------------------------------------------
 termtable <- #f
   function (object, summary=summary(object), testtype=NULL, r2x = TRUE,
             rlv = TRUE, rlv.threshold = getOption("rlv.threshold"), 
@@ -509,6 +510,7 @@ confintF <- #f
   if (ln==1) c(rr) else rr
 }
 ## ===========================================================================
+## ===========================================================================
 termeffects <- #f
   function (object, se = 2, df = df.residual(object), rlv = TRUE)
     ## --------------------------------------------------------------
@@ -703,7 +705,7 @@ print.inference <- #f
     c("p.symbol",
       if (lItable) c("coefRls.symbol", "dropRls.symbol", "predRls.symbol")
       else "Rls.symbol")
-  lshow <- if (length(show)==1 && show=="all") c(colnames(x), lsymnm)
+  lshow <- if (identical(show, "all")) c(colnames(x), lsymbnm)
            else i.getshow(show, type)
   if ("nocoef"%nin%lshow) lshow <- c("coef", lshow)
   if (any(c("statistic","p.value","Sig0")%in%lshow)) lshow <- c(lshow,"test")
