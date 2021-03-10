@@ -50,11 +50,10 @@ twosamples.default <- #f
       lsig <- ifelse(leff<0, lsg[1], lsg[2])
       effname <- paste("log odds", if(paired) "of changes")
       method <- "One proportion, binomial inference"
-    } else { ## tow proportions
+    } else { ## two proportions
       y <- y[is.finite(y)]
       lmny <- mean(y)
       lny <- length(y)
-      ly <- sum(y)
       lt <- fisher.test(table(x,y), conf.int=TRUE, conf.level=1-testlevel)
       leff <- unname(log(lt$estimate))
       leffci <- log(lt$conf.int) ## c("ci.low","ci.up") ))
@@ -250,8 +249,7 @@ inference <-
   colnames(lrlv) <- c("Rle","Rls","Rlp")
   cbind(rr, lrlv)
 }
-## --------------------------------------------------------------------------
-## --------------------------------------------------------------------------
+## ===========================================================================
 termtable <- #f
   function (object, summary=summary(object), testtype=NULL, r2x = TRUE,
             rlv = TRUE, rlv.threshold = getOption("rlv.threshold"), 
@@ -313,7 +311,7 @@ termtable <- #f
     if (inherits(object, c("lm","lmrob"))&&!inherits(object, "glm")) {
       try(drop1Wald(object, test=testtype, scope=lterms), silent=TRUE)
     } else {
-      try(i.drop1(object, test=testtype, scope=lterms), silent=TRUE)
+      try(i.drop1(object, scope=lterms, test=testtype), silent=TRUE)
     }
   if (inherits(ldr1, "try-error")) {
     warning(":termtable: drop1 did not work. I return the coefficient table")
@@ -414,17 +412,6 @@ termtable <- #f
     ltb[lcont1,lj] <- lcoeftab[ljc,ljj]
     ltb[lcont1,"Sig0"] <- sign(ltb[lcont1,"coef"])*ltb[lcont1,"Sig0"]
   }
-  if (row.names(lcoeftab)[nrow(lcoeftab)]=="Log(scale)") { # survreg
-    ltsc <- lcoeftab[nrow(lcoeftab),]
-    lcont1 <- c(lcont1, nrow(lcoeftab))
-    if (!u.true(object$dist=="weibull")) ltsc[2:5] <- NA
-    lls <- ltb[1,]
-    lls[1,] <- NA
-    lq <- qnorm(1-testlevel/2)
-    lls[1,1:8] <- c(ltsc[1],NA,ltsc[2:7]) ## ???
-    lls[,"p.value"] <- ltsc[4]
-    ltb <- rbind(ltb,"log(scale)"= lls)
-  }
   structure(ltb, class=c("inference", "data.frame"), type="terms",
             testtype=testtype, method=lmethod, 
             fitclass=class(object), family=lfamily, dist=ldist,
@@ -435,12 +422,11 @@ termtable <- #f
 ## --------------------------------------------------------------------
 i.drop1 <- #F
   function (object, scope=drop.scope(object), scale = 0, test = NULL, k = 2,
-           sorted = FALSE, add=FALSE, ...)
+           sorted = FALSE, ...)
 {
   ## Purpose:    drop1/add1 for regr objects
   ## ----------------------------------------------------------------------
   lfam <- i.def(object$distrname, "gaussian")
-  lres <- object$residuals
   if (is.null(test))
     test <- if (inherits(object, c("lm","roblm"))||
         ((lfam=="binomial"|lfam=="poisson")&&object$dispersion>1)) {
@@ -509,7 +495,6 @@ confintF <- #f
   }
   if (ln==1) c(rr) else rr
 }
-## ===========================================================================
 ## ===========================================================================
 termeffects <- #f
   function (object, se = 2, df = df.residual(object), rlv = TRUE)
@@ -785,7 +770,6 @@ print.inference <- #f
     ljrp <- lcols[c(grep("Rl", lcols),grep("Sig", lcols))]
     if (length(ljrp)) lx[,ljrp] <- round(as.matrix(lx[,ljrp]),i.last(digits)-1)
     ## --- paste symbols to numbers
-    lpleg <- lrleg <- NULL
     if ("p.symbol"%in%lshow & "p.value"%in%colnames(x))
       lx <- lf.mergesy(lx, x, "p.value", "Sig0")
     li <- grep("Rls.symbol", lshow)
@@ -924,7 +908,7 @@ plot.inference <- #f
            plpars=list(lwd=c(2,1,2), endmarks=1, extend=NA, framecol="gray70"),
            xlab="relevance", ...) ## sub=NULL, 
 {
-  lcexsub <- 1
+##-  lcexsub <- 1
 ##-   if (length(sub)&&(":"==(sub <- as.character(sub)))) {
 ##-     sub <- sub("    ","", paste(format(attr(x, "method")),collapse=""))
 ##-     lnc <- nchar(sub)
