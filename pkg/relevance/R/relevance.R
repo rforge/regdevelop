@@ -480,12 +480,13 @@ confintF <- #f
     else {
       ldf1i <- df1[li]
       if (ldf1i==0) next
-      rr[li,1] <-  ## lower limit
+      rr[li,1] <- { ## lower limit
         lf0 <- lf.fq(0, f[li], ldf1i, df2[li], 1-p[li])
         if (lf0>=0) 0
         else
           uniroot(lf.fq, c(0,df1[li]*f[li]),
                   fvalue=f[li], df1=ldf1i, df2=df2[li], p=1-p[li])$root
+      }
       rr[li,2] <- ## upper limit
         if (pf(f[li], ldf1i, df2[li])<=p[li]) 0  ## tiny F value
         else
@@ -753,11 +754,9 @@ print.inference <- #f
   } else { ## ========================  table
     lshow[lshow=="estimate"] <- "coef"
     colnames(x)[colnames(x)=="estimate"] <- "coef"
-    if (any(li <- !lshow%in%c(colnames(x),lsymbnm))) {
+    if (any(li <- !lshow%in%c(colnames(x),lsymbnm,"test"))) 
       warning(":print.inference: ", paste(lshow[li], collapse=", "),
               "  not available")
-      lshow <- lshow[!li]
-    }
     lcols <- intersect(lshow, colnames(x))
     if (length(lcols)==0) {
       warning(":print.inference: no existing columns selected")

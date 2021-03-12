@@ -547,6 +547,7 @@ i.genvattrcont <- #f
   if (u.true(lirg)) lirg <- c(plinnerrange(TRUE, lx, factor=lirf))
   if (!u.notfalse(lirg)) {
     attr(x, "innerrange") <- lirg <- NULL
+    lplrg <- i.extendrange(range(lx, finite=TRUE), i.getploption("plext"))
   } else { ## lirg is range
     ## vlim overrides innerrange
     lirg <- replaceNA(lvlimsc, lirg)
@@ -559,16 +560,14 @@ i.genvattrcont <- #f
     attr(x, "plcoord") <- lpc
     lnouter <- lpca$nouter
     if (u.isnull(lnouter)) lnouter <- c(0,0)
-    ## lirg <- replaceNA(lvlimsc, attr(x, "innerrange", exact=TRUE))
-    ## innerrange may have changed
-    ## to avoid unnecessary inner bounds when plotting
+    lplrg <- lpca$plrange
   }
   ## set plrange
 ##-   if (length(lplrg)<=1) lplrg <- c(NA,NA)
 ##-   if (any(!is.finite(lplrg))) { ## 
-  lplrg <- i.extendrange( ## was lrg
-    if (length(lirg)==2) lirg else range(lx, finite=TRUE),
-    i.getploption("plext"))
+##-   lplrg <- i.extendrange( ## was lrg
+##-     if (length(lirg)==2) lirg else range(lx, finite=TRUE),
+##-     i.getploption("plext"))
   ## lplrg <- replaceNA(lplrg, lrg)
   ## }
   ## vlim overrides lplrg
@@ -1284,7 +1283,7 @@ plpoints <- #f
   plab <- as.character(plab)
   ## --- plot!
   if (lIpl) { ## points with labels
-    text(lx, ly, plab, cex=lsplab, col=pcol)
+    text(lx, ly, plab, cex=lsplab, col=pcol, xpd=TRUE)
     lipch <- ifelse(is.na(plab), TRUE, plab=="") ## point is not labelled
   } else lipch <- rep(TRUE,length(x))
   if (any(lipch)) {
@@ -1313,14 +1312,13 @@ plpoints <- #f
       llcdf <-
         if (length(lpc <- unique(dropNA(pcol)))==1) lpc else i.getploption("lcol")[1]
       llcol <- i.def(attr(y, "vcol", exact=TRUE), llcdf)
-      points(lxy[,1], lxy[,2], type=type, pch=NA, col=llcol, lwd=lwd, ...)
+      points(lxy[,1], lxy[,2], type=type, pch=NA, col=llcol, lwd=lwd, xpd=TRUE, ...)
       if (type=="l") return()
       type <- "p"
     }
-    ##    points(lx[lipch], ly[lipch], pch=" ", xpd=TRUE) ## needed under special circ.
     lipch <- lipch & !is.na(lx)
     points(lx[lipch], ly[lipch], type=type, pch=pch[lipch], cex=par("cex")*lspch[lipch],
-           col=pcol[lipch])
+           col=pcol[lipch], xpd=TRUE) ## ??? why is xpd needed?
   }
   invisible(NULL)
 } ## end plpoints
@@ -2248,11 +2246,8 @@ function(x=NULL, y=NULL, group=NULL, data=NULL, type="p", panel=NULL,
   }
   ## --- intro
   lcall <- match.call() ## match.call modifies argument names -> sys.call
-##-   lcnm <- i.def(names(lcall), names(lcl))
-##-   names(lcall) <- ifelse(lcnm=="", names(lcl), lcnm)
   if (length(plargs)==0) {
     lcall$markextremes <- markextremes
-##    if (length(xlim)|length(ylim)) lcall$innerrange <- FALSE
     ldtnm <- substitute(data)
     ldtnm <- if (is.name(ldtnm))
                as.character(ldtnm) else if (length(ldtnm)) format(ldtnm)
@@ -2628,8 +2623,7 @@ plregr.control <- #f
            testlevel = 0.05,
            ## smooth and refline
            refline = TRUE, 
-           smooth = 2, ## smoothPar=NA, smoothIter=NULL,
-           smooth.sim=NULL,
+           smooth = 2, smooth.sim=NULL,
            xlabs = NULL, reslabs = NULL, markextremes = NULL, 
            ## multiple frames
            mf = TRUE, mfcol = FALSE, multnrow = 0, multncol = 0, ## multmar = NULL,
@@ -2746,6 +2740,7 @@ plregr.control <- #f
   lcall <- c(as.list(quote(pl.control)),
              as.list(lcall[setdiff(names(lcall),ladrop)]))
   lcall$y <- lres
+  lcall$markextremes <- markextremes
   ## extract  y  from model
   ldata <- x$model
   if (length(ldata)&&length(lnaaction))
@@ -3006,6 +3001,7 @@ plregr <- #f
     lcall <- match.call()
     lcall <- lcall[setdiff(names(lcall),argPlregr)]
     lcall$x <- x
+    lcall$markextremes <- markextremes
     lcall[1] <- list(quote(plgraphics::plregr.control))  ## need plgr:: because
     ## regr also uses this function
     mode(lcall) <- "call"
@@ -3013,7 +3009,8 @@ plregr <- #f
   }
   if (length(ploptions)==0) ploptions <- plargs$.ploptions
   if (u.isnull(mar)) mar <- c(3,3,1,1)+i.getploption("panelsep")
-  plargs$marpar <- i.getmarpar(mar=mar, plargs=plargs, ...) 
+  plargs$marpar <- i.getmarpar(mar=mar, plargs=plargs, ...)
+  plargs$pldata[".plab."] <- plargs$resplab
   ## -------------------------------------------------------------------
   ## all these results from  plregr.control  include the  na.action  observations
   lres <-  plargs$residuals
@@ -3081,8 +3078,9 @@ plregr <- #f
   }
   lfitname <- rep(lfitname, length=lmres)
   lfit <- as.data.frame(lfit)
-  lfit <- genvarattributes(as.data.frame(lfit), varlabels = lfitname,
+  lfit <- genvarattributes(as.data.frame(lfit), 
                            innerrange=i.getploption("innerrange.fit")) ## extra element of ploptions!)
+  attr(lfit[[1]], "varlabel") <- lfitname
   ## standardized residuals
   lstdres <- as.data.frame(attr(lres, "stdresiduals", exact=TRUE))
   lstrratio <- as.data.frame(attr(lres, "stdresratio", exact=TRUE))
@@ -3302,12 +3300,14 @@ plregr <- #f
                   ylab = lstdresname[lj], plargs=plargs, getxy=FALSE) ## mar=lmar, 
           ##-  lxy <- qqnorm(llr, ylab = lstdresname[lj], main="", type="n", )
           if (lnsims>0) {
-            for (lr in 1:lnsims) {
-              llty <- last(i.getploption("smooth.lty"))
-              lines(lxx,sort(lsimstdr[,lr]), lty=llty,
-                    lwd=i.getploption("linewidth")[llty],
-                    col=last(i.getploption("smooth.col")) )
-            }
+            llcol <- colorpale(i.getploption("smooth.col"), pale=i.getploption("smooth.pale"))
+            llty <- last(i.getploption("smooth.lty"))
+            llwd <- i.getploption("linewidth")[llty]
+            apply(lsimstdr, 2,
+                  function(x) lines(lxx,sort(x), lty=llty, lwd=llwd, col=llcol) )
+##-             for (lr in 1:lnsims) {
+##-               lines(lxx,sort(lsimstdr[,lr]), lty=llty, lwd=llwd, col=llcol)
+##-             }
           }
           plpoints(lxx, llr, plargs=list(pldata=plargs$pldata[lio,]),
                    ploptions=ploptions, getpar=FALSE, getxy=FALSE)
@@ -3337,7 +3337,7 @@ plregr <- #f
           attr(llevpl, "plrange")[1] <- 0
           lstdres <- genvarattributes(lstdres, varlabels = lstdresname)
           ## mark extremes
-          lmx <- i.getploption("markextremes")
+          lmx <- i.getplopt(markextremes)
           if (is.list(lmx)) lmx <- lmx[["(lev)"]]
           if (is.function(lmx)) lmx <- lmx(lnobs)
           lmx <- last(i.def(lmx, 0))
@@ -4820,7 +4820,8 @@ plmboxes.default <- #f
       range(at, na.rm=TRUE) + ## max(diff(at)) * 
         (max(width[c(1,length(width))]) - 0.7*backback)*c(-1,1)*0.4) ## !!! is 0.5 ok???
     ## *i.getploption("plext")
-    xlim <- replaceNA(c(i.def(xlim, NA), NA)[1:2], lxldf)
+    xlim <-replaceNA(c(i.def(xlim, NA), NA)[1:2], lxldf)
+    attributes(xlim) <- attributes(lx)[c("ticksat","ticklabelsat","ticklabels")]
     ## show NA's of y
     if (lIna <- !u.isnull(na.pos)) {
       lyat <- lyat[lyat>max(na.pos)]
@@ -4829,6 +4830,7 @@ plmboxes.default <- #f
       attr(y, "plrange") <- range(c(attr(y, "plrange", exact=TRUE), na.pos))
     }
     ylim <- i.def(ylim, attr(y, "plrange", exact=TRUE))
+    attributes(ylim) <- attributes(ly)[c("ticksat","ticklabelsat","ticklabels")]
     ## margin pars
     lmar <- lmarpar$mar
     lxmardef <- lmar[1+lhoriz]
