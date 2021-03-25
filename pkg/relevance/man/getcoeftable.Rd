@@ -44,7 +44,7 @@ getcoeffactor(object)
   getscalepar(rr)
 
  if(requireNamespace("survival", quietly=TRUE)) {
-  data(ovarian, package="survival")
+  data(ovarian) ## , package="survival"
   rs <- survival::survreg(survival::Surv(futime, fustat) ~ ecog.ps + rx,
                 data = ovarian, dist = "weibull")
   getcoeftable(rs)

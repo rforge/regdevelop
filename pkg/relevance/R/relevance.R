@@ -484,8 +484,10 @@ confintF <- #f
         lf0 <- lf.fq(0, f[li], ldf1i, df2[li], 1-p[li])
         if (lf0>=0) 0
         else
-          uniroot(lf.fq, c(0,df1[li]*f[li]),
-                  fvalue=f[li], df1=ldf1i, df2=df2[li], p=1-p[li])$root
+          pmax(0, ## !!! something wrong, should not be needed
+               uniroot(lf.fq, c(0,df1[li]*f[li]),
+                       fvalue=f[li], df1=ldf1i, df2=df2[li], p=1-p[li])$root
+               )
       }
       rr[li,2] <- ## upper limit
         if (pf(f[li], ldf1i, df2[li])<=p[li]) 0  ## tiny F value
