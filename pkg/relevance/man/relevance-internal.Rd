@@ -1,20 +1,11 @@
 \name{relevance-internal}
-%% \alias{i.def}
-%% %% \alias{i.smooth}
-%% %
-%% \alias{is.formula}
-%% \alias{\%nin\%}
-%% %% \alias{print.mregr}
-%% \alias{i.main}
-%% \alias{u.true}
-%% \alias{u.notfalse}
-%% \alias{u.debug}
 \alias{DB}
 %% ---
 \title{Internal objects of package relevance}
 \description{
-  Internal functions of package \pkg{relevance} that are exported, but
-  should normally not be called by the user directly.
+%%  Internal functions of package \pkg{relevance} that are exported, but
+%%  should normally not be called by the user directly.
+\code{DB} helps debugging functions by changing the \code{error} option.
 }
 \usage{
 DB(on=TRUE)
@@ -28,5 +19,6 @@ DB(on=TRUE)
     }
   }
 }
+\value{No return value, called for side effects}
 \author{\packageAuthor{relevance}}
 \keyword{internal}
