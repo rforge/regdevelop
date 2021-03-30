@@ -578,7 +578,6 @@ getvariables <-
 {
   ## similar to get_all_vars , different error handling; generate is.fac
   if (is.atomic(formula) && is.character(formula)) formula <- list(formula)
-##  browser()
   if (is.list(formula)) {
     llf <- length(formula)
     lvnm <- getvarnames(formula[[1]], data=data, transformed=transformed)
@@ -810,6 +809,19 @@ i.adjustticks <- function (range, data){
 ## ===========================================================================
 ## auxiliary functions
 ## ============================================================
+i.getinlist <- function(...) {
+  ll <- match.call()[-1]
+  lenv <- parent.frame()
+  lr <- eval(ll[[1]], lenv)
+  for (li in seq_along(ll)[-1]) {
+    if (length(lr)==0 ||            
+        (mode(lr)%in%c("numeric","character","logical","complex")&&
+         all(is.na(lr)))
+        )  lr <- eval(ll[[li]], lenv)  else break
+    }
+  lr
+}
+
 i.def <- function(arg, value = TRUE, valuetrue = value, valuefalse = FALSE)
 {
   rr <- arg
@@ -830,8 +842,10 @@ is.formula <- function (object)
   length(class(object))>0 && inherits(object, "formula")
 u.isnull <- function(x)  length(x)==0||(is.atomic(x)&&all(is.na(x)))
 u.true <- function (x) length(x)>0 && is.logical(x) && (!is.na(x)) && all(x)
-u.notfalse <-
-  function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
+u.false <-
+  function (x) (length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
+u.notfalse <- function(x) !u.false(x) ## !!!
+##  function (x) !(length(x)==1 && is.logical(x) && (!is.na(x)) && !x)
 
 nafalse <- function (x) if (is.null(x)) FALSE else ifelse(is.na(x), FALSE, x)
 u.nuna <- function (x)  length(x)==0 || (is.atomic(x)&&any(is.na(x)))
@@ -991,7 +1005,10 @@ u.varsin2terms <- function(formula) {
 }
 
 i.extendrange <- function(range, ext=0.05)  range + c(-1,1)*ext*diff(range)
-i.factor <- function(x) if(is.ordered(x)) ordered(x) else factor(x)
+i.factor <- function(x)  {
+  if (is.logical(x)) factor(x, labels=c("F","T"))
+  else if(is.factor(x)) factor(x) else factor(x)
+}
 ## ==========================================================================
 c.weekdays <- c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
             "Saturday")

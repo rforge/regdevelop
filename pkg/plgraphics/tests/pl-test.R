@@ -185,9 +185,13 @@ data(d.blast)
 rr <-  lm(logst(tremor)~location*log10(distance)+log10(charge), data=d.blast)
 rr <- r.blast <-
   lm(logst(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-plregr(rr)
-plregr(rr, xvar=FALSE)
+plregr(rr,mf=c(3,3))
+plregr(rr, addcomp=TRUE)
+plregr(rr, xvar=FALSE, plotselect=c(yfit=TRUE, resfit=FALSE))
 plregr(rr, transformed=TRUE, reflinesband=TRUE, sequence=TRUE)
+
+plresx(rr, transformed=TRUE, regr.addcomp=TRUE)
+plyx(d.blast$charge, naresid(structure(rr$na.action, class="exclude"), rr$resid))
 
 dd <- d.blast[as.numeric(d.blast$location)<=3,]
 dd[1,"distance"] <- 200

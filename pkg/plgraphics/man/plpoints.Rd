@@ -83,7 +83,7 @@ plyx(Sepal.Width ~ Sepal.Length, data=iris, pcol=Species)
 
 da <- aggregate(iris[,1:4], list(Species=iris$Species), mean)
 plpoints(Sepal.Width ~ Sepal.Length, plargs=list(pldata=da),
-  plab=da$Species, csize.pch=1, pcol=da$Species)
+  plab=da$Species, csize.pch=1, pcol=as.numeric(da$Species))
 }
 
 \keyword{aplot}

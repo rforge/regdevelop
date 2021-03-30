@@ -11,7 +11,7 @@ Further Arguments to \code{plregr}
 plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
   weights = NULL, stdresid = TRUE, mar = NULL,
   glm.restype = "working", condquant = TRUE, smresid = TRUE,
-  partial.resid = TRUE, cookdistlines = NULL,
+  partial.resid = NULL, addcomp = NULL, cookdistlines = NULL,
   leveragelimit = NULL, condprob.range = NULL,
   testlevel = 0.05,
   refline = TRUE, 
@@ -49,8 +49,9 @@ plregr.control(x, data = NULL, xvar = TRUE, transformed = FALSE,
     censored observations, binary and ordered responses?}
   \item{smresid}{logical: Should residuals from smooth be used for
     'tascale' and 'qq' plots?}
-  \item{partial.resid}{if TRUE (default),
-    residuals for observations will be displayed.}
+  \item{partial.resid, addcomp}{logical, synonyms: Should component
+    effects be added to the residuals? This leads to what some authors
+    call "partial residual plot".}
   \item{cookdistlines}{levels of Cook distance for which contours are
     plotted in the leverage plot}
   \item{leveragelimit}{bound for leverages to be used in standardizing

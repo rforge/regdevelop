@@ -18,7 +18,8 @@ Multibox plots
 plmboxes(x, ...)
 \method{plmboxes}{formula}(x, y=NULL, data, ...)
 
-\method{plmboxes}{default}(x, y, data, width=1, at=NULL, horizontal=FALSE,
+\method{plmboxes}{default}(x=NULL, y=NULL, data=NULL, width=1, at=NULL,
+    horizontal=FALSE,
     probs=NULL, outliers=TRUE, na=FALSE, backback=NULL, refline=NULL,
     add=FALSE, xlim=NULL, ylim=NULL, axes=TRUE, xlab=NULL, ylab=NULL,
     labelsperp=FALSE, xmar=NULL, mar=NULL,

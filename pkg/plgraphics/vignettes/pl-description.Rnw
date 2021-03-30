@@ -148,15 +148,15 @@ The call to \T{plmframes} splits the screen essentially like
 \T{par(mfrow=c(1,2))}.
 
 \Tit{Groups.}
-If the argument \T{group} is specified, separate plots will be generated
-for the different groups, thereby maintaining the plot ranges.
+If the argument \T{by} is specified, separate plots will be generated
+for the different groups specified by the levels of \T{by}, 
+thereby maintaining the plot ranges.
 (The argument \T{mf} asks for multiple figures, saving space between panels. 
-If left unspecified,
-\T{plyx} would choose a 2 by 2 matrix of panels. 
+If left unspecified, \T{plyx} chooses a matrix of panels. 
 Setting \T{mf=FALSE} avoids this.)
 
 <<plyx_group, fig.width=8, fig.height=4>>=
-plyx(Sepal.Width~Sepal.Length, data=iris, group=Species, mf=c(1,3))
+plyx(Sepal.Width~Sepal.Length, data=iris, by=Species, mf=c(1,3))
 @ 
 
 \Tit{Inner range of plots.}

@@ -7,7 +7,7 @@
   the concept of the  plplot  package
 }
 \usage{
-plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
+plyx(x = NULL, y = NULL, by=NULL, group = NULL, data = NULL, type = "p",
   panel = NULL, xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
   markextremes = 0, rescale = TRUE, mar = NULL, mf = FALSE,
   plargs = NULL, ploptions = NULL, assign = TRUE, ...)
@@ -22,10 +22,11 @@ plyx(x = NULL, y = NULL, group = NULL, data = NULL, type = "p",
   }
   \item{y}{data to be used as the y axis.
   }
-  \item{group}{grouping factor: for each group, a plot will be shown
+  \item{by}{grouping factor: for each \code{by} group, a plot will be shown
     for the respective subset of the data}
-  \item{data}{data.frame containing the variables if 'x' is a formula
-  }
+  \item{group}{grouping that determines plotting symbols, colors, and
+    line types}
+  \item{data}{data.frame containing the variables if 'x' is a formula}
   \item{xlab, ylab}{axis labels}
   \item{xlim, ylim}{plot ranges}
   \item{type}{type of plot, see \code{?\link{plot.default}}}
@@ -94,7 +95,7 @@ plyx(Petal.Width ~ Sepal.Length, data=iris)
 plyx(Petal.Width ~ Sepal.Length+Sepal.Width, data=iris, smooth=TRUE,
      smooth.group=Species)
 plyx(Petal.Length + Petal.Width ~ Sepal.Length+Sepal.Width,
-     group = Species, data=iris, smooth=TRUE)
+     by  = Species, data=iris, smooth=TRUE)
 
 }
 \keyword{hplot}

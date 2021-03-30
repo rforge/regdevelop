@@ -16,13 +16,13 @@
 \usage{
 plregr(x, data = NULL, plotselect = NULL, xvar = TRUE,
   transformed = NULL, sequence = FALSE, weights = NULL,
-  addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
+  addcomp = NULL, smooth = 2, smooth.legend = FALSE, markextremes = NA,
   mar = NULL, byrow = NULL,
   plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 
 plresx(x, data = NULL, xvar = TRUE, transformed = NULL,
   sequence = FALSE, weights = NULL,
-  addcomp = FALSE, smooth = 2, smooth.legend = FALSE, markextremes = NA,
+  addcomp = NULL, smooth = 2, smooth.legend = FALSE, markextremes = NA,
   plargs = NULL, ploptions = NULL, assign = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.

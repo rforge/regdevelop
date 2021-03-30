@@ -6,11 +6,11 @@
 }
 \usage{
 pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
-  transformed = TRUE, gensequence = NULL, csize = NULL, 
+  transformed = TRUE, distinguishy = TRUE, gensequence = NULL, csize = NULL, 
   psize = NULL, plab = FALSE, pch = NULL, pcol = NULL, csize.pch = NULL, 
   smooth.weights = NULL, smooth.weight = NULL,
   markextremes = NULL, smooth = NULL,
-  xlab = NULL, ylab = NULL, varlabels = NULL,
+  xlab = NULL, ylab = NULL, varlabel = NULL,
   vcol = NULL, vlty = NULL, vpch = NULL, plscale = NULL, log = NULL,
   main = NULL, sub = ":", .subdefault = NULL, mar = NULL, 
   gencoord = TRUE,
@@ -26,6 +26,10 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
   \item{subset}{subset of data.frame 'data' to be used for plotting.
     See details.}
   \item{transformed}{logical: should transformed variables be used?
+  }
+  \item{distinguishy}{logical: should multiple y's be distinguished?
+    This is \code{TRUE} if \code{pl.control} is called from
+    \code{plyx}.
   }
   \item{gensequence}{logical: if only \code{x} or only \code{y} is set,
     should the other of these be specified as the sequence
@@ -53,7 +57,7 @@ pl.control(x=NULL, y=NULL, condvar = NULL, data = NULL, subset = NULL,
   \item{smooth}{logical: should a smooth line be added?
   }
   \item{xlab, ylab}{axis labels}
-  \item{varlabels}{
+  \item{varlabel}{
     labels for variables replacing their names in the \code{x} and
     \code{y} arguments, either a simple vector of strings with an
     element for each variable,

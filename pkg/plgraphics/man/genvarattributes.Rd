@@ -11,7 +11,7 @@
 }
 \usage{
 genvarattributes(data, vnames = NULL, vcol = NULL, vlty = NULL, vpch = NULL,
-  varlabels = NULL, innerrange = NULL, plscale = NULL, zeroline = NULL, 
+  varlabel = NULL, innerrange = NULL, plscale = NULL, zeroline = NULL, 
   replace=FALSE, ploptions = NULL, ...)
 
 setvarattributes(data, attributes = NULL, list = NULL, ...)
@@ -26,7 +26,7 @@ setvarattributes(data, attributes = NULL, list = NULL, ...)
     to be used when multiple y-s are plotted (in the sense of
     \code{matplot})
   }
-  \item{varlabels}{labels of the variables, in the case that the
+  \item{varlabel}{labels of the variables, in the case that the
     \code{names} of \code{data} are not appropriate.
   }
   \item{innerrange}{logical indicating whether inner plotting ranges
