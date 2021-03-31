@@ -12,7 +12,7 @@ VignetteBuilder: knitr
 Description: Calculates relevance and significance values for
   simple models and for many types of regression models.
   These are introduced in
-  Stahel, Werner A. (2021)
+  'Stahel, Werner A.' (2021)
   "New relevance and significance measures to replace p-values."
   <https://stat.ethz.ch/~stahel/relevance/stahel-relevance2103.pdf>.
 License: GPL-2

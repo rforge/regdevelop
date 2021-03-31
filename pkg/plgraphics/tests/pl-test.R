@@ -259,12 +259,12 @@ plregr(rr)
 plregr(rr, factor.show="jitter")
 
 ## survreg
-data(lung, package="survival")
-lung$gender <- factor(c("m","f")[lung$sex])
+data(cancer, package="survival")
+cancer$gender <- factor(c("m","f")[cancer$sex])
 r.sr <- survival::survreg(
-  survival::Surv(time, status) ~ age + gender + ph.karno, data=lung) 
+  survival::Surv(time, status) ~ age + gender + ph.karno, data=cancer) 
 plregr(r.sr, group=gender, pcol=gender, xvar=~age)
 r.cox <- survival::coxph(
-  survival::Surv(time, status) ~ age + gender + ph.karno, data=lung) 
+  survival::Surv(time, status) ~ age + gender + ph.karno, data=cancer) 
 plregr(r.cox, group=gender, pcol=gender, xvar=~age)
 
