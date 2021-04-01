@@ -310,15 +310,13 @@ pl.control <- #f
         attr(lpldata[[".smooth.group."]], "varname") <- llb
   }
   ## pcol
-  lpcol <- lpldata$".pcol."
-  if (length(lpcol)) {
+  if (length(lpcol <- lpldata$".pcol.")) lpldata[,".pcol."] <- i.getcolor(lpcol)
 ##    lpldata[,".pcol."] <- i.factor(lpcol) ## !!! 
-    if (is.logical(lpcol)) lpldata[,".pcol."] <- lpcol+1
-    else if (is.factor(lpcol)) {
-      lclr <- i.getploption("col")
-      lpldata[,".pcol."] <- lclr[(as.numeric(lpcol)-1)%%length(lclr)+1] ## recycle!
-    }
-  }
+##-     if (is.logical(lpcol)) lpldata[,".pcol."] <- lpcol+1
+##-     else if (is.factor(lpcol)) {
+##-       lclr <- i.getploption("col")
+##-       lpldata[,".pcol."] <- lclr[(as.numeric(lpcol)-1)%%length(lclr)+1] ## recycle!
+##-     }
   ## ----------------------------------------------------
   ## more ploptions
   ## smooth color
@@ -335,8 +333,8 @@ pl.control <- #f
   ## --- condprob.range
   ploptions$condprob.range <-
     if (length(ploptions$condprob.range)==0) {
-      if (lnobs>50) c(0,0) else c(0.05,0.8) }
-    else c(ploptions$condprob.range,1)[1:2]
+      if (lnobs>50) c(0,0) else c(0.05,0.8)
+    } else c(ploptions$condprob.range,1)[1:2]
   ## --- smooth
   lsmgrp <- lpldata$".smooth.group."
   lsmgrplab <- levels(lsmgrp)
@@ -3209,6 +3207,7 @@ plregr <- #f
 ##-             plargs$multmar else  i.getploption("mar") ## multmar set by .control
 ##-   plargs$ploptions$mar <- lmar
   lnewplot <- TRUE ## !!!
+  plargs$ploptions <- ploptions 
   ## --------------------------------------------------------------------------
   ## start plots
   if (length(lplsel))
@@ -4249,6 +4248,7 @@ plpanel <- #f
   ## start plotting
   if (frame) plframe(x,lyp, plargs=plargs) ## !!! , getpar=FALSE
   ## secondary smooths
+##  browser()
   if (lIsm & length(lys))
     plsmooth(x, y=NULL, ysec=lys, band=FALSE, power=plargs$smooth.power, 
              getpar = FALSE, getxy=FALSE, plargs=plargs, ploptions=ploptions)
@@ -5345,6 +5345,18 @@ i.getgroupopt <- #f
   structure(group, group.col=lgcol, group.pch=lgpch, group.lty=lglty)
 }
 ## -------------------------------------------------------------------------
+i.getcolor <- #f
+  function(col, ploptions=NULL)
+{ ## get color  
+  lcolors <- i.getploption("colors")
+  lncol <- length(lcolors)
+  if (is.numeric(col)|is.logical(col)) lcolors[1+(col-1)%%lncol]
+  else {
+    if (is.character(col)) if (any(col%nin%colors())) col <- factor(col)
+    if (is.factor(col)) lcolors[2+(as.numeric(col)-1)%%(lncol-1)] else col
+  }
+}
+## --------------------------------------------------------------------------
 i.getxy <- #f
   function(x=NULL, y=NULL, plargs=NULL, ploptions=NULL, call=NULL, envir = NULL)
 {
@@ -5612,9 +5624,10 @@ c.dateticks <- data.frame(
 .ploptions <- pl.optionsDefault <-
   list(
     keeppar = FALSE,
-    colors = c.colors,
+    colors = c.colors, pale = 0.3,
     linewidth = c(1,1.3,1.7,1.3,1.2,1.15), csize = 1,
     ticklength = c(-0.5, 0, 0.2, -0.2),
+    tickintervals = c(7,4),
     ## basic
     pch = 1:18, csize.pch=charSize, csize.plab=0.7, ## !?
     psize.max = 3,
@@ -5639,7 +5652,6 @@ c.dateticks <- data.frame(
     sub = TRUE,
     ##
     panel = "plpanel", panelsep = 0.5, 
-    tickintervals = c(7,4),
     date.ticks = c.dateticks, date.origin = 1970, date.format=c("y-m-d", "h:m:s"), 
     xlab = "", ylab = "",
     stamp=1, doc=TRUE, 
@@ -5696,9 +5708,10 @@ c.dateticks <- data.frame(
 ploptionsCheck <-
   list(
     keeppar = clg(),
-    colors=ccl(),
+    colors=ccl(), pale = cnr(c(-1,1)), 
     linewidth = cnr(c(0.1,5)), csize = cnr(c(0.1,5)), 
     ticklength = cnr(c(-2,2)),
+    tickintervals = cnr(c(2,20)), 
     ## basic
     pch = cnv(c.pchvalues),
     csize.pch = list(cfn(),cnr(c(0.1,5))), csize.plab=cnr(c(0.1,5)),
@@ -5720,7 +5733,6 @@ ploptionsCheck <-
     axes=list(cnr(c(1:4), na.ok=TRUE),clg()), axes.sure=clg(na.ok=TRUE),
     mar=cnr(c(0,20)), oma=cnr(c(0,10)), mgp=cnr(c(0,5), na.ok=FALSE, length=3),
     panel=list(cfn(),cch()), panelsep=cnr(c(0,3)),
-    tickintervals = cnr(c(2,20)), ## date.ticks = cdf(names=...)
     date.origin = cnr(c(1900,2050)), date.format = cch(),
     stamp=list(clg(),cnr(c(-1,2))),
     mframesmax = cnr(c(4,100)), 

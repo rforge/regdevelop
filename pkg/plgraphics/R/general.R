@@ -352,20 +352,21 @@ shortenstring <- function (x, n=50, endstring="..", endchars=NULL)
           substring(x, lnc-endchars+1, lnc), sep=""), x)
 }
 ## ======================================================================
-colorpale <- function(col=NA, pale=0.3, rgb = FALSE, ...)
+colorpale <- function(col=NA, pale=NULL, rgb = FALSE, ...)
 {
-  pale <- i.def(pale, 0.3)[1]
+  pale <- i.getplopt(pale)[1] ## i.def(pale, 0.3)[1]
   if (NCOL(col)!=3||length(lcn <- colnames(col))%nin%c(0,3)||
       any(lcn!=c("red","green","blue"))) {
-    lcolna <- is.na(col)
-    if (any(lcolna)) {
-      col[lcolna] <- palette()[2]
-      warning(":colorpale: Argument 'col' is NA. I assume  ", col)
-    }
+    col <- i.getcolor(col)
+##-     lcolna <- is.na(col)
+##-     if (any(lcolna)) {
+##-       col[lcolna] <- palette()[2]
+##-       warning(":colorpale: Argument 'col' is NA. I assume  ", col)
+##-     }
     col <- t(col2rgb(col)/255)
   }
   rr <- if (pale>0) 1-(1-pale)*(1-col) else (1+pale)*col
-  if (rgb) rr else rgb(rr, ...)
+  if (rgb) rr else rgb(rr, ...) ## rgb converts FROM rgb to hexadecimal
 }
 ## ===========================================================================
 weekday <- #f

@@ -24,7 +24,7 @@ importFrom("utils", getS3method, recover, str)
 importFrom("graphics", plot, abline, axis, axTicks, box, frame, legend,
            lines, matlines, mtext, par, points, polygon, 
            segments, symbols, text)
-importFrom("grDevices", col2rgb, dev.list, palette, rgb)
+importFrom("grDevices", col2rgb, dev.list, palette, rgb, colors)
 importFrom("chron", chron, dates, month.day.year, hours, minutes, seconds)
 ##           S3method(axis, chron)
 

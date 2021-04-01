@@ -87,6 +87,8 @@ pl.optionsDefault
       "mar", "oma", "cex", "mgp", and "mfg" will be maintained when
       leaving high level pl functions, 
       otherwise, the old values will be restored (default).}
+    \item{colors}{The palette to be used by pl functions}
+    \item{pale}{default argument for code{\link{colorpale}}}
     \item{linewidth:}{ vector of \code{lwd} values to be used for
       the different line types (\code{lty}). The package
       sets \code{lwd} to a value
@@ -109,7 +111,14 @@ pl.optionsDefault
       The second determines how many tick labels are shown in the same
       way, and should therefore be smaller than (or equal to) the first.
     }
-    \item{gridlines:}{  can be \cr
+    \item{pch}{plotting symbols or characters}
+    \item{csize.pch}{size of plotting symbols, relative to default.
+      This may be a function with an argument that will be the number of
+      observations at the time it is used.}
+    \item{csize.plab}{size of point labels, relative to \code{csize.pch}}
+    \item{psize.max}{maximum value of size of plotting symbols}
+    \item{lty, lwd, col, pcol, lcol}{to be descibed!!!}
+    \item{gridlines:}{  can be \cr 
       -- a logical indicating if gridlines should be drawn. If
       \code{TRUE}, gridlines will be drawn at the values given in
       \code{attr(.,"ticksat")};
