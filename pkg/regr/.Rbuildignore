@@ -3,3 +3,4 @@
 ^div
 ^vignettes/figure
 ^vignetees/auto
+^vignettes/.*\.log

@@ -274,7 +274,12 @@ termtable <- #f
                      if (length(ldist)) c(" ; distribution = ", ldist),
                      " :  Drop-term effects"),
                    collapse="")
-  ldname <- as.character(object$call$data)
+  ldname <- attr(object, "data.name")
+  if (length(ldname)==0) ldname <- object$call$data
+  ldname <- if (is.language(ldname)) as.character(ldname)
+            else {
+              if (!is.character(ldname)) ldname
+            }
   ## if ((inherits(object, "glm") &&
   ##      lfamily %in% c("poisson","quasipoisson")) ||
   ##     (inherits(object, "survreg")&&
@@ -698,10 +703,11 @@ print.inference <- #f
   if ("nocoef"%nin%lshow) lshow <- c("coef", lshow)
   if (any(c("statistic","p.value","Sig0")%in%lshow)) lshow <- c(lshow,"test")
   ## ---
+  ldn <- attr(x, "data.name")
+  if (!(is.character(ldn)&length(ldn)==1)) ldn <- NULL
   lout <- c(
-    if (length(ldn <- attr(x, "data.name"))) paste("data: ", ldn),
+    if (length(ldn)) paste("data: ", ldn),
     if (length(lfo <- attr(x, "formula")))
-##-       format(paste("formula: ", paste(format(lfo),collapse="")))
       paste("target variable: ", format(lfo[[2]]) )
   )
   lhead <- c(

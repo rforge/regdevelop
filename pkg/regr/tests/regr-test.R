@@ -215,29 +215,29 @@ t.r <- regr(density ~ Asym/(1 + exp((xmid - log(conc))/scal)),
 ##-        start = list(Vm = 200, K = 0.1))  # d.treated is found in example(nls)
 ##- plot(t.r)
 ## ===================================================================
-data("ovarian", package="survival")
-## require(survival) ## for dataset ovarian and >3 functions
-##- t.rs <- survival::survreg(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian,
+data("cancer", package="survival")
+## require(survival) ## for dataset cancer and >3 functions
+##- t.rs <- survival::survreg(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = cancer,
 ##-     dist = "weibull")
 ##- t.rss <- summary(t.rs)
 ##- t.rs <- survival::survreg(formula = survival::Surv(log(futime), fustat) ~ ecog.ps + rx,
-##-     data = ovarian, dist = "extreme") ## not the same
-r.surv <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx,
-               data = ovarian, family="weibull")
+##-     data = cancer, dist = "extreme") ## not the same
+t.fo <- survival::Surv(time, status) ~ age + ph.karno + wt.loss
+r.surv <- regr(formula = t.fo, data = cancer, family="weibull")
 ## plot(r.surv)  # !!!
-t.rc <- survival::coxph(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
-r.coxph <- regr(formula = survival::Surv(futime, fustat) ~ ecog.ps + rx, data = ovarian)
+t.rc <- survival::coxph(t.fo, data = cancer)
+r.coxph <- regr(t.fo, data = cancer)
 length(residuals(r.coxph, type="martingale"))
 
-data(bladder, package="survival")
-bladder1 <- bladder[bladder$enum < 5, ]
-t.cph <- survival::coxph(survival::Surv(stop, event) ~ (rx + size + number) * strata(enum) +
-               cluster(id), bladder1)
-t.r <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1)
-r.sr <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
-
-bladder1$sizej <- jitter(bladder1$size)
-plresx(r.sr, xvars="size") ## !!! falsche limits
+##- data(bladder, package="survival")
+##- bladder1 <- bladder[bladder$enum < 5, ]
+##- t.cph <- survival::coxph(survival::Surv(stop, event) ~ (rx + size + number) * strata(enum) +
+##-                cluster(id), bladder1)
+##- t.r <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1)
+##- r.sr <- regr(survival::Surv(stop, event) ~ rx + size + number, bladder1, family="weibull")
+##- 
+##- bladder1$sizej <- jitter(bladder1$size)
+##- plresx(r.sr, xvars="size") ## !!! falsche limits
 ## d.cmbscores <- t.d
 ## ===================================================================
 ## Tobit

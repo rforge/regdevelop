@@ -215,6 +215,7 @@ regr <- #F
 ##    if (lcontr[1]=="contr.wsum") lallvars <- contr.wsum(lallvars, y=lyy)
   }
   lctrnm <- getOption("contrasts")
+  if (is.language(ldn <- lcall$data))  attr(lallvars, "data.name") <- ldn
   lcl$data <- lallvars ## must be evaluated!
   lcall$na.action <- lcl$na.action <- largs$na.action
   mode(lcl) <- "call"
@@ -376,6 +377,7 @@ i.lm <- #F
   ## --------------------------
   ## f. --- collect results
   lreg$call$formula <- formula
+  attr(lreg, "data.name") <- attr(data, "data.name") 
   lreg$fitfun <- lfn
   lreg$distrname <- "gaussian"
   lttype <- switch(lfn,
@@ -506,7 +508,6 @@ i.glm <- #F
   lreg$leverage <- pmax(0,hat(lreg$x))
   lreg1 <- summary(lreg)
   lcoeftable <- lreg1$coef
-  browser()
   ly <- lreg$y 
   ldisp <- lreg1$dispersion
   ## ---
@@ -654,7 +655,6 @@ i.polr <- #F
   if (inherits(lreg1, "try-error")) {
     warning(paste(":regr/i.polr: summary did not work.",
                   "I return the polr object"))
-##    lreg$call$data <- call$data
     class(lreg) <- c("orig","polr")
     return(lreg)
   }   ## ---
@@ -726,7 +726,6 @@ i.survreg <- #F
   if (inherits(lreg1, "try-error")) {
     warning(paste(":regr/i.survreg: summary did not work. ",
                   "I return the survreg object"))
-##    lreg$call$data <- call$data
     class(lreg) <- c("orig",class(lreg))
     return(lreg)
   }   ## ---
@@ -1164,7 +1163,6 @@ i.termresults <- #F
        leverage=if(leverage) hat(lmmt)
        )
 }
-## -----------------------------------------------------------
 ## ==========================================================================
 contr.wsumpoly <- #F
   function (n, scores = NULL, y = NULL, w = NULL,
@@ -1286,9 +1284,10 @@ print.regr <- #F
   ## call, fitting fn
   call <- i.def(call, TRUE)
   if (call) {
-    if(!is.null(x$call)) {
+    if(!is.null(lcl <- x$call)) {
+      if (!is.language(ldt <- lcl$data)) lcl$data <- "[a data.frame]"
       cat("\nCall:\n")
-      cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),"\n", sep = "")
+      cat(paste(deparse(lcl), sep = "\n", collapse = "\n"),"\n", sep = "")
     }
     lout <- paste(
       if (length(lfitf <- x$fitfun)) paste("Fitting function:",lfitf),
