@@ -2670,6 +2670,10 @@ plregr.control <- #f
   lnaaction <- x$na.action
   if (!u.isnull(lnaaction)) class(lnaaction) <- "exclude"
   x$na.action <- lnaaction
+  ## formula(x) inappropriate for merMod
+  lform <- if (inherits(x, "regrMer")) x$formula else formula(x)  
+    ## ... if it inherits from  lm  ??? whatsthat?
+  lmodvdupl <- u.varsin2terms(lform[-2])
   ## --- family
   lfam <- c(x$distrname, x$family$family, "")[1]
   if (lfam=="" & inherits(x, "lm")) lfam <- "gaussian"
@@ -2731,21 +2735,23 @@ plregr.control <- #f
     else llev <- naresid(lnaaction, llev)
     if (length(llev)==0) llev <- leverage(x)
   }
-  ##
-##  if (is.null(data)) ***
+  ## residual names
+  lyexpr <- deparse(lform[[2]])
+  lynm <- if (nchar(lyexpr)>10) "Y" else lyexpr ##
+  lrn <- paste("res_", if (lmres>1) colnames(lres) else lynm, sep="")
+  lresname <-
+    gsub("\\(",".", gsub("\\)",".", gsub("\\*",".", gsub("/",".", gsub("\\^",".",
+                                                                     lrn)))))
+  names(lres) <- lresname
   ## --- xvar
-  ## formula(x) inappropriate for merMod
-  lform <- if (inherits(x, "regrMer")) x$formula else formula(x)  
-    ## ... if it inherits from  lm
-  lmodvdupl <- u.varsin2terms(lform[-2])
   if (u.notfalse(xvar)) {
     lxf <- if (transformed) lform else {
       lx <- all.vars(lform[-2])
       if (inherits(x, "nls")) lx <- setdiff(lx, names(coef(x)))
       u.asformula(lx)
-    }
+                                  }
     if (!(u.isnull(xvar)|u.true(xvar))) {
-      if (is.character(xvar)) {
+      if (is.character(xvar)) { ## xvar : names of variables
         lxvarf <- u.asformula(setdiff(xvar,"."))
         lxf <- if ("."%in%xvar) update(lxf, lxvarf) else lxvarf
       }
@@ -2758,14 +2764,7 @@ plregr.control <- #f
     lxvar <- getvarnames(lxf, data=data, transformed=transformed)$xvar ## was TRUE
     lxvraw <- u.allvars(lxvar)
   } else lxvar <- NULL
-  ## residual names
-  lyexpr <- deparse(lform[[2]])
-  lynm <- if (nchar(lyexpr)>10) "Y" else lyexpr ##
-  lrn <- paste("res_", if (lmres>1) colnames(lres) else lynm, sep="")
-  lresname <-
-    gsub("\\(",".", gsub("\\)",".", gsub("\\*",".", gsub("/",".", gsub("\\^",".",
-                                                                     lrn)))))
-  names(lres) <- lresname
+  ## xvar should now be a character vector of names of variables
   ## --- prepare  pl.control
   lcall <- as.list(match.call())[-1]
   ladrop <- c("xvar", "glm.restype", "smresid", "partial.resid", "addcomp",
@@ -2780,8 +2779,7 @@ plregr.control <- #f
   ldata <- x$model
   if (length(ldata)&&length(lnaaction))
     ldata <- i.naresid.exclude(lnaaction, ldata)
-  ly <- i.def(x[["y"]], if (length(ldata)) ldata[,1, drop=FALSE]) 
-  if (length(lxvar)&u.notfalse(lxvar)) {
+  if (length(lxvar)) {
     lcall$x <- lxvar
     lcall$transformed <- transformed
     ## lcall$.subdefault <- i.form2char(lform) ## transfer to main
@@ -2790,19 +2788,19 @@ plregr.control <- #f
       if (length(ldata)==0||!(transformed & all(lxvar%in%names(ldata)))) {
         ldata <- data
         if (length(ldata)==0) {
-          if (length(x$allvars))
-            ldata <- i.naresid.exclude(lnaaction, x$allvars)
-          else ldata <- getvariables(x$call$formula, eval(x$call$data), transformed=FALSE) ##eval(x$call$data)
-          ##-     } else {
-##-       if (length(lav <- x$allvars)&&NROW(data)==NROW(lav)) 
-##-        ldata <- cbind(data, lav[colnames(lav)%nin%colnames(data)])
-##-       else stop("!plregr.control! incompatible data and x$allvars")
-    ##-     }
-        }
-        if (length(ldata)==0) {
-          ldata <- i.naresid.exclude(lnaaction, x$model)
-        } else
-          if ("subset"%in%names(x$call)) ldata <- ldata[row.names(lres),]
+##-           if (length(x$allvars))
+##-             ldata <- i.naresid.exclude(lnaaction, x$allvars)
+          ##-           else ldata <- getvariables(x$call$formula, eval(x$call$data), transformed=FALSE) ##eva
+          ldt <- x$allvars
+          if (is.null(ldt)) ldt <- x$model ## has transformed variables
+          lxv <- setdiff(lxvar, names(ldt))
+          ldata <-
+            if (length(lxv)) {
+              ldt <- eval(x$call$data)
+              if ("subset"%in%names(x$call)) ldt <- ldt[row.names(lres),]
+              ldt
+            } else i.naresid.exclude(lnaaction, ldt)
+        } 
         if (length(ldata)==0)  stop("!plregr.control! No data found")
       }
       ##
@@ -2813,9 +2811,13 @@ plregr.control <- #f
           stop("!plregr.control! nrow of residuals and data do not agree.")
       }
     }
-    if (any(lxvj <- lxvar%nin%names(ldata)))
-      stop("!plregr/plresx! variable(s) ",
-           paste(lxvar[lxvj], collapse=", "), " not found")
+##-     if (length(lxvmiss <- setdiff(lxvar, names(ldata)))) {
+##-       ldt <- getvariables(lxvmiss)
+##-       if (nrow(ldt)!=nrow(ldata))
+##-       stop("!plregr/plresx! variable(s) ",
+##-            paste(lxvmiss, collapse=", "), " not suitable - wrong number of rows")
+##-       ldata <- cbind(ldata,ldt)
+##-     }
   } else {
     ldata <- lres ## needed to get number of observations
     lcall$x <- NULL
@@ -2828,6 +2830,8 @@ plregr.control <- #f
   ## -------------------------------------
   plargs <- eval(lcall, parent.frame())  ## pl.control
   ## -------------------------------------
+ly <- i.def(x[["y"]], if (length(ldata)) ldata[,1, drop=FALSE])
+
   ploptions <- plargs$.ploptions
   ploptions$smooth <- i.getplopt(smooth)
   plargs$main <- i.def(ploptions$main, i.form2char(lform))

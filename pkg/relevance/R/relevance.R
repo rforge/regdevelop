@@ -197,7 +197,7 @@ inference <-
   if (is.null(se))
     if (NCOL(estimate)>1) {
       se <- estimate[,2]
-      estimate <- estimate[,1]
+      estimate <- structure(estimate[,1], names=row.names(estimate))
     }
   if (is.null(se)) se <- attr(estimate, "se")
   if (is.null(se))
@@ -824,13 +824,13 @@ print.printInference <- #f
 {
   ltail <- NULL
   if (is.list(x)&!is.data.frame(x)) {
-    if (length(lt <- attr(x,"head"))) cat("\n", lt, sep="")
+    if (length(lt <- attr(x,"head"))) cat(lt, "\n", sep="")
     ltail <- attr(x,"tail")
   } else x <- list(x)
   lInam <- length(lnam <- names(x))
   ## -------------------------------------
   for (li in seq_along(x)) {
-    if (lInam) cat("\n$",lnam[li],"\n")
+    if (lInam) cat(lnam[li],"\n")
     lx <- x[[li]]
     class(lx) <- setdiff(class(lx), "printInference")
     if (length(lt <- attr(lx,"head"))) cat(lt, "\n", sep="")
@@ -839,6 +839,7 @@ print.printInference <- #f
       if(length(names(lx))) print(c(lx), quote=FALSE) else cat(lx, sep="")
     }
     if (length(lt <- attr(lx,"tail"))) cat(lt, sep="")
+    cat("\n")
   }
   if (length(ltail)) cat(ltail, sep="") 
   cat("\n")
@@ -1062,7 +1063,8 @@ rlv.symbols <- list(symbol=c(" ", ".", "+", "++", "+++"),
 relevance.options <- list(
   digits.reduced = 3,
   testlevel = 0.05,
-  rlv.threshold = c(stand=0.1, rel=0.1, prop=0.1, coef=0.1, drop=0.1, pred=0.05),
+  rlv.threshold =
+    c(stand=0.1, rel=0.1, prop=0.1, corr=0.1, coef=0.1, drop=0.1, pred=0.05),
   termtable = TRUE, 
   show.confint = TRUE, show.doc = TRUE, 
   show.inference = "relevance",

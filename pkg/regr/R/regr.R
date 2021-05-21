@@ -1286,9 +1286,12 @@ print.regr <- #F
   if (call) {
     if(!is.null(lcl <- x$call)) {
       if (!is.language(ldt <- lcl$data)) lcl$data <- "[a data.frame]"
+      lcl$na.action <- NULL
       cat("\nCall:\n")
       cat(paste(deparse(lcl), sep = "\n", collapse = "\n"),"\n", sep = "")
     }
+    if (length(lna <- attr(x, "na.action")))
+      cat("na.action =", class(lna), " ;  ", length(lna), " NAs")
     lout <- paste(
       if (length(lfitf <- x$fitfun)) paste("Fitting function:",lfitf),
       if (length(lfam <- x$family))
@@ -1338,11 +1341,12 @@ print.regr <- #F
   lttab <- x$termtable
   if (length(lttab)>0) {
     cat("Terms:\n")
-    print(lttab, digits=digits, na.print=na.print)
+    lpr <- print(lttab, digits=digits, na.print=na.print, print=FALSE)
+    attr(lpr, "head") <- NULL
+    print(lpr)
   } else {
-    if (length(lcftb <- x$coeftable)) {
+    if (length(lcftb <- x$coeftable)) 
       print(lcftb, na.print=na.print, digits=digits)
-    }
   }
 ##-   if (length(x$binlevels)>0) {
 ##-     cat("\nFactor(s) with two levels converted to 0-1 variable(s):\n")
@@ -1411,7 +1415,7 @@ print.regr <- #F
               } else NULL
       } else mt <- x$termeffects
       if (length(mt)>0) {
-        cat("\nEffects of ", if (lshte==1) "factor levels" else "terms", ":\n")
+        cat("\nEffects of", if (lshte==1) "factor levels" else "terms", ":")
 ##-         print.termeffects(mt, printstyle=lprstyle, digits=digits,
         ##-                           na.print=na.print, ...)
         relevance:::print.termeffects(mt) ## needed temporarily only

@@ -89,17 +89,24 @@ The scientifically meaningful question is whether the effect is
 \emph{relevant}, and this needs the specification of a 
 \emph{relevance threshold} $\zeta$.
 The \emph{relevance measure} is defined as the ratio of the 
-estimated effect $\wh\eff$ and the threshold,
+effect $\wh\eff$ and the threshold,
 \[
-  \Rl e = \wh\eff\big/\zeta
+  \Rl{} = \eff\big/\zeta
   \;.
 \]
-The confidence interval for the effect translates to the interval
-for the relevance with limits
+It is thus a parameter of the model. It is estimated by plugging in the
+estimated effect, $\wh\eff$,
+\[
+  \Rl e=\wh\eff/\zeta
+  \;,
+\]
+and a confidence interval is obtained in the
+same manner from the confidence interval for the effect parameter.
+Its limits are called
 
-\Quad  $\Rl s$: ``secured relevance'': the lower end;
+\Quad  $\Rl s$, ``secured relevance'': the lower end;
 
-\Quad  $\Rl p$: ``potential relevance'': the upper end.
+\Quad  $\Rl p$, ``potential relevance'': the upper end.
 
 \Tit{Significance.}
 Let us return to the problem of testing a null hypothesis,
@@ -159,7 +166,7 @@ like the testing level of $5\%$ is for classical null hypothesis testing.
 $\Rl s$ and $\Rl p$.)
 
 The convention includes, as a first step, to determine an appropriate
-standardized effect or ``effect size'' for the model at hand,
+``effect scalem'' for the model at hand,
 and then setting a relevance threshold for it.
 Table~\ref{tab:recommendation}, taken from Stahel (2021) collects the
 proposed effect sizes and thresholds.
@@ -169,37 +176,41 @@ percentages in the original scale.
 
 \begin{table}[hh]
   \caption{Models, recommended effect scales and relevance thresholds
-  \protect\linebreak} %% ???
+  \hfill\break} %% ???
   \label{tab:recommendation}
   \centering
-  \begin{tabular}{|l|c|c|c|}
-    Problem&Basic model
-      &Effect $\eff=g\fn{\theta}$&Rel.\ thresh.\ $\zeta$ \Hline{&&&}
-    One, or two & $\N\fn{\mu,\sigma^2}$ & $\mu/\sigma$ & $10\,\%$ \\[-2pt]
-    \Quad paired samples &&&\Hline{&&&} %\\[3pt]
-    Two independent & $\N\fn{\mu_k,\sigma^2}$ & $d=(\mu_1-\mu_0)/\sigma$
+  \begin{tabular}{|l|c|c|c|c|}
+    Problem&Rl tyoe&Basic model
+      &Effect $\eff=g\fn{\theta}$&Rel.\ thresh.\ $\zeta$ \Hline{&&&&}
+    One, or two &stand& $\N\fn{\mu,\sigma^2}$ & $\mu/\sigma$ & $10\,\%$ \\[-2pt]
+    \Quad paired samples &&&&\Hline{&&&&} %\\[3pt]
+    Two independent &stand& $\N\fn{\mu_k,\sigma^2}$ & $d=(\mu_1-\mu_0)/\sigma$
                     & $20\,\%$ \\
-    \Quad samples&&$\eff=(\mu_1-\mu_0)\sqrt{\nu_0\nu_1}/\sigma$& $10\,\%$ \Hline{&&&} %\\[5pt]
-    Regression  & $Y_i=\alpha+\vc x_i\tr\vc\beta+\eps_i$ &&\\
-     & $\eps_i\sim\N\fn{0,\sigma^2}$ &&\\[-8pt]
-    \Quad coefficients &  & $\vc\beta_j \sqrt{\MS X\sups j}\big/\sigma$&$10\,\%$ \\
-    \Quad prediction error &&$-\oneover2\log\fn{1-R^2}$ &$0.5\,\%\ell$ or
-                                                          $5\,\%\ell$ \Hline{&&&} %\\[5pt]
-    Logistic regression %, coefficients
-           & $g\fn{Y_i=1}= \alpha+\vc x_i\tr\vc\beta$
-      & $\vc\beta_j 0.6\,\sqrt{\MS X\sups j}\big/\sqrt\phi$ & $10\,\%\ell$\Hline{&&&} %\\[8pt] 
-    Relative
-    Difference & $\log\fn Y\sim
-                          \N\fn{\mu_k,\sigma^2}$ & $\log\fn{\mu_1/\mu_0}$&$10\,\%\ell$\Hline{&&&} %\\[5pt]
-    Proportion  & $\Bin\fn{n, p}$ &  $\log\fn{p/(1-p)}$ & $33\,\%\ell$ or $10\,\%\ell$\Hline{&&&} %\\[5pt]
+    \Quad samples&&&$\eff=d/2$& $10\,\%$ \Hline{&&&&} %\\[5pt]
+    %% (\mu_1-\mu_0)\sqrt{\nu_0\nu_1}/\sigma
+    Regression  && $Y_i=\alpha+\vc x_i\tr\vc\beta+\eps_i$ &&\\
+     && $\eps_i\sim\N\fn{0,\sigma^2}$ &&\\[-8pt]
+    \Quad coefficient effect &coef&  & $\beta_j \delta_j\big/\sigma$&$10\,\%$ \\
+    \Quad drop effect &drop&  & $\eta_J$&$10\,\%$ \\
+    \Quad prediction effect &pred&&$-\oneover2\log\fn{1-R^2}$ &$0.5\,\%\ell$ or
+                                                          $5\,\%\ell$ \Hline{&&&&} %\\[5pt]
+    Relative Difference&rel
+           & $\log\fn Y\sim
+             \N\fn{\mu_k,\sigma^2}$ & $\log\fn{\mu_1/\mu_0}$
+                                 &$10\,\%\ell$\Hline{&&&&}
+    Proportion  &prop& $\Bin\fn{n, p}$ &  
+           $\log\fn{p/(1-p)}$ & $10\,\%\ell$\Hline{&&&&}
 %%-     Simple regression  & $Y_i=\alpha+\beta x_i+E$ & \\
 %%-            & $ E\sim\N\fn{0,\sigma^2}$
 %%-       & $\beta \sqrt{\MS X}/\sigma$&$10\,\%$ \\[5pt]
-    Correlation
+    Logistic regression %, coefficients
+           &prop& $\logit\fn{P\fn{Y_i=1}} = \alpha+\vc x_i\tr\vc\beta$
+      & $\vc\beta_j s_j$ & $10\,\%\ell$\Hline{&&&&} %\\[8pt] 
+    Correlation&corr
            & $\vc Y\sim
              \N_2\fn{\vc\mu, \Sig}$ &&\\
-           & $\rho=\Sig_{12}/\sqrt{\Sig_{11}\Sig_{22}}$& $\oneover2
-                                      \log\fn{(1+\rho)/(1-\rho)}$&$10\,\%\ell$
+           && $\rho=\Sig_{12}/\sqrt{\Sig_{11}\Sig_{22}}$
+           & $\oneover2 \log\fn{\frac{1+\rho}{1-\rho}}$&$10\,\%\ell$
       %% &better: $-\oneover2\log\fn{1-\rho^2}$&$0.5\,\%\ell$ or $5\,\%\ell$\\[5pt]
     \\[5pt]\hline
   \end{tabular}
@@ -220,6 +231,7 @@ and can be modified by setting these options again, see below.
 \label{sec:functions}
 
 \Tit{Function \T{twosamples}.}
+(\T{onesample} is a synonym.)
 This function provides inference for the comparison of two samples, paired
 or unpaired, and also for a single sample.
 Its call mimics \T{t.test}.
@@ -310,6 +322,7 @@ vector of relevance thresholds for
   \item \T{rel}: a relative effect, that is, a change in a prameter 
     expressed as a percentage of the parameter, %% !!! log scale?
   \item \T{prop}: a proportion, expressed in logit units,
+  \item \T{corr}: a correlation coefficient,
   \item \T{coef}: a coefficient in the linear predictor of a regression model,
   \item \T{drop}: the effect of dropping a term from a regression model,
   \item \T{pred}: the effect of a term on the prediction accuracy.
@@ -345,7 +358,8 @@ The package's defaults can always be restored by typing
 t.opt <- options(show.term.relevance=c("coef", "dropRls", "dropRls.symbol"))
 rt
 ## restore the old options
-options(list = t.opt)
+options(list = t.opt) ## the former options
+options(list=relevance.options) ## restore the package's defaults
 @ 
 
 \Tit{Function \T{print}.} 

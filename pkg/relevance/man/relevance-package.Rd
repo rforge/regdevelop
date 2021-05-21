@@ -45,7 +45,7 @@ The most important functions are
   \item{\code{twosamples()}: }{
     calculate the measures for two paired or unpaired sampless or
     a simple mean. This function calls}
-    \item{ \code{ciSgRl()}: }{
+    \item{ \code{inference()}: }{
       calculates the confidence interval and siginificance based on an
       estimate and a standard error,
       and adds relevance for a standardized effect.}
