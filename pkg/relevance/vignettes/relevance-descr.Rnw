@@ -287,7 +287,7 @@ according to \T{getOption("show")}.
 \Tit{Plot.}
 \T{inference} objects relate to a specific plotting method that shows 
 the confidence interval(s) on the relevance scale. Here is the example.
-<<plot.inference, fig.height=5, fig.width=9>>=
+<<plotInference, fig.height=5, fig.width=9>>=
 plot(rt)
 @
 

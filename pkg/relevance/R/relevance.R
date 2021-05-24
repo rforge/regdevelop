@@ -669,6 +669,10 @@ termeffects <- #f
   structure(res, class="termeffects", head=lmethod)
 } ## end termeffects
 ## -------------------------------------------------------------------------
+"[.termeffects" <- #f
+  function(x, i=NULL)  structure(x[i], class="termeffects")
+    
+## -------------------------------------------------------------------------
 print.inference <- #f
   function (x, show = getOption("show.inference"), print=TRUE,
             digits = getOption("digits.reduced"), 

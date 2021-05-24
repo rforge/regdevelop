@@ -12,7 +12,7 @@ importFrom("utils",
            str, recover
            )
 importFrom("graphics",
-           par, abline, segments, axis, mtext
+           par, plot, abline, segments, axis, mtext
            )
 
 ##- importFrom("MASS", rlm, polr)
@@ -34,6 +34,7 @@ export(confintF, drop1Wald,
 S3method(twosamples, formula)
 S3method(twosamples, default)
 S3method(print, termeffects)
+S3method("[", termeffects)
 S3method(print, inference)
 S3method(print, printInference)
 S3method(plot, inference)
