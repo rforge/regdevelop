@@ -49,9 +49,7 @@ require(lassogrp)
 
 
 {\small
-This is the end of the story for the time being. I hope that you will
-get into using \T{regr0} and have good success with your data analyses.
-Feedback is highly appreciated.
+This is the end of the story for the time being.
 
 Werner Stahel, \T{stahel at stat.math.ethz.ch}
 }

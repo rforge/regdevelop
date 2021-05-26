@@ -159,8 +159,9 @@ twosamples.formula <-
       rr <- do.call("twosamples", c(DATA, paired = FALSE, list(...)))
     }
   }
-##  attr(rr, "data.name") <- DNAME
-  structure(rr, formula=formula, data.name=format(substitute(data)))
+  ##  attr(rr, "data.name") <- DNAME
+  ldn <- substitute(data)
+  structure(rr, formula=formula, data.name=if (is.name(ldn)) format.default(ldn))
 }
 ## ========================================================================
 qintpol <- function(p, par1, par2, dist="binom")
@@ -670,8 +671,8 @@ termeffects <- #f
 } ## end termeffects
 ## -------------------------------------------------------------------------
 "[.termeffects" <- #f
-  function(x, i=NULL)  structure(x[i], class="termeffects")
-    
+  function(x, i=NULL)  structure(unclass(x)[i], class="termeffects")
+    ## unclass  avoids infinite recursion!
 ## -------------------------------------------------------------------------
 print.inference <- #f
   function (x, show = getOption("show.inference"), print=TRUE,
@@ -712,7 +713,7 @@ print.inference <- #f
   lout <- c(
     if (length(ldn)) paste("data: ", ldn),
     if (length(lfo <- attr(x, "formula")))
-      paste("target variable: ", format(lfo[[2]]) )
+      paste("target variable: ", as.character(lfo[[2]]) ) ## was format()
   )
   lhead <- c(
     paste(attr(x, "method"),"\n",collapse="  "),
@@ -726,7 +727,8 @@ print.inference <- #f
         paste(if(length(leffn <- attr(x, "effectname")))
           paste(leffn, ": ",sep="") else "effect:   ", format(leff)),
       if (getOption("show.confint")) {
-        if (length(lci <- x[c("ciLow","ciUp")]))
+        lci <- x[c("ciLow","ciUp")]
+        if (any(!is.na(lci)))
           paste(" ;  confidence int.: [",
                 paste(format(lci), collapse=", "),"]\n")
         else "\n"
@@ -836,7 +838,7 @@ print.printInference <- #f
   for (li in seq_along(x)) {
     if (lInam) cat(lnam[li],"\n")
     lx <- x[[li]]
-    class(lx) <- setdiff(class(lx), "printInference")
+    class(lx) <- setdiff(class(lx), c("printInference", "inference"))
     if (length(lt <- attr(lx,"head"))) cat(lt, "\n", sep="")
     if (length(dim(lx))) print(lx)
     else {
@@ -904,9 +906,13 @@ print.termeffects <- #f
     return()
   }
   for (li in seq_along(lx)) {
-    lr <- print.inference(lx[[li]], show=show, transpose.ok=transpose.ok, print=FALSE)
+    lxx <- lx[[li]]
+    lr <- if (length(lxx)>1) {
+            print.inference(lxx, show=show, transpose.ok=transpose.ok, print=FALSE)
+            } else format(lxx) ## e.g., "(Intercept)"
     ltail <- attr(lr,"tail")
     attr(lr, "head") <- attr(lr,"tail") <- NULL
+    if (length(lr)==1) lr <- paste("   ", lr)
     lx[[li]] <- lr
   }
   rr <- structure(lx, class="printInference",
@@ -927,7 +933,7 @@ plot.inference <- #f
 ##-     lncmax <- 1.5*par("fin")[1]/par("cin")[1]
 ##-     lcexsub <- min(1,max(0.5, lncmax/lnc))
 ##-     if (lcexsub==0.5) sub <- shortenstring(sub, lncmax/lcexsub)
-##-   }
+  ##-   }
   lframecol <- plpars[["framecol"]]
   lwd <- rep(c(plpars[["lwd"]],2), length=3)
   if (is.null(dim(x))) x <- rbind(x)
@@ -980,6 +986,8 @@ plot.termeffects <- #f
     x <- x[llen>1]
     llen <- llen[llen>1]
   }
+  if (length(llen)==0)
+    stop("!plot.termeffects! No termeffects", if(single) "with length >1")
   if (length(llen)==1) {
     plot.inference(x[[1]], pos=pos, plpars=plpars, xlab=xlab, ...) ## sub=sub, 
     return()

@@ -6,7 +6,7 @@ Date: 2021-05-24
 Author: Werner A. Stahel
 Maintainer: Werner A. Stahel <stahel@stat.math.ethz.ch>
 Depends: R (>= 3.5.0)
-Imports: stats, utils
+Imports: stats, utils, graphics
 Suggests: MASS, survival, knitr
 VignetteBuilder: knitr
 Description: Calculates relevance and significance values for

@@ -1767,8 +1767,8 @@ factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
   data <- data.frame(data)
 ##  if (!is.data.frame(data)) stop("!xNA! Argument 'data' ...")
   lnalabel <- as.character(na.label)
-  lvn <- names(data)[sapply(data,is.factor)]
-  ldt <- data[,lvn, drop=FALSE]
+  lvn <- names(data)[sapply(data,is.factor)|sapply(data,is.character)]
+##  ldt <- data[,lvn, drop=FALSE]
   lnanum <- na.prop*nrow(data)
   for (lv in seq_along(lvn)) {
     lfac <- factor(data[,lvn[lv]], ...)
@@ -1776,10 +1776,10 @@ factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
     if (sum(lna)>lnanum) {
       levels(lfac) <- c(levels(lfac), lnalabel)
       lfac[lna] <- lnalabel
-      ldt[,lv] <- lfac
+      data[,lv] <- lfac
     }
   }
-  structure(ldt, NA.label = na.label)
+  structure(data, NA.label = na.label)
 }
 ## -------------------------------------------------------------------
 xNA <- #F
