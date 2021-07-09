@@ -2,7 +2,7 @@ lasso <- function(x,...)  UseMethod("lasso")
 
 lasso.default <-
   function(x, y, index, subset, weights = rep(1, length(y)), model='gaussian',
-           lambda=NULL, lstep = 21,
+           lambda=NULL, steps = 21,
            adaptive = FALSE, cv.function = cv.lasso, cv=NULL,
            adaptcoef = NULL, adaptlambda = NULL, penscale = sqrt,
            center=NA, standardize = TRUE,
@@ -11,7 +11,7 @@ lasso.default <-
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 29 Nov 2007, 08:22
   fit <- lassoGrpFit(x, y, index, subset=subset, weights=weights, model=model,
-                     lambda=lambda, lstep=lstep,
+                     lambda=lambda, steps=steps,
                      penscale=penscale,
                      center=center, standardize = standardize,
                      save.x = if(adaptive) TRUE else save.x,
@@ -23,7 +23,7 @@ lasso.default <-
     if (control@trace > 0)
       cat('\n*** calling lasso.lassogrp to adapt to results of first call\n\n')
 
-    fit <- lasso.lassogrp(fit, lambda=lambda, lstep=lstep,
+    fit <- lasso.lassogrp(fit, lambda=lambda, steps=steps,
                           cv=cv, cv.function = cv.function,
                           adaptcoef = NULL, adaptlambda = NULL,
                           save.x = FALSE, control = control, ...)
@@ -35,7 +35,7 @@ lasso.default <-
 ## ==================================================================
 lasso.formula <-
   function(formula, data, subset, weights, na.action, offset, nonpen = ~ 1,
-           model='gaussian', lambda=NULL, lstep = 21, adaptive = FALSE,
+           model='gaussian', lambda=NULL, steps = 21, adaptive = FALSE,
            cv.function = cv.lasso, penscale = sqrt,
            cv=NULL, adaptcoef = NULL, adaptlambda = NULL,
            contrasts = NULL, save.x = TRUE,
@@ -47,7 +47,7 @@ lasso.formula <-
   ## same as lassogrp.formula
   m <- match.call(expand.dots = FALSE)
   ## Remove not-needed stuff to create the model-frame
-  m$nonpen <- m$model <- m$lambda <- m$lstep <- m$adaptive <- m$cv.function <-
+  m$nonpen <- m$model <- m$lambda <- m$steps <- m$adaptive <- m$cv.function <-
     m$coef.init <- m$penscale <- m$cv <- m$adaptcoef <- m$adaptlambda <-
       m$contrasts <- m$save.x <-
         m$center <- m$standardize <- m$control <- m$... <- NULL
@@ -80,7 +80,7 @@ lasso.formula <-
     if (is.list(adaptcoef)&&"coefficients"%in%names(adaptcoef))
       adaptcoef <- adaptcoef$coefficients
     l$model <- model
-    lasso.lassogrp(l, lambda=lambda, lstep=lstep,
+    lasso.lassogrp(l, lambda=lambda, steps=steps,
                    cv = cv, cv.function = cv.function,
                    adaptcoef = adaptcoef, adaptlambda = NULL,
                    penscale = penscale, ## weights = NULL,
@@ -95,16 +95,16 @@ lasso.formula <-
   fit$formula <- formula
   fit$innercall <- fit$call
   fit$call <- match.call() ## Overwrite lassoGrpFit
+  fit$data <- data
   structure(fit, class = "lassogrp")
 }
 
 ## ==================================================================
-lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
-                           cv = NULL, cv.function = cv.lasso,
-			   adaptcoef = NULL, adaptlambda = NULL,
-                           penscale = sqrt, weights = NULL,
-                           center = NA, standardize = TRUE,
-                           save.x = TRUE, control = lassoControl(), ...)
+lasso.lassogrp <- #f
+  function(x, lambda=NULL, steps=21, cv = NULL, cv.function = cv.lasso,
+           adaptcoef = NULL, adaptlambda = NULL, penscale = sqrt,
+           weights = NULL, center = NA, ## standardize = TRUE,
+           save.x = TRUE, control = lassoControl(), ...)
 { ## adaptive lasso
   if (length(x$x)==0 || length(x$y)==0)
       stop("must have an 'x' and 'y' component")
@@ -167,13 +167,13 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
   lj <- match(names(lsc),dimnames(lx)[[2]])
   if (any(is.na(lj)))
     stop(paste("coefficients", names(lsc)[is.na(lj)]," not in model matrix"))
-## --- change scales
+## --- change scales 
   lx[,lj] <- sweep(lx[,lj,drop=FALSE],2,lsc,"*")
 ##-   attr(lindex, 'grpnames') <-
 ##-     grpnames  ## contains names even for eliminated groups
   if (is.null(weights)) weights <- x$weights
   fit <- lassoGrpFit(lx,ly, index=lindex, weights=weights,
-                     model=x$model, lambda=lambda, lstep=lstep,
+                     model=x$model, lambda=lambda, steps=steps,
                      penscale=penscale, standardize=FALSE,
                      save.x = save.x, control = control, ...)
 ## adjust scales
@@ -194,57 +194,11 @@ lasso.lassogrp <- function(x, lambda=NULL, lstep=21,
   fit$call <- lcall
 ##  fit
   structure(fit, class = "lassogrp")
-}
-
-## =========================================================
-## lassogrp <- function(x, ...)
-##   UseMethod("lassogrp")
-
-## lassogrp.formula <-
-##   function(x, data, subset, weights = NULL, na.action,
-##            model='gaussian', nonpen = ~ 1,
-##            lambda = NULL, lfac = 2^seq(-1,-10),
-## ##         coef.init=NULL,
-## ##         penscale = sqrt, center=NA, standardize = TRUE,
-##            contrasts = NULL,
-## ##         control = lassoControl(),
-##            ...)
-## {
-##   ## Purpose:
-##   ## ----------------------------------------------------------------------
-##   ## Arguments:
-##   ## ----------------------------------------------------------------------
-##   ## Author: Lukas Meier, Date: 27 Jun 2006, 14:52
-
-##   m <- match.call(expand.dots = FALSE)
-##   ## Remove not-needed stuff to create the model-frame
-##   m$nonpen <- m$lambda <- m$coef.init <- m$penscale <- m$model <-
-##     m$standardize <- m$contrasts <- m$control <- m$... <- NULL
-##   l <- lassogrpModelmatrix(m, x, nonpen, data, weights, subset, na.action,
-##                      contrasts, parent.frame())
-
-##   fit <- lassogrp.default(x = l$x, y = l$y, index = l$index, weights = l$w,
-##                           model = model, offset = l$off, lambda = lambda,
-## ##-                           coef.init = coef.init,
-## ##-                           penscale = penscale,
-## ##-                           standardize = standardize, center=center,
-##                           grpnames = attr(l$index,'grpnames'),
-## ##-                           control = control,
-##                           ...)
-##   ## subsetting has been done in lassogrpModelmatrix, do not use it in call again
-
-##   fit$terms <- l$Terms
-##   fit$contrasts <- attr(l$x, "contrasts")
-##   fit$xlevels <- .getXlevels(l$Terms, l$mf)
-##   fit$na.action <- attr(l$mf, "na.action")
-##   fit$call <- match.call() ## Overwrite lassogrp.default
-##   structure(fit, class = "lassogrp")
-## }
-## ===================================================================
-## lassogrp.default <-
+} ## end lasso.lassogrp
+## ============================================================================
 lassoGrpFit <-
   function(x, y, index, subset, weights = rep(1, length(y)), model='gaussian',
-           offset = rep(0, length(y)), lambda = NULL, lstep = 21,
+           offset = rep(0, length(y)), lambda = NULL, steps = 21,
            coef.init = rep(0, ncol(x)), penscale = sqrt,
            center = NA, standardize = TRUE,
            save.x = NULL, control = lassoControl(), ...)
@@ -352,10 +306,10 @@ lassoGrpFit <-
       lambdamax(x, y, index, weights=weights, offset = offset,
                 coef.init = coef.init, penscale = penscale,
                 model = model, standardize = standardize, ...)
-    if (length(lstep)==1)
-      lstep <- if(lstep<0.5)
-        seq(1,0,-max(lstep,0.001)) else seq(1,0,length=max(3,lstep))^2 # !!!
-    lambda <- lambdamax*lstep
+    if (length(steps)==1)
+      steps <- if(steps<0.5)
+        seq(1,0,-max(steps,0.001)) else seq(1,0,length=max(3,steps))^2 # !!!
+    lambda <- lambdamax*steps
   }
   lambda <- unique(lambda)
   if(any(diff(lambda)>0)) {
@@ -698,7 +652,7 @@ lassoGrpFit <-
           else nH.pen[j]
 
         cond       <- -ngrad + nH * coef.ind
-        cond.norm2 <- crossprod(cond)
+        cond.norm2 <- c(crossprod(cond))
 
         ## Check the condition whether the minimum is at the non-differentiable
         ## position (-coef.ind) via the condition on the subgradient.
@@ -854,11 +808,12 @@ lassoGrpFit <-
                  converged    = converged,
                  control      = control),
             class = "lassogrp")
-} ## {lassoGrpFit}
+} ## end  lassoGrpFit
 
 ## ==================================================================
 
-print.lassogrp <- function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
+print.lassogrp <- #f
+  function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
 {
   ## Purpose: Print an object of class "lassogrp"
   ## ----------------------------------------------------------------------
@@ -920,9 +875,9 @@ print.lassogrp <- function(x, coefficients=TRUE, doc = options("doc")[[1]], ...)
 }
 
 ## ==================================================================
-predict.lassogrp <- function(object, newdata = NULL,
-                             type = c("link", "response"),
-                             na.action = na.pass, ...)
+predict.lassogrp <- #f
+  function(object, newdata = NULL, type = c("link", "response"),
+           na.action = na.pass, ...)
 {
   ## Purpose: Obtains predictions from a "lassogrp" object.
   ## ----------------------------------------------------------------------
@@ -995,26 +950,20 @@ predict.lassogrp <- function(object, newdata = NULL,
 }
 
 ## ==================================================================
-fitted.lassogrp <- function(object, ...)
+fitted.lassogrp <- #f
+  function(object, ...)
 {
-  ## Purpose:
-  ## ----------------------------------------------------------------------
-  ## Arguments:
-  ## ----------------------------------------------------------------------
-  ## Author: Lukas Meier, Date: 26 Jun 2006, 12:11
-
   out <- object$fitted
   attr(out, "lambda") <- object$lambda
   out
 }
 
 ## ==================================================================
-"[.lassogrp" <- function(x, i) {
+"[.lassogrp" <- #f
+  function(x, i) {
 
   ## First get dimensions of the original object x
-
   nrlambda <- length(x$lambda)
-
   if(missing(i))
       i <- seq_len(nrlambda)
 
@@ -1026,7 +975,7 @@ fitted.lassogrp <- function(object, ...)
 
   fit.red$coefficients <- coef(x)[,i,drop = FALSE]
   if(length(fit.red$coefficients) == 0)
-    stop("Not allowed to remove everything!")
+    stop("![].grplasso! Nothing left")
 
   fit.red$call$lambda  <- fit.red$lambda <- x$lambda[i]
   fit.red$ngradient    <- x$ngradient[,i,drop = FALSE]
@@ -1038,7 +987,6 @@ fitted.lassogrp <- function(object, ...)
   fit.red$norms.pen    <- x$norms.pen[,i,drop = FALSE]
   fit.red
 }
-
 
 ## =========================================================
 plot.lassogrp <-
@@ -1167,39 +1115,30 @@ extract.lassogrp <-
   ## does not make sense yet for more than one i
   ## ----------------------------------------------------------------------
   ## Author: Werner Stahel, Date: 21 Aug 2009, 08:55
-  lform <- formula(object)
+  lform <- object$formula ## formula(object)
   lcall <- object$call
   if (is.null(lform)) lform <- lcall$x
   if (is.null(lform))
     stop('extract.lassogrp needs an object with formula')
+  ## which model(s)?
   if (is.null(i)) {
     if (is.null(lambda))
       stop('!extract.lassogrp! Either arg.  i  or  lambda  must be given')
     if (length(lambda)>1 || lambda<0 || lambda>max(object$lambda))
       stop('!extract.lassogrp! argument "lambda" not suitable')
-#    lamlam <- outer(lambda,object$lambda,'/')
     i <- which.min(abs(sqrt(lambda)-sqrt(object$lambda)))
-##-       unique(apply( lamlam>0.99&lamlam<1.01, 1, which))
-##-     if (is.null(i))
-##-       stop('!extract.lassogrp!  lambda  not equal to any lambdas in lassogrp object')
   }
-  ldata <- data
-  if (is.null(ldata)) ldata <- object$data
-  if (is.null(ldata)) ldata <- eval(object$call$data)
-  if (is.null(ldata)) ldata <- eval(eval(object$call$x)$call$data)
-  if (is.null(ldata)) stop("no 'data' found")
-##  environment(lform) <- ldata
   ni <- length(i)
   if (ni!=1) {
-    warning('extract.lassogrp() not programmed for extracting more than 1 model')
+    warning(':extract.lassogrp: not programmed for extracting more than 1 model')
     i <- i[1]
   }
+  ## model
   lpen <- object$norms.pen[,i]
   ltrms <- names(lpen[lpen>0])
   lform <- update(eval(lform),
                   if (is.null(lcall$nonpen)) ~1 else lcall$nonpen )
   lform <- update(lform, paste('~.+',paste(ltrms, collapse=' + ')) )
-  result <- NULL
   lmod <- object$model
   if (!is.null(lmod)) {
     if (is.character(lmod))
@@ -1208,6 +1147,14 @@ extract.lassogrp <-
       lmod <- pmatch(substring(lmod@name,1,3),c('Linear','Logistic','Poisson'))
   }
   lmeth <- c("lm","binomial","glm")[lmod]
+##-   ## data
+  ldata <- data
+  if (is.null(ldata)) ldata <- object$data
+  if (is.null(ldata)) ldata <- eval(object$call$data)
+  if (is.null(ldata)) ldata <- eval(eval(object$call$x)$call$data)
+  if (is.null(ldata)) stop("no 'data' found")
+  ##  environment(lform) <- ldata
+  ## 
   if (!is.null(data)) lcall$data <- substitute(data)
   if (is.null(lcall$data))
     stop ("!extract.lassogrp! I do not find the data. Specify the 'data' argument")
@@ -1229,13 +1176,15 @@ extract.lassogrp <-
                na.action=lcall$na.action) # , '...'=...
   }
   lreg <- eval(fcall, parent.frame())
+  result <- NULL
   for (li in seq_along(i)) { ## for loop not in use!
     lr <- lreg
     lk <- i[li]
-    lcoef <- lr$coefficients <- object$coefficients[,lk]
+    ##  lcoef <- lr$coefficients <- object$coefficients[,lk]
+    lr$coefficients <- object$coefficients[names(lreg$coefficients),lk]
     lr$fitted.values <- object$fitted[,lk]
     lrsd <- lr$residuals <- object$y - lr$fitted.values
-    lr$df.residual <- lreg$df.residual - sum(lcoef==0)
+    ## lr$df.residual <- lreg$df.residual - sum(lcoef==0) ## leave df.residuels!
     ## only good for raw residuals
     lcl <- lreg$call
     lcl[1] <- paste('lasso',fitfun,sep='.')
@@ -1247,14 +1196,13 @@ extract.lassogrp <-
     lr$stres <- lr$testcoef <- lr$adj.r.squared <- lr$fstatistic <-
       lr$covariance <- lr$correlation <- NULL
     lr$fitfun <- fitfun
-    lr$faceff <- ## lfaceff <- if (exists("factoreffects"))
-      factoreffects(lr) ## else    try(dummy.coef(lr), silent=TRUE)
-    ## if (is.list(lfaceff)) lr$faceff <- lfaceff
+    lr$faceff <- termeffects(lr) ##  factoreffects(lr) 
     lr$fit.unpen <- lreg
-
     result <- c(result,lr)
   }
   result <- if (length(result)==1) result[[1]] else result
+  result$data <- ldata
+  browser()
   class(result) <- c('lassofit', class(lreg))
   result
 }
@@ -1374,7 +1322,7 @@ cv.lasso <-
   if (is.null(plot.it)) plot.it <- identical(parent.frame(), globalenv())
   if (plot.it)   plot.lassogrp(object, type='crit', cv = result, se = se)
   ##
-  invisible(structure(result, class="lassoCV"))
+  structure(result, class="lassoCV")
 }
 ## ===================================================================
 lassogrpModelmatrix <-

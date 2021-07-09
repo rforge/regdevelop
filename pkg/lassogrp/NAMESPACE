@@ -6,7 +6,8 @@
              "model.response", "model.weights", "na.omit", "na.pass",
              "napredict", "nlminb", "predict", "terms", "update", "var",
              "df.residual", "pt", "qt", "setNames", "vcov")
-  importFrom("methods", "new", "validObject")
+importFrom("methods", "new", "validObject")
+importFrom("relevance", "termeffects")
 
 export(
 "[.lassogrp",         
@@ -14,7 +15,7 @@ cv.lasso,
 descr,
 "descr<-",            
 extract.lassogrp,
-factoreffects, print.faceff, 
+##- factoreffects, print.faceff, 
 fitted.lassogrp,    
 formula.lassogrp,   
 get.blocks,         

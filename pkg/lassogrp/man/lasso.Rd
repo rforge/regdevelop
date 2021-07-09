@@ -36,8 +36,7 @@ lasso(x, \dots)
 \method{lasso}{lassogrp}(x, lambda=NULL, lstep=21,
       cv = NULL, cv.function = cv.lasso,
       adaptcoef = NULL, adaptlambda = NULL,
-      penscale = sqrt, weights = NULL,
-      center = NA, standardize = TRUE,
+      penscale = sqrt, weights = NULL, center = NA, 
       save.x = TRUE, control = lassoControl(), \dots)
 
 lassoGrpFit(x, y, index, subset, weights = rep(1, length(y)), model="gaussian",
@@ -167,20 +166,20 @@ rr <- lasso(log10(RUT) ~ log10(VISC) + ASPH+BASE+FINES+VOIDS+RUN,
             data = asphalt)
 rr
 names(rr)
-
+## ------------------
 ## Use the Logistic Group Lasso on the splice data set
 data(splice)
-
+## ------------------
 ## Define a list with the contrasts of the factors
 contr <- rep(list("contr.sum"), ncol(splice) - 1)
 names(contr) <- names(splice)[-1]
-
+## ------------------
 ## Fit a logistic model
 fit.splice <-
   lasso(y ~ ., data = splice, model = "binomial", lambda = 20,
   contrasts = contr)
 fit.splice
-
+## ------------------
 ## a potentially large model: all two-way interactions
 fit.spl.2 <-
   lasso(y ~ .^2, data = splice, model = "binomial", lambda = 20,
@@ -203,7 +202,7 @@ stopifnot(all.equal(c1, c3[rownames(c1), ,drop=FALSE]),
 %% and BTW: note that 'x' is quite sparse and we could use Matrix (!):
 table(fm.spl.3$x == 0)
 }
-
+## -------------------------------------------------------------------------
 ## Perform the Logistic Group Lasso on a random dataset
 set.seed(100) # {a "good choice" ..}
 n <- 50  ## observations

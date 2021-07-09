@@ -10,16 +10,14 @@
 \format{
   A data frame with 388 observations on the following 7 variables.
   \describe{
-    \item{\code{no}}{Identification of the date and time}
-    \item{\code{datetime}}{Date and time in the format '\%d.\%m. \%H:\%M'}
-    \item{\code{device}}{Number of measuring device, 1 to 4}
-    \item{\code{charge}}{Charge of blast}
-    \item{\code{distance}}{Distance between blasting and location
-      of measurement}
-    \item{\code{tremor}}{Tremor energy (target variable)}
+    \item{\code{date}}{date in Date format}
     \item{\code{location}}{Code for location of the building,
       \code{loc1} to \code{loc8}}
-    \item{date}{date in Date format}
+    \item{\code{device}}{Number of measuring device, 1 to 4}
+    \item{\code{distance}}{Distance between blasting and location
+      of measurement}
+    \item{\code{charge}}{Charge of blast}
+    \item{\code{tremor}}{Tremor energy (target variable)}
   }
 }
 \details{The charge of the blasting should be controled in order to

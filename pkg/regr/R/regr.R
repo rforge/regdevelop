@@ -30,30 +30,27 @@ regr <- #F
   if (length(lextra))
     warning(":regr: argument(s)  ",paste(lextra, collapse=", "),
             "  not used")
-  lac <- lac[names(lac)%nin%lextra]
-  lcl <- c(list(quote(regr.control)),
-            lac[match(laControl,names(lac), nomatch=0)])
-  mode(lcl) <- "call"
-  largs <-eval(lcl)
+  largs <- do.call("regr.control", lac[match(laControl,names(lac), nomatch=0)])
   ## ------------------------------------------------------------------
   ## b. ===   preparation:
   ## convert character formula to formula
-  lform <- lformula <- as.formula(formula)
+  lformula <- as.formula(formula)
   lcall$formula <- lformula
   ## nonlinear: drop constants
   nonlinear <- i.def(nonlinear, FALSE, TRUE, FALSE)
-  if (as.character(nonlinear)!="FALSE")
-    lform <- setdiff(all.vars(lform), names(start))
+  lform <- if (u.notfalse(nonlinear))
+             setdiff(all.vars(lformula), names(start)) else lformula
   ## nonlinear <- i.nonlincheck(nonlinear, lformula, ldata)
   ## ------------------------------------------------------------------
   ## d. === data
   lextrav <- as.list(lcall)[names(lcall)%in%c("weights", "offset", "subset")]
-  lcgetv <- c(list(quote(plgraphics::getvariables)),
-              list(formula = lform, data = data, transformed = FALSE),
-              lextrav)
-  mode(lcgetv) <- "call"
-  lallvars <- eval(lcgetv)
-  ## ---------------------
+##-   lcgetv <- c(list(quote(plgraphics::getvariables)),
+##-               list(formula = lform, data = data, transformed = FALSE),
+##-               lextrav)
+##-   mode(lcgetv) <- "call"
+  lallvars <-
+    do.call(plgraphics::getvariables,
+            c(list(formula = lform, data = data, transformed = FALSE), lextrav))
   lallvars <- nainf.exclude(lallvars)
   lnaaction <- attr(lallvars, "na.action")
   ## --------------------------------------
@@ -285,7 +282,7 @@ regr <- #F
 ##-     class(lnaaction) <-
 ##-       sub("na.","", sub("nainf.","", as.character(substitute(largs$na.action))))
   lreg$na.action <- lnaaction
-  class(lreg) <- if (inherits(lreg, "orig")) ## (class(lreg)[1]=="orig")  ##  nls shall not be regr
+  class(lreg) <- if (inherits(lreg, "orig")) ##  nls shall not be regr
     class(lreg)[-1] else c("regr",class(lreg))
   ## ------------------------------------------------------------------
   ## result of regr
@@ -306,7 +303,7 @@ regr.control <- #F
        suffmean=suffmean, dist=dist,
        model=model, x=x, termtable=termtable, r2x=r2x,
        testlevel=testlevel, leveragelimit=leveragelimit, tit=tit,
-       control=control
+       control=control ## !!! not useful, will not be used
        )
 }
 ## =========================================================================
@@ -1770,8 +1767,8 @@ factorNA <- function (data, na.label=".NA.", na.prop=0, ...)
   lvn <- names(data)[sapply(data,is.factor)|sapply(data,is.character)]
 ##  ldt <- data[,lvn, drop=FALSE]
   lnanum <- na.prop*nrow(data)
-  for (lv in seq_along(lvn)) {
-    lfac <- factor(data[,lvn[lv]], ...)
+  for (lv in lvn) {
+    lfac <- factor(data[,lv], ...)
     lna <- is.na(lfac)
     if (sum(lna)>lnanum) {
       levels(lfac) <- c(levels(lfac), lnalabel)

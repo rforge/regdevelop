@@ -105,7 +105,7 @@ same manner from the confidence interval for the effect parameter.
 Its limits are called
 
 \Quad  $\Rl s$, ``secured relevance'': the lower end;
-
+\\
 \Quad  $\Rl p$, ``potential relevance'': the upper end.
 
 \Tit{Significance.}
@@ -166,7 +166,7 @@ like the testing level of $5\%$ is for classical null hypothesis testing.
 $\Rl s$ and $\Rl p$.)
 
 The convention includes, as a first step, to determine an appropriate
-``effect scalem'' for the model at hand,
+``effect scale'' for the model at hand,
 and then setting a relevance threshold for it.
 Table~\ref{tab:recommendation}, taken from Stahel (2021) collects the
 proposed effect sizes and thresholds.
@@ -238,8 +238,8 @@ Its call mimics \T{t.test}.
 
 <<twosamples>>=
   t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
-(r.sleep <- 
-   twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
+( r.sleep <- 
+    twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 )
 @ 
 The output shows the estimated effect and its confidence interval together
@@ -257,10 +257,14 @@ t.oldopt <- options(show.inference = "classical")
 r.sleep
 options(t.oldopt)  ##  restore the old options
 @ 
+The function also compares two samples of binary data, resulting in inference 
+based on Fisher's test. A single sample leads to binomial inference. 
+See the Examples section below.
 
+%% =========================================================
 \Tit{Function \T{termtable}.}
 For regression models with a linear predictor, the basic function is
-\T{termtable}.
+\T{termtable}, which is applied to a model fit object.
 For each term reflecting a scalar predictor, its result contains the 
 ordinary and standardized coefficient, their confidence intervals,
 significance against 0, p-value, and relevances.
@@ -280,14 +284,13 @@ according to \T{getOption("show")}.
   if(interactive()) { ## too much avoidable output for the vignette
     str(rt)  
     print(data.frame(rt)) ## or  print(rt, show="all")
-    ## This avoids selection and preparation of columns 
-    ## by 'print.inference'. It produces an extensive output.
+    ## This avoids selection and preparation of columns by 'print.inference'. 
   }
 @ 
 \Tit{Plot.}
 \T{inference} objects relate to a specific plotting method that shows 
 the confidence interval(s) on the relevance scale. Here is the example.
-<<plotInference, fig.height=5, fig.width=9>>=
+<<plotInference, fig.height=4, fig.width=9>>=
 plot(rt)
 @
 
@@ -298,13 +301,13 @@ the function \T{termeffects} calculates effects of levels and
 respective inference measures. 
 As seen here, there are \T{print} and \T{plot} methods for the resulting objects.
 <<termeffects, fig.width=9, fig.height=6>>=
-data(d.blast)
-r.blast <-
-  lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
-(rte <- termeffects(r.blast))
-print(rte, show=c("classical","coefRls","coefRls.symbol"), single=TRUE)
+  data(d.blast)
+  r.blast <-
+    lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast)
+  ( rte <- termeffects(r.blast) )
+  print(rte, show=c("classical","coefRls","coefRls.symbol"), single=TRUE)
 
-plot(termeffects(r.blast), single=TRUE)  ## plot all effects
+  plot(termeffects(r.blast))  ## plot effects for terms with >1 df
 @ 
 
 
@@ -355,11 +358,11 @@ The package's defaults can always be restored by typing
 \T{options(relevance.options)}
 
 <<getOption>>=
-t.opt <- options(show.term.relevance=c("coef", "dropRls", "dropRls.symbol"))
-rt
+  t.opt <- options(show.term.relevance=c("coef", "dropRls", "dropRls.symbol"))
+  rt
 ## restore the old options
-options(list = t.opt) ## the former options
-options(list=relevance.options) ## restore the package's defaults
+  options(list = t.opt) ## the former options
+  options(list=relevance.options) ## restore the package's defaults
 @ 
 
 \Tit{Function \T{print}.} 
@@ -381,20 +384,62 @@ print(rr)
 
 
 %% ============================================================================
+\section{Examples}
+Here, we document the examples that appear in the basic reference.
+
+\Tit{sleep data.}
+
+<<sleep>>=
+data(sleep)
+dd <- subset(sleep, group==2)
+onesample(60*dd$extra, rlv.threshold=60, standardize=FALSE)
+@
+
+\Tit{Anchoring.}
+The experiment is described as follows:
+“Students were asked to guesstimate the height of
+Mount Everest. One group was ‘anchored’ by telling them that it was more than 2000 feet, the
+other group was told that it was less than 45,500 feet. The hypothesis was that respondents
+would be influenced by their ‘anchor,’ such that the first group would produce smaller numbers than the second”. The true height is 
+29,029 feet.
+
+The inference about the difference between the groups and a graphical display are obtained as follows.
+<<anchoring, fig.height=4, fig.width=9>>=
+data(d.everest)
+rr <- twosamples(log(y)~g, data=d.everest, var.equal=TRUE)
+print(rr, show="classical")
+rr
+
+pltwosamples(log(y)~g, data=d.everest)
+@
+
+\Tit{Blasting.}
+When digging a tunnel in a populated area, it is important to make sure that the blasting does not damage nearby buildings. 
+To this end, the tremor caused by the blastings is measured in the basement of such houses, along with the distance and the charge used,
+and a model is used to predict the resulting tremor.
+The dataset \T{d.blast} contains such data for a freeway tunnel beneath a Swiss city. 
+The logarithmic tremor is modelled as a linear function of the logarithmic distance and charge,
+an additive adjustment to the house where the measurements are taken (factor \T{location}).
+For the example in the paper, a subset is used, and \T{time}, a rescaled calendar day, is appended. 
+%% We do not show plots here since they have been displayed above, using the whole dataset.
+<<blast, fig.height=3>>=
+dd <- d.blast[seq(1,388,3),]
+dd <- na.omit(dd[dd$location %in% paste("loc",c(1,2,4),sep=""),])
+dd$time <- as.numeric(dd$date-min(dd$date))/365
+
+rlm <- lm(log10(tremor)~location+log10(distance)+log10(charge)+time, data=dd,
+          contrasts=list(location="contr.sum"))
+( rt <- termtable(rlm) )
+plot(rt)
+@
+
+%% ============================================================================
 \subsection*{Reference}
 
 Stahel, Werner A. (2021). 
 \textit{New relevance and significance measures to replace p-values} 
-Submitted to PLoS ONE
+PLOS ONE, June 16, 2021, doi.org/10.1371/journal.pone.0252991
 
-\vspace{20mm}
-{\small
-\Tit{\noindent This is the end} 
-of the story for the time being, \the\day.\the\month.\the\year. 
-
-\noindent
-Werner Stahel, \T{stahel at stat.math.ethz.ch}
-}
 \end{document}
 
 %%% Local Variables: 

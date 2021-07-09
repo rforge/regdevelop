@@ -1,15 +1,19 @@
 \name{print.inference}
 \title{Print Tables with Inference Measures}
 \alias{print.inference}
+\alias{print.termtable}
 \alias{print.termeffects}
 \alias{print.printInference}
 \description{Print methods for objects of class
-  \code{"inference"}, \code{"termeffects"}, or \code{"printInference"}.
+  \code{"inference"}, \code{"termtable"}, \code{"termeffects"},
+  or \code{"printInference"}.
 }
 \usage{
 \method{print}{inference}(x, show = getOption("show.inference"), print=TRUE,
   digits = getOption("digits.reduced"), transpose.ok = TRUE,
   legend = NULL, na.print = "  ", ...)
+
+\method{print}{termtable}(x, show = getOption("show.inference"), ...)
 
 \method{print}{termeffects}(x, show = getOption("show.inference"),
   transpose.ok = TRUE, single = FALSE, print = TRUE, warn = TRUE, ...)

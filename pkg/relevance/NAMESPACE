@@ -12,7 +12,7 @@ importFrom("utils",
            str, recover
            )
 importFrom("graphics",
-           par, plot, abline, segments, axis, mtext
+           box, par, plot, abline, segments, axis, mtext
            )
 
 ##- importFrom("MASS", rlm, polr)
@@ -25,7 +25,8 @@ importFrom("graphics",
 
 export(confintF, drop1Wald,
        getcoeftable, getcoeffactor, getscalepar, 
-       inference, onesample, p.symbols, rlv.symbols,
+       inference, onesample, plconfint, pltwosamples,
+       p.symbols, rlv.symbols,
        relevance.options, relevance.modelclasses, 
        termeffects, termtable, twosamples, plot.inference, 
        DB
@@ -33,9 +34,14 @@ export(confintF, drop1Wald,
 
 S3method(twosamples, formula)
 S3method(twosamples, default)
-S3method(print, termeffects)
-S3method("[", termeffects)
+S3method(twosamples, table)
+S3method(pltwosamples, formula)
+S3method(pltwosamples, default)
 S3method(print, inference)
 S3method(print, printInference)
 S3method(plot, inference)
+S3method(print, termtable)
+S3method(plot, termtable, plot.inference)
+S3method(print, termeffects)
+S3method("[", termeffects)
 S3method(plot, termeffects)

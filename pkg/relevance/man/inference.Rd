@@ -8,8 +8,8 @@
   relevance, additional quantities. 
 }
 \usage{
-inference(estimate, se = NULL, df = NULL, testlevel = 0.05, stcoef=TRUE, rlv=TRUE, 
-            rlv.threshold=0.1, object=NULL)
+inference(estimate = NULL, se = NULL, n = NULL, df = Inf, testlevel = 0.05,
+  stcoef=TRUE, rlv=TRUE, rlv.threshold=0.1, object=NULL)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -20,6 +20,8 @@ inference(estimate, se = NULL, df = NULL, testlevel = 0.05, stcoef=TRUE, rlv=TRU
   \item{se}{vector of standard errors of the estimates
   }
   \item{df}{degrees of freedom of the residuals
+  }
+  \item{n}{number of observations
   }
   \item{testlevel}{test level
   }
@@ -65,8 +67,7 @@ inference(estimate, se = NULL, df = NULL, testlevel = 0.05, stcoef=TRUE, rlv=TRU
 data(d.blast)
 rr <-
   lm(log10(tremor)~location+log10(distance)+log10(charge), data=d.blast) 
-inference(rr) ## same as
-inference(summary(rr)$coef)
+inference(rr)
 }
 \keyword{ regression }
 \concept{relevance}

@@ -3,6 +3,7 @@
 \alias{onesample}
 \alias{twosamples.default}
 \alias{twosamples.formula}
+\alias{twosamples.table}
 
 \title{Relevance and Significance for One or Two Samples}
 \description{Inference for a difference between two independent samples
@@ -13,15 +14,21 @@
 twosamples(x, ...)
 onesample(x, ...)
 
-\method{twosamples}{default}(x, y = NULL, paired = FALSE,
+\method{twosamples}{default}(x, y = NULL, paired = FALSE, table = NULL, 
   hypothesis = 0,var.equal = TRUE,
-  testlevel=getOption("testlevel"), rlv.threshold=getOption("rlv.threshold"), ...)
+  testlevel=getOption("testlevel"), log = NULL, standardize = TRUE, 
+  rlv.threshold=getOption("rlv.threshold"), ...)
 \method{twosamples}{formula}(formula, data, subset, na.action, ...)
+\method{twosamples}{table}(x, ...)
 }
 \arguments{
   \item{x}{a formula or the data for the first or the single sample
   }
   \item{y}{data for the second sample
+  }
+  \item{table}{A \code{table} summarizing the data in case of
+    binary (binomial) data. If given, \code{x} and \code{y} are
+    ignored. 
   }
   \item{paired}{logical: In case \code{x} and \code{y} are given.
     are their values paired?
@@ -36,6 +43,14 @@ onesample(x, ...)
   \item{testlevel}{level for the test,
     also determining the confidence level
   }
+  \item{log}{logical: Is the target variable on log scale?
+    If so, no standardization is applied to it.
+    By default, the function examines the formula to check whether
+    the left hand side of the formula contains a log transformation.
+  }
+  \item{standardize}{logical: Should the effect be standardized
+    (for quantiative data)?
+  }
   \item{rlv.threshold}{Relevance threshold, or a vector of thresholds
     from which the element \code{stand} is taken for quantitative data
     and the element \code{prop}, for binary data.
@@ -43,16 +58,18 @@ onesample(x, ...)
 
   For the \code{formula} method:
 
-  \item{formula, data}{formula and data for the \code{formula} method
+  \item{formula}{formula of the form  y~x  giving the target y and
+    condition x variables. For a one-sample situation, use  y~1.
+  }
+  \item{data}{data from which the variables are obtained
   }
   \item{subset, na.action}{subset and na.action to be applied to
     \code{data}
   }
-  \item{...}{further arguments. For the \code{formula} method,
-    this includes the arguments \code{var.equal, testlevel} and
-    code{rlv.threshold} of the \code{default} method.
+  \item{...}{further arguments, ignored
   }
 }
+%% --------------
 \value{an object of \code{\link{class}} \code{'effecttable'}, a
   \code{\link{data.frame}} with columns (components)
   \describe{
@@ -83,14 +100,18 @@ onesample(x, ...)
   }
 }
 \note{\code{onesample} and \code{twosamples} are identical.
-  }
+  \code{twosamples.table(x,...)} just calls
+  \code{twosamples.default(table=x, ...)}.
+}
 \references{see those in \code{\link{relevance-package}}.}
 
 \author{Werner A. Stahel}
 
-\seealso{\code{\link{t.test}, \link{binom.test}}
+\seealso{\code{\link{t.test}, \link{binom.test}, \link{fisher.test},
+    \link{mcnemar.test}}
 }
 \examples{
+data(sleep)
 t.test(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 twosamples(sleep[sleep$group == 1, "extra"], sleep[sleep$group == 2, "extra"])
 
@@ -106,6 +127,10 @@ twosamples(perm~atterm, data=d.permeabililty)
 
 ## one sample
 onesample(sleep[sleep$group == 2, "extra"])
+
+## plot two samples
+pltwosamples(extra ~ group, data=sleep)
+
 }
 \keyword{htest}
 \concept{relevance}

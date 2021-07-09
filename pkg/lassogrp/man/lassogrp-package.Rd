@@ -39,7 +39,7 @@ It is in development.
 \references{
   Lukas Meier, Sara van de Geer and Peter B\"uhlmann (2008),
   \emph{The Group Lasso for Logistic Regression},
-  Journal of the Royal Statistical Society, \bold{70} (1), 53--71;
+  Journal of the Royal Statistical Society, \bold{70} (1), 53--71
 }
 \seealso{\code{library(lars)}}
 \examples{
